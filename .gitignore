@@ -1,0 +1,139 @@
+###################
+# Project Specific
+###################
+
+# Typescript Build
+/public
+
+# Config Files
+/config/env/development.js
+/config/env/dev-sender.js
+/config/env/development-*.js
+
+# Packages
+*.tar.gz
+
+###################
+# Editors
+###################
+
+# Eclipse
+.project
+.settings
+.classpath
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+
+# Net Beans
+nbactions.xml
+nb-configuration.xml
+
+# VS
+.vscode
+
+# Vi, etc
+*.swp
+*.tmp
+*.bak
+
+# General
+*~
+
+
+###################
+# Build
+###################
+
+# Node
+node_modules/
+
+# Common
+bin/
+tmp/
+
+# Apple
+*~.nib
+
+# Gradle/Maven
+target/
+.gradle/
+
+# Python
+*.pydevproject
+.Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+
+# C extensions
+*.so
+
+# Distribution / packaging
+/env/
+/build/
+develop-eggs/
+/dist/
+/downloads/
+eggs/
+.eggs/
+/lib64/
+parts/
+sdist/
+/var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+
+###################
+# OS
+###################
+
+# MacOS
+.DS_Store
+
+
+###################
+# Tests
+###################
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+cobertura-coverage.xml
+/karma-out
+/.nodemonignore
+/.sass-cache/
+/npm-debug.log
+/app/tests/coverage/
+/.bower-*/
+/.coverrun
+/.coverdata/
+/debug/
+/mocha-tests.xml
+/karma-out/
+/reports/
+/PhantomJS*
+
+*.mo
+*.pot
