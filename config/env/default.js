@@ -20,57 +20,36 @@ module.exports = {
 		/*
 		 * 'local' strategy uses a locally managed username/password and user profile
 		 */
-		strategy: 'local',
+		// strategy: 'local',
 
 		/*
 		 * 'proxy-pki' strategy assumes that the Node app is behind an SSL terminating
 		 * proxy server. The proxy is responsible for passing the DN of the incoming
 		 * user in the the 'x-ssl-client-dn' header.
 		 */
-		// strategy: 'proxy-pki',
-		//
-		// accessChecker: {
-		// 	provider: {
-		// 		file: 'src/server/app/access-checker/providers/example-provider.server.service.js',
-		// 		config: {
-		// 			'cn=asymmetrikclient,ou=client,o=asymmetrik ltd.,st=maryland,c=us': {
-		// 				name: 'Matt PKI',
-		// 				profileOrganization: 'Asymmetrik',
-		// 				email: 'mgaulin@gmail.com',
-		// 				username: 'mgaulin_pki',
-		// 				roles: [ 'ROLE' ]
-		// 			}
-		// 		}
-		// 	},
-		// 	cacheExpire: 1000*60*60*24 // expiration of cache entries
-		// },
-		//
-		// autoLogin: true,
-		// autoCreateAccounts: true,
-		// requiredRoles: ['ROLE'],
-		// defaultRoles: { user: true },
+		strategy: 'proxy-pki',
 
-		// redirect: {
-		// 	routes: [
-		// 		{
-		// 			url: 'http://localhost:3000/#',
-		// 			dnMatch: {
-		// 				ou: ['client', 'client'],
-		// 				st: 'maryland'
-		// 			}
-		// 		},
-		// 		{
-		// 			url: 'https://google.com',
-		// 			dnMatch: {
-		// 				cn: 'asymmetrikclient'
-		// 			}
-		// 		},
-		// 		{
-		// 			url: 'https://fallbackUrl.url'
-		// 		}
-		// 	],
-		// 	ignore: [ 'admin' ]
-		// },
+		accessChecker: {
+			provider: {
+				file: 'src/app/core/access-checker/providers/example-provider.server.service.js',
+				config: {
+					'cn=asymmetrikclient,ou=client,o=asymmetrik ltd.,st=maryland,c=us': {
+						name: 'Matt PKI',
+						profileOrganization: 'Asymmetrik',
+						email: 'mgaulin@gmail.com',
+						username: 'mgaulin_pki',
+						roles: [ 'ROLE' ]
+					}
+				}
+			},
+			cacheExpire: 1000*60*60*24 // expiration of cache entries
+		},
+
+		autoLogin: true,
+		autoCreateAccounts: true,
+		requiredRoles: ['ROLE'],
+		defaultRoles: { user: true },
+
 
 		/*
 		 * Session settings are required regardless of auth strategy
@@ -287,7 +266,7 @@ module.exports = {
 	 */
 
 	// The port to use for the application (defaults to the environment variable if present)
-	port: process.env.PORT || 3000,
+	port: process.env.PORT || 3001,
 
 	// SocketIO Settings
 	socketio: {
