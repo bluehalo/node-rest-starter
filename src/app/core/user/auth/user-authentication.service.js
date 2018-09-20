@@ -122,50 +122,6 @@ module.exports.welcomeEmail = (user, req) => {
 	return defer.promise;
 };
 
-const dnAttributeMatch = (dnLower, key, value) => {
-	return dnLower.indexOf(`${key}=${value}`) > -1;
-};
-
-const dnMatch = (dnLower, key, match) => {
-	if (Array.isArray(match) && match.length > 0) {
-		return match.every((matchValue) => dnAttributeMatch(dnLower, key, matchValue));
-	} else if (typeof match === 'string') {
-		return dnAttributeMatch(dnLower, key, match);
-	}
-
-	return false;
-};
-
-const getRedirectUrl = (dnLower) => {
-	if (null != dnLower && null != config.auth.redirect && null != config.auth.redirect.routes && config.auth.redirect.routes.length > 0) {
-		return User.findOne({ 'providerData.dnLower': dnLower }).then((user) => {
-			const ignore = config.auth.redirect.ignore;
-			if (null == user || null == ignore || !User.hasRoles(user, ignore)) {
-				for (let i = 0; i < config.auth.redirect.routes.length; i++) {
-					const route = config.auth.redirect.routes[i];
-
-					if (null != route.url) {
-						if (null != route.dnMatch) {
-							if (Object.keys(route.dnMatch).every((key) => dnMatch(dnLower, key, route.dnMatch[key]))) {
-								return route.url;
-							}
-						} else if (null != route.dnNotMatch) {
-							if (!Object.keys(route.dnNotMatch).every((key) => dnMatch(dnLower, key, route.dnNotMatch[key]))) {
-								return route.url;
-							}
-						} else {
-							return route.url;
-						}
-					}
-				}
-			}
-
-			return null;
-		});
-	}
-
-	return q(null);
-};
 
 /**
  * Login the user
@@ -212,54 +168,46 @@ module.exports.login = function(user, req) {
 /**
  * Authenticate and then login depending on the outcome
  */
-module.exports.authenticateAndLogin = function(req) {
+module.exports.authenticateAndLogin = function(req, res, next) {
 	let defer = q.defer();
 
-	const dnLower = _.get(req, 'headers.x-ssl-client-s-dn', '').toLowerCase();
-	getRedirectUrl(dnLower).then((url) => {
-		// If a url was matched and it is not the same as the app that is currently running, then we need to reject the request to cause the client to redirect
-		if (null != url && url !== config.app.clientUrl) {
-			defer.reject({ status: 403, type: 'redirect', url: url });
-		} else {
-			// Attempt to authenticate the user using passport
-			passport.authenticate(config.auth.strategy, (err, user, info, status) => {
+	// Attempt to authenticate the user using passport
+	passport.authenticate(config.auth.strategy, (err, user, info, status) => {
 
-				// If there was an error
-				if(null != err) {
-					// Reject the promise with a 500 error
-					defer.reject({ status: 500, type: 'authentication-error', message: err });
-				}
-				// If the authentication failed
-				else if (!user) {
-					// In the case of a auth failure, info should have the reason
-					// Here is a hack for the local strategy...
-					if(null == info.status && null != status) {
-						info.status = status;
-						if(info.message === 'Missing credentials') {
-							info.type = 'missing-credentials';
-						}
-					}
-
-					defer.reject(info);
-
-					// Try to grab the username from the request
-					let username = (req.body && req.body.username)? req.body.username : 'none provided';
-
-					// Audit the failed attempt
-					auditService.audit(info.message, 'user-authentication', 'authentication failed',
-						{ }, { username: username }, req.headers);
-
-				}
-				// Else the authentication was successful
-				else {
-					// Set the user ip if available.
-					user.ip = ( _.isUndefined(req.headers['x-real-ip']) ) ? null : req.headers['x-real-ip'];
-					module.exports.login(user, req).then(defer.resolve, defer.reject);
-				}
-
-			})(req);
+		// If there was an error
+		if(null != err) {
+			// Reject the promise with a 500 error
+			defer.reject({ status: 500, type: 'authentication-error', message: err });
 		}
-	});
+		// If the authentication failed
+		else if (!user) {
+			// In the case of a auth failure, info should have the reason
+			// Here is a hack for the local strategy...
+			if(null == info.status && null != status) {
+				info.status = status;
+				if(info.message === 'Missing credentials') {
+					info.type = 'missing-credentials';
+				}
+			}
+
+			defer.reject(info);
+
+			// Try to grab the username from the request
+			let username = (req.body && req.body.username)? req.body.username : 'none provided';
+
+			// Audit the failed attempt
+			auditService.audit(info.message, 'user-authentication', 'authentication failed',
+				{ }, { username: username }, req.headers);
+
+		}
+		// Else the authentication was successful
+		else {
+			// Set the user ip if available.
+			user.ip = ( _.isUndefined(req.headers['x-real-ip']) ) ? null : req.headers['x-real-ip'];
+			module.exports.login(user, req).then(defer.resolve, defer.reject);
+		}
+
+	})(req, res, next);
 
 	return defer.promise;
 };

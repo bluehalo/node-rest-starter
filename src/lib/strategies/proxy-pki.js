@@ -12,7 +12,7 @@ const
 	auditService = deps.auditService,
 
 	accessChecker = require('../../app/core/access-checker/access-checker.service'),
-	userAuthService = require('../../app/core/user/auth/users.authentication.service'),
+	userAuthService = require('../../app/core/user/auth/user-authentication.service'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	User = mongoose.model('User');
 

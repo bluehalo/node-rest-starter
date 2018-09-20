@@ -23,7 +23,7 @@ module.exports.init = function() {
 	});
 
 	// Initialize strategies
-	config.utils.getGlobbedPaths('./src/server/lib/strategies/**/*.js').forEach(function(strategy) {
+	config.utils.getGlobbedPaths('./src/lib/strategies/**/*.js').forEach(function(strategy) {
 		require(path.posix.resolve(strategy))();
 	});
 };

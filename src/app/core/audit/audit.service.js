@@ -15,10 +15,6 @@ module.exports.audit = function(message, eventType, eventAction, eventActor, eve
 
 	return q.resolve(eventActor).then((actor) => {
 		// Extract additional metadata to audit
-		let interfaceUrl = utilService.getHeaderField(eventMetadata, 'interface-url');
-		if (interfaceUrl != null) {
-			interfaceUrl = decodeURI(interfaceUrl);
-		}
 		let userAgentObj = utilService.getUserAgentFromHeader(eventMetadata);
 
 		// Send to Mongo
@@ -29,7 +25,6 @@ module.exports.audit = function(message, eventType, eventAction, eventActor, eve
 				auditType: eventType,
 				action: eventAction,
 				actor: actor,
-				interfaceUrl: interfaceUrl,
 				userSpec: userAgentObj
 			}
 		});

@@ -1,6 +1,7 @@
 'use strict';
 
-let passport = require('passport'),
+const
+	passport = require('passport'),
 	mongoose = require('mongoose'),
 	LocalStrategy = require('passport-local').Strategy,
 
@@ -29,9 +30,7 @@ module.exports = function() {
 				// Return the user
 				return done(null, user);
 
-			}, function(err) {
-				return done(err);
-			}).done();
+			}, (err) => done(err)).done();
 
 		}
 

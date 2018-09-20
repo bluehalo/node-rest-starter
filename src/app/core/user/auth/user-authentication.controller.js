@@ -35,7 +35,7 @@ function login(user, req, res) {
 
 //Authenticate and login the user. Passport handles authentication.
 function authenticateAndLogin(req, res, next) {
-	userAuthService.authenticateAndLogin(req)
+	userAuthService.authenticateAndLogin(req, res, next)
 		.then(
 			(result) => {
 				res.status(200).json(result);

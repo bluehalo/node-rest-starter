@@ -133,7 +133,7 @@ module.exports = {
 	// Header/footer
 	banner: {
 		// The string to display
-		string: 'DEFAULT SETTINGS',
+		html: 'DEFAULT SETTINGS',
 
 		// additional CSS class to apply to the banner
 		style: 'default'
@@ -142,7 +142,7 @@ module.exports = {
 	// Copyright footer (shown above the system footer)
 	copyright: {
 		// HTML-enabled contents of the banner
-		string: 'Copyright © 2018 <a href="http://www.asymmetrik.com" target="_blank">Asymmetrik, Ltd</a>. All Rights Reserved.'
+		html: 'Copyright © 2018 <a href="http://www.asymmetrik.com" target="_blank">Asymmetrik, Ltd</a>. All Rights Reserved.'
 	},
 
 	email: {
