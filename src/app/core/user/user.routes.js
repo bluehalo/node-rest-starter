@@ -16,6 +16,37 @@ const router = express.Router();
  * User Routes (don't require admin)
  */
 
+/**
+ * @swagger
+ * definitions:
+ *   User:
+ *     type: object
+ *     properties:
+ *       username:
+ *          type: string
+ *       name:
+ *          type: string
+ *     example:
+ *       username: 'jbuser'
+ *       name: 'Jane B. User'
+ */
+
+ /**
+ * @swagger
+ * /user/me:
+ *   get:
+ *      produces: application/json
+ *      tags: [User]
+ *      description: >
+ *         Returns information about the authenticated user.
+ *      responses:
+ *         '200':
+ *            description: The authenticated user's profile
+ *            content:
+ *               application/json:
+ *            schema:
+ *               $ref: '#/definitions/User'
+ */
 // Self-service user routes
 router.route('/user/me')
 	.get( users.has(users.requiresLogin), users.getCurrentUser)
