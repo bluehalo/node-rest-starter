@@ -27,28 +27,28 @@ module.exports = {
 		 * proxy server. The proxy is responsible for passing the DN of the incoming
 		 * user in the the 'x-ssl-client-dn' header.
 		 */
-		strategy: 'proxy-pki',
+		strategy: 'local',
 
-		accessChecker: {
-			provider: {
-				file: 'src/app/core/access-checker/providers/example-provider.server.service.js',
-				config: {
-					'cn=asymmetrikclient,ou=client,o=asymmetrik ltd.,st=maryland,c=us': {
-						name: 'Matt PKI',
-						profileOrganization: 'Asymmetrik',
-						email: 'mgaulin@gmail.com',
-						username: 'mgaulin_pki',
-						roles: [ 'ROLE' ]
-					}
-				}
-			},
-			cacheExpire: 1000*60*60*24 // expiration of cache entries
-		},
-
-		autoLogin: true,
-		autoCreateAccounts: true,
-		requiredRoles: ['ROLE'],
-		defaultRoles: { user: true },
+		// accessChecker: {
+		// 	provider: {
+		// 		file: 'src/app/core/access-checker/providers/example-provider.server.service.js',
+		// 		config: {
+		// 			'user cn string': {
+		// 				name: 'User Name',
+		// 				profileOrganization: 'User Organization',
+		// 				email: 'user@email.com',
+		// 				username: 'username',
+		// 				roles: [ 'ROLE' ]
+		// 			}
+		// 		}
+		// 	},
+		// 	cacheExpire: 1000*60*60*24 // expiration of cache entries
+		// },
+        //
+		// autoLogin: true,
+		// autoCreateAccounts: true,
+		// defaultRoles: { user: true },
+		// requiredRoles: ['ROLE'],
 
 
 		/*
