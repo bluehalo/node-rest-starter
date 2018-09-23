@@ -53,6 +53,8 @@
     "q": "1.5",
     "socket.io": "2.1",
     "socketio-sticky-session": "0.4",
+    "swagger-jsdoc": "3.2",
+    "swagger-ui-express": "4.0",
     "through2": "2.0",
     "uuid": "3.3"
   },

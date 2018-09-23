@@ -265,6 +265,11 @@ module.exports = {
 	 * Not So Environment-Specific Settings
 	 */
 
+	apiDocs: {
+		enabled: true,
+		path: '/api-docs'
+	},
+
 	// The port to use for the application (defaults to the environment variable if present)
 	port: process.env.PORT || 3001,
 
