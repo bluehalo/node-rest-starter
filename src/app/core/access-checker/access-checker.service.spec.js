@@ -2,7 +2,6 @@
 
 const
 	_ = require('lodash'),
-	q = require('q'),
 	should = require('should'),
 
 	deps = require('../../../dependencies'),
@@ -17,7 +16,7 @@ const
  * Helpers
  */
 function clearDatabase() {
-	return q.all([
+	return Promise.all([
 		CacheEntry.remove()
 	]);
 }
@@ -103,7 +102,7 @@ describe('Access Checker Service:', function() {
 				return (new CacheEntry(spec.cache[k])).save().then(function(e) { cache[k] = e; });
 			}));
 
-			return q.all(defers);
+			return Promise.all(defers);
 		});
 	});
 
@@ -121,7 +120,7 @@ describe('Access Checker Service:', function() {
 			// All of the data is loaded, so initialize proxy-pki
 			config.auth.accessChecker = {
 				provider: {
-					file: 'src/server/app/access-checker/providers/failure-provider.server.service.js',
+					file: 'src/app/core/access-checker/providers/failure-provider.service.js',
 					config: {}
 				}
 			};
@@ -171,7 +170,7 @@ describe('Access Checker Service:', function() {
 			// All of the data is loaded, so initialize proxy-pki
 			config.auth.accessChecker = {
 				provider: {
-					file: 'src/server/app/access-checker/providers/example-provider.server.service.js',
+					file: 'src/app/core/access-checker/providers/example-provider.service.js',
 					config: provider
 				}
 			};

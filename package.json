@@ -14,8 +14,8 @@
   },
   "scripts": {
     "start": "nodemon ./src/server.js --exec 'npm run lint && node --inspect' | bunyan",
-    "test": "",
-    "test:ci": "",
+    "test": "NODE_ENV=test nodemon ./src/test.js",
+    "test:ci": "NODE_ENV=test node ./src/test.js",
     "build": "npm run lint",
     "lint": "npm run lint:eslint",
     "lint:eslint": "eslint \"./**/*.js\""
@@ -38,6 +38,7 @@
     "glob": "7.1",
     "handlebars": "4.0",
     "helmet": "3.13",
+    "kafka-node": "3.0",
     "lodash": "4.17",
     "method-override": "3.0",
     "moment": "2.22",

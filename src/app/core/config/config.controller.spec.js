@@ -2,7 +2,7 @@ const should = require('should');
 
 describe('Config Server Controller', function() {
 
-	let configController = require('./config.server.controller');
+	let configController = require('./config.controller');
 
 	describe('#getSystemConfig', function() {
 

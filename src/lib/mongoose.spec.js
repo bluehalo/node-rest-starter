@@ -1,5 +1,4 @@
 const
-	path = require('path'),
 	proxyquire = require('proxyquire'),
 	should = require('should');
 
@@ -7,17 +6,14 @@ function createSubjectUnderTest(databases) {
 	const stubConfig = {
 		db: databases,
 		files: {
-			server: {
-				models: []
-			}
+			models: []
 		},
 		'@noCallThru': true
 	};
 
 	const stubs = {};
-	const configPath = path.posix.resolve('./src/server/config.js');
-	stubs[configPath] = stubConfig;
-	return proxyquire('./mongoose.js', stubs);
+	stubs['../config'] = stubConfig;
+	return proxyquire('./mongoose', stubs);
 }
 
 describe('Mongoose', () => {

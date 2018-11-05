@@ -1,0 +1,54 @@
+/* eslint-disable no-console */
+'use strict';
+
+let	Mocha = require('mocha'),
+	argv = require('yargs').argv,
+
+	config = require('./config.js'),
+	mongoose = require('./lib/mongoose.js');
+
+console.info('Starting initialization of tests');
+
+// Initialize mongoose
+mongoose.connect().then(() => {
+	console.info('Mongoose connected, proceeding with tests');
+
+	process.on('exit', () => {
+		mongoose.disconnect();
+	});
+
+	// Create the mocha instance
+	let options = {
+		reporter: 'spec'
+	};
+	if (argv.bail) {
+		console.log('Mocha: Setting option \'bail\' to true.');
+		options.bail = true;
+	}
+	let mocha = new Mocha(options);
+
+	// Add all the tests to mocha
+	let testCount = 0;
+	config.files.tests.forEach((file) => {
+		if(!(argv.filter) || file.match(new RegExp(argv.filter))) {
+			testCount++;
+			mocha.addFile(file);
+		}
+	});
+	console.log(`Mocha: Executing ${testCount} test files.`);
+
+	try {
+		// Run the tests.
+		mocha.run((failures) => {
+			process.exit(failures ? 1 : 0);
+		});
+
+	} catch(ex) {
+		console.error('Tests Crashed');
+		console.error(ex);
+		process.exit(1);
+	}
+
+}, () => {
+	console.error('Mongoose initialization failed, tests failed.');
+}).done();

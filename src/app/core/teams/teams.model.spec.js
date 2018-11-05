@@ -89,6 +89,8 @@ describe('Team Model:', function() {
 			team1.name = '';
 			team1.save(function(err) {
 				should.exist(err);
+				// reset the in-memory value
+				team1.name = spec.team1.name;
 				done();
 			});
 		});
@@ -105,7 +107,6 @@ describe('Team Model:', function() {
 		});
 
 		it('should create teams without problems', function(done) {
-			team1.title = spec.team1.title;
 			team1.save(function(err) {
 				should.not.exist(err);
 				should.exist(team1._id);
