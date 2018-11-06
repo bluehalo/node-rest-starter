@@ -18,9 +18,15 @@ mongoose.connect().then(() => {
 	});
 
 	// Create the mocha instance
-	let options = {
+	let options = argv.ci ? {
+		reporter: 'xunit',
+		reporterOptions: {
+			output: 'mocha-tests.xml'
+		}
+	} : {
 		reporter: 'spec'
 	};
+
 	if (argv.bail) {
 		console.log('Mocha: Setting option \'bail\' to true.');
 		options.bail = true;
