@@ -38,7 +38,6 @@
     "glob": "7.1",
     "handlebars": "4.0",
     "helmet": "3.13",
-    "kafka-node": "3.0",
     "lodash": "4.17",
     "method-override": "3.0",
     "moment": "2.22",
@@ -61,6 +60,7 @@
   },
   "devDependencies": {
     "eslint": "5",
+    "kafka-node": "3.0",
     "mocha": "5",
     "mochawesome": "3",
     "nodemon": "1",
