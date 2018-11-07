@@ -14,8 +14,8 @@
   },
   "scripts": {
     "start": "nodemon ./src/server.js --exec 'npm run lint && node --inspect' | bunyan",
-    "test": "",
-    "test:ci": "",
+    "test": "NODE_ENV=test nodemon ./src/test.js",
+    "test:ci": "NODE_ENV=test nyc --reporter=lcov node ./src/test.js --ci",
     "build": "npm run lint",
     "lint": "npm run lint:eslint",
     "lint:eslint": "eslint \"./**/*.js\""
@@ -60,6 +60,8 @@
   },
   "devDependencies": {
     "eslint": "5",
+    "kafka-node": "3.0",
+    "nyc": "13.1",
     "mocha": "5",
     "mochawesome": "3",
     "nodemon": "1",

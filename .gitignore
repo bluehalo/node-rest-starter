@@ -114,6 +114,8 @@ sdist/
 # Unit test / coverage reports
 htmlcov/
 .tox/
+.nyc_output
+/coverage
 .coverage
 .coverage.*
 .cache
