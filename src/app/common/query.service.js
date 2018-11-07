@@ -36,11 +36,16 @@ function generateSort(sortArr) {
 	return sort;
 }
 
-function pagingQuery(schema, find, projection, options, sort, limit, offset, runCount) {
+function pagingQuery(schema, find, projection, options, sort, limit, offset, runCount, populate) {
 
 	// Build the query
 	let baseQuery = schema.find(find);
 	let findQuery = schema.find(find, projection, options).sort(sort).skip(offset).limit(limit).maxscan(config.maxScan);
+
+	// Add population
+	if (populate) {
+		findQuery = findQuery.populate(populate);
+	}
 
 	// Build the promise response
 	let countDefer = q.defer();
@@ -111,7 +116,7 @@ module.exports.containsQuery = function(schema, query, fields, search, limit, of
 };
 
 // Generic Full text search
-module.exports.search = function(schema, query, searchTerms, limit, offset, sortArr, runCount) {
+module.exports.search = function(schema, query, searchTerms, limit, offset, sortArr, runCount, populate) {
 	// Initialize find to null
 	let find = generateFind(query);
 	let projection;
@@ -130,7 +135,7 @@ module.exports.search = function(schema, query, searchTerms, limit, offset, sort
 		sort.score = { $meta: 'textScore' };
 	}
 
-	return pagingQuery(schema, find, projection, options, sort, limit, offset, runCount);
+	return pagingQuery(schema, find, projection, options, sort, limit, offset, runCount, populate);
 };
 
 module.exports.stream = function(schema, query, searchTerms, limit, offset, sortArr, lean) {

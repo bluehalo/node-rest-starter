@@ -1,11 +1,10 @@
 'use strict';
 
 const
-	q = require('q'),
-
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
+	logger = deps.logger,
 	auditService = deps.auditService,
 	emailService = deps.emailService,
 	utilService = deps.utilService,
@@ -13,30 +12,32 @@ const
 	exportConfigController = require('../export/export-config.controller'),
 	exportConfigService = require('../export/export-config.service'),
 
-	Audit = dbs.admin.model('Audit'),
+	feedbackService = require('./feedback.service'),
+
+	Feedback = dbs.admin.model('Feedback'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	ExportConfig = dbs.admin.model('ExportConfig');
 
 
-function buildEmailContent(user, feedback, feedbackType, url) {
+function buildEmailContent(user, feedback) {
 	let emailData = {
 		appName: config.app.name,
 		name: user.name,
 		username: user.username,
-		url: url,
-		feedback: feedback,
-		feedbackType: feedbackType
+		url: feedback.url,
+		feedback: feedback.body,
+		feedbackType: feedback.type
 	};
 
-	return emailService.buildEmailContent('core/views/templates/user-feedback-email', emailData);
+	return emailService.buildEmailContent('src/app/core/feedback/templates/user-feedback-email.view.html', emailData);
 }
 
-function sendFeedback(user, feedback, feedbackType, url) {
-	if (null == user || null == feedback || null == feedbackType||null == url) {
-		return q.reject({ status: 400, message: 'Invalid submission.' });
+async function sendFeedback(user, feedback) {
+	if (null == user || null == feedback.body || null == feedback.type || null == feedback.url) {
+		return Promise.reject({ status: 400, message: 'Invalid submission.' });
 	}
 
-	return buildEmailContent(user, feedback, feedbackType, url).then((content) => {
+	return buildEmailContent(user, feedback).then((content) => {
 		let mailOptions = {
 			bcc: config.contactEmail,
 			from: config.mailer.from,
@@ -49,55 +50,72 @@ function sendFeedback(user, feedback, feedbackType, url) {
 	});
 }
 
-exports.submitFeedback = function(req, res) {
-	const feedback = req.body.body || null;
-	const feedbackType = req.body.type || null;
-	const url = req.body.url || null;
-
-	return auditService.audit('Feedback submitted', 'feedback', 'create', TeamMember.auditCopy(req.user, utilService.getHeaderField(req.headers, 'x-real-ip')), req.body, req.headers).then(() => {
-		return sendFeedback(req.user, feedback, feedbackType, url);
-	}).then((result) => {
-		res.status(200).json(result);
-	}, (err) => {
+module.exports.submitFeedback = async function(req, res) {
+	try {
+		await auditService.audit('Feedback submitted', 'feedback', 'create', TeamMember.auditCopy(req.user, utilService.getHeaderField(req.headers, 'x-real-ip')), req.body, req.headers);
+		let feedback = await feedbackService.create(req.user, req.body);
+		await sendFeedback(req.user, feedback);
+		res.status(200).json(feedback);
+	} catch (err) {
 		utilService.handleErrorResponse(res, err);
-	}).done();
+	}
 };
 
-exports.adminGetFeedbackCSV = function(req, res) {
-	let exportFileName;
+module.exports.adminGetFeedbackCSV = async function(req, res) {
 	const exportId = req.params.exportId;
 
 	const dateCallback = (value) => (value) ? new Date(value).toISOString(): '';
 	const defaultCallback = (value) => (value) ? value : '';
 
 	const exportColumns = [
-		{ key: 'audit.object.url', title: 'Submitted From URL', callback: defaultCallback },
-		{ key: 'audit.object.body', title: 'Feedback Body', callback: defaultCallback },
-		{ key: 'audit.actor.name', title: 'Submitted By Name', callback: defaultCallback },
-		{ key: 'audit.actor.username', title: 'Submitted By Username', callback: defaultCallback },
-		{ key: 'audit.actor.email', title: 'Submitted By Email', callback: defaultCallback },
-		{ key: 'audit.actor.organization', title: 'Submitted By Organization', callback: defaultCallback },
+		{ key: 'url', title: 'Submitted From URL', callback: defaultCallback },
+		{ key: 'body', title: 'Feedback Body', callback: defaultCallback },
+		{ key: 'type', title: 'Feedback Type', callback: defaultCallback },
+		{ key: 'creator.name', title: 'Submitted By Name', callback: defaultCallback },
+		{ key: 'creator.username', title: 'Submitted By Username', callback: defaultCallback },
+		{ key: 'creator.email', title: 'Submitted By Email', callback: defaultCallback },
+		{ key: 'creator.organization', title: 'Submitted By Organization', callback: defaultCallback },
 		{ key: 'created', title: 'Submit Date', callback: dateCallback }
 	];
 
-	exportConfigService.getConfigById(exportId).then((result) => {
+	try {
+
+		let result = await exportConfigService.getConfigById(exportId);
+
 		if (null == result) {
-			return q.reject({ status: 404, type: 'bad-argument', message: 'Export configuration not found. Document may have expired.' });
+			return Promise.reject({
+				status: 404,
+				type: 'bad-argument',
+				message: 'Export configuration not found. Document may have expired.'
+			});
 		}
 
-		exportFileName = `${config.app.instanceName}-${result.type}.csv`;
+		let exportFileName = `${config.app.instanceName}-${result.type}.csv`;
 
-		return auditService.audit(`${result.type} CSV config retrieved`, 'export', 'export', TeamMember.auditCopy(req.user, utilService.getHeaderField(req.headers, 'x-real-ip')), ExportConfig.auditCopy(result), req.headers).then(() => {
-			return q(result);
-		});
-	}).then((result) => {
+		await auditService.audit(`${result.type} CSV config retrieved`, 'export', 'export', TeamMember.auditCopy(req.user, utilService.getHeaderField(req.headers, 'x-real-ip')), ExportConfig.auditCopy(result), req.headers);
+
 		const query = (result.config.q) ? JSON.parse(result.config.q) : null;
 		const sortArr = [{property: result.config.sort, direction: result.config.dir}];
 
-		return Audit.search(query, null, null, null, sortArr);
-	}).then((feedbackResult) => {
+		let feedbackResult = await Feedback.search(query, null, null, null, sortArr, true, {
+			path: 'creator',
+			select: ['username', 'organization', 'name', 'email']
+		});
+
 		exportConfigController.exportCSV(req, res, exportFileName, exportColumns, feedbackResult.results);
-	}, (error) => {
-		utilService.handleErrorResponse(res, error);
-	}).done();
+	} catch (err) {
+		logger.error({err: err, req: req}, 'Error exporting feedback entries');
+		utilService.handleErrorResponse(res, err);
+	}
+};
+
+module.exports.search = async (req, res) => {
+	const query = req.body.q || {};
+
+	try {
+		res.status(200).json(await feedbackService.search(req.user, req.query, query));
+	} catch (err) {
+		logger.error({err: err, req: req}, 'Error searching for feedback entries');
+		utilService.handleErrorResponse(res, err);
+	}
 };

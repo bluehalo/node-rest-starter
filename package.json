@@ -14,6 +14,7 @@
   },
   "scripts": {
     "start": "nodemon ./src/server.js --exec 'npm run lint && node --inspect' | bunyan",
+    "start:dev": "export NODE_ENV=development && yarn start",
     "test": "NODE_ENV=test nodemon ./src/test.js",
     "test:ci": "NODE_ENV=test nyc --reporter=lcov node ./src/test.js --ci",
     "build": "npm run lint",
@@ -64,8 +65,10 @@
     "nyc": "13.1",
     "mocha": "5",
     "mochawesome": "3",
+    "mock-require": "3.0",
     "nodemon": "1",
     "proxyquire": "2",
+    "supertest": "3.3",
     "should": "13",
     "sinon": "6"
   }
