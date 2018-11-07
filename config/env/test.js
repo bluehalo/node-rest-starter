@@ -13,6 +13,13 @@ module.exports = {
 	// Run tests on something other than default port
 	port: 9001,
 
+	// Configuration for outgoing mail server / service
+	mailer: {
+		from: process.env.MAILER_FROM || 'USERNAME@GMAIL.COM',
+		provider: './src/app/core/email/providers/log-email.provider.js',
+		options: {}
+	},
+
 	/**
 	 * Logging Settings
 	 */

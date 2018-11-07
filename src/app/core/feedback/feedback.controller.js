@@ -32,7 +32,7 @@ function buildEmailContent(user, feedback) {
 	return emailService.buildEmailContent('src/app/core/feedback/templates/user-feedback-email.view.html', emailData);
 }
 
-function sendFeedback(user, feedback) {
+async function sendFeedback(user, feedback) {
 	if (null == user || null == feedback.body || null == feedback.type || null == feedback.url) {
 		return Promise.reject({ status: 400, message: 'Invalid submission.' });
 	}
@@ -54,7 +54,7 @@ module.exports.submitFeedback = async function(req, res) {
 	try {
 		await auditService.audit('Feedback submitted', 'feedback', 'create', TeamMember.auditCopy(req.user, utilService.getHeaderField(req.headers, 'x-real-ip')), req.body, req.headers);
 		let feedback = await feedbackService.create(req.user, req.body);
-		sendFeedback(req.user, feedback).done();
+		await sendFeedback(req.user, feedback);
 		res.status(200).json(feedback);
 	} catch (err) {
 		utilService.handleErrorResponse(res, err);
