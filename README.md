@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/Asymmetrik/node-rest-starter.svg?branch=develop)](https://travis-ci.org/Asymmetrik/node-rest-starter)
+[![Maintainability](https://api.codeclimate.com/v1/badges/38b36e9f561532e17b23/maintainability)](https://codeclimate.com/github/Asymmetrik/node-rest-starter/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/38b36e9f561532e17b23/test_coverage)](https://codeclimate.com/github/Asymmetrik/node-rest-starter/test_coverage)
 
 # Node REST Starter
 
