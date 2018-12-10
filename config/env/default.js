@@ -265,9 +265,12 @@ module.exports = {
 	 * Not So Environment-Specific Settings
 	 */
 
-	ui: {
+	staticContent: {
 		enabled: false,
-		pathToStaticFiles: 'dist'
+		pathToStaticFiles: 'dist',
+		options: { // options documented here: https://expressjs.com/en/4x/api.html#express.static
+			maxAge: '1m'
+		}
 	},
 
 	apiDocs: {
