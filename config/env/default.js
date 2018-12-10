@@ -265,6 +265,11 @@ module.exports = {
 	 * Not So Environment-Specific Settings
 	 */
 
+	ui: {
+		enabled: false,
+		pathToStaticFiles: 'dist'
+	},
+
 	apiDocs: {
 		enabled: true,
 		path: '/api-docs'

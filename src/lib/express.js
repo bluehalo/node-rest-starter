@@ -203,6 +203,21 @@ function initErrorRoutes(app) {
 	});
 }
 
+function initStaticUI(app) {
+	if (!config.ui || !(config.ui.enabled === true)) {
+		// ui must be enabled explicitly in the config
+		return;
+	}
+
+	let path = config.ui.pathToStaticFiles;
+
+	app.use(express.static(path));
+
+	app.get('*', (req, res) => {
+		res.sendFile(path.posix.resolve(path + '/index.html'));
+	});
+}
+
 function initSwaggerAPI(app) {
 
 	if (!config.apiDocs || !(config.apiDocs.enabled === true)) {
@@ -292,6 +307,9 @@ module.exports.init = function (db) {
 
 	// Initialize Swagger API
 	initSwaggerAPI(app);
+
+	// Initialize static UI
+	initStaticUI(app);
 
 	// Initialize error routes
 	initErrorRoutes(app);
