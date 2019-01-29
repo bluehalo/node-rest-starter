@@ -20,7 +20,8 @@ let getSystemConfig = function() {
 		contactEmail: config.contactEmail,
 
 		maxScan: config.maxScan,
-		maxExport: config.maxExport
+		maxExport: config.maxExport,
+		feedbackClassificationOpts: config.feedbackClassificationOpts
 	};
 
 	return toReturn;
