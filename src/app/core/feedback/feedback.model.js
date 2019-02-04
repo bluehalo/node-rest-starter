@@ -24,7 +24,7 @@ const FeedbackSchema = new GetterSchema({
 	body: { type: String },
 	type: { type: String },
 	url: { type: String },
-	classification: { type: mongoose.Schema.Types.Mixed }
+	classification: { type: String }
 });
 
 /**
