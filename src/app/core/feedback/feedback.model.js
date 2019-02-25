@@ -23,7 +23,8 @@ const FeedbackSchema = new GetterSchema({
 	},
 	body: { type: String },
 	type: { type: String },
-	url: { type: String }
+	url: { type: String },
+	classification: { type: String }
 });
 
 /**

@@ -13,6 +13,7 @@ const create = async (reqUser, newFeedback) => {
 		body: newFeedback.body,
 		type: newFeedback.type,
 		url: newFeedback.url,
+		classification: newFeedback.classification,
 		creator: reqUser._id
 	});
 
