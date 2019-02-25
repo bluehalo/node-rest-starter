@@ -37,9 +37,9 @@
     "express-handlebars": "3.0",
     "express-session": "1.15",
     "glob": "7.1",
-    "handlebars": "4.0",
+    "handlebars": "4.1",
     "helmet": "3.13",
-    "lodash": "4.17",
+    "lodash": "4.17.11",
     "method-override": "3.0",
     "moment": "2.22",
     "mongoose": "5.2",
@@ -62,7 +62,7 @@
   "devDependencies": {
     "eslint": "5",
     "kafka-node": "3.0",
-    "nyc": "13.1",
+    "nyc": "13.3",
     "mocha": "5",
     "mochawesome": "3",
     "mock-require": "3.0",
@@ -70,6 +70,6 @@
     "proxyquire": "2",
     "supertest": "3.3",
     "should": "13",
-    "sinon": "6"
+    "sinon": "7"
   }
 }
