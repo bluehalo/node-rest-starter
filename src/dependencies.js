@@ -21,6 +21,7 @@ module.exports.emailService        = require('./app/core/email/email.service');
 
 // Common Services
 module.exports.queryService  = require('./app/common/query.service');
+module.exports.errorService  = require('./app/common/errors.service');
 module.exports.utilService   = require('./app/common/util.service');
 module.exports.schemaService = require('./app/common/schema.service');
 module.exports.csvStream     = require('./app/common/csv-stream.service');

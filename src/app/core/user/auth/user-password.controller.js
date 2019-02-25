@@ -7,7 +7,7 @@ const
 	deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
-	errorHandler = deps.errorHandler,
+	errorService = deps.errorService,
 	logger = deps.logger,
 	emailService = deps.emailService,
 
@@ -160,13 +160,13 @@ exports.reset = (req, res, next) => {
 				user.save((error) => {
 					if (error) {
 						return res.status(400).json({
-							message: errorHandler.getErrorMessage(error)
+							message: errorService.getErrorMessage(error)
 						});
 					} else {
 						req.login(user, (error) => {
 							if (error) {
 								return res.status(400).json({
-									message: errorHandler.getErrorMessage(error)
+									message: errorService.getErrorMessage(error)
 								});
 							} else {
 								// Return authenticated user
