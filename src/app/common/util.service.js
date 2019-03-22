@@ -9,7 +9,7 @@ const _ = require('lodash'),
 
 	deps = require('../../dependencies'),
 	config = deps.config,
-	errorHandler = deps.errorHandler,
+	errorService = deps.errorService,
 	logger = deps.logger;
 
 function getValidationErrors(err) {
@@ -99,7 +99,7 @@ module.exports.catchError = function(res, err, callback) {
 
 module.exports.send400Error = function (res, err) {
 	return res.status(400).json({
-		message: errorHandler.getErrorMessage(err)
+		message: errorService.getErrorMessage(err)
 	});
 };
 
