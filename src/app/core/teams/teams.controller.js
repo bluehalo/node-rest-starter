@@ -139,6 +139,20 @@ module.exports.addMember = function(req, res) {
 	}).done();
 };
 
+/**
+ * Add specified members with specified roles to a team
+ */
+module.exports.addMembers = async (req, res) => {
+	const newMembers = req.body.newMembers || [];
+	const team = req.team;
+
+	try {
+		await teamsService.addMembersToTeam(newMembers, team, req.user, req.headers);
+		res.status(204).end();
+	} catch (err) {
+		util.handleErrorResponse(res, err);
+	}
+};
 
 /**
  * Remove a member from a team
