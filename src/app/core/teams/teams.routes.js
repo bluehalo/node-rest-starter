@@ -35,6 +35,7 @@ router.route('/team-request')
  * Team editors Routes (requires team admin role)
  */
 router.route('/team/:teamId/members')
+	.put(user.hasAccess, user.hasAny(user.requiresAdminRole, teams.requiresAdmin), teams.addMembers)
 	.post(user.hasAccess, user.hasAny(user.requiresAdminRole, teams.requiresMember), teams.searchMembers);
 
 router.route('/team/:teamId/member/:memberId')

@@ -414,6 +414,17 @@ module.exports = function() {
 		});
 	}
 
+	const addMembersToTeam = async (users, team, requester, headers) => {
+		users = users || [];
+		users = users.filter((user) => null != user._id);
+
+		return await Promise.all(users.map(async (u) => {
+			const user = await TeamMember.findOne({_id: u._id});
+			if (null != user) {
+				return await addMemberToTeam(user, team, u.role, requester, headers);
+			}
+		}));
+	};
 
 	function updateMemberRole(user, team, role, requester, headers) {
 		let currentRole = getTeamRole(user, team);
@@ -556,6 +567,7 @@ module.exports = function() {
 		requestNewTeam: requestNewTeam,
 		requestAccessToTeam: requestAccessToTeam,
 		addMemberToTeam: addMemberToTeam,
+		addMembersToTeam: addMembersToTeam,
 		updateMemberRole: updateMemberRole,
 		removeMemberFromTeam: removeMemberFromTeam
 	};
