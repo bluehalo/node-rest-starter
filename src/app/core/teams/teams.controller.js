@@ -264,14 +264,15 @@ module.exports.filterTeamIds = function(user, teamIds) {
 		});
 };
 
-module.exports.meetsRoleRequirement = function(user, team, role) {
+module.exports.meetsRoleRequirement = function(user, team, role, rejectStatus) {
 	// Check role of the user in this team
 	let userRole = teamsService.getActiveTeamRole(user, team);
 	if (null != userRole && teamsService.meetsOrExceedsRole(userRole, role)) {
 		return q();
 	}
 	else {
-		return q.reject({ status: 403, type: 'missing-roles', message: 'The user does not have the required roles for the team' });
+		rejectStatus = rejectStatus || { status: 403, type: 'missing-roles', message: 'The user does not have the required roles for the team' };
+		return q.reject(rejectStatus);
 	}
 };
 
