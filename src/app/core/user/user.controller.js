@@ -31,7 +31,7 @@ module.exports.has = (requirement) => {
 
 	// Return a function that adapts the requirements to middleware
 	return (req, res, next) => {
-		requirement(req).then((result) => {
+		q(requirement(req)).then((result) => {
 			next();
 		}, (errorResult) => {
 			util.handleErrorResponse(res, errorResult);
@@ -45,7 +45,7 @@ module.exports.has = (requirement) => {
 module.exports.hasAll = function() {
 	let requirements = arguments;
 	return (req, res, next) => {
-		module.exports.requiresAll(requirements)(req).then((result) => {
+		q(module.exports.requiresAll(requirements)(req)).then((result) => {
 			next();
 		}, (errorResult) => {
 			util.handleErrorResponse(res, errorResult);
@@ -79,7 +79,7 @@ module.exports.requiresAll = (requirements) => {
 module.exports.hasAny = function() {
 	let requirements = arguments;
 	return (req, res, next) => {
-		module.exports.requiresAny(requirements)(req).then((result) => {
+		q(module.exports.requiresAny(requirements)(req)).then((result) => {
 			next();
 		}, (errorResult) => {
 			util.handleErrorResponse(res, errorResult);
