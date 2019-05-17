@@ -1,6 +1,8 @@
 const
+	_ = require('lodash'),
 	proxyquire = require('proxyquire'),
-	should = require('should');
+	should = require('should'),
+	config = require('../config.js');
 
 function createSubjectUnderTest(databases) {
 	const stubConfig = {
@@ -17,6 +19,8 @@ function createSubjectUnderTest(databases) {
 }
 
 describe('Mongoose', () => {
+
+	const mongoHost = _.get(config, 'test.mongoHost', 'localhost');
 
 	const originalMongooseLib = require('./mongoose');
 
@@ -36,7 +40,7 @@ describe('Mongoose', () => {
 
 		beforeEach(() => {
 			mongooseLib = createSubjectUnderTest({
-				admin: `mongodb://localhost/${adminDatabaseName}`
+				admin: `mongodb://${mongoHost}/${adminDatabaseName}`
 			});
 		});
 
@@ -61,8 +65,8 @@ describe('Mongoose', () => {
 
 		beforeEach(() => {
 			mongooseLib = createSubjectUnderTest({
-				admin: `mongodb://localhost/${adminDatabaseName}`,
-				other: `mongodb://localhost/${otherDatabaseName}`
+				admin: `mongodb://${mongoHost}/${adminDatabaseName}`,
+				other: `mongodb://${mongoHost}/${otherDatabaseName}`
 			});
 		});
 
