@@ -24,6 +24,8 @@ const FeedbackSchema = new GetterSchema({
 	body: { type: String },
 	type: { type: String },
 	url: { type: String },
+	os: { type: String },
+	browser: { type: String },
 	classification: { type: String }
 });
 
@@ -34,14 +36,14 @@ const FeedbackSchema = new GetterSchema({
 // Created datetime index, expires after 180 days
 FeedbackSchema.index({ 'created': -1 }, { expireAfterSeconds: 15552000 });
 
-// Type index
-FeedbackSchema.index({ 'type': 'text' });
-
-// User index
-FeedbackSchema.index({ 'actor': 'text' });
+FeedbackSchema.index({ 'type': 1 });
+FeedbackSchema.index({ 'creator': 1 });
+FeedbackSchema.index({ 'url': 1 });
+FeedbackSchema.index({ 'os': 1 });
+FeedbackSchema.index({ 'browser': 1 });
 
 // Text-search index
-FeedbackSchema.index({ 'body': 'text', 'type': 'text' });
+FeedbackSchema.index({ 'body': 'text' });
 
 /*****************
  * Lifecycle hooks
