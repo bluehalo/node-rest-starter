@@ -52,8 +52,8 @@ async function sendFeedback(user, feedback) {
 
 module.exports.submitFeedback = async function(req, res) {
 	try {
-		await auditService.audit('Feedback submitted', 'feedback', 'create', TeamMember.auditCopy(req.user, utilService.getHeaderField(req.headers, 'x-real-ip')), req.body, req.headers);
-		let feedback = await feedbackService.create(req.user, req.body);
+		let audit = await auditService.audit('Feedback submitted', 'feedback', 'create', TeamMember.auditCopy(req.user, utilService.getHeaderField(req.headers, 'x-real-ip')), req.body, req.headers);
+		let feedback = await feedbackService.create(req.user, req.body, audit.audit.userSpec);
 		await sendFeedback(req.user, feedback);
 		res.status(200).json(feedback);
 	} catch (err) {
@@ -110,7 +110,15 @@ module.exports.adminGetFeedbackCSV = async function(req, res) {
 };
 
 module.exports.search = async (req, res) => {
-	const query = req.body.q || {};
+	let query = req.body.q || {};
+	query = { '$and': [ query ] };
+
+	const search = req.body.s || null;
+
+	if (search) {
+		query.$and.push({ $text: { $search: search }});
+		// query.$and.push({ name: new RegExp(search, 'i') });
+	}
 
 	try {
 		res.status(200).json(await feedbackService.search(req.user, req.query, query));

@@ -8,13 +8,15 @@ const
 	Feedback = dbs.admin.model('Feedback');
 
 
-const create = async (reqUser, newFeedback) => {
+const create = async (reqUser, newFeedback, userSpec) => {
 	let feedback = new Feedback({
 		body: newFeedback.body,
 		type: newFeedback.type,
 		url: newFeedback.url,
 		classification: newFeedback.classification,
-		creator: reqUser._id
+		creator: reqUser._id,
+		browser: userSpec.browser,
+		os: userSpec.os
 	});
 
 	try {
