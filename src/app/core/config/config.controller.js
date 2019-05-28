@@ -21,7 +21,7 @@ let getSystemConfig = function() {
 
 		maxScan: config.maxScan,
 		maxExport: config.maxExport,
-		feedbackClassificationOpts: config.feedbackClassificationOpts
+		feedback: config.feedback
 	};
 
 	return toReturn;
