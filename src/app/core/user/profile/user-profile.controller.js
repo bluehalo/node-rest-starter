@@ -78,6 +78,28 @@ function searchUsers(req, res, copyUserFn) {
 	});
 }
 
+exports.updateRoles = (user, authConfig) => {
+	const strategy = _.get(authConfig, 'roleStrategy', 'local');
+	const isHybrid = strategy === 'hybrid';
+
+	if (isHybrid) {
+		user.localRoles = user.roles;
+	}
+	if (strategy === 'external' || isHybrid) {
+		let updatedRoles = {};
+		let externalRoles = user.externalRoles || [];
+		let externalRoleMap = authConfig.externalRoleMap;
+
+		let keys = _.keys(externalRoleMap);
+
+		keys.forEach((key) => {
+			updatedRoles[key] = (isHybrid && user.roles[key]) || externalRoles.indexOf(externalRoleMap[key]) !== -1;
+		});
+
+		user.roles = updatedRoles;
+	}
+};
+
 
 /**
  * Standard User Operations
@@ -96,7 +118,11 @@ exports.getCurrentUser = (req, res) => {
 		return;
 	}
 
-	res.status(200).json(User.fullCopy(user));
+	let userCopy = User.fullCopy(user);
+
+	exports.updateRoles(userCopy, config.auth);
+
+	res.status(200).json(userCopy);
 };
 
 
