@@ -131,6 +131,11 @@ module.exports = {
 		html: 'Copyright © 2018 <a href="http://www.asymmetrik.com" target="_blank">Asymmetrik, Ltd</a>. All Rights Reserved.'
 	},
 
+	feedback: {
+		showFlyout: true,
+		showInSidebar: true
+	},
+
 	email: {
 		header: 'HEADER',
 		footer: 'FOOTER',
