@@ -62,7 +62,7 @@ module.exports.requiresRoles = (roles, rejectStatus) => {
 			}
 		}
 
-		if (strategy === 'external') {
+		if (strategy === 'external' || strategy === 'hybrid') {
 			let requiredRoles = roles.map((role) => config.auth.externalRoleMap[role]);
 			return module.exports.requiresExternalRoles(req, requiredRoles);
 		}
