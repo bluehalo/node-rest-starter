@@ -135,7 +135,7 @@ module.exports.get = function (id) {
 				}
 
 				// No result was found, so query access provider for it
-				provider.get(id).then(function(result) {
+				q(provider.get(id)).then(function(result) {
 					// Store it in the cache
 					saveToCache(id, result).then(function(cacheEntry) {
 						// Return the saved value if possible
@@ -170,7 +170,7 @@ module.exports.refreshEntry = function(id) {
 	} else {
 		try {
 			// Hit the provider for the id
-			provider.get(id).then(function(result) {
+			q(provider.get(id)).then(function(result) {
 				// Store it in the cache if it was found
 				saveToCache(id, result).then(defer.resolve, defer.reject);
 			}, defer.reject).done();
