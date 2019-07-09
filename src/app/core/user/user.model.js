@@ -272,6 +272,12 @@ UserSchema.statics.filteredCopy = function(user) {
 		toReturn.organizationLevels = user.organizationLevels;
 		toReturn.newFeatureDismissed = user.newFeatureDismissed;
 
+		if (null != user.providerData) {
+			toReturn.providerData = {
+				dn: user.providerData.dn
+			};
+		}
+
 		if (null != user.viewPreferences) {
 			toReturn.viewPreferences = {
 				sidebarOpen: user.viewPreferences.sidebarOpen,
