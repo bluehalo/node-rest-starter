@@ -28,7 +28,7 @@ let MessageSchema = new GetterSchema({
 	},
 	type: {
 		type: String,
-		enum: ['INFO', 'WARN', 'ERROR'],
+		enum: ['INFO', 'WARN', 'ERROR', 'MOTD'],
 		default: null
 	},
 	body: {

@@ -16,7 +16,7 @@ const
 module.exports = function() {
 
 	function getAllMessages() {
-		const timeLimit = config.dismissedMessagesTimePeriod;
+		const timeLimit = config.dismissedMessagesTimePeriod || 604800000;
 
 		return Message.find({created: {'$gte': new Date(Date.now() - timeLimit)}}).lean().exec();
 	}
