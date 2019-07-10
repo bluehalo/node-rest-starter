@@ -101,6 +101,10 @@ let UserSchema = new GetterSchema({
 			}
 		}
 	},
+	canProxy: {
+		type: Boolean,
+		default: false
+	},
 	externalGroups: {
 		type: [],
 		default: []
@@ -348,6 +352,7 @@ UserSchema.statics.auditCopy = function(user, userIP) {
 	toReturn.messagesAcknowledged = user.messagesAcknowledged;
 	toReturn.alertsViewed = user.alertsViewed;
 	toReturn.newFeatureDismissed = user.newFeatureDismissed;
+	toReturn.canProxy = user.canProxy;
 	if (null != userIP) {
 		toReturn.ip = userIP;
 	}

@@ -227,7 +227,7 @@ module.exports = () => {
 			let proxiedUser = null;
 			let primaryUser = await handleUser(primaryUserDn, req);
 
-			if (proxiedUserDn) {
+			if (primaryUser.canProxy && proxiedUserDn) {
 				proxiedUser = await handleUser(proxiedUserDn, req, true);
 
 				// Treat the proxied user account as if it's logging
@@ -244,9 +244,9 @@ module.exports = () => {
 			if (proxiedUser === null) {
 				return done(null, primaryUser);
 			}
-			primaryUser.externalGroups =  _.intersection(primaryUser.externalGroups, proxiedUser.externalGroups);
-			primaryUser.externalRoles =  _.intersection(primaryUser.externalRoles, proxiedUser.externalRoles);
-			return done(null, primaryUser);
+			proxiedUser.externalGroups =  _.intersection(primaryUser.externalGroups, proxiedUser.externalGroups);
+			proxiedUser.externalRoles =  _.intersection(primaryUser.externalRoles, proxiedUser.externalRoles);
+			return done(null, proxiedUser);
 		} catch(err) {
 			if (err.status && err.type && err.message) {
 				done(null, false, err);
