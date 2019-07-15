@@ -22,13 +22,9 @@ let MessageSchema = new GetterSchema({
 		trim: true,
 		required: 'Title is required'
 	},
-	tearline: {
-		type: String,
-		trim: true
-	},
 	type: {
 		type: String,
-		enum: ['INFO', 'WARN', 'ERROR'],
+		enum: ['INFO', 'WARN', 'ERROR', 'MOTD'],
 		default: null
 	},
 	body: {
@@ -81,7 +77,7 @@ DismissedMessageSchema.index({ created: -1 }, { expireAfterSeconds: expireAfterS
 DismissedMessageSchema.index({ userId: 1});
 
 // Text-search index
-MessageSchema.index({ title: 'text', tearline: 'text', type: 'text' });
+MessageSchema.index({ title: 'text', body: 'text', type: 'text' });
 
 /**
  * Lifecycle Hooks
@@ -100,7 +96,6 @@ MessageSchema.statics.auditCopy = function(src) {
 
 	newMessage.type = src.type;
 	newMessage.title = src.title;
-	newMessage.tearline = src.tearline;
 	newMessage.body = src.body;
 	newMessage.ackRequired = src.ackRequired;
 	newMessage.created = src.created;
@@ -116,7 +111,6 @@ MessageSchema.statics.fullCopy = function(src) {
 
 	newMessage.type = src.type;
 	newMessage.title = src.title;
-	newMessage.tearline = src.tearline;
 	newMessage.body = src.body;
 	newMessage.ackRequired = src.ackRequired;
 	newMessage.created = src.created;

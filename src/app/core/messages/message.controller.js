@@ -19,7 +19,7 @@ const
 	Message = dbs.admin.model('Message');
 
 function copyMutableFields(dest, src) {
-	['title', 'type', 'body', 'tearline', 'ackRequired'].forEach((key) => {
+	['title', 'type', 'body', 'ackRequired'].forEach((key) => {
 		if (null != src[key]) {
 			dest[key] = src[key];
 		}
