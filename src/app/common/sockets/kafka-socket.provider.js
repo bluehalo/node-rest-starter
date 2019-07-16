@@ -207,7 +207,7 @@ KafkaSocket.prototype.getConsumer = function(topic) {
 	}
 
 	// If our connection cache has a stream to this topic already, return it.
-	if (this._connections.hasOwnProperty(topic)) {
+	if (_.has(this._connections, topic)) {
 		return this._connections[topic];
 	}
 
@@ -227,7 +227,7 @@ KafkaSocket.prototype.subscribe = function(topic) {
 	}
 
 	// If our connection cache has a stream to this topic already, use it. Otherwise, create a new one.
-	if (this._connections.hasOwnProperty(topic)) {
+	if (_.has(this._connections, topic)) {
 		return this._connections[topic];
 	}
 
