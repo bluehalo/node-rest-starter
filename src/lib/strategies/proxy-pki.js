@@ -227,17 +227,22 @@ module.exports = () => {
 			let proxiedUser = null;
 			let primaryUser = await handleUser(primaryUserDn, req);
 
-			if (primaryUser.canProxy && proxiedUserDn) {
-				proxiedUser = await handleUser(proxiedUserDn, req, true);
+			if (proxiedUserDn) {
+				if (primaryUser.canProxy) {
+					proxiedUser = await handleUser(proxiedUserDn, req, true);
 
-				// Treat the proxied user account as if it's logging
-				// in by updating their lastLogin time.
-				if (!proxiedUser.lastLogin || proxiedUser.lastLogin + config.auth.sessionCookie.maxAge < Date.now()) {
-					proxiedUser = await User.findOneAndUpdate(
-						{ _id: proxiedUser._id },
-						{ lastLogin: Date.now() },
-						{ new: true, upsert: false }
-					);
+					// Treat the proxied user account as if it's logging
+					// in by updating their lastLogin time.
+					if (!proxiedUser.lastLogin || proxiedUser.lastLogin + config.auth.sessionCookie.maxAge < Date.now()) {
+						proxiedUser = await User.findOneAndUpdate(
+							{ _id: proxiedUser._id },
+							{ lastLogin: Date.now() },
+							{ new: true, upsert: false }
+						);
+					}
+				}
+				else {
+					return done(null, false, { status: 403, type: 'authentication-error', message: 'Not approved to proxy users. Please verify your credentials.' });
 				}
 			}
 
