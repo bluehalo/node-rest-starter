@@ -16,7 +16,7 @@
     "start": "nodemon ./src/server.js --exec 'npm run lint && node --inspect' | bunyan",
     "start:dev": "export NODE_ENV=development && yarn start",
     "test": "NODE_ENV=test nodemon ./src/test.js",
-    "test:ci": "NODE_ENV=test nyc --reporter=lcov node ./src/test.js --ci",
+    "test:ci": "NODE_ENV=test nyc --reporter=lcov --reporter=html node ./src/test.js --ci",
     "build": "npm run lint",
     "lint": "npm run lint:eslint",
     "lint:eslint": "eslint \"./**/*.js\""
@@ -64,7 +64,7 @@
     "kafka-node": "3.0",
     "nyc": "14.1.1",
     "mocha": "5",
-    "mochawesome": "3",
+    "mochawesome": "4.0.1",
     "mock-require": "3.0",
     "nodemon": "1.19.1",
     "proxyquire": "2",
