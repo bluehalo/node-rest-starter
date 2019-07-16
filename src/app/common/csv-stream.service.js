@@ -5,6 +5,7 @@ const
 	stringify = require('csv-stringify'),
 	jsonpath = require('JSONPath'),
 	pipe = require('multipipe'),
+	_ = require('lodash'),
 
 	deps = require('../../dependencies'),
 	logger = deps.logger;
@@ -34,7 +35,7 @@ module.exports = (columns) => {
 		}
 
 		columns.forEach(function (column) {
-			if (column.hasOwnProperty('key')) {
+			if (_.has(column, 'key')) {
 				// Get the value from the object using jsonpath
 				let value = jsonpath.eval(chunk, '$.' + column.key);
 
@@ -47,7 +48,7 @@ module.exports = (columns) => {
 				}
 
 				// Invoke any callback associated with the column
-				if (column.hasOwnProperty('callback')) {
+				if (_.has(column, 'callback')) {
 					value = column.callback(value);
 				}
 
@@ -66,7 +67,7 @@ module.exports = (columns) => {
 	// Parse the columns array into a format the CSV stringify module is expecting
 	let csvColumns = [];
 	columns.forEach((value) => {
-		if (value.hasOwnProperty('title')) {
+		if (_.has(value, 'title')) {
 			csvColumns.push(value.title);
 		}
 	});

@@ -93,7 +93,7 @@ module.exports = function() {
 	 * @returns {boolean}
 	 */
 	function meetsOrExceedsRole(userRole, requestedRole) {
-		if (null != userRole && teamRolesMap.hasOwnProperty(userRole) && null != requestedRole && teamRolesMap.hasOwnProperty(requestedRole)) {
+		if (null != userRole && _.has(teamRolesMap, userRole) && null != requestedRole && _.has(teamRolesMap, requestedRole)) {
 			return (teamRolesMap[userRole].priority >= teamRolesMap[requestedRole].priority);
 		}
 		return false;

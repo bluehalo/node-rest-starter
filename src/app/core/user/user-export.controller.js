@@ -98,7 +98,7 @@ exports.adminGetCSV = (req, res) => {
 						// Convert user.groups to human readable groups string
 						userData.forEach((user) => {
 							let teamNames = user.teams.map((t) => {
-								return (teamTitleMap.hasOwnProperty(t._id) ? teamTitleMap[t._id].name : '<missing>');
+								return (_.has(teamTitleMap, t._id) ? teamTitleMap[t._id].name : '<missing>');
 							});
 
 							// Formatted team name string, ex. "Group 1, SomeDev, Test Group"
