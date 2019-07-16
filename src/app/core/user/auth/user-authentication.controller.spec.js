@@ -290,6 +290,11 @@ describe('User Auth Controller:', () => {
 		spec.cache.cacheOnly.value.roles = ['role1', 'role2', 'role3'];
 		spec.cache.cacheOnly.value.groups = ['group1', 'group2', 'group3'];
 
+		spec.user.userCanProxy = proxyPkiUserSpec('proxyableUser');
+		spec.user.userCanProxy.canProxy = true;
+		spec.user.userCanProxy.name = 'Trusted Server';
+		spec.user.userCanProxy.organization = 'Trusted Organization';
+
 		let cache = {};
 		let user = {};
 
@@ -631,6 +636,69 @@ describe('User Auth Controller:', () => {
 								should(info.externalGroups).be.an.Array();
 								should(info.externalGroups).have.length(spec.cache.cacheOnly.value.groups.length);
 								should(info.externalGroups).containDeep(spec.cache.cacheOnly.value.groups);
+
+								done();
+							}
+						};
+					}
+				};
+
+				userAuthenticationController.signin(req, res, () => {});
+			});
+		});
+
+		describe('proxy for other users', () => {
+			let req = {};
+			req.login = (user, cb) => { return cb && cb(); };
+
+			it('should failed when not authorized to proxy users', (done) => {
+				req.headers = {
+					'x-ssl-client-s-dn': spec.user.synced.providerData.dn,
+					'x-proxied-user-dn': spec.user.userBypassed.providerData.dn
+				};
+				let res = {
+					status: (status) => {
+						should(status).equal(403);
+						return {
+							json: (info) => {
+								should.exist(info);
+								should(info).eql({
+									status: 403,
+									message: 'Not approved to proxy users. Please verify your credentials.',
+									type: 'authentication-error'
+								});
+
+								done();
+							}
+						};
+					}
+				};
+
+				userAuthenticationController.signin(req, res, () => {});
+			});
+
+			it('should succeed when authorized to proxy users', (done) => {
+				req.headers = {
+					'x-ssl-client-s-dn': spec.user.userCanProxy.providerData.dn,
+					'x-proxied-user-dn': spec.user.userBypassed.providerData.dn
+				};
+				let res = {
+					status: (status) => {
+						should(status).equal(200);
+						return {
+							json: (info) => {
+								// Verify that the user returned is the proxied user (not the primary user)
+								should.exist(info);
+								should(info.name).equal(spec.user.userBypassed.name);
+								should(info.organization).equal(spec.user.userBypassed.organization);
+								should(info.email).equal(spec.user.userBypassed.email);
+								should(info.username).equal(spec.user.userBypassed.username);
+
+								should(info.externalRoles).be.an.Array();
+								should(info.externalRoles).have.length(0);
+
+								should(info.externalGroups).be.an.Array();
+								should(info.externalGroups).have.length(0);
 
 								done();
 							}

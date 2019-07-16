@@ -1,9 +1,9 @@
 'use strict';
 
 const
+	_ = require('lodash'),
 	mongoose = require('mongoose'),
 	passport = require('passport'),
-	q = require('q'),
 	util = require('util'),
 
 	deps = require('../../dependencies'),
@@ -15,7 +15,6 @@ const
 	userAuthService = require('../../app/core/user/auth/user-authentication.service'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	User = mongoose.model('User');
-
 
 function ProxyPkiStrategy(options, verify) {
 	if (typeof options === 'function') {
@@ -29,7 +28,8 @@ function ProxyPkiStrategy(options, verify) {
 
 	this.name = 'proxy-pki';
 	this._verify = verify;
-	this._header = options.header || 'x-ssl-client-s-dn';
+	this._primaryUserHeader = options.primaryUserHeader || 'x-ssl-client-s-dn';
+	this._proxiedUserHeader = options.proxiedUserHeader || 'x-proxied-user-dn';
 }
 
 /**
@@ -47,11 +47,12 @@ ProxyPkiStrategy.prototype.authenticate = function(req) {
 	var self = this;
 
 	// Get the DN from the header of the request
-	var dn = req.headers[self._header];
+	var primaryUserDn = req.headers[self._primaryUserHeader];
+	var proxiedUserDn = req.headers[self._proxiedUserHeader];
 
 	try {
 		// Call the configurable verify function
-		self._verify(req, dn, function (err, user, info) {
+		self._verify(req, primaryUserDn, proxiedUserDn, function (err, user, info) {
 
 			// If there was an error, pass it through
 			if (err) { return self.error(err); }
@@ -75,7 +76,7 @@ function copyACMetadata(dest, src) {
 	// Copy each field from the access checker user to the local user
 	['name', 'organization', 'email', 'username'].forEach(function(e) {
 		// Only overwrite if there's a value
-		if(null != src[e] && src[e].trim() !== '') {
+		if (null != src[e] && src[e].trim() !== '') {
 			dest[e] = src[e];
 		}
 	});
@@ -104,10 +105,10 @@ function copyACGroups(dest, src) {
 /**
  * Create the user locally given the information from access checker
  */
-function createUser(dn, acUser) {
+async function createUser(dn, acUser) {
 
 	// Create the new user
-	var newUser = new User({
+	let newUser = new User({
 		name: 'unknown',
 		organization: 'unknown',
 		organizationLevels: {},
@@ -125,112 +126,138 @@ function createUser(dn, acUser) {
 	newUser.provider = 'pki';
 
 	// Initialize the new user
-	return userAuthService.initializeNewUser(newUser).then(function(initializedUser) {
-		// Save the new user
-		return initializedUser.save();
-	});
+	let initializedUser = await userAuthService.initializeNewUser(newUser);
 
+	// Check for existing user with same username
+	let existingUser = await User.findOne({username: initializedUser.username}).exec();
+
+	// If existing user doesn't exists, save
+	if (null == existingUser) {
+		return initializedUser.save();
+	}
+
+	// Otherwise update providerData with dn
+	return User.findOneAndUpdate(
+		{ username: initializedUser.username },
+		{ 'providerData.dn': dn, 'providerData.dnLower': dn.toLowerCase() },
+		{ new: true, upsert: true }
+	).exec();
 }
 
 function updateUser(dn, fields) {
 	return User.findOneAndUpdate( { 'providerData.dnLower': dn.toLowerCase() }, fields, { new: true, upsert: false }).exec();
 }
 
+async function handleUser(dn, req, isProxy) {
+	let dnLower = dn.toLowerCase();
+
+	let localUser = await User.findOne({ 'providerData.dnLower': dnLower }).exec();
+
+	// Bypass AC check if we are still within the set login time.
+	if (localUser && (localUser.bypassAccessCheck || localUser.lastLogin + config.auth.sessionCookie.maxAge > Date.now())) {
+		return localUser;
+	}
+
+	let acUser = await accessChecker.get(dnLower);
+
+	// Default to creating accounts automatically
+	const autoCreateAccounts = _.get(config, 'auth.autoCreateAccounts', true);
+
+	// If the user is not known locally, is not known by access checker, and we are creating accounts, create the account as an empty account
+	if (null == localUser && null == acUser && (isProxy || !autoCreateAccounts)) {
+		throw { status: 401, type: 'invalid-credentials', message: 'Certificate unknown, expired, or unauthorized' };
+	}
+
+	// Else if the user is not known locally, and we are creating accounts, create the account as an empty account
+	if (null == localUser && autoCreateAccounts) {
+		// Create the user
+		let newUser = await	createUser(dn, acUser);
+
+		// Send email for new user if enabled, no reason to wait for success
+		if (config.newUser) {
+			if (config.newUser.adminNotification) {
+				userAuthService.signupEmail(newUser, req);
+			}
+
+			if (config.newUser.welcomeNotification) {
+				userAuthService.welcomeEmail(newUser, req);
+			}
+		}
+
+		// Audit user signup
+		await auditService.audit( 'user signup', 'user', 'user signup', {}, User.auditCopy(newUser));
+
+		return newUser;
+	}
+
+	// Else if the user is known locally, but not in access checker, update their user info to reflect
+	if (null == acUser) {
+		// Update the user
+		let updatedUser = await updateUser(dn, { externalRoles: [], externalGroups: [] });
+
+		// Audit user update
+		await auditService.audit('user updated from access checker', 'user', 'update', TeamMember.auditCopy(localUser), User.auditCopy(updatedUser));
+
+		return updatedUser;
+	}
+
+	// Else if the user is known locally and in access checker, update their user info
+	let updatedUser = await updateUser(dn, copyACGroups(copyACRoles(copyACMetadata({}, acUser), acUser), acUser));
+
+	// Audit user update
+	await auditService.audit('user updated from access checker', 'user', 'update', TeamMember.auditCopy(localUser), User.auditCopy(updatedUser));
+
+	return updatedUser;
+}
 
 /**
  * Export the PKI Proxy strategy
  */
 module.exports = () => {
-
 	passport.use(new ProxyPkiStrategy({
-		header: 'x-ssl-client-s-dn'
-	}, (req, dn, done) => {
-
+		primaryUserHeader: 'x-ssl-client-s-dn',
+		proxiedUserHeader: 'x-proxied-user-dn'
+	}, async function(req, primaryUserDn, proxiedUserDn, done) {
 		// If there is no DN, we can't authenticate
-		if (!dn){
+		if (!primaryUserDn){
 			return done(null, false, {status: 400, type: 'missing-credentials', message: 'Missing certificate' });
 		}
 
-		let dnLower = dn.toLowerCase();
+		try {
+			let proxiedUser = null;
+			let primaryUser = await handleUser(primaryUserDn, req);
 
-		// Get the user locally and from access checker
-		q.all([
-			q.ninvoke(User, 'findOne', { 'providerData.dnLower': dnLower }),
-			accessChecker.get(dnLower)
-		]).then((resultsArray) => {
-			const localUser = resultsArray[0];
-			const acUser = resultsArray[1];
+			if (proxiedUserDn) {
+				if (primaryUser.canProxy) {
+					proxiedUser = await handleUser(proxiedUserDn, req, true);
 
-			// Default to creating accounts automatically
-			const autoCreateAccounts = (null != config.auth && null != config.auth.autoCreateAccounts) ? config.auth.autoCreateAccounts : true;
-
-			// If the user is not known locally, is not known by access checker, and we are creating accounts, create the account as an empty account
-			if (null == localUser && null == acUser && !autoCreateAccounts) {
-				done(null, false, { status: 401, type: 'invalid-credentials', message: 'Certificate unknown, expired, or unauthorized' });
-			}
-			// Else if the user is not known locally, and we are creating accounts, create the account as an empty account
-			else if (null == localUser && autoCreateAccounts) {
-				// Create the user
-				createUser(dn, acUser).then((newUser) => {
-					// Send email for new user if enabled, no reason to wait for success
-					if (config.newUser) {
-						if (config.newUser.adminNotification) {
-							userAuthService.signupEmail(newUser, req);
-						}
-
-						if (config.newUser.welcomeNotification) {
-							userAuthService.welcomeEmail(newUser, req);
-						}
+					// Treat the proxied user account as if it's logging
+					// in by updating their lastLogin time.
+					if (!proxiedUser.lastLogin || proxiedUser.lastLogin + config.auth.sessionCookie.maxAge < Date.now()) {
+						proxiedUser = await User.findOneAndUpdate(
+							{ _id: proxiedUser._id },
+							{ lastLogin: Date.now() },
+							{ new: true, upsert: false }
+						);
 					}
-
-					// Audit user signup
-					return auditService.audit( 'user signup', 'user', 'user signup', {}, User.auditCopy(newUser)).then(() => newUser);
-				}).then((result) => {
-					// Return the user
-					done(null, result);
-				}, done).done();
-			}
-			// Else if the user is known locally, but not in access checker, update their user info to reflect
-			else if (null == acUser) {
-				// Update the user only if we are not bypassing access checker
-				if(!localUser.bypassAccessCheck) {
-					updateUser(dn, { externalRoles: [], externalGroups: [] }).then(function(updatedUser) {
-						// Audit user signup
-						return auditService.audit('user updated from access checker', 'user', 'update', TeamMember.auditCopy(localUser), User.auditCopy(updatedUser)).then(() => updatedUser).then((result) => {
-							// Return the user
-							done(null, result);
-						}, done).done();
-					});
-				}
-				// Otherwise, just return the user
-				else {
-					done(null, localUser);
-				}
-			}
-			// If the user is known locally and in access checker, update their user info
-			else {
-				// Update the user only if we are not bypassing access checker
-				if (!localUser.bypassAccessCheck) {
-					updateUser(dn, copyACGroups(copyACRoles(copyACMetadata({}, acUser), acUser), acUser)).then(function(updatedUser) {
-						// Audit user signup
-						return auditService.audit('user updated from access checker', 'user', 'update', TeamMember.auditCopy(localUser), User.auditCopy(updatedUser)).then(function() {
-							return q(updatedUser);
-						});
-					}).then(function(result) {
-						// Return the user
-						done(null, result);
-					}, done).done();
 				}
 				else {
-					done(null, localUser);
+					return done(null, false, { status: 403, type: 'authentication-error', message: 'Not approved to proxy users. Please verify your credentials.' });
 				}
 			}
 
-		}, function(err) {
-			// If there was an error, then something is broken and authentication has failed
-			return done(err);
-		});
-
+			if (proxiedUser === null) {
+				return done(null, primaryUser);
+			}
+			proxiedUser.externalGroups =  _.intersection(primaryUser.externalGroups, proxiedUser.externalGroups);
+			proxiedUser.externalRoles =  _.intersection(primaryUser.externalRoles, proxiedUser.externalRoles);
+			return done(null, proxiedUser);
+		} catch(err) {
+			if (err.status && err.type && err.message) {
+				done(null, false, err);
+			} else {
+				done(null, false, { status: 403, type: 'authentication-error', message: 'Could not authenticate request, please verify your credentials.' });
+			}
+		}
 	}));
-
 };

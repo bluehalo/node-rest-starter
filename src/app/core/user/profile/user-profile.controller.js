@@ -93,7 +93,7 @@ exports.updateRoles = (user, authConfig) => {
 		let keys = _.keys(externalRoleMap);
 
 		keys.forEach((key) => {
-			updatedRoles[key] = (isHybrid && user.roles[key]) || externalRoles.indexOf(externalRoleMap[key]) !== -1;
+			updatedRoles[key] = (isHybrid && user.roles && user.roles[key]) || externalRoles.indexOf(externalRoleMap[key]) !== -1;
 		});
 
 		user.roles = updatedRoles;

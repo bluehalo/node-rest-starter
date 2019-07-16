@@ -101,6 +101,10 @@ let UserSchema = new GetterSchema({
 			}
 		}
 	},
+	canProxy: {
+		type: Boolean,
+		default: false
+	},
 	externalGroups: {
 		type: [],
 		default: []
@@ -272,6 +276,12 @@ UserSchema.statics.filteredCopy = function(user) {
 		toReturn.organizationLevels = user.organizationLevels;
 		toReturn.newFeatureDismissed = user.newFeatureDismissed;
 
+		if (null != user.providerData) {
+			toReturn.providerData = {
+				dn: user.providerData.dn
+			};
+		}
+
 		if (null != user.viewPreferences) {
 			toReturn.viewPreferences = {
 				sidebarOpen: user.viewPreferences.sidebarOpen,
@@ -342,6 +352,7 @@ UserSchema.statics.auditCopy = function(user, userIP) {
 	toReturn.messagesAcknowledged = user.messagesAcknowledged;
 	toReturn.alertsViewed = user.alertsViewed;
 	toReturn.newFeatureDismissed = user.newFeatureDismissed;
+	toReturn.canProxy = user.canProxy;
 	if (null != userIP) {
 		toReturn.ip = userIP;
 	}
