@@ -1,6 +1,7 @@
 'use strict';
 
 const
+	_ = require('lodash'),
 	q = require('q'),
 
 	deps = require('../../../../dependencies'),
@@ -33,7 +34,7 @@ module.exports.updatePreferences = (id, pref) => {
 			'hasTracked'
 		]
 		.forEach((prefKey) => {
-			if (pref.hasOwnProperty(prefKey)) {
+			if (_.has(pref, prefKey)) {
 				viewPreferences[prefKey] = pref[prefKey];
 			}
 		});

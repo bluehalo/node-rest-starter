@@ -3,6 +3,7 @@
 const
 	_ = require('lodash'),
 	passport = require('passport'),
+	path = require('path'),
 	q = require('q'),
 
 	deps = require('../../../../dependencies'),
@@ -50,7 +51,7 @@ module.exports.initializeNewUser = function(user) {
 module.exports.signupEmail = function(user, req) {
 	let defer = q.defer();
 
-	emailService.buildEmailContent('admin/templates/user-signup-alert-email', {
+	emailService.buildEmailContent(path.posix.resolve('src/app/core/user/templates/user-signup-alert-email.server.view.html'), {
 		name: user.name,
 		username: user.username,
 		appName: config.app.title,
@@ -90,7 +91,7 @@ module.exports.welcomeEmail = (user, req) => {
 
 	const appTitle = config.app.title;
 
-	emailService.buildEmailContent('admin/templates/user-welcome-email', {
+	emailService.buildEmailContent(path.posix.resolve('src/app/core/user/templates/user-welcome-email.server.view.html'), {
 		name: user.name,
 		username: user.username,
 		appName: appTitle,

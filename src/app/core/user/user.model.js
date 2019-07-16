@@ -291,7 +291,7 @@ UserSchema.statics.fullCopy = function(user) {
 
 	if(null != user){
 		toReturn = user.toObject();
-		if (toReturn.hasOwnProperty('password')) {
+		if (_.has(toReturn, 'password')) {
 			delete toReturn.password;
 		}
 	}

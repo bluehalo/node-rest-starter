@@ -1,6 +1,7 @@
 'use strict';
 
 const
+	_ = require('lodash'),
 	nodeUtil = require('util'),
 	path = require('path'),
 
@@ -131,7 +132,7 @@ NotificationSocket.prototype.addListeners = function() {
 	}
 };
 
-if (config.dispatcher && (!config.dispatcher.hasOwnProperty('enabled') || config.dispatcher.enabled)) {
+if (config.dispatcher && (!_.has(config.dispatcher, 'enabled') || config.dispatcher.enabled)) {
 	socketIO.registerSocketListener(NotificationSocket);
 }
 
