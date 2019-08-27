@@ -296,9 +296,9 @@ module.exports = {
 	},
 
 	/*
-	 * The maximum number of records allowed to be scanned by a mongo query
+	 * The maximum time in milliseconds allowed for processing operation on the cursor by a mongo query
 	 */
-	maxScan: 30000,
+	maxTimeMS: 30000,
 
 	/*
 	 * The maximum number of records allowed to be exported to csv

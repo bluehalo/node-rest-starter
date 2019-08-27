@@ -40,7 +40,7 @@ function pagingQuery(schema, find, projection, options, sort, limit, offset, run
 
 	// Build the query
 	let baseQuery = schema.find(find);
-	let findQuery = schema.find(find, projection, options).sort(sort).skip(offset).limit(limit).maxscan(config.maxScan);
+	let findQuery = schema.find(find, projection, options).sort(sort).skip(offset).limit(limit).maxTimeMS(config.maxTimeMS);
 
 	// Add population
 	if (populate) {
