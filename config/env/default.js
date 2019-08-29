@@ -113,7 +113,9 @@ module.exports = {
 	// Basic title and instance name
 	app: {
 		title: 'Node REST Starter',
-		instanceName: 'node-rest-starter'
+		name: 'Node Rest Starter',
+		instanceName: 'node-rest-starter',
+		baseUrl: 'http://localhost'
 	},
 
 	// Header/footer
@@ -173,7 +175,9 @@ module.exports = {
 		from: process.env.MAILER_FROM || 'USERNAME@GMAIL.COM',
 		provider: './src/app/core/email/providers/smtp-email.provider.js',
 		options: {
-			service: process.env.MAILER_SERVICE_PROVIDER || 'gmail',
+			host: process.env.MAILER_SERVICE_PROVIDER || 'gmail',
+			port: 587,
+			secure: false, // true for 465, false for other ports
 			auth: {
 				user: process.env.MAILER_EMAIL_ID || 'USERNAME@GMAIL.COM',
 				pass: process.env.MAILER_PASSWORD || 'PASSWORD'
