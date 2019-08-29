@@ -133,7 +133,11 @@ module.exports = {
 
 	feedback: {
 		showFlyout: true,
-		showInSidebar: true
+		showInSidebar: true,
+                classificationOpts: [
+	{ prefix: 'U', level: 'UNCLASSIFIED' },
+	{ prefix: 'R', level: 'Restriced' }
+]
 	},
 
 	email: {
@@ -171,7 +175,7 @@ module.exports = {
 	// Configuration for outgoing mail server / service
 	mailer: {
 		from: process.env.MAILER_FROM || 'USERNAME@GMAIL.COM',
-		provider: './src/server/app/util/providers/email/smtp-email.server.provider.js',
+		provider: './src/app/core/email/providers/smtp-email.provider.js',
 		options: {
 			service: process.env.MAILER_SERVICE_PROVIDER || 'gmail',
 			auth: {
@@ -180,11 +184,11 @@ module.exports = {
 			}
 		}
 		/*
-		provider: './src/server/app/util/providers/email/log-email.server.provider.js',
+		provider: './src/app/core/email/providers/log-email.server.provider.js',
 		options: {}
 		*/
 		/*
-		provider: './src/server/app/util/providers/email/https-email.server.provider.js',
+		provider: './src/app/core/email/providers/https-email.server.provider.js',
 		options: {
 			host: '',
 			port: ,
