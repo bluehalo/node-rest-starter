@@ -133,11 +133,7 @@ module.exports = {
 
 	feedback: {
 		showFlyout: true,
-		showInSidebar: true,
-                classificationOpts: [
-	{ prefix: 'U', level: 'UNCLASSIFIED' },
-	{ prefix: 'R', level: 'Restriced' }
-]
+		showInSidebar: true
 	},
 
 	email: {
