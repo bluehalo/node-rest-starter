@@ -24,6 +24,7 @@ function buildEmailContent(user, feedback) {
 		appName: config.app.name,
 		name: user.name,
 		username: user.username,
+		email: user.email,
 		url: feedback.url,
 		feedback: feedback.body,
 		feedbackType: feedback.type
