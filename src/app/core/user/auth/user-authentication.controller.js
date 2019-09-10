@@ -10,6 +10,7 @@ const
 	auditService = deps.auditService,
 
 	userAuthService = require('./user-authentication.service'),
+	userAuthorizationService = require('./user-authorization.service'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	User = dbs.admin.model('User');
 
@@ -25,7 +26,7 @@ function login(user, req, res) {
 	userAuthService.login(user, req)
 		.then(
 			(result) => {
-				exports.updateRoles(result, config.auth);
+				userAuthorizationService.updateRoles(result, config.auth);
 				res.status(200).json(result);
 			},
 			(err) => {
@@ -39,7 +40,7 @@ function authenticateAndLogin(req, res, next) {
 	userAuthService.authenticateAndLogin(req, res, next)
 		.then(
 			(result) => {
-				exports.updateRoles(result, config.auth);
+				userAuthorizationService.updateRoles(result, config.auth);
 				res.status(200).json(result);
 			},
 			(err) => {

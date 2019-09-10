@@ -18,6 +18,27 @@ const
  * Public Methods
  * ==========================================================
  */
+module.exports.updateRoles = (user, authConfig) => {
+	const strategy = _.get(authConfig, 'roleStrategy', 'local');
+	const isHybrid = strategy === 'hybrid';
+
+	if (isHybrid) {
+		user.localRoles = user.roles;
+	}
+	if (strategy === 'external' || isHybrid) {
+		let updatedRoles = {};
+		let externalRoles = user.externalRoles || [];
+		let externalRoleMap = authConfig.externalRoleMap;
+
+		let keys = _.keys(externalRoleMap);
+
+		keys.forEach((key) => {
+			updatedRoles[key] = (isHybrid && user.roles && user.roles[key]) || externalRoles.indexOf(externalRoleMap[key]) !== -1;
+		});
+
+		user.roles = updatedRoles;
+	}
+};
 
 module.exports.checkExternalRoles = function(user, configAuth) {
 	// If there are required roles, check for them
