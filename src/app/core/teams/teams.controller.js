@@ -17,7 +17,7 @@ const
  * Create a new team. The team creator is automatically added as an admin
  */
 module.exports.create = function(req, res) {
-	teamsService.createTeam(req.body, req.user, req.headers).then((result) => {
+	teamsService.createTeam(req.body.team, req.user, req.body.firstAdmin, req.headers).then((result) => {
 		res.status(200).json(result);
 	}, (err) => {
 		util.handleErrorResponse(res, err);

@@ -15,7 +15,8 @@ const
 	Resource = dbs.admin.model('Resource'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	Team = dbs.admin.model('Team'),
-	TeamRole = dbs.admin.model('TeamRole');
+	TeamRole = dbs.admin.model('TeamRole'),
+	User = dbs.admin.model('User');
 
 module.exports = function() {
 
@@ -198,7 +199,7 @@ module.exports = function() {
 	 * @param creator The user requesting the create
 	 * @returns {Promise} Returns a promise that resolves if team is successfully created, and rejects otherwise
 	 */
-	function createTeam(teamInfo, creator, headers) {
+	function createTeam(teamInfo, creator, firstAdmin, headers) {
 		// Create the new team model
 		let newTeam = new Team(teamInfo);
 
@@ -208,15 +209,17 @@ module.exports = function() {
 		newTeam.updated = Date.now();
 		newTeam.creatorName = creator.name;
 
-		// Audit the creation action
-		return auditService.audit('team created', 'team', 'create', TeamMember.auditCopy(creator), Team.auditCopy(newTeam), headers).then(function() {
+		return User.findById(firstAdmin).exec().then((user) => {
+			user = User.filteredCopy(user);
+			// Audit the creation action
+			return auditService.audit('team created', 'team', 'create', TeamMember.auditCopy(creator), Team.auditCopy(newTeam), headers).then(function () {
 				// Save the new team
 				return newTeam.save();
-			})
-			.then(function(team) {
-				// Add creator as first team member with admin role
-				return addMemberToTeam(creator, team, 'admin', creator);
+			}).then(function (team) {
+				// Add first admin as first team member with admin role, or the creator if null
+				return addMemberToTeam(user || creator, team, 'admin', creator);
 			});
+		});
 	}
 
 	function getTeams(queryParams) {
