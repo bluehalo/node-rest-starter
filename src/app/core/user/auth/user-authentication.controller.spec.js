@@ -714,8 +714,6 @@ describe('User Auth Controller:', () => {
 
 	describe('#userByExternalId', () => {
 
-		// beforeEach(clearDatabase);
-
 		it('should reject for a missing input', () => {
 			const req = { query: {} };
 			return userAuthenticationController.userByExternalId(req)
@@ -726,12 +724,6 @@ describe('User Auth Controller:', () => {
 				return Promise.resolve();
 			});
 		});
-
-		// TODO
-		// describe('local auth', () => {});
-
-		// TODO
-		// describe('pki auth', () => {});
 
 	});
 
