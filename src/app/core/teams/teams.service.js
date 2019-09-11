@@ -209,7 +209,7 @@ module.exports = function() {
 		newTeam.updated = Date.now();
 		newTeam.creatorName = creator.name;
 
-		return User.findById(firstAdmin).exec().then((user) => {
+		return User.findById(firstAdmin === null ? null : firstAdmin._id || firstAdmin).exec().then((user) => {
 			user = User.filteredCopy(user);
 			// Audit the creation action
 			return auditService.audit('team created', 'team', 'create', TeamMember.auditCopy(creator), Team.auditCopy(newTeam), headers).then(function () {
