@@ -323,7 +323,7 @@ describe('Utils:', () => {
 		});
 
 		const defaultResponse = 'A server error has occurred.';
-		const unknownError = 'unknown error'
+		const unknownError = 'unknown error';
 
 		const errorTests = [
 			{
