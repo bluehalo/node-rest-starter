@@ -33,12 +33,14 @@ module.exports.getErrorMessage = function(err) {
 	}
 
 	let msg = 'unknown error';
-	if(null != err.message) {
-		msg = err.message;
-	}
+	if (null !== err) {
+		if(null != err.message) {
+			msg = err.message;
+		}
 
-	if(null != err.stack) {
-		msg = '[' + msg + '] ' + err.stack;
+		if(null != err.stack) {
+			msg = '[' + msg + '] ' + err.stack;
+		}
 	}
 
 	return msg;

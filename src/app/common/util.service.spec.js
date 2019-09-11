@@ -309,4 +309,76 @@ describe('Utils:', () => {
 		});
 	});
 
+	describe('getClientErrorMessage:', () => {
+
+		let originalExposeServerErrors;
+
+		before(() => {
+			originalExposeServerErrors = deps.config.exposeServerErrors;
+		});
+
+		after(() => {
+			// Restore the original exposeServerErrors config
+			deps.config.exposeServerErrors = originalExposeServerErrors;
+		});
+
+		const defaultResponse = 'A server error has occurred.';
+		const unknownError = 'unknown error'
+
+		const errorTests = [
+			{
+				testName: 'null error',
+				error: null,
+				expected: unknownError
+			},
+			{
+				testName: 'string error',
+				error: 'This is an error',
+				expected: 'This is an error'
+			},
+			{
+				testName: 'empty string error',
+				error: '',
+				expected: ''
+			},
+			{
+				testName: 'empty object error',
+				error: { },
+				expected: 'unknown error'
+			},
+			{
+				testName: 'message object error',
+				error: { message: 'Message Error' },
+				expected: 'Message Error'
+			},
+			{
+				testName: 'message and stack object error',
+				error: { message: 'Message Error', stack: 'this is\na stack' },
+				expected: '[Message Error] this is\na stack'
+			},
+			{
+				testName: 'stack object error',
+				error: { stack: 'this is\na stack' },
+				expected: `[${unknownError}] this is\na stack`
+			}
+		];
+
+		errorTests.forEach((test) => {
+			it('should return default error message when config is false: ' + test.testName, () => {
+				deps.config.exposeServerErrors = false;
+				const actual = util.getClientErrorMessage(test.error);
+				should(actual).equal(defaultResponse);
+			});
+		});
+
+		errorTests.forEach((test) => {
+			it('should return contextual error message when config is true: ' + test.testName, () => {
+				deps.config.exposeServerErrors = true;
+				const actual = util.getClientErrorMessage(test.error);
+				should(actual).equal(test.expected);
+			});
+		});
+
+	});
+
 });
