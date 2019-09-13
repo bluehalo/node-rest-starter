@@ -55,6 +55,9 @@ mongoose.connect().then(() => {
 		process.exit(1);
 	}
 
-}, () => {
+}, (err) => {
 	console.error('Mongoose initialization failed, tests failed.');
+	console.error(err);
+	// non-zero exit code to let the process know that we've failed
+	process.exit(1);
 }).done();

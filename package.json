@@ -17,6 +17,7 @@
     "start:dev": "export NODE_ENV=development && yarn start",
     "test": "NODE_ENV=test nodemon ./src/test.js",
     "test:ci": "NODE_ENV=test nyc --reporter=lcov --reporter=html node ./src/test.js --ci",
+    "test:gitlab": "NODE_ENV=testgitlab nyc --reporter=lcov --reporter=html node ./src/test.js --ci",
     "build": "npm run lint",
     "lint": "npm run lint:eslint",
     "lint:eslint": "eslint \"./**/*.js\""
