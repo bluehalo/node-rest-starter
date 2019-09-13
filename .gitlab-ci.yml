@@ -18,3 +18,7 @@ test:
     - mongo:4.1.2
   script:
     - npm run test:gitlab
+  coverage: '/^Statements\s*:\s*([^%]+)/'
+  artifacts:
+    paths:
+      - coverage/
