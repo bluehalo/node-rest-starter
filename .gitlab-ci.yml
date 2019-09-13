@@ -1,0 +1,24 @@
+image: node:12.4
+
+stages:
+  - build
+  - test
+
+before_script:
+  - npm install
+
+build:
+  stage: build
+  script:
+    - npm run lint
+
+test:
+  stage: test
+  services:
+    - mongo:4.1.2
+  script:
+    - npm run test:gitlab
+  coverage: '/^Statements\s*:\s*([^%]+)/'
+  artifacts:
+    paths:
+      - coverage/
