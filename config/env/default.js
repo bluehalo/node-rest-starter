@@ -115,7 +115,12 @@ module.exports = {
 		title: 'Node REST Starter',
 		name: 'Node Rest Starter',
 		instanceName: 'node-rest-starter',
-		baseUrl: 'http://localhost'
+		url: {
+			protocol: 'http',
+			host: 'localhost',
+			port: 3000
+		},
+		clientUrl: 'http://localhost/#'
 	},
 
 	// Header/footer
