@@ -16,7 +16,7 @@ function buildEmailContent(resource) {
 		contactEmail: config.contactEmail
 	};
 
-	return emailService.buildEmailContent('util/templates/new-user-email', emailData);
+	return emailService.buildEmailContent('src/app/core/user/templates/new-user-email.server.view.html', emailData);
 }
 
 module.exports.emailNewUser = (user) => {
