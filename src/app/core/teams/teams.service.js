@@ -476,7 +476,7 @@ module.exports = function() {
 			url: `${config.app.clientUrl}/team/${team._id}`
 		};
 
-		return emailService.buildEmailContent('teams/templates/user-request-access-email', emailData);
+		return emailService.buildEmailContent('src/app/core/teams/templates/user-request-access-email.view.html', emailData);
 	}
 
 	function sendRequestEmail(toEmail, requester, team) {
@@ -526,7 +526,7 @@ module.exports = function() {
 			url: `${config.app.clientUrl}/team/create`
 		};
 
-		return emailService.buildEmailContent('teams/templates/user-request-new-team-email', emailData);
+		return emailService.buildEmailContent('src/app/core/teams/templates/user-request-new-team-email.view.html', emailData);
 	}
 
 	function requestNewTeam(org, aoi, description, requester, headers) {

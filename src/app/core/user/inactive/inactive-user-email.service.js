@@ -25,7 +25,7 @@ function buildEmailContent(resource, emailTemplateName) {
 		contactEmail: configc.contactEmail
 	};
 
-	return emailService.buildEmailContent(`util/templates/${emailTemplateName}-email`, emailData);
+	return emailService.buildEmailContent(`src/app/core/user/templates/${emailTemplateName}-email.server.view.html`, emailData);
 }
 
 function deactivationAlert(dQuery, config) {
