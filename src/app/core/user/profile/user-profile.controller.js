@@ -17,7 +17,7 @@ const
 	resourcesService = require('../../resources/resources.service')(),
 	userAuthorizationService = require('../auth/user-authorization.service'),
 	userProfileService = require('./user-profile.service'),
-	newUserEmailService = require('../new-user-email.service');
+	approvedUserEmailService = require('../approved-user-email.service');
 
 /**
  * Private methods
@@ -352,10 +352,13 @@ exports.adminUpdateUser = (req, res) => {
 
 	let emailPromise = null;
 
-	const originalUserRole = _.get(originalUser, 'roles.user', null);
-	const newUserRole = _.get(user, 'roles.user', null);
-	if (originalUserRole !== newUserRole && newUserRole) {
-		emailPromise = newUserEmailService.emailNewUser(user);
+	if (config.newUser && config.newUser.approvedNotification) {
+		const originalUserRole = _.get(originalUser, 'roles.user', null);
+		const newUserRole = _.get(user, 'roles.user', null);
+
+		if (originalUserRole !== newUserRole && newUserRole) {
+			emailPromise = approvedUserEmailService.emailApprovedUser(user);
+		}
 	}
 
 	// Update the updated date
