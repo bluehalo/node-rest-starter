@@ -120,7 +120,8 @@ module.exports = {
 			host: 'localhost',
 			port: 3000
 		},
-		clientUrl: 'http://localhost/#'
+		clientUrl: 'http://localhost/#',
+		helpUrl: 'http://localhost/#/help'
 	},
 
 	// Header/footer
@@ -152,6 +153,7 @@ module.exports = {
 	contactEmail: process.env.CONTACT_EMAIL || process.env.MAILER_ADMIN || 'noreply@asymmetrik.com',
 
 	newUser: {
+		approvedNotification: true,
 		welcomeNotification: true,
 		adminNotification: true,
 		email: process.env.CONTACT_EMAIL || 'noreply@asymmetrik.com'
