@@ -414,7 +414,13 @@ exports.adminDeleteUser = (req, res) => {
 
 // Admin Search for Users
 exports.adminSearchUsers = (req, res) => {
-	searchUsers(req, res, User.fullCopy);
+	searchUsers(req, res, (user) => {
+		let userCopy = User.fullCopy(user);
+
+		userAuthorizationService.updateRoles(userCopy, config.auth);
+
+		return userCopy;
+	});
 };
 
 function canEditProfile(authStrategy, user) {
