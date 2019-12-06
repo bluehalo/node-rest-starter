@@ -44,7 +44,7 @@ In order to generate code coverage output via a single run of the test suite, `n
 
 # Installing on Production
 
-Since Mongoose running in `production` mode does not create Mongo indices on-the-fly, the following script is available to run on the production Mongo instance / cluster to create all required indices.
+Since Mongoose suggests not automatically creating Mongo indices on-the-fly, the following series of commands is available to run on the production Mongo instance / cluster to create all required indices.
 
 ```
 db.audit.createIndex({ created: -1 }, { background: true });
