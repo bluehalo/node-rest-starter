@@ -41,3 +41,53 @@ If a non-default provider is used (e.g., `kafka-publish.provider.js` for the `Ev
 Tests run as an NPM script. To support development, `npm run test` will watch all files via `nodemon` and will run tests as files are updated.
 
 In order to generate code coverage output via a single run of the test suite, `npm run test:ci` will output coverage results into the top-level `./coverage` directory, both in HTML and LCOV formats.
+
+# Installing on Production
+
+Since Mongoose running in `production` mode does not create Mongo indices on-the-fly, the following script is available to run on the production Mongo instance / cluster to create all required indices.
+
+```
+db.audit.createIndex({ created: -1 }, { background: true });
+db.audit.createIndex({
+    'message': 'text',
+    'audit.auditType': 'text',
+    'audit.action': 'text',
+    'audit.object': 'text'
+}, { background: true });
+
+db.cache.entry.createIndex({ ts: 1 }, { background: true });
+db.cache.entry.createIndex({ key: 1 }, { background: true });
+
+db.exportconfigs.createIndex({ created: 1 }, { background: true });
+
+db.feedback.createIndex({ 'created': -1 }, { background: true, expireAfterSeconds: 15552000 });
+db.feedback.createIndex({ 'type': 1 }, { background: true });
+db.feedback.createIndex({ 'creator': 1 }), { background: true };
+db.feedback.createIndex({ 'url': 1 }, { background: true });
+db.feedback.createIndex({ 'os': 1 }, { background: true });
+db.feedback.createIndex({ 'browser': 1 }, { background: true });
+db.feedback.createIndex({ 'body': 'text' }, { background: true });
+
+db.messages.createIndex({ title: 'text', body: 'text', type: 'text' }, { background: true });
+db.messages.dismissed.createIndex({ created: -1 }, { expireAfterSeconds: 2592000, background: true });
+db.messages.dismissed.createIndex({ userId: 1 }, { background: true });
+
+db.notifications.createIndex({ user: 1, created: -1 }, { background: true });
+db.notifications.createIndex({ created: 1 }, { background: true });
+
+db.owners.createIndex({ name: 1 }, { background: true });
+
+db.preferences.createIndex({ 'user' : 1, 'updated' : -1 }, { background: true });
+db.preferences.createIndex({ 'user' : 1, 'preferenceType' : 1, 'updated' : -1 }, { background: true });
+
+db.resources.createIndex({ 'created' : 1, 'updated' : -1 }, { background: true });
+db.resources.createIndex({ 'owner.name' : 1 }, { background: true });
+db.resources.createIndex({ 'title_lowercase': 'text', 'description': 'text' }, { background: true });
+
+db.teams.createIndex({ name: 'text', description: 'text' }, { background: true });
+
+db.useragreements.createIndex({ title: 'text', text: 'text' }, { background: true });
+
+db.users.createIndex({ username: 1 }, { background: true });
+db.users.createIndex({ name: 'text', email: 'text', username: 'text' }, { background: true });
+```
