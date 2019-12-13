@@ -1,13 +1,8 @@
-<p>Hello {{ name }}, </p>
-
+<p>Hello {{ user.name }},</p>
 <br>
-
-<p>Your {{ appName }} account has been approved! Come <a href="{{ welcomeUrl }}">check us out</a>!</p>
-<p>Have a question? Take a look at our <a href="{{ helpUrl }}">Help documentation</a>.</p>
-<p>If you need to contact a member of our team, you can reach us at {{ contactEmail }}.</p>
-
-<br>
-<br>
-
+<p>Your {{ app.title }} account has been approved! Come <a href="{{ app.clientUrl }}">check us out</a>!</p>
+<p>Have a question? Take a look at our <a href="{{ app.helpUrl }}">Help documentation</a>.</p>
+<p>If you need to contact a member of our team, you can reach us at {{ app.contactEmail }}.</p>
+<br><br>
 <p>Thanks,</p>
-<p>The {{ appName }} Support Team</p>
+<p>The {{ app.title }} Support Team</p>

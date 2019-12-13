@@ -1,14 +1,9 @@
-<p>Hello  {{name}}, </p>
-
+<p>Hello {{ user.name }},</p>
 <br>
-
-<p>It seems you haven't logged into your {{appName}} account in {{date}} days.</p>
+<p>It seems you haven't logged into your {{ app.title }} account in {{ daysAgo }} days.</p>
 <p>Therefore, your account has been deactivated.</p>
-
-<p>Please contact us at {{contactEmail}} if you have any questions.</p>
-
+<p>Please contact us at {{ app.contactEmail }} if you have any questions.</p>
 <br>
 <br>
-
 <p>Thanks,</p>
-<p>The {{ appName }} Support Team</p>
+<p>The {{ app.title }} Support Team</p>

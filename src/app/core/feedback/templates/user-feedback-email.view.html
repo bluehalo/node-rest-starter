@@ -1,6 +1,6 @@
 {{ header }}
-<p>Hey there {{ appName }} Admins,</p>
-<p>A user named <b>{{ name }}</b> with username <b>{{ username }}</b> and email <b>{{ email }}</b> has submitted the following {{ feedbackType }}:</p>
+<p>Hey there {{ app.title }} Admins,</p>
+<p>A user named <b>{{ user.name }}</b> with username <b>{{ user.username }}</b> and email <b>{{ user.email }}</b> has submitted the following {{ feedbackType }}:</p>
 <p>{{ feedback }}</p>
 <p>Submitted from: {{ url }}</p>
 {{ footer }}

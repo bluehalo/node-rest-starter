@@ -2,7 +2,7 @@
 
 const
 	path = require('path'),
-	q = require('q'),
+	_ = require('lodash'),
 	fs = require('fs'),
 	handlebars = require('handlebars'),
 
@@ -55,60 +55,68 @@ function getMissingMailOptions(mailOptions) {
 
 module.exports.getMissingMailOptions = getMissingMailOptions;
 
-module.exports.sendMail = (mailOptions) => {
-	let defer = q.defer();
-
+module.exports.sendMail = async (mailOptions) => {
 	// Make sure that the mailer is configured
 	const mailProvider = getProvider();
 	if (!mailProvider) {
-		defer.reject({ message: 'Email service is not configured' });
-		return defer.promise;
+		return Promise.reject({ message: 'Email service is not configured' });
 	}
 	// Make sure mailOptions are specified
 	if (!mailOptions) {
-		defer.reject({ message: 'No email options specified' });
-		return defer.promise;
+		return Promise.reject({ message: 'No email options specified' });
 	}
 
 	// Make sure all the required mailOptions are defined
 	let missingOptions = getMissingMailOptions(mailOptions);
 	if (missingOptions.length > 0) {
-		defer.reject({ message: `The following required values were not specified in mailOptions: ${missingOptions.join(', ')}`});
-		return defer.promise;
+		return Promise.reject({ message: `The following required values were not specified in mailOptions: ${missingOptions.join(', ')}`});
 	}
 
-	mailProvider.sendMail(mailOptions)
-		.then((results) =>{
-			logger.debug(`Sent email to: ${mailOptions.to}`);
-			defer.resolve(mailOptions);
-		}).catch((error) => {
-			defer.reject(error);
-		});
+	await mailProvider.sendMail(mailOptions);
 
-	return defer.promise;
+	logger.debug(`Sent email to: ${mailOptions.to}`);
 };
 
-module.exports.buildEmailContent = (templatePath, data) => {
-	let defer = q.defer();
-
-	fs.readFile(templatePath, 'utf-8', (err, source) => {
-		if (err) {
-			defer.reject(err);
-		} else {
-			handlebars.registerPartial(templatePath, source);
-			data.emailTemplate = () => templatePath;
-
-			// Set email header/footer
-			data.header = config.email.header;
-			data.footer = config.email.footer;
-
-			defer.resolve(handlebars.compile(source)(data));
-		}
+module.exports.buildEmailContent = async (templatePath, user, overrides = {}) => {
+	let templateString = await new Promise((resolve, reject) => {
+		fs.readFile(templatePath, 'utf-8', (err, source) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(source);
+			}
+		});
 	});
 
-	return defer.promise;
+	// Set email header/footer
+	let data = _.merge({}, config.coreEmails.default, {
+		app: config.app,
+		user: user
+	}, overrides);
+
+	return handlebars.compile(templateString)(data);
 };
 
-module.exports.getSubject = (subject) => {
-	return (config.email.subjectPrefix ? config.email.subjectPrefix + ' ' : '') + subject;
+module.exports.buildEmailSubject = (template, user, overrides = {}) => {
+	let data = _.merge({}, config.coreEmails.default, {
+		app: config.app,
+		user: user
+	}, overrides);
+	return handlebars.compile(template)(data);
+};
+
+module.exports.generateMailOptions = async (user, req, emailConfig, emailContentData = {}, emailSubjectData = {}, mailOpts = {}) => {
+	let emailContent, emailSubject;
+	try {
+		emailContent = await module.exports.buildEmailContent(path.posix.resolve(emailConfig.templatePath), user, emailContentData);
+		emailSubject = module.exports.buildEmailSubject(emailConfig.subject, user, emailSubjectData);
+	} catch (error) {
+		logger.error({err: error, req: req}, 'Failure rendering template.');
+		return Promise.reject(error);
+	}
+
+	return _.merge({}, config.coreEmails.default, emailConfig, mailOpts, {
+		subject: emailSubject,
+		html: emailContent
+	});
 };

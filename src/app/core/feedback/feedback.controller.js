@@ -6,7 +6,6 @@ const
 	config = deps.config,
 	logger = deps.logger,
 	auditService = deps.auditService,
-	emailService = deps.emailService,
 	utilService = deps.utilService,
 
 	exportConfigController = require('../export/export-config.controller'),
@@ -18,44 +17,11 @@ const
 	TeamMember = dbs.admin.model('TeamUser'),
 	ExportConfig = dbs.admin.model('ExportConfig');
 
-
-function buildEmailContent(user, feedback) {
-	let emailData = {
-		appName: config.app.name,
-		name: user.name,
-		username: user.username,
-		email: user.email,
-		url: feedback.url,
-		feedback: feedback.body,
-		feedbackType: feedback.type
-	};
-
-	return emailService.buildEmailContent('src/app/core/feedback/templates/user-feedback-email.view.html', emailData);
-}
-
-async function sendFeedback(user, feedback) {
-	if (null == user || null == feedback.body || null == feedback.type || null == feedback.url) {
-		return Promise.reject({ status: 400, message: 'Invalid submission.' });
-	}
-
-	return buildEmailContent(user, feedback).then((content) => {
-		let mailOptions = {
-			bcc: config.contactEmail,
-			from: config.mailer.from,
-			replyTo: config.mailer.from,
-			subject: emailService.getSubject(`${config.app.title}: Feedback Submitted`),
-			html: content
-		};
-
-		return emailService.sendMail(mailOptions);
-	});
-}
-
 module.exports.submitFeedback = async function(req, res) {
 	try {
 		let audit = await auditService.audit('Feedback submitted', 'feedback', 'create', TeamMember.auditCopy(req.user, utilService.getHeaderField(req.headers, 'x-real-ip')), req.body, req.headers);
 		let feedback = await feedbackService.create(req.user, req.body, audit.audit.userSpec);
-		await sendFeedback(req.user, feedback);
+		await feedbackService.sendFeedback(req.user, feedback, req);
 		res.status(200).json(feedback);
 	} catch (err) {
 		utilService.handleErrorResponse(res, err);

@@ -1,17 +1,11 @@
-<p>Hello  {{name}}, </p>
-
+<p>Hello {{ user.name }},</p>
 <br>
-
-<p>It seems you haven't logged into your {{appName}} account in {{date}} days. Why not check in and see what's new!</p>
-<p>Have a question or just want to know what's new? Take a look at our Message of the Day page: </p>
-<p>{{ url }}</p>
-
+<p>It seems you haven't logged into your {{ app.title }} account in {{ daysAgo }} days. Why not check in and see what's new!</p>
+<p>Have a question or just want to know what's new? Take a look at our Message of the Day page:</p>
+<p>{{ app.clientUrl }}</p>
 <br>
-
 <p>Keep in mind that all accounts that have been inactive for a period of at least 90 days are deactivated.</p>
-
 <br>
 <br>
-
 <p>Thanks,</p>
-<p>The {{ appName }} Support Team</p>
+<p>The {{ app.title }} Support Team</p>

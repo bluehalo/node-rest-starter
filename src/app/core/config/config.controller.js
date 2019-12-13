@@ -17,7 +17,7 @@ let getSystemConfig = function() {
 		banner: config.banner,
 		copyright: config.copyright,
 
-		contactEmail: config.contactEmail,
+		contactEmail: config.app.contactEmail,
 
 		maxExport: config.maxExport,
 		feedback: config.feedback

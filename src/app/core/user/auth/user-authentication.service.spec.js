@@ -4,11 +4,7 @@ const
 	_ = require('lodash'),
 	q = require('q'),
 	should = require('should'),
-
-	deps = require('../../../../dependencies'),
-	config = deps.config,
-
-	userAuthenticationService = require('./user-authentication.service');
+	proxyquire = require('proxyquire');
 
 /**
  * Helpers
@@ -44,23 +40,25 @@ function validateDefaultRoles(updatedUser) {
 
 }
 
+function createSubjectUnderTest(dependencies) {
+	const stubs = {};
+	stubs['../../../../dependencies'] = dependencies || {};
+	return proxyquire('./user-authentication.service', stubs);
+}
+
 /**
  * Unit tests
  */
 describe('User Authentication Service:', () => {
 
-	let originalDefaultRoles;
-
-	before(() => {
-		originalDefaultRoles = config.auth.defaultRoles;
-		config.auth.defaultRoles = testDefaultRoles;
-	});
-
-	after(() => {
-		config.auth.defaultRoles = originalDefaultRoles;
-	});
-
 	describe('initializeNewUser', () => {
+		let userAuthenticationService = createSubjectUnderTest({
+			config: {
+				auth: {
+					defaultRoles: testDefaultRoles
+				}
+			}
+		});
 
 		it('should set default roles when none are initially set', (done) => {
 			let user = userSpec('Basic');

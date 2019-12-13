@@ -3,10 +3,30 @@
 const
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
+	config = deps.config,
+	emailService = deps.emailService,
 	utilService = deps.utilService,
 	logger = deps.logger,
 	Feedback = dbs.admin.model('Feedback');
 
+const sendFeedback = async (user, feedback, req) => {
+	if (null == user || null == feedback.body || null == feedback.type || null == feedback.url) {
+		return Promise.reject({ status: 400, message: 'Invalid submission.' });
+	}
+
+	try {
+		let mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.feedbackEmail, {
+			url: feedback.url,
+			feedback: feedback.body,
+			feedbackType: feedback.type
+		});
+		await emailService.sendMail(mailOptions);
+		logger.debug(`Sent approved user (${user.username}) alert email`);
+	} catch (error) {
+		// Log the error but this shouldn't block
+		logger.error({err: error, req: req}, 'Failure sending email.');
+	}
+};
 
 const create = async (reqUser, newFeedback, userSpec) => {
 	let feedback = new Feedback({
@@ -56,5 +76,6 @@ const search = async (reqUser, queryParams, query) => {
 
 module.exports = {
 	create,
-	search
+	search,
+	sendFeedback
 };

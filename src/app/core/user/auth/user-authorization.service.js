@@ -23,7 +23,7 @@ module.exports.updateRoles = (user, authConfig) => {
 	const isHybrid = strategy === 'hybrid';
 
 	if (isHybrid) {
-		user.localRoles = user.roles;
+		user.localRoles = user.roles || {};
 	}
 	if (strategy === 'external' || isHybrid) {
 		let updatedRoles = {};
