@@ -89,7 +89,7 @@ module.exports.requestNewTeam = function(req, res) {
 	const aoi = req.body.aoi || null;
 	const description = req.body.description || null;
 
-	teamsService.requestNewTeam(org, aoi, description, user, req.headers).then(() => {
+	teamsService.requestNewTeam(org, aoi, description, user, req).then(() => {
 		res.status(204).end();
 	}, (err) => {
 		util.handleErrorResponse(res, err);
@@ -100,7 +100,7 @@ module.exports.requestAccess = function(req, res) {
 	const user = req.user;
 	const team = req.team || null;
 
-	teamsService.requestAccessToTeam(user, team, req.headers).then(() => {
+	teamsService.requestAccessToTeam(user, team, req).then(() => {
 		res.status(204).end();
 	}, (err) => {
 		util.handleErrorResponse(res, err);

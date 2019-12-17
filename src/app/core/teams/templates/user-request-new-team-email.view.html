@@ -1,8 +1,8 @@
-<p>Hey there {{ appName }} Admins,</p>
-<p>A user named <b>{{ name }}</b> with username <b>{{ username }}</b> has requested a new team:</p>
+<p>Hey there {{ app.title }} Admins,</p>
+<p>A user named <b>{{ user.name }}</b> with username <b>{{ user.username }}</b> has requested a new team:</p>
 <p>
 	<b>Organization:</b> {{ org }}<br/>
 	<b>AOI:</b> {{ aoi }}<br/>
 	<b>Description:</b> {{ description }}<br/>
 </p>
-<p>Click <a href="{{ url }}">here</a> to create this team!</p>
+<p>Click <a href="{{ app.clientUrl }}/team/create">here</a> to create this team!</p>

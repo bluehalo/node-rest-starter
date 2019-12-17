@@ -8,6 +8,7 @@ const
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	dbs = deps.dbs,
+	logger = deps.logger,
 	auditService = deps.auditService,
 	emailService = deps.emailService,
 	util = deps.utilService,
@@ -468,32 +469,24 @@ module.exports = function() {
 			});
 	}
 
-	function buildEmailContent(requester, team) {
-		let emailData = {
-			teamName: team.name,
-			name: requester.name,
-			username: requester.username,
-			url: `${config.app.clientUrl}/team/${team._id}`
-		};
-
-		return emailService.buildEmailContent('src/app/core/teams/templates/user-request-access-email.view.html', emailData);
+	async function sendRequestEmail(toEmail, requester, team, req) {
+		try {
+			let mailOptions = await emailService.generateMailOptions(requester, null, config.coreEmails.teamAccessRequestEmail, {
+				team: team
+			}, {
+				team: team
+			}, {
+				bcc: toEmail
+			});
+			await emailService.sendMail(mailOptions);
+			logger.debug(`Sent approved user (${requester.username}) alert email`);
+		} catch (error) {
+			// Log the error but this shouldn't block
+			logger.error({err: error, req: req}, 'Failure sending email.');
+		}
 	}
 
-	function sendRequestEmail(toEmail, requester, team) {
-		return buildEmailContent(requester, team).then((content) => {
-			let mailOptions = {
-				bcc: toEmail,
-				from: config.mailer.from,
-				replyTo: config.mailer.from,
-				subject: emailService.getSubject(`${config.app.title}: A user has requested access to Team ${team.name}`),
-				html: content
-			};
-
-			return emailService.sendMail(mailOptions);
-		});
-	}
-
-	function requestAccessToTeam(requester, team, headers) {
+	function requestAccessToTeam(requester, team, req) {
 		let adminEmails;
 
 		// Lookup the emails of all team admins
@@ -509,51 +502,40 @@ module.exports = function() {
 			}
 
 			// Add requester role to user for this team
-			return addMemberToTeam(requester, team, 'requester', requester, headers);
+			return addMemberToTeam(requester, team, 'requester', requester, req.headers);
 		}).then(() => {
-			return sendRequestEmail(adminEmails, requester, team);
+			return sendRequestEmail(adminEmails, requester, team, req);
 		});
 	}
 
-
-	function buildNewTeamEmailContent(requester, org, aoi, description) {
-		let emailData = {
-			org: org,
-			aoi: aoi,
-			description: description,
-			name: requester.name,
-			username: requester.username,
-			url: `${config.app.clientUrl}/team/create`
-		};
-
-		return emailService.buildEmailContent('src/app/core/teams/templates/user-request-new-team-email.view.html', emailData);
-	}
-
-	function requestNewTeam(org, aoi, description, requester, headers) {
+	async function requestNewTeam(org, aoi, description, requester, req) {
 		if (null == org) {
-			return q.reject({ status: 400, message: 'Organization cannot be empty' });
+			return Promise.reject({ status: 400, message: 'Organization cannot be empty' });
 		}
 		if (null == aoi) {
-			return q.reject({ status: 400, message: 'AOI cannot be empty' });
+			return Promise.reject({ status: 400, message: 'AOI cannot be empty' });
 		}
 		if (null == description) {
-			return q.reject({ status: 400, message: 'Description cannot be empty' });
+			return Promise.reject({ status: 400, message: 'Description cannot be empty' });
 		}
 		if (null == requester) {
-			return q.reject({ status: 400, message: 'Invalid requester' });
+			return Promise.reject({ status: 400, message: 'Invalid requester' });
 		}
 
-		return auditService.audit('new team requested', 'team', 'request', TeamMember.auditCopy(requester), { org, aoi, description }, headers).then(() => {
-			return buildNewTeamEmailContent(requester, org, aoi, description);
-		}).then((content) => {
-			return emailService.sendMail({
-				bcc: config.contactEmail,
-				from: config.mailer.from,
-				replyTo: config.mailer.from,
-				subject: emailService.getSubject('New Team Requested'),
-				html: content
+		try {
+			await auditService.audit('new team requested', 'team', 'request', TeamMember.auditCopy(requester), { org, aoi, description }, req.headers);
+
+			let mailOptions = await emailService.generateMailOptions(requester, req, config.coreEmails.newTeamRequest, {
+				org: org,
+				aoi: aoi,
+				description: description
 			});
-		});
+			await emailService.sendMail(mailOptions);
+			logger.debug('Sent team request email');
+		} catch (error) {
+			// Log the error but this shouldn't block
+			logger.error({err: error, req: req}, 'Failure sending email.');
+		}
 	}
 
 	return {
@@ -572,6 +554,7 @@ module.exports = function() {
 		addMemberToTeam: addMemberToTeam,
 		addMembersToTeam: addMembersToTeam,
 		updateMemberRole: updateMemberRole,
-		removeMemberFromTeam: removeMemberFromTeam
+		removeMemberFromTeam: removeMemberFromTeam,
+		sendRequestEmail: sendRequestEmail
 	};
 };

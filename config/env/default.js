@@ -1,5 +1,7 @@
 'use strict';
 
+const contactEmail = process.env.CONTACT_EMAIL || process.env.MAILER_ADMIN || 'noreply@asymmetrik.com';
+
 module.exports = {
 
 	/**
@@ -121,7 +123,8 @@ module.exports = {
 			port: 3000
 		},
 		clientUrl: 'http://localhost/#',
-		helpUrl: 'http://localhost/#/help'
+		helpUrl: 'http://localhost/#/help',
+		contactEmail: contactEmail
 	},
 
 	// Header/footer
@@ -144,20 +147,62 @@ module.exports = {
 		showInSidebar: true
 	},
 
-	email: {
-		header: 'HEADER',
-		footer: 'FOOTER',
-		subjectPrefix: '(PREFIX)'
+	coreEmails: {
+		default: {
+			header: 'HEADER',
+			footer: 'FOOTER',
+			from: contactEmail,
+			replyTo: contactEmail
+		},
+		userSignupAlert: {
+			enabled: true,
+			templatePath: 'src/app/core/user/templates/user-signup-alert-email.server.view.html',
+			subject: 'New Account Request - {{ app.serverUrl }}',
+			to: contactEmail
+		},
+		welcomeEmail: {
+			enabled: true,
+			templatePath: 'src/app/core/user/templates/user-welcome-email.server.view.html',
+			subject: 'Welcome to {{ app.title }}!'
+		},
+		approvedUserEmail: {
+			enabled: true,
+			templatePath: 'src/app/core/user/templates/approved-user-email.server.view.html',
+			subject: 'Your {{ app.title }} account has been approved!'
+		},
+		feedbackEmail: {
+			templatePath: 'src/app/core/feedback/templates/user-feedback-email.view.html',
+			subject: '{{ app.title }}: Feedback Submitted',
+			bcc: contactEmail
+		},
+		teamAccessRequestEmail: {
+			templatePath: 'src/app/core/teams/templates/user-request-access-email.view.html',
+			subject: '{{ app.title }}: A user has requested access to Team {{ team.name }}'
+		},
+		newTeamRequest: {
+			templatePath: 'src/app/core/teams/templates/user-request-new-team-email.view.html',
+			subject: 'New Team Requested',
+			bcc: contactEmail
+		},
+		userInactivity: {
+			templatePath: 'src/app/core/user/templates/inactivity-email.server.view.html',
+			subject: '{{ app.title }}: Inactivity Notice'
+		},
+		userDeactivate: {
+			templatePath: 'src/app/core/user/templates/deactivate-email.server.view.html',
+			subject: '{{ app.title }}: Account Deactivation'
+		},
+		resetPassword: {
+			templatePath: 'src/app/core/user/templates/reset-password-email.server.view.html',
+			subject: 'Password Reset'
+		},
+		resetPasswordConfirm: {
+			templatePath: 'src/app/core/user/templates/reset-password-confirm-email.server.view.html',
+			subject: 'Your password has been changed'
+		}
 	},
 
-	contactEmail: process.env.CONTACT_EMAIL || process.env.MAILER_ADMIN || 'noreply@asymmetrik.com',
-
-	newUser: {
-		approvedNotification: true,
-		welcomeNotification: true,
-		adminNotification: true,
-		email: process.env.CONTACT_EMAIL || 'noreply@asymmetrik.com'
-	},
+	siteEmails: {},
 
 	// Use the following for local eventEmitter
 	publishProvider: './src/app/common/event/event-publish.provider.js',

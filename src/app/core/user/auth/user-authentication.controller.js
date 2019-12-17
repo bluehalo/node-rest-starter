@@ -11,6 +11,7 @@ const
 
 	userAuthService = require('./user-authentication.service'),
 	userAuthorizationService = require('./user-authorization.service'),
+	userEmailService = require('../user-email.service'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	User = dbs.admin.model('User');
 
@@ -75,13 +76,13 @@ const signup = (user, req, res) => {
 		return user.save();
 	}).then((newUser) => {
 		// Send email for new user if enabled, no reason to wait for success
-		if (config.newUser) {
-			if (config.newUser.adminNotification) {
-				userAuthService.signupEmail(user, req);
+		if (config.coreEmails) {
+			if (config.coreEmails.userSignupAlert && config.coreEmails.userSignupAlert.enabled) {
+				userEmailService.signupEmail(user, req);
 			}
 
-			if (config.newUser.welcomeNotification) {
-				userAuthService.welcomeEmail(user, req);
+			if (config.coreEmails.welcomeEmail && config.coreEmails.welcomeEmail.enabled) {
+				userEmailService.welcomeEmail(user, req);
 			}
 		}
 		return auditService.audit('user signup', 'user', 'user signup', {}, User.auditCopy(newUser), req.headers).then(() => newUser);

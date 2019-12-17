@@ -13,6 +13,7 @@ const
 
 	accessChecker = require('../../app/core/access-checker/access-checker.service'),
 	userAuthService = require('../../app/core/user/auth/user-authentication.service'),
+	userEmailService = require('../../app/core/user/user-email.service'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	User = mongoose.model('User');
 
@@ -174,13 +175,13 @@ async function handleUser(dn, req, isProxy) {
 		let newUser = await	createUser(dn, acUser);
 
 		// Send email for new user if enabled, no reason to wait for success
-		if (config.newUser) {
-			if (config.newUser.adminNotification) {
-				userAuthService.signupEmail(newUser, req);
+		if (config.coreEmails) {
+			if (config.coreEmails.userSignupAlert && config.coreEmails.userSignupAlert.enabled) {
+				userEmailService.signupEmail(newUser, req);
 			}
 
-			if (config.newUser.welcomeNotification) {
-				userAuthService.welcomeEmail(newUser, req);
+			if (config.coreEmails.userSignupAlert && config.coreEmails.welcomeEmail.enabled) {
+				userEmailService.welcomeEmail(newUser, req);
 			}
 		}
 
