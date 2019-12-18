@@ -33,23 +33,21 @@ async function sendEmail(user, emailConfig) {
 async function deactivationAlert(dQuery) {
 	let deactivatedUsers = await User.find(dQuery).exec();
 	if (_.isArray(deactivatedUsers)) {
-		for (let user of deactivatedUsers) {
-			let originalUser = User.auditCopy(user);
 
-			User.update({'username': user.username}, {
-				$set: {
-					'roles.user': false,
-					'roles.admin': false
-				}
-			}).then(() => {
-				user.roles.admin = false;
-				user.roles.user = false;
-			}).then(() => {
+		const promises = deactivatedUsers.map((user) => {
+			const originalUser = User.auditCopy(user);
+
+			user.roles.admin = false;
+			user.roles.user = false;
+
+			return user.save().then(() => {
 				let emailPromise = sendEmail(user, config.coreEmails.userDeactivate);
 				let auditPromise = auditService.audit('deactivation due to inactivity','user','deactivation', null, {before: originalUser, after: User.auditCopy(user)}, null);
 				return Promise.all([emailPromise, auditPromise]);
 			});
-		}
+		});
+
+		return Promise.all(promises);
 	}
 }
 
@@ -57,9 +55,10 @@ async function deactivationAlert(dQuery) {
 async function inactivityAlert(dQuery) {
 	let inactiveUsers = await User.find(dQuery).exec();
 	if (_.isArray(inactiveUsers)) {
-		for (let user of inactiveUsers) {
+		const promises = inactiveUsers.map((user) => {
 			return sendEmail(user, config.coreEmails.userInactivity);
-		}
+		});
+		return Promise.all(promises);
 	}
 }
 

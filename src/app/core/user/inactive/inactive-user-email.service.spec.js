@@ -42,8 +42,7 @@ describe('User Email Service:', () => {
 				},
 				buildEmailContent: deps.emailService.buildEmailContent,
 				buildEmailSubject: deps.emailService.buildEmailSubject,
-				generateMailOptions: deps.emailService.generateMailOptions,
-				getSubject: deps.emailService.getSubject
+				generateMailOptions: deps.emailService.generateMailOptions
 			}
 		});
 
