@@ -323,7 +323,6 @@ describe('Team Service:', function() {
 				},
 				buildEmailContent: deps.emailService.buildEmailContent,
 				buildEmailSubject: deps.emailService.buildEmailSubject,
-				getSubject: deps.emailService.getSubject,
 				generateMailOptions: deps.emailService.generateMailOptions
 			}
 		});
