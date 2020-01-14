@@ -414,6 +414,22 @@ exports.adminDeleteUser = (req, res) => {
 
 // Admin Search for Users
 exports.adminSearchUsers = (req, res) => {
+	// Update role filters based on roleStrategy
+	const strategy = _.get(config.auth, 'roleStrategy', 'local');
+	const isExternal = strategy === 'external';
+	if ((isExternal || strategy === 'hybrid') && req.body.q && req.body.q.$or) {
+		let externalRoleMap = config.auth.externalRoleMap;
+
+		for (const role of _.keys(externalRoleMap)) {
+			if (req.body.q.$or.some((filter) => filter[`roles.${role}`])) {
+				req.body.q.$or.push({ externalRoles: externalRoleMap[role] });
+				if (isExternal) {
+					_.remove(req.body.q.$or, (filter) => filter[`roles.${role}`]);
+				}
+			}
+		}
+	}
+
 	searchUsers(req, res, (user) => {
 		let userCopy = User.fullCopy(user);
 
