@@ -61,6 +61,14 @@ let TeamSchema = new GetterSchema({
 	creatorName: {
 		type: String
 	},
+	implicitMembers: {
+		type: Boolean,
+		default: false
+	},
+	requiresExternalRoles: {
+		type: [],
+		default: []
+	},
 	requiresExternalTeams: {
 		type: [],
 		default: []

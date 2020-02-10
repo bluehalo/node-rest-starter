@@ -1,7 +1,6 @@
 'use strict';
 
 const
-	q = require('q'),
 	should = require('should'),
 
 	deps = require('../../../dependencies'),
@@ -9,15 +8,13 @@ const
 
 	Audit = dbs.admin.model('Audit'),
 	Team = dbs.admin.model('Team'),
-	TeamMember = dbs.admin.model('TeamUser'),
-
-	teams = require('./teams.controller');
+	TeamMember = dbs.admin.model('TeamUser');
 
 /**
  * Globals
  */
 function clearDatabase() {
-	return q.all([
+	return Promise.all([
 		Audit.remove(),
 		Team.remove(),
 		TeamMember.remove()
@@ -56,43 +53,36 @@ let spec = {
  * Unit tests
  */
 describe('Team Model:', function() {
-	before(function(done) {
-		return clearDatabase().then(function() {
-			team1 = new Team(spec.team1);
-			team2 = new Team(spec.team2);
-			team3 = new Team(spec.team3);
-			team4 = new Team(spec.team4);
-			done();
-		}, done).done();
+	before(async () => {
+		await clearDatabase();
+		team1 = new Team(spec.team1);
+		team2 = new Team(spec.team2);
+		team3 = new Team(spec.team3);
+		team4 = new Team(spec.team4);
 	});
 
-	after(function(done) {
-		clearDatabase().then(function() {
-			done();
-		}, done).done();
+	after(async () => {
+		await clearDatabase();
 	});
 
 	describe('Method Save', function() {
-		it('should begin with no teams', function(done) {
-			Team.find({}).exec().then(function(teams) {
-				teams.should.have.length(0);
-				done();
-			}, done);
+		it('should begin with no teams', async () => {
+			let teams = await Team.find({}).exec();
+			teams.should.have.length(0);
 		});
 
-		it('should be able to save without problems', function(done) {
-			team1.save(done);
+		it('should be able to save without problems', async () => {
+			await team1.save();
 		});
 
-
-		it('should fail when trying to save without a name', function(done) {
-			team1.name = '';
-			team1.save(function(err) {
+		it('should fail when trying to save without a name', async () => {
+			let team = new Team(spec.team1);
+			team.name = '';
+			try {
+				team.save();
+			} catch(err) {
 				should.exist(err);
-				// reset the in-memory value
-				team1.name = spec.team1.name;
-				done();
-			});
+			}
 		});
 	});
 
@@ -132,75 +122,5 @@ describe('Team Model:', function() {
 
 			done();
 		});
-
-		it ('should find all team members', function(done) {
-			teams.getMemberTeamIds(user1)
-				.then(function(ids) {
-					should.exist(ids);
-					ids.should.have.length(3);
-					done();
-				}, done).done();
-		});
-
-		it ('should find all team editors', function(done) {
-			teams.getEditorTeamIds(user1)
-				.then(function(ids) {
-					should.exist(ids);
-					ids.should.have.length(2);
-					done();
-				}, done).done();
-		});
-
-		it ('should find all team admins', function(done) {
-			teams.getAdminTeamIds(user1)
-				.then(function(ids) {
-					should.exist(ids);
-					ids.should.have.length(1);
-					done();
-				}, done).done();
-		});
-
-		it ('should filter teamIds for membership (basic)', function(done) {
-			teams.filterTeamIds(user1, [ team1.id ])
-				.then(function(ids) {
-					should.exist(ids);
-					ids.should.have.length(1);
-					should(ids[0]).equal(team1.id);
-					done();
-				}, done).done();
-		});
-
-		it ('should filter teamIds for membership (advanced)', function(done) {
-			teams.filterTeamIds(user1, [ team1.id, team2.id, team4.id ])
-				.then(function(ids) {
-					should.exist(ids);
-					ids.should.have.length(2);
-					should(ids[0]).equal(team1.id);
-					should(ids[1]).equal(team2.id);
-					done();
-				}, done).done();
-		});
-
-		it ('should filter teamIds for membership when no access', function(done) {
-			teams.filterTeamIds(user1, [ team4.id ])
-				.then(function(ids) {
-					should.exist(ids);
-					ids.should.have.length(0);
-					done();
-				}, done).done();
-		});
-
-		it ('should filter teamIds for membership when no filter', function(done) {
-			teams.filterTeamIds(user1)
-				.then(function(ids) {
-					should.exist(ids);
-					ids.should.have.length(3);
-					should(ids[0]).equal(team1.id);
-					should(ids[1]).equal(team2.id);
-					should(ids[2]).equal(team3.id);
-					done();
-				}, done).done();
-		});
-
 	});
 });

@@ -10,7 +10,7 @@ module.exports = {
 
 	// Auth system
 	auth: {
-		/*
+		/**
 		 * The API Access List grants token/secret-based access to specific endpoints in the application
 		 */
 		apiAccessList: {
@@ -19,12 +19,12 @@ module.exports = {
 			// ]
 		},
 
-		/*
+		/**
 		 * 'local' strategy uses a locally managed username/password and user profile
 		 */
 		// strategy: 'local',
 
-		/*
+		/**
 		 * 'proxy-pki' strategy assumes that the Node app is behind an SSL terminating
 		 * proxy server. The proxy is responsible for passing the DN of the incoming
 		 * user in the the 'x-ssl-client-dn' header.
@@ -60,7 +60,7 @@ module.exports = {
 		// 	auditor: 'AUDITOR'
 		// },
 
-		/*
+		/**
 		 * Session settings are required regardless of auth strategy
 		 */
 
@@ -327,7 +327,21 @@ module.exports = {
 		]
 	},
 
+	teams: {
+		implicitMembers: {
+			/**
+			 * 'roles' strategy matches user.externalRoles against team.requiresExternalRoles to determine implicit
+			 * membership in team.  User must have all of the specified roles to be granted access to team.
+			 */
+			strategy: 'roles'
 
+			/**
+			 * 'teams' strategy matches user.externalGroups against team.requiresExternalGroups to determine implicit
+			 * membership in team.  User mush have one of the specified roles to be granted access to team.
+			 */
+			// strategy: 'teams'
+		}
+	},
 
 	/**
 	 * Not So Environment-Specific Settings

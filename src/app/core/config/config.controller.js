@@ -20,7 +20,8 @@ let getSystemConfig = function() {
 		contactEmail: config.app.contactEmail,
 
 		maxExport: config.maxExport,
-		feedback: config.feedback
+		feedback: config.feedback,
+		teams: config.teams
 	};
 
 	return toReturn;
