@@ -154,8 +154,8 @@ async function handleUser(dn, req, isProxy) {
 
 	let localUser = await User.findOne({ 'providerData.dnLower': dnLower }).exec();
 
-	// Bypass AC check if we are still within the set login time.
-	if (localUser && (localUser.bypassAccessCheck || localUser.lastLogin + config.auth.sessionCookie.maxAge > Date.now())) {
+	// Bypass AC check
+	if (localUser && localUser.bypassAccessCheck) {
 		return localUser;
 	}
 
