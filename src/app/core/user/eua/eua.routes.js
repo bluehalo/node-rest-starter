@@ -11,7 +11,7 @@ const
  * End User Agreement Routes
  */
 
-let router = express.Router();
+const router = express.Router();
 
 router.route('/euas')
 	.post(users.hasAdminAccess, users.searchEuas);

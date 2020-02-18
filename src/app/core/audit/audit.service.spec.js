@@ -19,13 +19,13 @@ function clearDatabase() {
 /**
  * Unit tests
  */
-describe('Audit Service:', function() {
+describe('Audit Service:', () => {
 
 	let startTimestamp;
 	before(() => {
 		return clearDatabase()
 			.then(() => {
-				let now = Date.now();
+				const now = Date.now();
 				startTimestamp = now - (now % 1000); // remove milliseconds
 			});
 	});
@@ -34,20 +34,20 @@ describe('Audit Service:', function() {
 		return clearDatabase();
 	});
 
-	describe('Create new Audit entry', function() {
+	describe('Create new Audit entry', () => {
 
-		it('should begin with no audits', function() {
+		it('should begin with no audits', () => {
 			return Audit.find({}).exec().then((results) => {
 				should(results).be.an.Array();
 				should(results).have.length(0);
 			});
 		});
 
-		it('should be able to create a new audit through the service', function() {
+		it('should be able to create a new audit through the service', () => {
 			return auditService.audit('some message', 'eventType', 'eventAction', 'eventActor', 'eventObject');
 		});
 
-		it('should have one audit entry', function() {
+		it('should have one audit entry', () => {
 			return Audit.find({}).exec()
 				.then((results) => {
 					should(results).be.an.Array();
@@ -66,7 +66,7 @@ describe('Audit Service:', function() {
 				});
 		});
 
-		it('should have one distinct action', function() {
+		it('should have one distinct action', () => {
 			return Audit.distinct('audit.action', {}).exec()
 				.then((results) => {
 					should(results).be.an.Array();

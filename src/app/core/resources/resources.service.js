@@ -56,7 +56,7 @@ module.exports = function() {
 	}
 
 	function doSearch(query, sortParams, page, limit) {
-		let offset = page * limit;
+		const offset = page * limit;
 
 		return q.all([
 			Resource.find(query).count(),
@@ -73,10 +73,10 @@ module.exports = function() {
 	}
 
 	function searchResources(query, queryParams, user) {
-		let page = util.getPage(queryParams);
-		let limit = util.getLimit(queryParams, 1000);
+		const page = util.getPage(queryParams);
+		const limit = util.getLimit(queryParams, 1000);
 
-		let sort = queryParams.sort;
+		const sort = queryParams.sort;
 		let dir = queryParams.dir;
 
 		// Sort can be null, but if it's non-null, dir defaults to DESC
@@ -162,28 +162,27 @@ module.exports = function() {
 		const sortDir = queryParams.dir || 'ASC';
 
 		// Build the aggregation pipeline
-		let aggregationPipeline = [];
+		const aggregationPipeline = [];
 
 		// Constrain results
 		return constrainTagResults(teamId, user).then((constrainPipeline) => {
-			aggregationPipeline.push.apply(aggregationPipeline, constrainPipeline);
+			aggregationPipeline.push(...aggregationPipeline, ...constrainPipeline);
 
-			aggregationPipeline.push.apply(aggregationPipeline,
-				[
-					{ $unwind: '$tags' },
-					{ $group: { _id: '$tags' } }
-				]
+			aggregationPipeline.push(
+				...aggregationPipeline,
+				{ $unwind: '$tags' },
+				{ $group: { _id: '$tags' } }
 			);
 
 			if (null != search) {
 				aggregationPipeline.push({ $match: { _id: new RegExp(search, 'i') } });
 			}
 
-			let countAggregation = aggregationPipeline.concat([
+			const countAggregation = aggregationPipeline.concat([
 				{$group: {_id: null, total: { $sum: 1} } }
 			]);
 
-			let resultAggregation = aggregationPipeline.concat([
+			const resultAggregation = aggregationPipeline.concat([
 				{ $sort: { _id: sortDir === 'ASC' ? 1 : -1 } },
 				{ $skip: offset },
 				{ $limit: limit }

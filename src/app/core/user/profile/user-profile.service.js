@@ -26,7 +26,7 @@ const
 
 module.exports.updatePreferences = (id, pref) => {
 	return User.findOne({ _id: id }).then((user) => {
-		let viewPreferences = user.viewPreferences || {};
+		const viewPreferences = user.viewPreferences || {};
 
 		[
 			'sidebarOpen',
@@ -48,7 +48,7 @@ module.exports.updateRequiredOrgs = (id, requiredOrgs) => {
 };
 
 module.exports.userById = (id) => {
-	let defer = q.defer();
+	const defer = q.defer();
 
 	User.findOne({
 		_id: id
@@ -57,7 +57,7 @@ module.exports.userById = (id) => {
 			defer.reject(err);
 		}
 		else if (!user) {
-			defer.reject(new Error('Failed to load User ' + id));
+			defer.reject(new Error(`Failed to load User ${id}`));
 		}
 		else {
 			defer.resolve(user);

@@ -50,18 +50,18 @@ function getDbSpec(dbSpecName, dbConfigs) {
 }
 
 // This is the set of db connections
-let dbs = {};
+const dbs = {};
 module.exports.dbs = dbs;
 
 
 // Initialize Mongoose, returns a promise
 module.exports.connect = () => {
-	let dbSpecs = [];
+	const dbSpecs = [];
 	let defaultDbSpec;
 
 
 	// Organize the dbs we need to connect
-	for(let dbSpec in config.db) {
+	for(const dbSpec in config.db) {
 		if(dbSpec === 'admin') {
 			defaultDbSpec = getDbSpec(dbSpec, config.db);
 		}
@@ -104,7 +104,7 @@ module.exports.connect = () => {
 module.exports.disconnect = () => {
 
 	// Create defers for mongoose connections
-	let promises = _.values(this.dbs).map((d) => {
+	const promises = _.values(this.dbs).map((d) => {
 		if (d.disconnect) {
 			return d.disconnect();
 		}

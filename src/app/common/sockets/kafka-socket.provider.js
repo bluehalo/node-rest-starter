@@ -22,7 +22,7 @@ const ignoreOlderThan = config.socketio.ignoreOlderThan;
  *
  * @abstract
  */
-function KafkaSocket(socketConfig) {
+function KafkaSocket(socketConfig, ...args) {
 	/**
 	 * @type {{string}: {KafkaConsumer}}
 	 * Cache of connections by Kafka topics
@@ -30,11 +30,11 @@ function KafkaSocket(socketConfig) {
 	this._connections = {};
 
 	this._emitRateMs = socketConfig.emitRateMs < 0 ? 0 : (+socketConfig.emitRateMs || 0);
-	BaseSocket.apply(this, arguments);
+	BaseSocket.apply(this, [socketConfig, ...args]);
 
 	// Create a single groupId for each socket that will be shared by all consumers on this websocket
-	let socket = this.getSocket();
-	socket.kafkaGroupId = socket.kafkaGroupId || 'nodejs-' + new ObjectID();
+	const socket = this.getSocket();
+	socket.kafkaGroupId = socket.kafkaGroupId || `nodejs-${new ObjectID()}`;
 }
 
 nodeUtil.inherits(
@@ -88,7 +88,7 @@ KafkaSocket.prototype.getEmitType = function() {
 KafkaSocket.prototype.getMessageTime = function(json) {
 	// Default to extracting time from wrapped payload
 	if (null != json) {
-		let time = json.time;
+		const time = json.time;
 		logger.debug('%s: Extracted message time of %d', this.name, time);
 		return time;
 	}
@@ -112,8 +112,8 @@ KafkaSocket.prototype.getMessageTime = function(json) {
 KafkaSocket.prototype.ignorePayload = function(json, rawMessage, consumer) {
 	// Ignore any payloads that are too old.
 	if (null != ignoreOlderThan) {
-		let now = Date.now();
-		let messageTime = this.getMessageTime(json);
+		const now = Date.now();
+		const messageTime = this.getMessageTime(json);
 		if (null != messageTime) {
 			if (messageTime + (ignoreOlderThan * 1000) < now) {
 				logger.debug('%s: Message is too old: %d is more than %d seconds older than %d', this.name, messageTime, ignoreOlderThan, now);
@@ -138,11 +138,11 @@ KafkaSocket.prototype.kafkaPayloadHandler = function(consumer, message) {
 		return;
 	}
 
-	let self = this;
+	const self = this;
 	logger.debug('%s: Received Kafka Message on topic %s, partition %d, offset %d: %s', this.name, message.topic, message.partition, message.offset, message.value);
 	try {
 		// Unwrap the payload
-		let json = JSON.parse(message.value);
+		const json = JSON.parse(message.value);
 		if (null != json) {
 
 			// Ignore any payloads that don't pass the filter check.
@@ -151,7 +151,7 @@ KafkaSocket.prototype.kafkaPayloadHandler = function(consumer, message) {
 			}
 
 			// The message can be either an object or a promise for an object
-			q(json).then(function(msg) {
+			q(json).then((msg) => {
 				if (null != msg) {
 					self.emitMessage(self.getEmitType(), msg);
 				}
@@ -232,7 +232,7 @@ KafkaSocket.prototype.subscribe = function(topic) {
 	}
 
 	// Create a new consumer for the topic
-	let consumer = new KafkaConsumer(topic, this.getGroupId());
+	const consumer = new KafkaConsumer(topic, this.getGroupId());
 	this.onNewConsumer(consumer);
 
 	// Store in internal object cache
@@ -247,7 +247,7 @@ KafkaSocket.prototype.subscribe = function(topic) {
 * @param {string} topic The Kafka topic to unsubscribe from (optional).
 */
 KafkaSocket.prototype.unsubscribe = function(topic) {
-	let self = this;
+	const self = this;
 
 	// Unsubscribe from only the specified topic
 	if (null != topic) {
@@ -260,7 +260,7 @@ KafkaSocket.prototype.unsubscribe = function(topic) {
 	// Unsubscribe from ALL topics
 	else {
 		logger.debug('%s: Closing connection to all topics', self.name);
-		_.forOwn(this._connections, function(connection, topic) {
+		_.forOwn(this._connections, (connection, topic) => {
 			logger.debug('%s: Closing connection to topic: %s', self.name, topic);
 			connection.close();
 		});

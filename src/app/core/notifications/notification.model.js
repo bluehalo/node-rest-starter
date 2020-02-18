@@ -39,7 +39,7 @@ NotificationSchema.index({ user: 1, created: -1 });
 
 // Create a filtered copy for auditing
 NotificationSchema.statics.auditCopy = function(src) {
-	let toReturn = {};
+	const toReturn = {};
 	src = src || {};
 
 	toReturn._id = src._id;

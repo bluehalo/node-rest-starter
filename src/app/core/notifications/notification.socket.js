@@ -19,11 +19,11 @@ const
  * NotificationSocket Socket Controller that overrides Base Socket Controller
  * methods to handle specifics of Notifications
  */
-function NotificationSocket(socketConfig) {
+function NotificationSocket(...args) {
 	this._emitType = `${emitName}:data`;
 	this._topicName = config.dispatcher ? config.dispatcher.notificationTopic : '';
 	this._subscriptionCount = 0;
-	socketProvider.apply(this, arguments);
+	socketProvider.apply(this, args);
 }
 
 nodeUtil.inherits(NotificationSocket, socketProvider);
@@ -80,7 +80,7 @@ NotificationSocket.prototype.error = function(err) {
  *
  */
 NotificationSocket.prototype.handleSubscribe = function(payload) {
-	let self = this;
+	const self = this;
 
 	if(logger.debug()) {
 		logger.debug(`NotificationSocket: ${emitName}:subscribe event with payload: ${JSON.stringify(payload)}`);
@@ -91,7 +91,7 @@ NotificationSocket.prototype.handleSubscribe = function(payload) {
 		users.hasAccess
 	]).then(() => {
 		// Subscribe to the user's notification topic
-		let topic = self.getTopic();
+		const topic = self.getTopic();
 		self.subscribe(topic);
 		self._subscriptionCount++;
 	}, (err) => {
@@ -107,7 +107,7 @@ NotificationSocket.prototype.handleUnsubscribe = function(payload) {
 		logger.debug(`NotificationSocket: ${emitName}:unsubscribe event with payload: ${JSON.stringify(payload)}`);
 	}
 
-	let topic = this.getTopic();
+	const topic = this.getTopic();
 	this.unsubscribe(topic);
 
 	this._subscriptionCount = Math.max(0, this._subscriptionCount - 1);
@@ -121,7 +121,7 @@ NotificationSocket.prototype.handleUnsubscribe = function(payload) {
  *
  */
 NotificationSocket.prototype.addListeners = function() {
-	let s = this.getSocket();
+	const s = this.getSocket();
 
 	if(typeof s.on === 'function') {
 		// Set up Subscribe events

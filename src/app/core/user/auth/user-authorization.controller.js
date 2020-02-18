@@ -63,7 +63,7 @@ module.exports.requiresRoles = (roles, rejectStatus) => {
 		}
 
 		if (strategy === 'external' || strategy === 'hybrid') {
-			let requiredRoles = roles.map((role) => config.auth.externalRoleMap[role]);
+			const requiredRoles = roles.map((role) => config.auth.externalRoleMap[role]);
 			return module.exports.requiresExternalRoles(req, requiredRoles);
 		}
 
@@ -104,7 +104,7 @@ module.exports.requiresExternalRoles = (req, requiredRoles) => {
 	if(req.user.bypassAccessCheck === false && null != config.auth && _.isArray(requiredRoles) && requiredRoles.length > 0) {
 
 		// Get the user roles
-		let userRoles = (null != req.user && _.isArray(req.user.externalRoles))? req.user.externalRoles : [];
+		const userRoles = (null != req.user && _.isArray(req.user.externalRoles))? req.user.externalRoles : [];
 
 		// Reject if the user is missing required roles
 		if (_.difference(requiredRoles, userRoles).length > 0) {

@@ -23,7 +23,7 @@ function createSubjectUnderTest(dependencies) {
 describe('Feedback Service:', () => {
 	let mailOptions = null;
 
-	let feedbackService = createSubjectUnderTest({
+	const feedbackService = createSubjectUnderTest({
 		// config: config,
 		emailService: {
 			sendMail: (mo) => {

@@ -18,7 +18,7 @@ const
  * Team Schema
  */
 
-let TeamRoleSchema = new GetterSchema({
+const TeamRoleSchema = new GetterSchema({
 	_id: {
 		type: mongoose.Schema.ObjectId,
 		ref: 'Team'
@@ -38,7 +38,7 @@ UserSchema.add({
 	}
 });
 
-let TeamSchema = new GetterSchema({
+const TeamSchema = new GetterSchema({
 	name: {
 		type: String,
 		trim: true,
@@ -104,7 +104,7 @@ TeamSchema.statics.search = function(queryTerms, searchTerms, limit, offset, sor
 
 // Copy Team for creation
 TeamSchema.statics.createCopy = function(team) {
-	let toReturn = {};
+	const toReturn = {};
 
 	toReturn.name = team.name;
 	toReturn.description = team.description;
@@ -115,7 +115,7 @@ TeamSchema.statics.createCopy = function(team) {
 
 // Copy a team for audit logging
 TeamSchema.statics.auditCopy = function(team) {
-	let toReturn = {};
+	const toReturn = {};
 	team = team || {};
 
 	toReturn._id = team._id;
@@ -127,7 +127,7 @@ TeamSchema.statics.auditCopy = function(team) {
 
 // Copy a team role for audit logging
 TeamSchema.statics.auditCopyTeamMember = function(team, user, role) {
-	let toReturn = {};
+	const toReturn = {};
 	user = user || {};
 	team = team || {};
 
@@ -154,8 +154,8 @@ const userAuditCopy = UserModel.auditCopy;
 UserSchema.statics.auditCopy = (user) => {
 
 	user = user || {};
-	let toReturn = userAuditCopy(user);
-	let userObj = user.toObject();
+	const toReturn = userAuditCopy(user);
+	const userObj = user.toObject();
 
 	const teams = userObj.teams || [];
 

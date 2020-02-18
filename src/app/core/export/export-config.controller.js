@@ -54,7 +54,7 @@ exports.exportCSV = (req, res, filename, columns, data) => {
 		res.set('Transfer-Encoding', 'chunked');
 
 		// Put into stream the data object
-		let s = new stream.Readable({objectMode:true});
+		const s = new stream.Readable({objectMode:true});
 		s._read = () => {
 			data.forEach((row) => {
 				s.push(row);
@@ -62,7 +62,7 @@ exports.exportCSV = (req, res, filename, columns, data) => {
 			s.push(null);
 		};
 
-		let sc = s.pipe(csvStream(columns));
+		const sc = s.pipe(csvStream(columns));
 
 		// Pipe each row to the response
 		sc.pipe(res);
@@ -96,7 +96,7 @@ exports.exportPlaintext = (req, res, filename, text) => {
 		res.set('Transfer-Encoding', 'chunked');
 
 		// Put into stream the data object
-		let s = new stream.Readable({objectMode:true});
+		const s = new stream.Readable({objectMode:true});
 		s._read = () => {
 			text.split(os.EOL).forEach((row) => {
 				s.push(row);

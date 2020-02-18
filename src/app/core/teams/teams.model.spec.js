@@ -23,7 +23,7 @@ function clearDatabase() {
 
 let team1, team2, team3, team4;
 
-let spec = {
+const spec = {
 	user1: {
 		name: 'User 1',
 		email: 'user1@mail.com',
@@ -52,7 +52,7 @@ let spec = {
 /**
  * Unit tests
  */
-describe('Team Model:', function() {
+describe('Team Model:', () => {
 	before(async () => {
 		await clearDatabase();
 		team1 = new Team(spec.team1);
@@ -65,9 +65,9 @@ describe('Team Model:', function() {
 		await clearDatabase();
 	});
 
-	describe('Method Save', function() {
+	describe('Method Save', () => {
 		it('should begin with no teams', async () => {
-			let teams = await Team.find({}).exec();
+			const teams = await Team.find({}).exec();
 			teams.should.have.length(0);
 		});
 
@@ -76,40 +76,40 @@ describe('Team Model:', function() {
 		});
 
 		it('should fail when trying to save without a name', async () => {
-			let team = new Team(spec.team1);
+			const team = new Team(spec.team1);
 			team.name = '';
 			try {
-				team.save();
+				return await team.save();
 			} catch(err) {
 				should.exist(err);
 			}
 		});
 	});
 
-	describe('User team role', function() {
-		let user1 = new TeamMember(spec.user1);
+	describe('User team role', () => {
+		const user1 = new TeamMember(spec.user1);
 
-		it('should begin with no users', function(done) {
-			TeamMember.find({}).exec().then(function(users) {
+		it('should begin with no users', (done) => {
+			TeamMember.find({}).exec().then((users) => {
 				users.should.have.length(0);
 				done();
 			}, done);
 		});
 
-		it('should create teams without problems', function(done) {
-			team1.save(function(err) {
+		it('should create teams without problems', (done) => {
+			team1.save((err) => {
 				should.not.exist(err);
 				should.exist(team1._id);
 			});
-			team2.save(function(err) {
+			team2.save((err) => {
 				should.not.exist(err);
 				should.exist(team2._id);
 			});
-			team3.save(function(err) {
+			team3.save((err) => {
 				should.not.exist(err);
 				should.exist(team3._id);
 			});
-			team4.save(function(err) {
+			team4.save((err) => {
 				should.not.exist(err);
 				should.exist(team4._id);
 			});

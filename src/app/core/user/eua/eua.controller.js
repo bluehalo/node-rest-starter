@@ -18,12 +18,12 @@ const
 module.exports.searchEuas = (req, res) => {
 
 	// Handle the query/search/page
-	let query = req.body.q;
-	let search = req.body.s;
+	const query = req.body.q;
+	const search = req.body.s;
 
 	let page = req.query.page;
 	let size = req.query.size;
-	let sort = req.query.sort;
+	const sort = req.query.sort;
 	let dir = req.query.dir;
 
 	// Limit has to be at least 1 and no more than 100
@@ -38,8 +38,8 @@ module.exports.searchEuas = (req, res) => {
 	if (null != sort && dir == null) { dir = 'DESC'; }
 
 	// Create the variables to the search call
-	let limit = size;
-	let offset = page*size;
+	const limit = size;
+	const offset = page*size;
 	let sortArr;
 	if (null != sort) {
 		sortArr = [{ property: sort, direction: dir }];
@@ -48,7 +48,7 @@ module.exports.searchEuas = (req, res) => {
 	UserAgreement.search(query, search, limit, offset, sortArr)
 		.then(
 			(result) => {
-				let toReturn = {
+				const toReturn = {
 					totalSize: result.count,
 					pageNumber: page,
 					pageSize: size,
@@ -72,7 +72,7 @@ module.exports.searchEuas = (req, res) => {
 // Publish the EUA
 module.exports.publishEua = (req, res) => {
 	// The eua is placed into this parameter by the middleware
-	let eua = req.euaParam;
+	const eua = req.euaParam;
 	eua.published = Date.now();
 
 	eua.save()
@@ -115,7 +115,7 @@ module.exports.acceptEua = (req, res) => {
 
 // Create a new User Agreement
 module.exports.createEua = (req, res) => {
-	let eua = new UserAgreement(req.body);
+	const eua = new UserAgreement(req.body);
 	eua.created = Date.now();
 	eua.updated = eua.created;
 
@@ -152,7 +152,7 @@ module.exports.getCurrentEua = (req, res) => {
 // Retrieve the arbitrary User Agreement
 module.exports.getEuaById = (req, res) => {
 	// The eua is placed into this parameter by the middleware
-	let eua = req.euaParam;
+	const eua = req.euaParam;
 
 	if (null == eua) {
 		util.handleErrorResponse(res, { status: 400, type: 'error', message: 'End User Agreement does not exist' });
@@ -166,10 +166,10 @@ module.exports.getEuaById = (req, res) => {
 // Update a User Agreement
 module.exports.updateEua = (req, res) => {
 	// The eua is placed into this parameter by the middleware
-	let eua = req.euaParam;
+	const eua = req.euaParam;
 
 	// A copy of the original eua for auditing
-	let originalEua = UserAgreement.auditCopy(eua);
+	const originalEua = UserAgreement.auditCopy(eua);
 
 	if (null == eua) {
 		util.handleErrorResponse(res, { status: 400, type: 'error', message: 'Could not find end user agreement' });
@@ -205,7 +205,7 @@ module.exports.updateEua = (req, res) => {
 // Delete a User Agreement
 module.exports.deleteEua = (req, res) => {
 	// The eua is placed into this parameter by the middleware
-	let eua = req.euaParam;
+	const eua = req.euaParam;
 
 	if (null == eua) {
 		util.handleErrorResponse(res, { status: 400, type: 'error', message: 'Could not find end user agreement' });
@@ -235,12 +235,10 @@ module.exports.euaById = (req, res, next, id) => {
 		.then(
 			(eua) => {
 				if (null == eua) {
-					next(new Error(`Failed to load User Agreement ${id}`));
+					return next(new Error(`Failed to load User Agreement ${id}`));
 				}
-				else {
-					req.euaParam = eua;
-					next();
-				}
+				req.euaParam = eua;
+				return next();
 			}, next);
 };
 

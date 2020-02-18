@@ -14,7 +14,7 @@ const services = [
 
 module.exports.run = function(config) {
 
-	let notifyInactiveUsers = services.map((service) => service.path.run(config));
+	const notifyInactiveUsers = services.map((service) => service.path.run(config));
 	return q.allSettled(notifyInactiveUsers)
 		.then((results) => {
 			results.forEach((result, idx) => {

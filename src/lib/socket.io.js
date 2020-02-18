@@ -16,7 +16,7 @@ const
  * themselves as socket listeners, with function definitions
  * stored here.
  */
-let registeredSocketListeners = [];
+const registeredSocketListeners = [];
 
 // Give each socket connection its own variable scope
 function onConnect(socket) {
@@ -25,7 +25,7 @@ function onConnect(socket) {
 	/**
 	 * Setup Socket Event Handlers
 	 */
-	registeredSocketListeners.forEach(function(S) {
+	registeredSocketListeners.forEach((S) => {
 		new S({ socket: socket });
 	});
 }
@@ -35,14 +35,14 @@ module.exports = (app, db) => {
 
 	// Create a new HTTP server
 	logger.info('Creating HTTP Server');
-	let server = http.createServer(app);
+	const server = http.createServer(app);
 
 	// Create a new Socket.io server
 	logger.info('Creating SocketIO Server');
-	let io = socketio.listen(server);
+	const io = socketio.listen(server);
 
 	// Create a MongoDB storage object
-	let mongoStore = new MongoStore({
+	const mongoStore = new MongoStore({
 		db: db.connection.db,
 		collection: config.auth.sessionCollection
 	});
@@ -50,25 +50,24 @@ module.exports = (app, db) => {
 	// Intercept Socket.io's handshake request
 	io.use((socket, next) => {
 		// Use the 'cookie-parser' module to parse the request cookies
-		cookieParser(config.auth.sessionSecret)(socket.request, {}, function(err) {
+		cookieParser(config.auth.sessionSecret)(socket.request, {}, (err) => {
 			// Get the session id from the request cookies
-			let sessionId = socket.request.signedCookies['connect.sid'];
+			const sessionId = socket.request.signedCookies['connect.sid'];
 
 			// Use the mongoStorage instance to get the Express session information
-			mongoStore.get(sessionId, function(err, session) {
+			mongoStore.get(sessionId, (err, session) => {
 				// Set the Socket.io session information
 				socket.request.session = session;
 
 				// Use Passport to populate the user details
-				passport.initialize()(socket.request, {}, function() {
-					passport.session()(socket.request, {}, function() {
+				passport.initialize()(socket.request, {}, () => {
+					passport.session()(socket.request, {}, () => {
 						if (socket.request.user) {
 							logger.debug('SocketIO: New authenticated user: %s', socket.request.user.username);
-							next(null, true);
-						} else {
-							logger.info('SocketIO: Unauthenticated user attempting to connect.');
-							next(new Error('User is not authenticated'), false);
+							return next(null, true);
 						}
+						logger.info('SocketIO: Unauthenticated user attempting to connect.');
+						return next(new Error('User is not authenticated'), false);
 					});
 				});
 			});

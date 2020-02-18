@@ -18,7 +18,7 @@ const
  */
 
 // Validate the password
-let validatePassword = function(password) {
+const validatePassword = function(password) {
 	let toReturn = true;
 
 	// only care if it's local
@@ -28,13 +28,13 @@ let validatePassword = function(password) {
 
 	return toReturn;
 };
-let passwordMessage = 'Password must be at least 6 characters long';
+const passwordMessage = 'Password must be at least 6 characters long';
 
 /**
  * User Schema
  */
 
-let UserSchema = new GetterSchema({
+const UserSchema = new GetterSchema({
 	name: {
 		type: String,
 		trim: true,
@@ -194,7 +194,7 @@ UserSchema.index({ name: 'text', email: 'text', username: 'text' });
 
 // Process the password
 UserSchema.pre('save', function(next) {
-	let user = this;
+	const user = this;
 
 	// If the password is modified and it is valid, then re- salt/hash it
 	if (user.isModified('password') && validatePassword.call(user, user.password)) {
@@ -214,7 +214,7 @@ UserSchema.pre('save', function(next) {
 
 // Hash Password
 UserSchema.methods.hashPassword = function(password) {
-	let user = this;
+	const user = this;
 
 	if (user.salt && password) {
 		return crypto.pbkdf2Sync(password, user.salt, 10000, 64, 'SHA1').toString('base64');
@@ -239,7 +239,7 @@ UserSchema.statics.hasRoles = function(user, roles){
 	let toReturn = true;
 
 	if (null != roles) {
-		roles.forEach(function(element) {
+		roles.forEach((element) => {
 			if (!user.roles[element]) {
 				toReturn = false;
 			}
@@ -311,7 +311,7 @@ UserSchema.statics.fullCopy = function(user) {
 
 // Copy User for creation
 UserSchema.statics.createCopy = function(user) {
-	let toReturn = {};
+	const toReturn = {};
 
 	toReturn.name = user.name;
 	toReturn.organization = user.organization;
@@ -339,7 +339,7 @@ UserSchema.statics.createCopy = function(user) {
 
 // Copy a user for audit logging
 UserSchema.statics.auditCopy = function(user, userIP) {
-	let toReturn = {};
+	const toReturn = {};
 	user = user || {};
 
 	toReturn._id = user._id;

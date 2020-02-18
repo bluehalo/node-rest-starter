@@ -14,9 +14,9 @@ const
  * Retrieves the distinct values for a field in the Audit collection
  */
 exports.getDistinctValues = function(req, res) {
-	let fieldToQuery = req.query.field;
+	const fieldToQuery = req.query.field;
 
-	Audit.distinct(fieldToQuery, {}).exec(function(err, results) {
+	Audit.distinct(fieldToQuery, {}).exec((err, results) => {
 		if(null != err) {
 			// failure
 			logger.error({err: err, req: req}, 'Error finding distinct values');
@@ -28,7 +28,7 @@ exports.getDistinctValues = function(req, res) {
 };
 
 exports.search = function(req, res) {
-	let search = req.body.s || null;
+	const search = req.body.s || null;
 	let query = req.body.q || {};
 	query = util.toMongoose(query);
 
@@ -53,12 +53,12 @@ exports.search = function(req, res) {
 	}
 	page = Math.max(0, page);
 
-	let offset = page * limit;
+	const offset = page * limit;
 
-	Audit.search(query, search, limit, offset, sortArr).then(function(result) {
+	Audit.search(query, search, limit, offset, sortArr).then((result) => {
 		// If any audit objects are strings, try to parse them as json. we may have stringified objects because mongo
 		// can't support keys with dots
-		let results = result.results.map((doc) => {
+		const results = result.results.map((doc) => {
 			if (_.isString(doc.audit.object)) {
 				try {
 					doc.audit.object = JSON.parse(doc.audit.object);
@@ -72,7 +72,7 @@ exports.search = function(req, res) {
 		});
 
 		// success
-		var toReturn = {
+		const toReturn = {
 			hasMore: result.count > result.results.length,
 			elements: results,
 			totalSize: result.count,
@@ -83,7 +83,7 @@ exports.search = function(req, res) {
 
 		// Serialize the response
 		res.status(200).json(toReturn);
-	}, function(err) {
+	}, (err) => {
 		// failure
 		logger.error({err: err, req: req}, 'Error searching for audit entries');
 		return util.handleErrorResponse(res, err);

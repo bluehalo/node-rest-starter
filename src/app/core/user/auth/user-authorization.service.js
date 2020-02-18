@@ -23,15 +23,15 @@ module.exports.hasRoles = (user, roles, authConfig) => {
 	let toReturn = true;
 
 	if (null != roles) {
-		let localRoles = user.roles || [];
-		let externalRoles = user.externalRoles || [];
+		const localRoles = user.roles || [];
+		const externalRoles = user.externalRoles || [];
 
 		toReturn = roles.every((role) => {
-			let hasLocalRole = localRoles[role];
+			const hasLocalRole = localRoles[role];
 			if (strategy === 'local')
 				return hasLocalRole;
 
-			let hasExternalRole = externalRoles.indexOf(authConfig.externalRoleMap[role]) !== -1;
+			const hasExternalRole = externalRoles.indexOf(authConfig.externalRoleMap[role]) !== -1;
 			if (strategy === 'external')
 				return hasExternalRole;
 
@@ -50,11 +50,11 @@ module.exports.updateRoles = (user, authConfig) => {
 		user.localRoles = user.roles || {};
 	}
 	if (strategy === 'external' || isHybrid) {
-		let updatedRoles = {};
-		let externalRoles = user.externalRoles || [];
-		let externalRoleMap = authConfig.externalRoleMap;
+		const updatedRoles = {};
+		const externalRoles = user.externalRoles || [];
+		const externalRoleMap = authConfig.externalRoleMap;
 
-		let keys = _.keys(externalRoleMap);
+		const keys = _.keys(externalRoleMap);
 
 		keys.forEach((key) => {
 			updatedRoles[key] = (isHybrid && user.roles && user.roles[key]) || externalRoles.indexOf(externalRoleMap[key]) !== -1;
@@ -68,7 +68,7 @@ module.exports.checkExternalRoles = function(user, configAuth) {
 	// If there are required roles, check for them
 	if (null != configAuth && _.isArray(configAuth.requiredRoles) && configAuth.requiredRoles.length > 0) {
 		// Get the user roles
-		let userRoles = (null != user && _.isArray(user.externalRoles)) ? user.externalRoles : [];
+		const userRoles = (null != user && _.isArray(user.externalRoles)) ? user.externalRoles : [];
 		if(_.difference(configAuth.requiredRoles, userRoles).length > 0) {
 			return false;
 		}
@@ -77,7 +77,7 @@ module.exports.checkExternalRoles = function(user, configAuth) {
 };
 
 module.exports.validateAccessToPersonalResource = function(user, resource) {
-	let isAdmin = null != user.roles && user.roles.admin === true;
+	const isAdmin = null != user.roles && user.roles.admin === true;
 	if (isAdmin || resource.creator.equals(user._id)) {
 		return Promise.resolve();
 	}

@@ -35,7 +35,7 @@ function initLocalVariables(app) {
 	app.locals.developmentMode = config.mode === 'development';
 
 	// Passing the request url to environment locals
-	app.use(function (req, res, next) {
+	app.use((req, res, next) => {
 		res.locals.host = config.app.serverUrlWithoutPort;
 		res.locals.url = config.app.clientUrl + req.originalUrl;
 		next();
@@ -127,7 +127,7 @@ function initPassport(app) {
  * Invoke modules server configuration
  */
 function initModulesConfiguration(app, db) {
-	config.files.configs.forEach(function (configPath) {
+	config.files.configs.forEach((configPath) => {
 		require(path.posix.resolve(configPath))(app, db);
 	});
 }
@@ -149,7 +149,7 @@ function initHelmetHeaders(app) {
  */
 function initModulesServerRoutes(app) {
 	// Init the global route prefix
-	let router = express.Router();
+	const router = express.Router();
 
 	// Use all routes
 	config.files.routes.forEach((routePath) => {
@@ -232,7 +232,7 @@ function initSwaggerAPI(app) {
 		};
 	}
 
-	let swaggerSpec = swaggerJsDoc(swaggerOptions);
+	const swaggerSpec = swaggerJsDoc(swaggerOptions);
 
 	/*
 	 * Some api calls are dependent on whether local or proxy-pki are used.
@@ -261,7 +261,7 @@ module.exports.init = function (db) {
 
 	// Initialize express app
 	logger.info('Initializing Express');
-	var app = express();
+	let app = express();
 
 	// Initialize local variables
 	initLocalVariables(app);

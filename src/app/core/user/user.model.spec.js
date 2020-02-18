@@ -20,10 +20,10 @@ function clearDatabase() {
 
 function userSpec(key) {
 	return {
-		name: key + ' Name',
-		organization: key + ' Organization',
-		email: key + '@mail.com',
-		username: key + '_username',
+		name: `${key} Name`,
+		organization: `${key} Organization`,
+		email: `${key}@mail.com`,
+		username: `${key}_username`,
 		password: 'password',
 		provider: 'local'
 	};
@@ -53,7 +53,7 @@ describe('User Model:', () => {
 		});
 
 		it('should be able to save a valid user', () => {
-			let validUser = new User(userSpec('valid'));
+			const validUser = new User(userSpec('valid'));
 			return validUser.save().then((result) => {
 				should.exist(result);
 			});
@@ -68,7 +68,7 @@ describe('User Model:', () => {
 		});
 
 		it('should not be able to save with the same username', () => {
-			let validUser = new User(userSpec('valid'));
+			const validUser = new User(userSpec('valid'));
 			return validUser.save().then(() => {
 				should.fail();
 			}, (err) => {
@@ -80,8 +80,8 @@ describe('User Model:', () => {
 		['name', 'organization', 'email', 'username'].forEach((field) => {
 
 			// Creating a test case for each field
-			it('should fail to save if missing field: \'' + field + '\'', () => {
-				let u = new User(userSpec('missing_' + field));
+			it(`should fail to save if missing field: '${field}'`, () => {
+				const u = new User(userSpec(`missing_${field}`));
 				u[field] = undefined;
 
 				return u.save()

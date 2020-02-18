@@ -6,8 +6,8 @@ const
 	pkg = require('../../../../package.json');
 
 
-let getSystemConfig = function() {
-	let toReturn = {
+const getSystemConfig = function() {
+	const toReturn = {
 
 		auth: config.auth.strategy,
 		app: config.app,

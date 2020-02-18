@@ -37,7 +37,7 @@ describe('User Password Service:', () => {
 
 	let mailOptions = null;
 
-	let userPasswordService = createSubjectUnderTest({
+	const userPasswordService = createSubjectUnderTest({
 		emailService: {
 			sendMail: (mo) => {
 				mailOptions = mo;
@@ -59,7 +59,7 @@ describe('User Password Service:', () => {
 
 	describe('generateToken', () => {
 		it('should generate token', async () => {
-			let token = await userPasswordService.generateToken();
+			const token = await userPasswordService.generateToken();
 			should.exist(token);
 			token.should.be.String();
 			token.should.be.length(40);
@@ -68,7 +68,7 @@ describe('User Password Service:', () => {
 
 	describe('setResetTokenForUser', () => {
 		it('should store token for valid user', async () => {
-			let user = await userPasswordService.setResetTokenForUser(testUser.username, testToken);
+			const user = await userPasswordService.setResetTokenForUser(testUser.username, testToken);
 
 			should.exist(user, 'expected user to exist');
 			should.exist(user.resetPasswordToken, 'expected user.resetPasswordToken to exist');
@@ -93,7 +93,7 @@ describe('User Password Service:', () => {
 
 	describe('resetPasswordForToken', () => {
 		it('', async () => {
-			let user = await userPasswordService.resetPasswordForToken(testToken, 'password');
+			const user = await userPasswordService.resetPasswordForToken(testToken, 'password');
 
 			should.exist(user, 'expected user to exist');
 			should.exist(user.password, 'expected user.password to exist');

@@ -30,7 +30,7 @@ describe('Email Service:', () => {
 	describe('getMissingMailOptions:', () => {
 
 		it('should find required missing fields', () => {
-			let emailService = createSubjectUnderTest();
+			const emailService = createSubjectUnderTest();
 
 			let missing = emailService.getMissingMailOptions({});
 			missing.length.should.equal(4);
@@ -97,7 +97,7 @@ describe('Email Service:', () => {
 
 	describe('sendMail:', () => {
 		it('should fail for invalid mail provider', async () => {
-			let emailService = createSubjectUnderTest({
+			const emailService = createSubjectUnderTest({
 			});
 
 			let error = null;
@@ -113,7 +113,7 @@ describe('Email Service:', () => {
 		});
 
 		it('should fail for null mailOptions', async () => {
-			let emailService = createSubjectUnderTest({
+			const emailService = createSubjectUnderTest({
 				mailer: {
 					provider:  './src/app/core/email/providers/log-email.provider.js'
 				}
@@ -132,7 +132,7 @@ describe('Email Service:', () => {
 		});
 
 		it('should fail for incomplete mailOptions', async () => {
-			let emailService = createSubjectUnderTest({
+			const emailService = createSubjectUnderTest({
 				mailer: {
 					provider:  './src/app/core/email/providers/log-email.provider.js'
 				}
@@ -149,7 +149,7 @@ describe('Email Service:', () => {
 			error.message.should.equal('The following required values were not specified in mailOptions: "subject"');
 		});
 		it('should work', async () => {
-			let emailService = createSubjectUnderTest({
+			const emailService = createSubjectUnderTest({
 				mailer: {
 					provider:  './src/app/core/email/providers/log-email.provider.js'
 				}
@@ -161,7 +161,7 @@ describe('Email Service:', () => {
 
 	describe('buildEmailContent:', () => {
 		it('should build email content', async () => {
-			let emailService = createSubjectUnderTest({
+			const emailService = createSubjectUnderTest({
 				app: config.app,
 				coreEmails: {
 					default: {
@@ -175,7 +175,7 @@ describe('Email Service:', () => {
 				name: 'test'
 			};
 
-			let expectedResult = `<p>Welcome to ${config.app.title}, ${user.name}!</p>
+			const expectedResult = `<p>Welcome to ${config.app.title}, ${user.name}!</p>
 <p>Thanks for requesting an account! We've alerted our admins and they will be reviewing your request shortly. </p>
 <p>While you're waiting, click <a href="${config.app.clientUrl}/help/getting-started">here</a> to learn more about our system.</p>
 <br/>
@@ -184,15 +184,15 @@ describe('Email Service:', () => {
 <p>The ${config.app.title} Support Team</p><p></p>
 `;
 
-			let subject = await emailService.buildEmailContent('src/app/core/user/templates/user-welcome-email.server.view.html', user);
+			const subject = await emailService.buildEmailContent('src/app/core/user/templates/user-welcome-email.server.view.html', user);
 			should.exist(subject);
 			subject.should.equal(expectedResult);
 		});
 	});
 
 	describe('buildEmailSubject:', () => {
-		it('should build email subject', async () => {
-			let emailService = createSubjectUnderTest({
+		it('should build email subject', () => {
+			const emailService = createSubjectUnderTest({
 				coreEmails: {
 					default: {
 						subjectPrefix: '(pre)'
@@ -200,7 +200,7 @@ describe('Email Service:', () => {
 				}
 			});
 
-			let subject = emailService.buildEmailSubject('{{ subjectPrefix }} subject {{ otherVariable }}', {}, { otherVariable: '2'});
+			const subject = emailService.buildEmailSubject('{{ subjectPrefix }} subject {{ otherVariable }}', {}, { otherVariable: '2'});
 			should.exist(subject);
 			subject.should.equal('(pre) subject 2');
 		});

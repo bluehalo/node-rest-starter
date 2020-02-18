@@ -20,9 +20,9 @@ describe('Utils:', () => {
 	describe('toMongoose:', () => {
 
 		it('should convert $date : {""} to new Date("")', () => {
-			var input = {hello: {there: 'you are', when: [{},{something:0},{$date:'2015-01-01T00:00:00.000Z'}]}, date: {$date:'2015-07-01T00:00:00.000Z'}};
+			const input = {hello: {there: 'you are', when: [{},{something:0},{$date:'2015-01-01T00:00:00.000Z'}]}, date: {$date:'2015-07-01T00:00:00.000Z'}};
 
-			var output = util.toMongoose(input);
+			const output = util.toMongoose(input);
 			(typeof output.hello).should.equal('object');
 			output.hello.there.should.equal('you are');
 			Array.isArray(output.hello.when).should.equal(true);
@@ -35,9 +35,9 @@ describe('Utils:', () => {
 		});
 
 		it('should convert $obj : {""} to mongoose.Types.ObjectId("")', () => {
-			var input = {hello: {there: 'you are', when: [{},{something:0},{$obj:'000000000000000000000000'}]}, obj: {$obj:'000000000000000000000001'}};
+			const input = {hello: {there: 'you are', when: [{},{something:0},{$obj:'000000000000000000000000'}]}, obj: {$obj:'000000000000000000000001'}};
 
-			var output = util.toMongoose(input);
+			const output = util.toMongoose(input);
 			(typeof output.hello).should.equal('object');
 			output.hello.there.should.equal('you are');
 			Array.isArray(output.hello.when).should.equal(true);
@@ -364,7 +364,7 @@ describe('Utils:', () => {
 		];
 
 		errorTests.forEach((test) => {
-			it('should return default error message when config is false: ' + test.testName, () => {
+			it(`should return default error message when config is false: ${test.testName}`, () => {
 				deps.config.exposeServerErrors = false;
 				const actual = util.getClientErrorMessage(test.error);
 				should(actual).equal(defaultResponse);
@@ -372,7 +372,7 @@ describe('Utils:', () => {
 		});
 
 		errorTests.forEach((test) => {
-			it('should return contextual error message when config is true: ' + test.testName, () => {
+			it(`should return contextual error message when config is true: ${test.testName}`, () => {
 				deps.config.exposeServerErrors = true;
 				const actual = util.getClientErrorMessage(test.error);
 				should(actual).equal(test.expected);

@@ -20,7 +20,7 @@ const
 
 // GET the requested CSV using a special configuration from the export config collection
 exports.adminGetCSV = (req, res) => {
-	let exportId = req.params.exportId;
+	const exportId = req.params.exportId;
 
 	exportConfigService.getConfigById(exportId)
 		.then((result) => {
@@ -37,12 +37,12 @@ exports.adminGetCSV = (req, res) => {
 				});
 		})
 		.then((result) => {
-			let userData = [],
-				columns = result.config.cols,
+			const columns = result.config.cols,
 				query = (result.config.q) ? JSON.parse(result.config.q) : null,
 				search = result.config.s,
 				sortArr = [{property: result.config.sort, direction: result.config.dir}],
-				fileName = config.app.instanceName + '-' + result.type + '.csv',
+				fileName = `${config.app.instanceName}-${result.type}.csv`;
+			let userData = [],
 				teamTitleMap = {},
 				isTeamRequested = false;
 
@@ -97,7 +97,7 @@ exports.adminGetCSV = (req, res) => {
 
 						// Convert user.groups to human readable groups string
 						userData.forEach((user) => {
-							let teamNames = user.teams.map((t) => {
+							const teamNames = user.teams.map((t) => {
 								return (_.has(teamTitleMap, t._id) ? teamTitleMap[t._id].name : '<missing>');
 							});
 

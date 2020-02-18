@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 'use strict';
 
-let	Mocha = require('mocha'),
+const	Mocha = require('mocha'),
 	argv = require('yargs').argv,
 
 	config = require('./config.js'),
@@ -18,7 +18,7 @@ mongoose.connect().then(() => {
 	});
 
 	// Create the mocha instance
-	let options = argv.ci ? {
+	const options = argv.ci ? {
 		reporter: 'xunit',
 		reporterOptions: {
 			output: 'mocha-tests.xml'
@@ -31,7 +31,7 @@ mongoose.connect().then(() => {
 		console.log('Mocha: Setting option \'bail\' to true.');
 		options.bail = true;
 	}
-	let mocha = new Mocha(options);
+	const mocha = new Mocha(options);
 
 	// Add all the tests to mocha
 	let testCount = 0;

@@ -10,15 +10,15 @@ const
 
 // Creates an audit entry persisted to Mongo and the bunyan logger
 module.exports.audit = function(message, eventType, eventAction, eventActor, eventObject, eventMetadata, stringifyEventObject) {
-	let Audit = dbs.admin.model('Audit');
-	let utilService = deps.utilService;
+	const Audit = dbs.admin.model('Audit');
+	const utilService = deps.utilService;
 
 	return q.resolve(eventActor).then((actor) => {
 		// Extract additional metadata to audit
-		let userAgentObj = utilService.getUserAgentFromHeader(eventMetadata);
+		const userAgentObj = utilService.getUserAgentFromHeader(eventMetadata);
 
 		// Send to Mongo
-		let newAudit = new Audit({
+		const newAudit = new Audit({
 			created: Date.now(),
 			message: message,
 			audit: {

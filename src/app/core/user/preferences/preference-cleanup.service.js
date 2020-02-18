@@ -20,10 +20,10 @@ module.exports.run = function() {
 	return preferenceService.searchAll({})
 		.then((preferences) => {
 			if (_.isArray(preferences)) {
-				let userIds = _.uniqBy(preferences.map((preference) => preference.user), (id) => id.toString());
+				const userIds = _.uniqBy(preferences.map((preference) => preference.user), (id) => id.toString());
 				return queryMongoService.getAllByIdAsMap(User, userIds, ['_id'])
 					.then((users) => {
-						let removals = [];
+						const removals = [];
 						preferences.forEach((preference) => {
 							if (users[preference.user] == null) {
 								logger.debug(`Removing preference=${preference._id} owned by nonexistent user=${preference.user}`);

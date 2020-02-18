@@ -11,7 +11,7 @@ const
 /**
  * User Schema
  */
-let UserAgreementSchema = new GetterSchema({
+const UserAgreementSchema = new GetterSchema({
 	title: {
 		type: String,
 		trim: true,
@@ -67,7 +67,7 @@ UserAgreementSchema.statics.search = function(queryTerms, searchTerms, limit, of
 };
 
 //Get the most recent eua
-let getCurrentEua = function() {
+const getCurrentEua = function() {
 	return this.findOne({ 'published': { '$ne': null, '$exists': true } })
 		.sort({ 'published': -1 })
 		.exec();
@@ -77,7 +77,7 @@ UserAgreementSchema.statics.getCurrentEua = getCurrentEua;
 
 //Copy a user for audit logging
 UserAgreementSchema.statics.auditCopy = function(eua) {
-	let newEua = {};
+	const newEua = {};
 	eua = eua || {};
 
 	newEua._id = eua._id;

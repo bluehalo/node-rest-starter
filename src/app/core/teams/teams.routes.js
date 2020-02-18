@@ -11,7 +11,7 @@ const
  * Team Routes
  */
 
-let router = express.Router();
+const router = express.Router();
 
 router.route('/team')
 	.put(user.hasEditorAccess, teams.create);

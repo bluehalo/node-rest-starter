@@ -37,7 +37,7 @@ function getConsumer(topic, groupId, extraOptions) {
 		options = Object.assign(options, extraOptions);
 	}
 
-	let connectionOptions = {
+	const connectionOptions = {
 		host: config.kafka.zookeeper,
 		groupId: groupId
 	};
@@ -45,7 +45,7 @@ function getConsumer(topic, groupId, extraOptions) {
 	// Merge connectionOptions
 	options = Object.assign(options, connectionOptions);
 
-	let consumer = new kafka.ConsumerGroup(options, topic);
+	const consumer = new kafka.ConsumerGroup(options, topic);
 
 	return q.resolve(consumer);
 }
@@ -141,7 +141,7 @@ KafkaConsumer.prototype.isPending = function() {
  * @returns A promise to return a KafkaConsumer.
  */
 KafkaConsumer.prototype.getConsumer = function() {
-	let self = this;
+	const self = this;
 
 	// Initialize the deferred promise, if we don't already have one.
 	self.deferred = self.deferred || q.defer();
@@ -177,13 +177,13 @@ KafkaConsumer.prototype.getConsumer = function() {
 				consumer.pause();
 
 				// Replace the default rebalance event listeners with our own
-				let rebalanceListeners = consumer.listeners('rebalanced');
+				const rebalanceListeners = consumer.listeners('rebalanced');
 				consumer.removeAllListeners('rebalanced');
 
 				// The first time the consumer is rebalanced, get the offsets
 				consumer.once('rebalanced', () => {
 					// Get the last offset for each topic
-					let payloads = consumer.getTopicPayloads().map((topic) => {
+					const payloads = consumer.getTopicPayloads().map((topic) => {
 						return {
 							topic: topic.topic,
 							partition: Number(topic.partition),
@@ -199,8 +199,8 @@ KafkaConsumer.prototype.getConsumer = function() {
 						else {
 
 							// Condense multiple offset values
-							for (let topic in offsets) {
-								for (let partition in offsets[topic]) {
+							for (const topic in offsets) {
+								for (const partition in offsets[topic]) {
 									offsets[topic][partition] = Math.min.apply(null, offsets[topic][partition]);
 									logger.info(`Kafka Consumer: Connected to topic ${topic}, partition: ${partition}, offset: ${offsets[topic][partition]}`);
 								}
@@ -321,7 +321,7 @@ KafkaConsumer.prototype.close = function() {
  * @param topic The topic to reconnect to.
  */
 KafkaConsumer.prototype.reconnect = function() {
-	let self = this;
+	const self = this;
 
 	// If a reconnection is already scheduled, don't do it again.
 	if (null == self.timeout) {

@@ -6,7 +6,7 @@ const _ = require('lodash'),
 	config = deps.config;
 
 function escapeRegex(str) {
-	return (str+'').replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&');
+	return (`${str}`).replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&');
 }
 
 function generateFind(query) {
@@ -15,7 +15,7 @@ function generateFind(query) {
 	// If the query is non-null, add the query terms
 	if(null != query){
 		find = find || {};
-		for(let k in query){
+		for(const k in query){
 			find[k] = query[k];
 		}
 	}
@@ -24,11 +24,11 @@ function generateFind(query) {
 }
 
 function generateSort(sortArr) {
-	let sort = {};
+	const sort = {};
 
 	// If the sort is non-null, extract the sort instructions
 	if(null != sortArr){
-		sortArr.forEach(function(d){
+		sortArr.forEach((d) => {
 			sort[d.property] = (d.direction === 'ASC')? 1 : -1;
 		});
 	}
@@ -39,7 +39,7 @@ function generateSort(sortArr) {
 function pagingQuery(schema, find, projection, options, sort, limit, offset, runCount, populate) {
 
 	// Build the query
-	let baseQuery = schema.find(find);
+	const baseQuery = schema.find(find);
 	let findQuery = schema.find(find, projection, options).sort(sort).skip(offset).limit(limit).maxTimeMS(config.maxTimeMS);
 
 	// Add population
@@ -48,13 +48,13 @@ function pagingQuery(schema, find, projection, options, sort, limit, offset, run
 	}
 
 	// Build the promise response
-	let countDefer = q.defer();
+	const countDefer = q.defer();
 
 	if (null == runCount)
 		runCount = true;
 
 	if (runCount) {
-		baseQuery.count(function (error, results) {
+		baseQuery.count((error, results) => {
 			if (null != error) {
 				countDefer.reject(error);
 			} else {
@@ -64,8 +64,8 @@ function pagingQuery(schema, find, projection, options, sort, limit, offset, run
 	} else {
 		countDefer.resolve(Number.MAX_SAFE_INTEGER);
 	}
-	let queryDefer = q.defer();
-	findQuery.exec(function(error, results){
+	const queryDefer = q.defer();
+	findQuery.exec((error, results) => {
 		if(null != error){
 			queryDefer.reject(error);
 		} else {
@@ -73,15 +73,15 @@ function pagingQuery(schema, find, projection, options, sort, limit, offset, run
 		}
 	});
 
-	let returnDefer = q.defer();
-	q.all([countDefer.promise, queryDefer.promise]).then(function(results){
-		let returnObj = {};
-		if (null != results[0]) {
-			returnObj.count = results[0];
+	const returnDefer = q.defer();
+	q.all([countDefer.promise, queryDefer.promise]).then(([count, results]) => {
+		const returnObj = {};
+		if (null != count) {
+			returnObj.count = count;
 		}
-		returnObj.results = results[1];
+		returnObj.results = results;
 		returnDefer.resolve(returnObj);
-	}, function(error){
+	}, (error) => {
 		returnDefer.reject(error);
 	});
 
@@ -92,9 +92,9 @@ function pagingQuery(schema, find, projection, options, sort, limit, offset, run
 module.exports.containsQuery = function(schema, query, fields, search, limit, offset, sortArr, runCount) {
 	// Initialize find to null
 	let find = generateFind(query);
-	let projection = {};
-	let options = {};
-	let sort = generateSort(sortArr);
+	const projection = {};
+	const options = {};
+	const sort = generateSort(sortArr);
 
 	// Build the find
 	if(null != search && '' !== search) {
@@ -103,8 +103,8 @@ module.exports.containsQuery = function(schema, query, fields, search, limit, of
 		if(null != fields && fields.length > 1) {
 			find.$or = [];
 
-			fields.forEach(function(element){
-				let constraint = {};
+			fields.forEach((element) => {
+				const constraint = {};
 				constraint[element] = { $regex: new RegExp(escapeRegex(search), 'gim') };
 
 				find.$or.push(constraint);
@@ -120,8 +120,8 @@ module.exports.search = function(schema, query, searchTerms, limit, offset, sort
 	// Initialize find to null
 	let find = generateFind(query);
 	let projection;
-	let options = {};
-	let sort = generateSort(sortArr);
+	const options = {};
+	const sort = generateSort(sortArr);
 
 	// If the searchTerms is non-null, then build the text search
 	if(null != searchTerms && '' !== searchTerms){
@@ -142,8 +142,8 @@ module.exports.stream = function(schema, query, searchTerms, limit, offset, sort
 	// Initialize find to null
 	let find = generateFind(query);
 	let projection;
-	let options = {};
-	let sort = generateSort(sortArr);
+	const options = {};
+	const sort = generateSort(sortArr);
 
 
 	// If the searchTerms is non-null, then build the text search
@@ -162,14 +162,14 @@ module.exports.stream = function(schema, query, searchTerms, limit, offset, sort
 };
 
 module.exports.count = function(schema, query) {
-	let find = generateFind(query);
+	const find = generateFind(query);
 
 	// Build the query
-	let baseQuery = schema.find(find);
+	const baseQuery = schema.find(find);
 
 	// Build the promise response
-	let countDefer = q.defer();
-	baseQuery.count(function(error, results){
+	const countDefer = q.defer();
+	baseQuery.count((error, results) => {
 		if(null != error){
 			countDefer.reject(error);
 		} else {
@@ -191,7 +191,7 @@ module.exports.count = function(schema, query) {
 module.exports.getAllByIdAsMap = function(schema, ids, fieldsToReturn, lean) {
 	fieldsToReturn = fieldsToReturn || [];
 
-	let projection = {};
+	const projection = {};
 	fieldsToReturn.forEach((field) => {
 		projection[field] = 1;
 	});

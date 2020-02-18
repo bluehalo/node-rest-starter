@@ -8,7 +8,7 @@ const
 
 module.exports.search = function(req, res) {
 	// Get search and query parameters
-	let query = req.body.q || {};
+	const query = req.body.q || {};
 
 	notificationsService.search(query, req.query, req.user)
 		.then(

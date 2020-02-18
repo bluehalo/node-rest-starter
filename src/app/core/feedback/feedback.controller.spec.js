@@ -13,7 +13,7 @@ const request = require('supertest'),
 describe('Feedback Controller', () => {
 
 	let app;
-	let router = express.Router();
+	const router = express.Router();
 
 	const fakeUser = new User({
 		username: 'some-user'
@@ -47,13 +47,11 @@ describe('Feedback Controller', () => {
 			},
 			hasAdminAccess: (req, res, next) => {
 				if (fakeUser.roles.admin) {
-					next();
+					return next();
 				}
-				else {
-					res.status(403).json({
-						message: 'This is a fake error message'
-					});
-				}
+				res.status(403).json({
+					message: 'This is a fake error message'
+				});
 			}
 		});
 

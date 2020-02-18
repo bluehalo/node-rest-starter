@@ -49,14 +49,14 @@ module.exports.initializeNewUser = function(user) {
  * Audits the action
  */
 module.exports.login = function(user, req) {
-	let defer = q.defer();
+	const defer = q.defer();
 
 	// Remove sensitive data before login
 	delete user.password;
 	delete user.salt;
 
 	// Calls the login function (which goes to passport)
-	req.login(user, function(err) {
+	req.login(user, (err) => {
 		if (err) {
 			defer.reject({ status: 500, type: 'login-error', message: err });
 		} else {
@@ -66,7 +66,7 @@ module.exports.login = function(user, req) {
 				{ _id: user._id },
 				{ lastLogin: Date.now() },
 				{ new: true, upsert: false },
-				function(err, user) {
+				(err, user) => {
 					if(null != err) {
 						defer.reject({ status: 500, type: 'login-error', message: err });
 					}
@@ -88,7 +88,7 @@ module.exports.login = function(user, req) {
  * Authenticate and then login depending on the outcome
  */
 module.exports.authenticateAndLogin = function(req, res, next) {
-	let defer = q.defer();
+	const defer = q.defer();
 
 	// Attempt to authenticate the user using passport
 	passport.authenticate(config.auth.strategy, (err, user, info, status) => {
@@ -112,7 +112,7 @@ module.exports.authenticateAndLogin = function(req, res, next) {
 			defer.reject(info);
 
 			// Try to grab the username from the request
-			let username = (req.body && req.body.username)? req.body.username : 'none provided';
+			const username = (req.body && req.body.username)? req.body.username : 'none provided';
 
 			// Audit the failed attempt
 			auditService.audit(info.message, 'user-authentication', 'authentication failed',

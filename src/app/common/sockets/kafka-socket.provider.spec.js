@@ -13,14 +13,14 @@ const
 /**
  * Unit tests
  */
-describe('Kafka Socket Controller:', function() {
+describe('Kafka Socket Controller:', () => {
 
 	let ctrl;
 
-	before(function() {
+	before(() => {
 
 		// Mock out the subscribe and unsubscribe methods to do nothing
-		let noOp = function() {};
+		const noOp = function() {};
 		KafkaSocket.prototype.subscribe = noOp;
 		KafkaSocket.prototype.unsubscribe = noOp;
 
@@ -30,19 +30,19 @@ describe('Kafka Socket Controller:', function() {
 		});
 	});
 
-	describe('should pass socket through to base', function() {
+	describe('should pass socket through to base', () => {
 
-		it('base socket controller should have the socket object', function() {
-			let s = ctrl.getSocket();
+		it('base socket controller should have the socket object', () => {
+			const s = ctrl.getSocket();
 			should.exist(s);
 		});
 
 	});
 
-	describe('should set default emit values', function() {
+	describe('should set default emit values', () => {
 
-		it('default emit type', function() {
-			let type = ctrl.getEmitType();
+		it('default emit type', () => {
+			const type = ctrl.getEmitType();
 			should(type).equal('payload');
 		});
 

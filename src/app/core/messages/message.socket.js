@@ -18,11 +18,11 @@ const
  * MessageSocket Socket Controller that overrides Base Socket Controller
  * methods to handle specifics of Messages
  */
-function MessageSocket(socketConfig) {
+function MessageSocket(...args) {
 	this._emitType = `${emitName}:data`;
 	this._topicName = config.messages.topic;
 	this._subscriptionCount = 0;
-	socketProvider.apply(this, arguments);
+	socketProvider.apply(this, args);
 }
 
 nodeUtil.inherits(MessageSocket, socketProvider);
@@ -67,7 +67,7 @@ MessageSocket.prototype.error = function(err) {
  *
  */
 MessageSocket.prototype.handleSubscribe = function(payload) {
-	let self = this;
+	const self = this;
 
 	if(logger.debug()) {
 		logger.debug(`MessageSocket: ${emitName}:subscribe event with payload: ${JSON.stringify(payload)}`);
@@ -78,7 +78,7 @@ MessageSocket.prototype.handleSubscribe = function(payload) {
 		users.hasAccess
 	]).then(() => {
 		// Subscribe to the user's message topic
-		let topic = self.getTopic();
+		const topic = self.getTopic();
 		self.subscribe(topic);
 		self._subscriptionCount++;
 	}, (err) => {
@@ -94,7 +94,7 @@ MessageSocket.prototype.handleUnsubscribe = function(payload) {
 		logger.debug(`MessageSocket: ${emitName}:unsubscribe event with payload: ${JSON.stringify(payload)}`);
 	}
 
-	let topic = this.getTopic();
+	const topic = this.getTopic();
 	this.unsubscribe(topic);
 
 	this._subscriptionCount = Math.max(0, this._subscriptionCount - 1);
@@ -108,7 +108,7 @@ MessageSocket.prototype.handleUnsubscribe = function(payload) {
  *
  */
 MessageSocket.prototype.addListeners = function() {
-	let s = this.getSocket();
+	const s = this.getSocket();
 
 	if(typeof s.on === 'function') {
 		// Set up Subscribe events

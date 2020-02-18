@@ -11,7 +11,7 @@ const
 
 
 function doSearch(query, sortParams, page, limit) {
-	let countPromise = Preference.find(query).count();
+	const countPromise = Preference.find(query).count();
 	let searchPromise = Preference.find(query);
 
 	if (sortParams) {
@@ -39,10 +39,10 @@ module.exports.searchAll = function(query) {
 };
 
 module.exports.search = function(query, queryParams) {
-	let page = util.getPage(queryParams);
-	let limit = util.getLimit(queryParams, 1000);
+	const page = util.getPage(queryParams);
+	const limit = util.getLimit(queryParams, 1000);
 
-	let sort = queryParams.sort;
+	const sort = queryParams.sort;
 	let dir = queryParams.dir;
 
 	// Sort can be null, but if it's non-null, dir defaults to DESC

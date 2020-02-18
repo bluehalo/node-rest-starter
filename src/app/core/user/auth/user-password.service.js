@@ -19,7 +19,7 @@ module.exports.generateToken = () => {
 			if (error) {
 				reject(error);
 			} else {
-				let token = buffer.toString('hex');
+				const token = buffer.toString('hex');
 				logger.debug('Generated reset token.');
 				resolve(token);
 			}
@@ -86,7 +86,7 @@ module.exports.resetPasswordForToken = async (token, password) => {
 // Send email to user with instructions on resetting password
 module.exports.sendResetPasswordEmail = async (user, token, req) => {
 	try {
-		let mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.resetPassword, {
+		const mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.resetPassword, {
 			token: token
 		}, {}, {
 			to: user.email
@@ -104,7 +104,7 @@ module.exports.sendResetPasswordEmail = async (user, token, req) => {
 // Send email to user confirming password was reset
 module.exports.sendPasswordResetConfirmEmail = async (user, req) => {
 	try {
-		let mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.resetPasswordConfirm, {}, {}, {
+		const mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.resetPasswordConfirm, {}, {}, {
 			to: user.email
 		});
 		await emailService.sendMail(mailOptions);

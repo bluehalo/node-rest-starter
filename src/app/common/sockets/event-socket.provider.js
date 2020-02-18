@@ -14,11 +14,11 @@ const
 	BaseSocket = require('./base-socket.provider');
 
 // If this is not null, ignore any messages that are older than this number of seconds.
-let ignoreOlderThan = config.socketio.ignoreOlderThan;
+const ignoreOlderThan = config.socketio.ignoreOlderThan;
 
-function EventSocket(socketConfig) {
+function EventSocket(socketConfig, ...args) {
 	this._emitRateMs = socketConfig.emitRateMs < 0 ? 0 : (+socketConfig.emitRateMs || 0);
-	BaseSocket.apply(this, arguments);
+	BaseSocket.apply(this, [socketConfig, ...args]);
 }
 
 nodeUtil.inherits(
@@ -62,7 +62,7 @@ EventSocket.prototype.getEmitType = function() {
 EventSocket.prototype.getMessageTime = function(json) {
 	// Default to extracting time from json
 	if (null != json) {
-		var time = json.time;
+		const time = json.time;
 		logger.debug('%s: Extracted message time of %d', this.name, time);
 		return time;
 	}
@@ -84,8 +84,8 @@ EventSocket.prototype.getMessageTime = function(json) {
 EventSocket.prototype.ignorePayload = function(json) {
 	// Ignore any payloads that are too old.
 	if (null != ignoreOlderThan) {
-		var now = Date.now();
-		var messageTime = this.getMessageTime(json);
+		const now = Date.now();
+		const messageTime = this.getMessageTime(json);
 		if (null != messageTime) {
 			if (messageTime + (ignoreOlderThan * 1000) < now) {
 				logger.debug('%s: Message is too old: %d is more than %d seconds older than %d', this.name, messageTime, ignoreOlderThan, now);
@@ -146,7 +146,7 @@ EventSocket.prototype.socketPayloadHandler = function(eventName, message) {
 		return;
 	}
 
-	var self = this;
+	const self = this;
 	logger.debug('%s: Received Event Message for event %s', this.name, eventName);
 	try {
 		// Unwrap the payload
@@ -158,7 +158,7 @@ EventSocket.prototype.socketPayloadHandler = function(eventName, message) {
 			}
 
 			// The message can be either an object or a promise for an object
-			q(message).then(function(msg) {
+			q(message).then((msg) => {
 				if (null != msg) {
 					self.emitMessage(self.getEmitType(), msg);
 				}
