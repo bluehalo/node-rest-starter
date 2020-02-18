@@ -1,10 +1,10 @@
 'use strict';
 
 const
-	q = require('q'),
 	_ = require('lodash'),
 	mongoose = require('mongoose'),
 
+	userAuthService = require('../user/auth/user-authorization.service'),
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	dbs = deps.dbs,
@@ -37,9 +37,11 @@ module.exports = function() {
 	 * @param dest
 	 * @param src
 	 */
-	function copyTeamMutableFields(dest, src) {
+	function copyMutableFields(dest, src) {
 		dest.name = src.name;
 		dest.description = src.description;
+		dest.implicitMembers = src.implicitMembers;
+		dest.requiresExternalRoles = src.requiresExternalRoles;
 		dest.requiresExternalTeams = src.requiresExternalTeams;
 	}
 
@@ -68,8 +70,28 @@ module.exports = function() {
 	 * @param team
 	 * @returns {boolean}
 	 */
+	function isImplicitMember(user, team) {
+		const strategy = _.get(config, 'teams.implicitMembers.strategy', null);
+
+		if (strategy === 'roles') {
+			return meetsRequiredExternalRoles(user, team);
+		} else if (strategy === 'teams') {
+			return meetsRequiredExternalTeams(user, team);
+		}
+		return false;
+	}
+
+	/**
+	 * Checks if the user meets the required external teams for this team.
+	 * Requires matching only one external team.
+	 * If the user is bypassed, they automatically meet the required external teams
+	 *
+	 * @param user
+	 * @param team
+	 * @returns {boolean}
+	 */
 	function meetsRequiredExternalTeams(user, team) {
-		if(true === user.bypassAccessCheck) {
+		if (true === user.bypassAccessCheck) {
 			return true;
 		} else {
 			// Check the required external teams against the user's externalGroups
@@ -77,15 +99,31 @@ module.exports = function() {
 		}
 	}
 
+	/**
+	 * Checks if the user meets the required external roles for this team.
+	 * Requires matching all external roles.
+	 *
+	 * @param user
+	 * @param team
+	 * @returns {boolean}
+	 */
+	function meetsRequiredExternalRoles(user, team) {
+		if (team.requiresExternalRoles == null || team.requiresExternalRoles.length === 0) {
+			return false;
+		}
+		// Check the required external roles against the user's externalRoles
+		return _.intersection(team.requiresExternalRoles, user.externalRoles).length === team.requiresExternalRoles.length;
+	}
+
 	function meetsRoleRequirement(user, team, role) {
 		// Check role of the user in this team
 		let userRole = getActiveTeamRole(user, team);
+
 		if (null != userRole && meetsOrExceedsRole(userRole, role)) {
-			return q();
+			return Promise.resolve();
 		}
-		else {
-			return q.reject({ status: 403, type: 'missing-roles', message: 'The user does not have the required roles for the team' });
-		}
+
+		return Promise.reject({ status: 403, type: 'missing-roles', message: 'The user does not have the required roles for the team' });
 	}
 
 	/**
@@ -109,17 +147,18 @@ module.exports = function() {
 	 * @returns Returns a role, or null if the user is not a member of the team
 	 */
 	function getActiveTeamRole(user, team) {
+		if (user.constructor.name === 'model') {
+			user = user.toObject();
+		}
+
 		// No matter what, we need to get these
 		let teamRole = getTeamRole(user, team);
 
-		let proxyPkiMode = config.auth.strategy === 'proxy-pki';
-		let teamHasRequirements = (_.isArray(team.requiresExternalTeams) && team.requiresExternalTeams.length > 0);
+		const implicitMembersEnabled = _.get(config, 'teams.implicitMembers.strategy', null) !== null;
 
-		// If we are in proxy-pki mode and the team has external requirements
-		if(proxyPkiMode && teamHasRequirements) {
-
+		if (implicitMembersEnabled && team.implicitMembers) {
 			// If the user is active
-			if(meetsRequiredExternalTeams(user, team)) {
+			if (isImplicitMember(user, team)) {
 				// Return either the team role (if defined), or the default role
 				return (null != teamRole) ? teamRole : 'member';
 			}
@@ -142,13 +181,14 @@ module.exports = function() {
 	 * @param team The team object of interest
 	 * @returns A promise that resolves if there are no more resources in the team, and rejects otherwise
 	 */
-	function verifyNoResourcesInTeam(team) {
-		return Resource.find({ 'owner.type': 'team', 'owner._id': team._id } ).exec().then((resources) => {
-			if (null != resources && resources.length > 0) {
-				return q.reject({ status: 400, type: 'bad-request', message: 'There are still resources in this group.'});
-			}
-			return q();
-		});
+	async function verifyNoResourcesInTeam(team) {
+		let resources = await Resource.find({ 'owner.type': 'team', 'owner._id': team._id } ).exec();
+
+		if (null != resources && resources.length > 0) {
+			return Promise.reject({ status: 400, type: 'bad-request', message: 'There are still resources in this group.'});
+		}
+
+		return Promise.resolve();
 	}
 
 	/**
@@ -158,39 +198,34 @@ module.exports = function() {
 	 * @param team The team object of interest
 	 * @returns {Promise} Returns a promise that resolves if the user is not the last admin, and rejects otherwise
 	 */
-	function verifyNotLastAdmin(user, team) {
+	async function verifyNotLastAdmin(user, team) {
 		// Search for all users who have the admin role set to true
-		return TeamMember.find({
-				_id: { $ne: user._id },
-				teams: { $elemMatch: { _id: team._id, role: 'admin' } }
-			})
-			.exec()
-			.then(function(results) {
-				// Just need to make sure we find one active admin who isn't this user
-				let adminFound = results.some(function(u) {
-					let role = getActiveTeamRole(u, team);
-					return (null != role && role === 'admin');
-				});
+		let results = await TeamMember.find({
+			_id: { $ne: user._id },
+			teams: { $elemMatch: { _id: team._id, role: 'admin' } }
+		}).exec();
 
-				if(adminFound) {
-					return q();
-				}
-				else {
-					return q.reject({ status: 400, type: 'bad-request', message: 'Team must have at least one admin' });
-				}
-			});
+		// Just need to make sure we find one active admin who isn't this user
+		let adminFound = results.some((u) => {
+			let role = getActiveTeamRole(u, team);
+			return (null != role && role === 'admin');
+		});
+
+		if (adminFound) {
+			return Promise.resolve();
+		}
+		return Promise.reject({ status: 400, type: 'bad-request', message: 'Team must have at least one admin' });
 	}
 
 	/**
 	 * Validates that the roles are one of the accepted values
 	 */
-	function validateTeamRole(role) {
+	async function validateTeamRole(role) {
 		if (-1 !== teamRoles.indexOf(role)) {
-			return q();
+			return Promise.resolve();
 		}
-		else {
-			return q.reject({ status: 400, type: 'bad-argument', message: 'Team role does not exist' });
-		}
+
+		return Promise.reject({ status: 400, type: 'bad-argument', message: 'Team role does not exist' });
 	}
 
 	/**
@@ -200,9 +235,11 @@ module.exports = function() {
 	 * @param creator The user requesting the create
 	 * @returns {Promise} Returns a promise that resolves if team is successfully created, and rejects otherwise
 	 */
-	function createTeam(teamInfo, creator, firstAdmin, headers) {
+	async function createTeam(teamInfo, creator, firstAdmin, headers) {
 		// Create the new team model
-		let newTeam = new Team(teamInfo);
+		let newTeam = new Team();
+
+		copyMutableFields(newTeam, teamInfo);
 
 		// Write the auto-generated metadata
 		newTeam.creator = creator;
@@ -210,20 +247,20 @@ module.exports = function() {
 		newTeam.updated = Date.now();
 		newTeam.creatorName = creator.name;
 
-		return User.findById(firstAdmin).exec().then((user) => {
-			user = User.filteredCopy(user);
-			// Audit the creation action
-			return auditService.audit('team created', 'team', 'create', TeamMember.auditCopy(creator), Team.auditCopy(newTeam), headers).then(function () {
-				// Save the new team
-				return newTeam.save();
-			}).then(function (team) {
-				// Add first admin as first team member with admin role, or the creator if null
-				return addMemberToTeam(user || creator, team, 'admin', creator);
-			});
-		});
+		let user = await User.findById(firstAdmin).exec();
+		user = User.filteredCopy(user);
+
+		// Audit the creation action
+		await auditService.audit('team created', 'team', 'create', TeamMember.auditCopy(creator), Team.auditCopy(newTeam), headers);
+
+		// Save the new team
+		await newTeam.save();
+
+		// Add first admin as first team member with admin role, or the creator if null
+		return addMemberToTeam(user || creator, newTeam, 'admin', creator);
 	}
 
-	function getTeams(queryParams) {
+	async function getTeams(queryParams) {
 		const page = util.getPage(queryParams);
 		const limit = util.getLimit(queryParams, 1000);
 
@@ -235,15 +272,16 @@ module.exports = function() {
 			sortArr = [{property: queryParams.sort, direction: queryParams.dir}];
 		}
 
-		return Team.search({}, null, limit, offset, sortArr).then((result) => {
-			return q({
-				totalSize: result.count,
-				pageNumber: page,
-				pageSize: limit,
-				totalPages: Math.ceil(result.count / limit),
-				elements: result.results
-			});
-		});
+		// Query for Teams
+		const teams = await Team.search({}, null, limit, offset, sortArr);
+
+		return {
+			totalSize: teams.count,
+			pageNumber: page,
+			pageSize: limit,
+			totalPages: Math.ceil(teams.count / limit),
+			elements: teams.results
+		};
 	}
 
 	/**
@@ -254,7 +292,7 @@ module.exports = function() {
 	 * @param user The user requesting the update
 	 * @returns {Promise} Returns a promise that resolves if team is successfully updated, and rejects otherwise
 	 */
-	function updateTeam(team, updatedTeam, user, headers) {
+	async function updateTeam(team, updatedTeam, user, headers) {
 		// Make a copy of the original team for auditing purposes
 		let originalTeam = Team.auditCopy(team);
 
@@ -262,14 +300,13 @@ module.exports = function() {
 		team.updated = Date.now();
 
 		// Copy in the fields that can be changed by the user
-		copyTeamMutableFields(team, updatedTeam);
+		copyMutableFields(team, updatedTeam);
 
 		// Audit the update action
-		return auditService.audit('team updated', 'team', 'update', TeamMember.auditCopy(user), { before: originalTeam, after: Team.auditCopy(team) }, headers).then(function() {
-				// Save the updated team
-				return team.save();
-			});
+		await auditService.audit('team updated', 'team', 'update', TeamMember.auditCopy(user), { before: originalTeam, after: Team.auditCopy(team) }, headers);
 
+		// Save the updated team
+		return team.save();
 	}
 
 	/**
@@ -279,23 +316,23 @@ module.exports = function() {
 	 * @param user The user requesting the delete
 	 * @returns {Promise} Returns a promise that resolves if team is successfully deleted, and rejects otherwise
 	 */
-	function deleteTeam(team, user, headers) {
-		return verifyNoResourcesInTeam(team).then(() => {
-			// Audit the team delete attempt
-			return auditService.audit('team deleted', 'team', 'delete', TeamMember.auditCopy(user), Team.auditCopy(team), headers);
-		}).then(() => {
-			// Delete the team and update all members in the team
-			return q.allSettled([
-				team.remove(),
-				TeamMember.update(
-					{'teams._id': team._id },
-					{ $pull: { teams: { _id: team._id } } }
-				)
-			]);
-		});
+	async function deleteTeam(team, user, headers) {
+		await verifyNoResourcesInTeam(team);
+
+		// Audit the team delete attempt
+		await auditService.audit('team deleted', 'team', 'delete', TeamMember.auditCopy(user), Team.auditCopy(team), headers);
+
+		// Delete the team and update all members in the team
+		return Promise.all([
+			team.remove(),
+			TeamMember.update(
+				{'teams._id': team._id },
+				{ $pull: { teams: { _id: team._id } } }
+			)
+		]);
 	}
 
-	function searchTeams(search, query, queryParams, user) {
+	async function searchTeams(search, query, queryParams, user) {
 		let page = util.getPage(queryParams);
 		let limit = util.getLimit(queryParams, 1000);
 
@@ -307,59 +344,48 @@ module.exports = function() {
 			sortArr = [{property: queryParams.sort, direction: queryParams.dir}];
 		}
 
-		return q()
-			.then(function() {
-				// If user is not an admin, constrain the results to the user's teams
-				if (null == user.roles || !user.roles.admin) {
-					let userObj = user.toObject();
-					let userTeams = [];
+		// If user is not an admin, constrain the results to the user's teams
+		if (!userAuthService.hasRoles(user, ['admin'], config.auth)) {
+			let [userTeams, implicitTeams] = await Promise.all([getMemberTeamIds(user), getImplicitTeamIds(user)]);
 
-					if (null != userObj.teams && _.isArray(userObj.teams)) {
-						// Get list of user's teams by id
-						userTeams = userObj.teams.filter((t) => t.role !== 'requester').map((t) => t._id.toString());
-					}
+			let teamIds = [...userTeams, ...implicitTeams];
 
-					// If the query already has a filter by team, take the intersection
-					if (null != query._id && null != query._id.$in) {
-						userTeams = userTeams.filter((t) => query._id.$in.indexOf(t) > -1);
-					}
+			// If the query already has a filter by team, take the intersection
+			if (null != query._id && null != query._id.$in) {
+				teamIds = _.intersection(teamIds, query._id.$in);
+			}
 
-					// If no remaining teams, return no results
-					if (userTeams.length === 0) {
-						return q();
-					}
-					else {
-						query._id = {
-							$in: userTeams
-						};
-					}
-				}
+			// If no remaining teams, return no results
+			if (teamIds.length === 0) {
+				return Promise.resolve();
+			}
 
-				return Team.search(query, search, limit, offset, sortArr);
-			})
-			.then(function(result) {
-				if (null == result) {
-					return q({
-						totalSize: 0,
-						pageNumber: 0,
-						pageSize: limit,
-						totalPages: 0,
-						elements: []
-					});
-				}
-				else {
-					return q({
-						totalSize: result.count,
-						pageNumber: page,
-						pageSize: limit,
-						totalPages: Math.ceil(result.count / limit),
-						elements: result.results
-					});
-				}
-			});
+			query._id = {
+				$in: teamIds
+			};
+		}
+
+		let result = await Team.search(query, search, limit, offset, sortArr);
+
+		if (null == result) {
+			return {
+				totalSize: 0,
+				pageNumber: 0,
+				pageSize: limit,
+				totalPages: 0,
+				elements: []
+			};
+		}
+		return {
+			totalSize: result.count,
+			pageNumber: page,
+			pageSize: limit,
+			totalPages: Math.ceil(result.count / limit),
+			elements: result.results
+		};
 	}
 
-	function searchTeamMembers(search, query, queryParams, team) {
+	async function searchTeamMembers(search, query, queryParams, team) {
 		let page = util.getPage(queryParams);
 		let limit = util.getLimit(queryParams);
 
@@ -371,35 +397,49 @@ module.exports = function() {
 			sortArr = [{property: queryParams.sort, direction: queryParams.dir}];
 		}
 
-		return q()
-			.then(function() {
-				// Inject the team query parameters
-				// Finds members explicitly added to the team using the id OR
-				// members implicitly added by having the externalGroup required by requiresExternalTeam
-				query = query || {};
-				query.$or = [
-					{'teams._id': team._id},
-					{'externalGroups': {$in: (_.isArray(team.requiresExternalTeams)) ? team.requiresExternalTeams : []}}
-				];
+		// Inject the team query parameters
+		// Finds members explicitly added to the team using the id OR
+		// members implicitly added by having the externalGroup required by requiresExternalTeam
+		query = query || {};
+		query.$or = [
+			{'teams._id': team._id}
+		];
 
-				return TeamMember.search(query, search, limit, offset, sortArr);
-			})
-			.then(function(result) {
-				// Success
-				// Create the return copy of the users
-				let members = [];
-				result.results.forEach((element) => {
-					members.push(TeamMember.teamCopy(element, team._id));
-				});
+		const implicitTeamStrategy = _.get(config, 'teams.implicitMembers.strategy', null);
 
-				return q({
-					totalSize: result.count,
-					pageNumber: page,
-					pageSize: limit,
-					totalPages: Math.ceil(result.count/limit),
-					elements: members
-				});
+		if (implicitTeamStrategy === 'roles' && team.requiresExternalRoles && team.requiresExternalRoles.length > 0) {
+			query.$or.push({
+				$and: [{
+					externalRoles: { $exists: true }
+				}, {
+					externalRoles: { $ne: null }
+				}, {
+					externalRoles: { $ne: [] }
+				}, {
+					externalRoles: { $not: { $elemMatch: { $nin: team.requiresExternalRoles } } }
+				}]
 			});
+		}
+		if (implicitTeamStrategy === 'teams' && team.requiresExternalTeams && team.requiresExternalTeams.length > 0) {
+			query.$or.push({
+				$and: [{
+					externalGroups: { $elemMatch: { $in: team.requiresExternalTeams } }
+				}]
+			});
+		}
+
+		let results = await TeamMember.search(query, search, limit, offset, sortArr);
+
+		// Create the return copy of the users
+		const members = results.results.map((result) => TeamMember.teamCopy(result, team._id));
+
+		return {
+			totalSize: results.count,
+			pageNumber: page,
+			pageSize: limit,
+			totalPages: Math.ceil(results.count/limit),
+			elements: members
+		};
 	}
 
 	/**
@@ -411,18 +451,18 @@ module.exports = function() {
 	 * @param requester The user requesting the add
 	 * @returns {Promise} Returns a promise that resolves if the user is successfully added to the team, and rejects otherwise
 	 */
-	function addMemberToTeam(user, team, role, requester, headers) {
+	async function addMemberToTeam(user, team, role, requester, headers) {
 		// Audit the member add request
-		return auditService.audit(`team ${role} added`, 'team-role', 'user add', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, role), headers).then(() => {
-			return TeamMember.update({ _id: user._id }, { $addToSet: { teams: new TeamRole({ _id: team._id, role: role }) } }).exec();
-		});
+		await auditService.audit(`team ${role} added`, 'team-role', 'user add', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, role), headers);
+
+		return TeamMember.update({ _id: user._id }, { $addToSet: { teams: new TeamRole({ _id: team._id, role: role }) } }).exec();
 	}
 
 	const addMembersToTeam = async (users, team, requester, headers) => {
 		users = users || [];
 		users = users.filter((user) => null != user._id);
 
-		return await Promise.all(users.map(async (u) => {
+		return Promise.all(users.map(async (u) => {
 			const user = await TeamMember.findOne({_id: u._id});
 			if (null != user) {
 				return await addMemberToTeam(user, team, u.role, requester, headers);
@@ -430,21 +470,19 @@ module.exports = function() {
 		}));
 	};
 
-	function updateMemberRole(user, team, role, requester, headers) {
+	async function updateMemberRole(user, team, role, requester, headers) {
 		let currentRole = getTeamRole(user, team);
-		let updateRolePromise = (null != currentRole && currentRole === 'admin') ? verifyNotLastAdmin(user, team) : q();
 
-		return updateRolePromise
-			.then(function() {
-				return validateTeamRole(role);
-			})
-			.then(function() {
-				// Audit the member update request
-				return auditService.audit(`team role changed to ${role}`, 'team-role', 'user add', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, role), headers);
-			})
-			.then(function() {
-				return TeamMember.findOneAndUpdate({ _id: user._id, 'teams._id': team._id }, { $set: { 'teams.$.role': role } }).exec();
-			});
+		if (null != currentRole && currentRole === 'admin') {
+			await verifyNotLastAdmin(user, team);
+		}
+
+		await validateTeamRole(role);
+
+		// Audit the member update request
+		await auditService.audit(`team role changed to ${role}`, 'team-role', 'user add', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, role), headers);
+
+		return TeamMember.findOneAndUpdate({ _id: user._id, 'teams._id': team._id }, { $set: { 'teams.$.role': role } }).exec();
 	}
 
 	/**
@@ -456,17 +494,15 @@ module.exports = function() {
 	 * @param requester The user requesting the removal
 	 * @returns {Promise} Returns a promise that resolves if the user is successfully removed from the team, and rejects otherwise
 	 */
-	function removeMemberFromTeam(user, team, requester, headers) {
+	async function removeMemberFromTeam(user, team, requester, headers) {
 		// Verify the user is not the last admin in the team
-		return verifyNotLastAdmin(user, team)
-			.then(function () {
-				// Audit the user remove
-				return auditService.audit('team member removed', 'team-role', 'user remove', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, ''), headers);
-			})
-			.then(function () {
-				// Apply the update
-				return TeamMember.update({_id: user._id}, {$pull: {teams: {_id: team._id}}}).exec();
-			});
+		await verifyNotLastAdmin(user, team);
+
+		// Audit the user remove
+		await auditService.audit('team member removed', 'team-role', 'user remove', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, ''), headers);
+
+		// Apply the update
+		return TeamMember.update({_id: user._id}, {$pull: {teams: {_id: team._id}}}).exec();
 	}
 
 	async function sendRequestEmail(toEmail, requester, team, req) {
@@ -486,26 +522,24 @@ module.exports = function() {
 		}
 	}
 
-	function requestAccessToTeam(requester, team, req) {
-		let adminEmails;
-
+	async function requestAccessToTeam(requester, team, req) {
 		// Lookup the emails of all team admins
-		return TeamMember.find({ teams: { $elemMatch: { _id: mongoose.Types.ObjectId(team._id), role: 'admin' } }}).then((admins) => {
-			if (null == admins) {
-				return q.reject({ status: 404, message: 'Error retrieving team admins' });
-			}
+		let admins = await TeamMember.find({ teams: { $elemMatch: { _id: mongoose.Types.ObjectId(team._id), role: 'admin' } }}).exec();
 
-			adminEmails = admins.map((admin) => admin.email);
+		if (null == admins) {
+			return Promise.reject({ status: 404, message: 'Error retrieving team admins' });
+		}
 
-			if (null == adminEmails || adminEmails.length === 0) {
-				return q.reject({ status: 404, message: 'Error retrieving team admins' });
-			}
+		let adminEmails = admins.map((admin) => admin.email);
 
-			// Add requester role to user for this team
-			return addMemberToTeam(requester, team, 'requester', requester, req.headers);
-		}).then(() => {
-			return sendRequestEmail(adminEmails, requester, team, req);
-		});
+		if (null == adminEmails || adminEmails.length === 0) {
+			return Promise.reject({ status: 404, message: 'Error retrieving team admins' });
+		}
+
+		// Add requester role to user for this team
+		await addMemberToTeam(requester, team, 'requester', requester, req.headers);
+
+		return sendRequestEmail(adminEmails, requester, team, req);
 	}
 
 	async function requestNewTeam(org, aoi, description, requester, req) {
@@ -538,23 +572,119 @@ module.exports = function() {
 		}
 	}
 
+	/**
+	 * Team authorization Middleware
+	 */
+	async function getImplicitTeamIds(user) {
+		// Validate the user input
+		if (null == user) {
+			return Promise.reject({ status: 401, type: 'bad-request', message: 'User does not exist' });
+		}
+
+		if (user.constructor.name === 'model') {
+			user = user.toObject();
+		}
+
+		const strategy = _.get(config, 'teams.implicitMembers.strategy', null);
+
+		if (strategy == null) {
+			return [];
+		}
+
+		const query = { $and: [{ implicitMembers: true }]};
+		if (strategy === 'roles' && user.externalRoles && user.externalRoles.length > 0) {
+			query.$and.push({
+				requiresExternalRoles: { $exists: true }
+			}, {
+				requiresExternalRoles: { $ne: null }
+			}, {
+				requiresExternalRoles: { $ne: [] }
+			}, {
+				requiresExternalRoles: { $not: { $elemMatch: { $nin: user.externalRoles } } }
+			});
+		}
+		if (strategy === 'teams' && user.externalGroups && user.externalGroups.length > 0) {
+			query.$and.push({
+				requiresExternalTeams: { $elemMatch: { $in: user.externalGroups } }
+			});
+		}
+
+		if (query.$and.length === 1) {
+			return [];
+		}
+
+		return Team.distinct('_id', query).exec();
+	}
+
+	async function getTeamIds(user, ...roles) {
+		// Validate the user input
+		if (null == user) {
+			return Promise.reject({ status: 401, type: 'bad-request', message: 'User does not exist' });
+		}
+
+		if (user.constructor.name === 'model') {
+			user = user.toObject();
+		}
+
+		let userTeams = (_.isArray(user.teams)) ? user.teams : [];
+		if (roles && roles.length > 0) {
+			userTeams = userTeams.filter((t) => null != t.role && roles.includes(t.role));
+		}
+
+		let filteredTeamIds = userTeams.map((t) => t._id.toString());
+
+		return Promise.resolve(filteredTeamIds);
+	}
+
+	async function getMemberTeamIds(user) {
+		return getTeamIds(user, 'member', 'editor', 'admin');
+	}
+
+	async function getEditorTeamIds(user) {
+		return getTeamIds(user, 'editor', 'admin');
+	}
+
+	async function getAdminTeamIds(user) {
+		return getTeamIds(user, 'admin');
+	}
+
+	// Constrain a set of teamIds provided by the user to those the user actually has access to.
+	async function filterTeamIds(user, teamIds) {
+		let memberTeamIds = await getMemberTeamIds(user);
+
+		// If there were no teamIds to filter by, return all the team ids
+		if (null == teamIds || (_.isArray(teamIds) && teamIds.length === 0)) {
+			return memberTeamIds;
+		}
+		// Else, return the intersection of the two
+		return _.intersection(memberTeamIds, teamIds);
+	}
+
 	return {
-		createTeam: createTeam,
-		getTeams: getTeams,
-		updateTeam: updateTeam,
-		deleteTeam: deleteTeam,
-		searchTeams: searchTeams,
-		searchTeamMembers: searchTeamMembers,
-		meetsOrExceedsRole: meetsOrExceedsRole,
-		meetsRoleRequirement: meetsRoleRequirement,
-		meetsRequiredExternalTeams: meetsRequiredExternalTeams,
-		getActiveTeamRole: getActiveTeamRole,
-		requestNewTeam: requestNewTeam,
-		requestAccessToTeam: requestAccessToTeam,
-		addMemberToTeam: addMemberToTeam,
-		addMembersToTeam: addMembersToTeam,
-		updateMemberRole: updateMemberRole,
-		removeMemberFromTeam: removeMemberFromTeam,
-		sendRequestEmail: sendRequestEmail
+		createTeam,
+		getTeams,
+		updateTeam,
+		deleteTeam,
+		searchTeams,
+		searchTeamMembers,
+		meetsOrExceedsRole,
+		meetsRoleRequirement,
+		isImplicitMember,
+		meetsRequiredExternalTeams,
+		meetsRequiredExternalRoles,
+		getActiveTeamRole,
+		requestNewTeam,
+		requestAccessToTeam,
+		addMemberToTeam,
+		addMembersToTeam,
+		updateMemberRole,
+		removeMemberFromTeam,
+		sendRequestEmail,
+		getTeamIds,
+		filterTeamIds,
+		getMemberTeamIds,
+		getEditorTeamIds,
+		getAdminTeamIds,
+		getImplicitTeamIds
 	};
 };

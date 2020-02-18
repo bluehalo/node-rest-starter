@@ -1,8 +1,7 @@
 'use strict';
 
 const
-	_ = require('lodash'),
-	q = require('q');
+	_ = require('lodash');
 
 
 /**
@@ -18,6 +17,31 @@ const
  * Public Methods
  * ==========================================================
  */
+module.exports.hasRoles = (user, roles, authConfig) => {
+	const strategy = _.get(authConfig, 'roleStrategy', 'local');
+
+	let toReturn = true;
+
+	if (null != roles) {
+		let localRoles = user.roles || [];
+		let externalRoles = user.externalRoles || [];
+
+		toReturn = roles.every((role) => {
+			let hasLocalRole = localRoles[role];
+			if (strategy === 'local')
+				return hasLocalRole;
+
+			let hasExternalRole = externalRoles.indexOf(authConfig.externalRoleMap[role]) !== -1;
+			if (strategy === 'external')
+				return hasExternalRole;
+
+			return hasLocalRole || hasExternalRole;
+		});
+	}
+
+	return toReturn;
+};
+
 module.exports.updateRoles = (user, authConfig) => {
 	const strategy = _.get(authConfig, 'roleStrategy', 'local');
 	const isHybrid = strategy === 'hybrid';
@@ -55,7 +79,7 @@ module.exports.checkExternalRoles = function(user, configAuth) {
 module.exports.validateAccessToPersonalResource = function(user, resource) {
 	let isAdmin = null != user.roles && user.roles.admin === true;
 	if (isAdmin || resource.creator.equals(user._id)) {
-		return q();
+		return Promise.resolve();
 	}
-	return q.reject({ status: 403, type: 'unauthorized', message: 'The user does not have the necessary permissions to access this resource' });
+	return Promise.reject({ status: 403, type: 'unauthorized', message: 'The user does not have the necessary permissions to access this resource' });
 };

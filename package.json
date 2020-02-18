@@ -16,8 +16,9 @@
     "start": "nodemon ./src/server.js --exec 'npm run lint && node --inspect' | bunyan",
     "start:dev": "export NODE_ENV=development && npm run start",
     "test": "NODE_ENV=test nodemon ./src/test.js",
-    "test:ci": "NODE_ENV=test nyc --reporter=lcov node ./src/test.js --ci",
+    "test:ci": "NODE_ENV=test nyc --reporter=lcov --reporter=text-summary node ./src/test.js --ci",
     "test:gitlab": "NODE_ENV=testgitlab nyc --reporter=lcov --reporter=text-summary node ./src/test.js --ci",
+    "test:debug": "NODE_ENV=test nodemon ./src/test.js --exec 'node --inspect-brk=:9339'",
     "build": "npm run lint",
     "lint": "npm run lint:eslint",
     "lint:eslint": "eslint \"./**/*.js\""
