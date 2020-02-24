@@ -16,7 +16,7 @@ const
  * Generate a new ExportConfig document in the collection. Returns a promise.
  */
 module.exports.generateConfig = function(req) {
-	var exportConfig = new ExportConfig(req.body);
+	const exportConfig = new ExportConfig(req.body);
 	return exportConfig.save();
 };
 

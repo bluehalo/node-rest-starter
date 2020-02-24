@@ -14,13 +14,13 @@ module.exports = function() {
 			usernameField: 'username',
 			passwordField: 'password'
 		},
-		function(username, password, done) {
+		((username, password, done) => {
 
 			if(null == username) {
 				return done(null, false, {status: 400, type: 'missing-credentials', message: 'No username provided' });
 			}
 
-			User.findOne({ username: username }).exec().then(function(user) {
+			User.findOne({ username: username }).exec().then((user) => {
 
 				// The user wasn't found or the password was wrong
 				if (!user || !user.authenticate(password)) {
@@ -32,7 +32,7 @@ module.exports = function() {
 
 			}, (err) => done(err)).done();
 
-		}
+		})
 
 	));
 };

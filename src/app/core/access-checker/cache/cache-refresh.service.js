@@ -14,13 +14,13 @@ const
 module.exports.run = function(svcConfig) {
 	logger.debug('Access Checker: Checking cached users...');
 
-	let refresh = svcConfig.refresh || 8*3600000; // default to 12 hours
+	const refresh = svcConfig.refresh || 8*3600000; // default to 12 hours
 
 	// Create a defer for the response
-	let defer = q.defer();
+	const defer = q.defer();
 
 	// Find all the keys that need to be refreshed
-	CacheEntry.find({ ts: { $lt: Date.now() - refresh } }).exec(function (error, results) {
+	CacheEntry.find({ ts: { $lt: Date.now() - refresh } }).exec((error, results) => {
 		if(null != error) {
 			defer.reject(error);
 		} else {
@@ -29,8 +29,8 @@ module.exports.run = function(svcConfig) {
 			}
 
 			// Iterate through each object, refreshing as you go
-			let defers = [];
-			results.forEach(function(e) {
+			const defers = [];
+			results.forEach((e) => {
 				logger.debug('Access Checker: Refreshing %s', e.key);
 				defers.push(accessChecker.refreshEntry(e.key));
 			});

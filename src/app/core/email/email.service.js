@@ -17,7 +17,7 @@ let provider;
  * to create and/or retrieve this singleton
  */
 function getProvider() {
-	let emailConfig = config.mailer || {};
+	const emailConfig = config.mailer || {};
 
 	if(null == provider && null != emailConfig.provider) {
 		provider = require(path.posix.resolve(emailConfig.provider))(emailConfig.options);
@@ -31,14 +31,14 @@ function getProvider() {
  * returns an array of fields missing from mailOptions
  */
 function getMissingMailOptions(mailOptions) {
-	let requiredOptions = [
+	const requiredOptions = [
 		['to', 'cc', 'bcc'],
 		'from',
 		'subject',
 		['text', 'html']
 	];
 
-	let missingOptions = [];
+	const missingOptions = [];
 
 	requiredOptions.forEach((option) => {
 		if (Array.isArray(option)) {
@@ -67,7 +67,7 @@ module.exports.sendMail = async (mailOptions) => {
 	}
 
 	// Make sure all the required mailOptions are defined
-	let missingOptions = getMissingMailOptions(mailOptions);
+	const missingOptions = getMissingMailOptions(mailOptions);
 	if (missingOptions.length > 0) {
 		return Promise.reject({ message: `The following required values were not specified in mailOptions: ${missingOptions.join(', ')}`});
 	}
@@ -78,7 +78,7 @@ module.exports.sendMail = async (mailOptions) => {
 };
 
 module.exports.buildEmailContent = async (templatePath, user, overrides = {}) => {
-	let templateString = await new Promise((resolve, reject) => {
+	const templateString = await new Promise((resolve, reject) => {
 		fs.readFile(templatePath, 'utf-8', (err, source) => {
 			if (err) {
 				reject(err);
@@ -89,7 +89,7 @@ module.exports.buildEmailContent = async (templatePath, user, overrides = {}) =>
 	});
 
 	// Set email header/footer
-	let data = _.merge({}, config.coreEmails.default, {
+	const data = _.merge({}, config.coreEmails.default, {
 		app: config.app,
 		user: user
 	}, overrides);
@@ -98,7 +98,7 @@ module.exports.buildEmailContent = async (templatePath, user, overrides = {}) =>
 };
 
 module.exports.buildEmailSubject = (template, user, overrides = {}) => {
-	let data = _.merge({}, config.coreEmails.default, {
+	const data = _.merge({}, config.coreEmails.default, {
 		app: config.app,
 		user: user
 	}, overrides);

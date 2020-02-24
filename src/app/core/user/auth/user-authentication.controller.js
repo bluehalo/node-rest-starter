@@ -106,7 +106,7 @@ const signup = (user, req, res) => {
  * and user info in the request body.
  */
 exports.signup = (req, res) => {
-	let user = new User(User.createCopy(req.body));
+	const user = new User(User.createCopy(req.body));
 	user.provider = 'local';
 
 	// Need to set null passwords to empty string for mongoose validation to work
@@ -123,13 +123,13 @@ exports.signup = (req, res) => {
  * and then user info in the request body.
  */
 exports.proxyPkiSignup = (req, res) => {
-	let dn = req.headers[config.auth.header];
+	const dn = req.headers[config.auth.header];
 	if (null == dn) {
 		res.status('400').json({ message: 'Missing PKI information.' });
 		return;
 	}
 
-	let user = new User(User.createCopy(req.body));
+	const user = new User(User.createCopy(req.body));
 	user.providerData = { dn: dn, dnLower: dn.toLowerCase() };
 	user.username = dn; //TODO: extract the username
 	user.provider = 'pki';
@@ -142,7 +142,7 @@ exports.proxyPkiSignup = (req, res) => {
  * Admin Create a User (Local Strategy)
  */
 exports.adminCreateUser = (req, res) => {
-	let user = new User(User.createCopy(req.body));
+	const user = new User(User.createCopy(req.body));
 	user.bypassAccessCheck = req.body.bypassAccessCheck;
 	user.roles = req.body.roles;
 	user.provider = 'local';
@@ -160,7 +160,7 @@ exports.adminCreateUser = (req, res) => {
  * Admin Create a User (Pki Strategy)
  */
 exports.adminCreateUserPki = (req, res) => {
-	let user = new User(User.createCopy(req.body));
+	const user = new User(User.createCopy(req.body));
 	user.bypassAccessCheck = req.body.bypassAccessCheck;
 	user.roles = req.body.roles;
 
@@ -217,7 +217,7 @@ module.exports.userByExternalId = function(req, res, next) {
 	}
 
 	return User.findOne(find).exec()
-		.then(function(result) {
+		.then((result) => {
 			if(null != result) {
 				// If we got a result, we're good
 				req.userParam = result;
@@ -226,7 +226,7 @@ module.exports.userByExternalId = function(req, res, next) {
 			else {
 				return q.reject({ status: 401, message: `Unknown user ' ${identifier} `});
 			}
-		}, function(err) {
+		}, (err) => {
 			return q.reject(err);
 		});
 };

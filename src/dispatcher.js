@@ -10,11 +10,11 @@ const
 module.exports.start = () => {
 	// Only start if we're actually configured
 	if (config.dispatcher && config.dispatcher.enabled) {
-		let serviceConfigs = config.dispatcher.services || [];
+		const serviceConfigs = config.dispatcher.services || [];
 
 		// Initialize the services
-		serviceConfigs.forEach(function(serviceConfig) {
-			let service = require(path.posix.resolve(serviceConfig.file));
+		serviceConfigs.forEach((serviceConfig) => {
+			const service = require(path.posix.resolve(serviceConfig.file));
 			service.start(serviceConfig.config);
 		});
 	}

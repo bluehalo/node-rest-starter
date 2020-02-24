@@ -14,14 +14,14 @@ const
 
 
 function getConfig() {
-	let acConfig = (null != config.auth && null != config.auth.accessChecker)? config.auth.accessChecker : {};
+	const acConfig = (null != config.auth && null != config.auth.accessChecker)? config.auth.accessChecker : {};
 	if(null == acConfig.cacheExpire) acConfig.cacheExpire = 1000*60*60*24;
 	return acConfig;
 }
 
 function getProvider() {
 	let provider;
-	let acConfig = getConfig();
+	const acConfig = getConfig();
 
 	if(null != acConfig.provider) {
 		provider = require(path.posix.resolve(acConfig.provider.file))(acConfig.provider.config);
@@ -36,7 +36,7 @@ function getProvider() {
  * @param value The entry info object
  */
 function saveToCache(id, value) {
-	let defer = q.defer();
+	const defer = q.defer();
 
 	// Convert the value to a string that's searchable
 	let valueString;
@@ -48,12 +48,12 @@ function saveToCache(id, value) {
 		valueString = JSON.stringify(value);
 	}
 	else {
-		valueString = '' + value;
+		valueString = `${value}`;
 	}
 
 	// Upsert the cache entry
 	CacheEntry.findOneAndUpdate({ key: id }, { value: value, valueString: valueString, ts: Date.now() }, { new: true, upsert: true },
-		function(err, result) {
+		(err, result) => {
 			if(null != err) {
 				defer.reject(err);
 			}
@@ -71,11 +71,11 @@ function saveToCache(id, value) {
  * @param id The unique identifier for the entry
  */
 function deleteFromCache(id) {
-	let defer = q.defer();
+	const defer = q.defer();
 
 	// Upsert the cache entry
 	CacheEntry.findOneAndRemove({ key: id },
-		function(err, result) {
+		(err, result) => {
 			if(null != err) {
 				defer.reject(err);
 			}
@@ -94,9 +94,9 @@ function deleteFromCache(id) {
  * @returns The retrieved cache value
  */
 function getFromCache(id) {
-	let defer = q.defer();
+	const defer = q.defer();
 
-	CacheEntry.findOne({ key: id }).sort({ ts: -1 }).exec(function(err, result) {
+	CacheEntry.findOne({ key: id }).sort({ ts: -1 }).exec((err, result) => {
 		if (null != err) {
 			defer.reject(err);
 		} else {
@@ -113,13 +113,13 @@ function getFromCache(id) {
  * found, gets the entry from the access checker provider
  */
 module.exports.get = function (id) {
-	let defer = q.defer();
+	const defer = q.defer();
 
 	if(null == id) {
 		return q.reject('id cannot be null or undefined');
 	}
 
-	getFromCache(id).then(function(result) {
+	getFromCache(id).then((result) => {
 		// If the result is in the cache (and not expired), use it
 		if (null != result && (Date.now() - result.ts < getConfig().cacheExpire)) {
 			// The result is in the cache, so use it
@@ -129,24 +129,24 @@ module.exports.get = function (id) {
 		else {
 
 			try {
-				let provider = getProvider();
+				const provider = getProvider();
 				if(null == provider) {
 					return defer.reject('No accessChecker provider configuration found.');
 				}
 
 				// No result was found, so query access provider for it
-				q(provider.get(id)).then(function(result) {
+				q(provider.get(id)).then((result) => {
 					// Store it in the cache
-					saveToCache(id, result).then(function(cacheEntry) {
+					saveToCache(id, result).then((cacheEntry) => {
 						// Return the saved value if possible
 						defer.resolve((null != cacheEntry && null != cacheEntry.value)? cacheEntry.value : result);
-					}, function(err) {
+					}, (err) => {
 						// To avoid failures, we will return the result even if the save to cache fails
 						defer.resolve(result);
 					});
 				}, defer.reject).done();
 			} catch(ex) {
-				defer.reject('Error from access checker provider' + ex);
+				defer.reject(`Error from access checker provider${ex}`);
 			}
 		}
 	}, defer.reject);
@@ -158,24 +158,24 @@ module.exports.get = function (id) {
  * Get the entry from the access checker provider and update the cache
  */
 module.exports.refreshEntry = function(id) {
-	let defer = q.defer();
+	const defer = q.defer();
 
 	if(null == id) {
 		return q.reject('id cannot be null or undefined');
 	}
 
-	let provider = getProvider();
+	const provider = getProvider();
 	if(null == provider) {
 		defer.reject('No accessChecker provider configuration found.');
 	} else {
 		try {
 			// Hit the provider for the id
-			q(provider.get(id)).then(function(result) {
+			q(provider.get(id)).then((result) => {
 				// Store it in the cache if it was found
 				saveToCache(id, result).then(defer.resolve, defer.reject);
 			}, defer.reject).done();
 		} catch(ex) {
-			defer.reject('Error from the access checker provider: ' + ex);
+			defer.reject(`Error from the access checker provider: ${ex}`);
 		}
 	}
 

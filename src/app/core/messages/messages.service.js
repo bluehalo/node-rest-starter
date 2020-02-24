@@ -28,10 +28,7 @@ module.exports = function() {
 	// Get recent, unread messages
 	function getRecentMessages(userId) {
 
-		return Promise.all([getAllMessages(), getDismissedMessages(userId)]).then((results) => {
-			let messages = results[0];
-			const dismissedMessages = results[1];
-
+		return Promise.all([getAllMessages(), getDismissedMessages(userId)]).then(([messages, dismissedMessages]) => {
 			messages = messages.filter((message) => !dismissedMessages.some((x) => {
 				if (x.messageId.toString() === message._id.toString()) {
 					return message;
@@ -42,10 +39,10 @@ module.exports = function() {
 	}
 
 	function dismissMessage(messageIds, user, headers) {
-		let dismissedMessagePromises = [];
+		const dismissedMessagePromises = [];
 
 		for (let i = 0; i < messageIds.length; i++) {
-			let dismissedMessage = new DismissedMessage();
+			const dismissedMessage = new DismissedMessage();
 			dismissedMessage.messageId = messageIds[i];
 			dismissedMessage.userId = user._id;
 

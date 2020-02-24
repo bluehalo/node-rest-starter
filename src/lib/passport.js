@@ -9,21 +9,21 @@ const
 
 module.exports.init = function() {
 	// Serialize sessions
-	passport.serializeUser(function(user, done) {
+	passport.serializeUser((user, done) => {
 		done(null, user.id);
 	});
 
 	// Deserialize sessions
-	passport.deserializeUser(function(id, done) {
+	passport.deserializeUser((id, done) => {
 		User.findOne({
 			_id: id
-		}, '-salt -password', function(err, user) {
+		}, '-salt -password', (err, user) => {
 			done(err, user);
 		});
 	});
 
 	// Initialize strategies
-	config.utils.getGlobbedPaths('./src/lib/strategies/**/*.js').forEach(function(strategy) {
+	config.utils.getGlobbedPaths('./src/lib/strategies/**/*.js').forEach((strategy) => {
 		require(path.posix.resolve(strategy))();
 	});
 };

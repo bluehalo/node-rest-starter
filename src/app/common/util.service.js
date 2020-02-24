@@ -13,12 +13,12 @@ const _ = require('lodash'),
 	logger = deps.logger;
 
 function getValidationErrors(err) {
-	let errors = [];
+	const errors = [];
 
 	if(null != err.errors) {
-		for (let field in err.errors) {
+		for (const field in err.errors) {
 			if(err.errors[field].path) {
-				const message = (err.errors[field].type === 'required')? field + ' is required' : err.errors[field].message;
+				const message = (err.errors[field].type === 'required')? `${field} is required` : err.errors[field].message;
 				errors.push({ field: field, message: message });
 			}
 		}
@@ -39,7 +39,7 @@ module.exports.getErrorMessage = function(err) {
 		}
 
 		if(null != err.stack) {
-			msg = '[' + msg + '] ' + err.stack;
+			msg = `[${msg}] ${err.stack}`;
 		}
 	}
 
@@ -63,7 +63,7 @@ module.exports.handleErrorResponse = function(res, errorResult) {
 		errorResult = {
 			status: 400,
 			type: 'validation',
-			message: errors.map(function(e) { return e.message; }).join(', '),
+			message: errors.map((e) => { return e.message; }).join(', '),
 			errors: errors
 		};
 	}
@@ -95,7 +95,7 @@ module.exports.catchError = function(res, err, callback) {
 		logger.error(err);
 		return this.send400Error(res, err);
 	} else if (null != callback) {
-		callback();
+		return callback();
 	}
 };
 
@@ -210,11 +210,11 @@ module.exports.getHeaderField = function (header, fieldName) {
  * Parses user agent information from request header
  */
 module.exports.getUserAgentFromHeader = function(header) {
-	let userAgent = this.getHeaderField(header, 'user-agent');
+	const userAgent = this.getHeaderField(header, 'user-agent');
 
 	let data = {};
 	if (null != userAgent) {
-		let info = platform.parse(userAgent);
+		const info = platform.parse(userAgent);
 		data = {
 			browser: `${info.name} ${info.version}`,
 			os: info.os.toString()
@@ -242,17 +242,17 @@ function toMongoose(obj) {
 	if (null != obj) {
 		if (typeof obj === 'object') {
 			if (Array.isArray(obj)) {
-				let arr = [];
+				const arr = [];
 
-				for (let index in obj) {
+				for (const index in obj) {
 					arr.push(propToMongoose(obj[index], toMongoose));
 				}
 
 				return arr;
 			} else {
-				let newObj = {};
+				const newObj = {};
 
-				for (let prop in obj) {
+				for (const prop in obj) {
 					newObj[prop] = propToMongoose(obj[prop], toMongoose);
 				}
 
@@ -282,7 +282,7 @@ module.exports.contains = function(arr, element) {
 };
 
 module.exports.toProvenance = function(user) {
-	let now = new Date();
+	const now = new Date();
 	return {
 		username: user.username,
 		org: user.organization,
@@ -294,7 +294,7 @@ module.exports.toProvenance = function(user) {
 module.exports.emailMatcher = /.+@.+\..+/;
 
 module.exports.submitRequest = (httpOpts) => {
-	let defer = q.defer();
+	const defer = q.defer();
 	let responseBody = '';
 
 	const httpClient = httpOpts.protocol === 'https:' ? https : http;
@@ -316,12 +316,12 @@ module.exports.submitRequest = (httpOpts) => {
 };
 
 module.exports.submitPostRequest = (httpOpts, postBody) => {
-	let defer = q.defer();
+	const defer = q.defer();
 	let responseBody = '';
 
 	const httpClient = httpOpts.protocol === 'https:' ? https : http;
 
-	let postRequest = httpClient.request(httpOpts, (response) => {
+	const postRequest = httpClient.request(httpOpts, (response) => {
 		response.on('data', (chunk) => responseBody += chunk);
 		response.on('end', () => {
 			if (response.statusCode !== 200) {

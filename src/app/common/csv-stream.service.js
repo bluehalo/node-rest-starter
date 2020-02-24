@@ -26,22 +26,22 @@ const
 module.exports = (columns) => {
 
 	// Create a stream to turn Mongo records into CSV rows
-	let stream = through2.obj((chunk, enc, callback) => {
-		let row = [];
+	const stream = through2.obj((chunk, enc, callback) => {
+		const row = [];
 
 		// Turn Mongo models into actual objects so JSONPath can work with them
 		if (null != chunk.toObject) {
 			chunk = chunk.toObject();
 		}
 
-		columns.forEach(function (column) {
+		columns.forEach((column) => {
 			if (_.has(column, 'key')) {
 				// Get the value from the object using jsonpath
-				let value = jsonpath.eval(chunk, '$.' + column.key);
+				let value = jsonpath.eval(chunk, `$.${column.key}`);
 
 				// Get the first returned value
 				if (value.length > 0) {
-					value = value[0];
+					[value] = value;
 				}
 				else {
 					value = null;
@@ -65,7 +65,7 @@ module.exports = (columns) => {
 	});
 
 	// Parse the columns array into a format the CSV stringify module is expecting
-	let csvColumns = [];
+	const csvColumns = [];
 	columns.forEach((value) => {
 		if (_.has(value, 'title')) {
 			csvColumns.push(value.title);
@@ -73,13 +73,13 @@ module.exports = (columns) => {
 	});
 
 	// Assemble the CSV headers and stream the CSV response back to the client
-	let csv = stringify({
+	const csv = stringify({
 		header: true,
 		columns: csvColumns
 	});
 
 	// Create an output stream piping the parsing stream to the CSV stream
-	let out = pipe(stream, csv);
+	const out = pipe(stream, csv);
 
 	out.on('error', (err) => logger.err(err, 'Failed to create CSV'));
 

@@ -24,7 +24,7 @@ function clearDatabase() {
 let owner1;
 let resource1;
 
-let spec = {
+const spec = {
 	resource1: {
 		title: 'Title'
 	},

@@ -16,29 +16,29 @@ const path = require('path'),
  * }
  */
 
-var keepAlive = true;
-var interval;
-var services = [];
+const keepAlive = true;
+let interval;
+const services = [];
 
 function timeoutHandler() {
 
 	// Loop over all of the services
-	services.forEach(function(service) {
+	services.forEach((service) => {
 		try {
 			// If the service specifies an interval than use that, otherwise use the interval from the configuration
-			let serviceInterval = (service.service.interval) ? service.service.interval : service.configInterval;
+			const serviceInterval = (service.service.interval) ? service.service.interval : service.configInterval;
 			// If interval has passed since the last run, run now
 			if(!service.running && Date.now() > service.lastRun + serviceInterval) {
 				// Service is running
 				service.running = true;
-				var startTs = Date.now();
+				const startTs = Date.now();
 
 				// Run and update the last run time
-				service.service.run(service.config).then(function() {
+				service.service.run(service.config).then(() => {
 					service.lastRun = Date.now();
 					service.running = false;
 					logger.debug('Scheduler: Ran %s in %s ms', service.file, (Date.now() - startTs));
-				}, function(err) {
+				}, (err) => {
 					// failure... eventually, we may want to react differently
 					service.lastRun = Date.now();
 					service.running = false;
@@ -61,11 +61,11 @@ function timeoutHandler() {
 module.exports.start = function() {
 	// Only start if we're actually configured
 	if(null != config.scheduler) {
-		var serviceConfigs = config.scheduler.services || [];
+		const serviceConfigs = config.scheduler.services || [];
 
 		// Initialize the services
-		serviceConfigs.forEach(function(serviceConfig) {
-			var service = {};
+		serviceConfigs.forEach((serviceConfig) => {
+			const service = {};
 
 			// Get the implementation of the service
 			service.file = serviceConfig.file;

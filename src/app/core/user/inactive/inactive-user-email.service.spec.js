@@ -34,7 +34,7 @@ describe('User Email Service:', () => {
 	describe('sendEmail', () => {
 		let mailOptions = null;
 
-		let inactiveUserEmailService = createSubjectUnderTest({
+		const inactiveUserEmailService = createSubjectUnderTest({
 			// config: config,
 			emailService: {
 				sendMail: (mo) => {

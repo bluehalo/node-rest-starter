@@ -25,10 +25,10 @@ function cacheSpec(key) {
 	return {
 		key: key.toLowerCase(),
 		value: {
-			name: key + ' Name',
-			organization: key + ' Organization',
-			email: key + '@mail.com',
-			username: key + '_username',
+			name: `${key} Name`,
+			organization: `${key} Organization`,
+			email: `${key}@mail.com`,
+			username: `${key}_username`,
 			roles: ['role1', 'role2'],
 			groups: ['group1', 'group2']
 		}
@@ -37,10 +37,10 @@ function cacheSpec(key) {
 
 function providerSpec(key) {
 	return {
-		name: key + ' Name',
-		organization: key + ' Organization',
-		email: key + '@mail.com',
-		username: key + '_username',
+		name: `${key} Name`,
+		organization: `${key} Organization`,
+		email: `${key}@mail.com`,
+		username: `${key}_username`,
 		roles: ['role1', 'role2'],
 		groups: ['group1', 'group2']
 	};
@@ -65,11 +65,11 @@ function validateCacheEntry(actual, expected) {
 /**
  * Unit tests
  */
-describe('Access Checker Service:', function() {
+describe('Access Checker Service:', () => {
 
 	// Specs for tests
-	let spec = { cache: {} };
-	let provider = {};
+	const spec = { cache: {} };
+	const provider = {};
 
 	// Cache and provider agree, entry is current
 	spec.cache.good = cacheSpec('good');
@@ -91,22 +91,22 @@ describe('Access Checker Service:', function() {
 	// Entry is only in the provider
 	provider.provideronly = providerSpec('provideronly');
 
-	let cache = {};
+	const cache = {};
 
-	before(function() {
-		return clearDatabase().then(function() {
+	before(() => {
+		return clearDatabase().then(() => {
 			let defers = [];
 
 			// Create the cache entries
-			defers = defers.concat(_.keys(spec.cache).map(function(k) {
-				return (new CacheEntry(spec.cache[k])).save().then(function(e) { cache[k] = e; });
+			defers = defers.concat(_.keys(spec.cache).map((k) => {
+				return (new CacheEntry(spec.cache[k])).save().then((e) => { cache[k] = e; });
 			}));
 
 			return Promise.all(defers);
 		});
 	});
 
-	after(function() {
+	after(() => {
 		return clearDatabase();
 	});
 
@@ -114,9 +114,9 @@ describe('Access Checker Service:', function() {
 	/**
 	 * Test functionality with the access checker provider fails
 	 */
-	describe('Broken Access Checker', function() {
+	describe('Broken Access Checker', () => {
 
-		before(function() {
+		before(() => {
 			// All of the data is loaded, so initialize proxy-pki
 			config.auth.accessChecker = {
 				provider: {
@@ -127,31 +127,31 @@ describe('Access Checker Service:', function() {
 		});
 
 		// Provider fails on get
-		it('should not update the cache when the access checker provider fails', function() {
-			return accessChecker.get('provideronly').then(function(result) {
+		it('should not update the cache when the access checker provider fails', () => {
+			return accessChecker.get('provideronly').then((result) => {
 				should.fail('Fail provider should throw an error');
-			}, function(err) {
+			}, (err) => {
 				// Should have errored
 				should.exist(err);
 
 				return CacheEntry.findOne({ key: 'provideronly' }).exec()
-					.then(function(result) {
+					.then((result) => {
 						should.not.exist(result);
 					});
 			});
 		});
 
 		// Provider fails on refresh attempt
-		it('should not update the cache on refresh when the access checker provider fails', function() {
-			return accessChecker.refreshEntry(spec.cache.outdated.key).then(function(result) {
+		it('should not update the cache on refresh when the access checker provider fails', () => {
+			return accessChecker.refreshEntry(spec.cache.outdated.key).then((result) => {
 				should.fail('Fail provider should throw an error');
-			}, function(err) {
+			}, (err) => {
 				// Should have errored
 				should.exist(err);
 
 				// Query for the cache object and verify it hasn't been updated
 				return CacheEntry.findOne({ _id: cache.outdated._id }).exec()
-					.then(function(result) {
+					.then((result) => {
 						validateCacheEntry(result.value, spec.cache.outdated.value);
 					});
 
@@ -164,9 +164,9 @@ describe('Access Checker Service:', function() {
 	/**
 	 * Test basic functionality of a working provider
 	 */
-	describe('Working Access Checker', function() {
+	describe('Working Access Checker', () => {
 
-		before(function() {
+		before(() => {
 			// All of the data is loaded, so initialize proxy-pki
 			config.auth.accessChecker = {
 				provider: {
@@ -177,57 +177,57 @@ describe('Access Checker Service:', function() {
 		});
 
 		// Pull from cache
-		it('should do nothing when the key is null', function() {
+		it('should do nothing when the key is null', () => {
 			// should return the info from the cache
-			return accessChecker.get(null).then(function(info) {
+			return accessChecker.get(null).then((info) => {
 				should.fail('Should error when key is null');
-			}, function(err) {
+			}, (err) => {
 				should.exist(err);
 			});
 		});
 
 		// Pull from cache
-		it('should pull from cache when the entry is current and present', function() {
+		it('should pull from cache when the entry is current and present', () => {
 			// should return the info from the cache
-			return accessChecker.get(spec.cache.good.key).then(function(info) {
+			return accessChecker.get(spec.cache.good.key).then((info) => {
 				validateCacheEntry(info, spec.cache.good.value);
 			});
 		});
 
 		// Pull from provider
-		it('should pull from provider and update cache when entry is expired', function() {
+		it('should pull from provider and update cache when entry is expired', () => {
 			// should return the info from the provider
-			return accessChecker.get(spec.cache.expired.key).then(function(info) {
+			return accessChecker.get(spec.cache.expired.key).then((info) => {
 				validateCacheEntry(info, provider.expired);
 
 				return CacheEntry.findOne({ key: cache.expired.key }).exec()
-					.then(function(result) {
+					.then((result) => {
 						validateCacheEntry(result.value, provider.expired);
 					});
 			});
 		});
 
 		// Cache only
-		it('should return the cache entry if the entry is missing from the provider', function() {
+		it('should return the cache entry if the entry is missing from the provider', () => {
 			// should return the info from the cache
-			return accessChecker.get(spec.cache.cacheonly.key).then(function(info) {
+			return accessChecker.get(spec.cache.cacheonly.key).then((info) => {
 				validateCacheEntry(info, spec.cache.cacheonly.value);
 
 				return CacheEntry.findOne({ key: cache.cacheonly.key }).exec()
-					.then(function(result) {
+					.then((result) => {
 						validateCacheEntry(result.value, spec.cache.cacheonly.value);
 					});
 			});
 		});
 
 		// Provider only
-		it('should update the cache when pulling from the provider', function() {
+		it('should update the cache when pulling from the provider', () => {
 			// should return the info from the cache
-			return accessChecker.get('provideronly').then(function(info) {
+			return accessChecker.get('provideronly').then((info) => {
 				validateCacheEntry(info, provider.provideronly);
 
 				return CacheEntry.findOne({ key: 'provideronly' }).exec()
-					.then(function(result) {
+					.then((result) => {
 						validateCacheEntry(result.value, provider.provideronly);
 					});
 			});

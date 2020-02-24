@@ -21,7 +21,9 @@
     "test:debug": "NODE_ENV=test nodemon ./src/test.js --exec 'node --inspect-brk=:9339'",
     "build": "npm run lint",
     "lint": "npm run lint:eslint",
-    "lint:eslint": "eslint \"./**/*.js\""
+    "lint:fix": "npm run lint:eslint:fix",
+    "lint:eslint": "eslint \"./**/*.js\"",
+    "lint:eslint:fix": "eslint \"./**/*.js\" --fix"
   },
   "nyc": {
     "include": "src",
@@ -69,7 +71,12 @@
     "uuid": "3.3"
   },
   "devDependencies": {
+    "@types/express": "4.16",
+    "@types/passport": "0.4",
+    "@types/q": "1.5",
     "eslint": "6.0.1",
+    "husky": "^4.2.1",
+    "lint-staged": "^10.0.7",
     "kafka-node": "3.0",
     "nyc": "14.1.1",
     "mocha": "5",
@@ -80,5 +87,13 @@
     "supertest": "3.3",
     "should": "13",
     "sinon": "7"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": "eslint --fix"
   }
 }

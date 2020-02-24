@@ -10,7 +10,7 @@ const
  * Helpers
  */
 
-let testDefaultRoles = {
+const testDefaultRoles = {
 	'test-role-1': true,
 	'test-role-2': true,
 	'test-role-3': false
@@ -18,17 +18,17 @@ let testDefaultRoles = {
 
 function userSpec(key) {
 	return {
-		name: key + ' Name',
-		email: key + '@mail.com',
-		username: key + '_username',
+		name: `${key} Name`,
+		email: `${key}@mail.com`,
+		username: `${key}_username`,
 		password: 'password',
 		provider: 'local',
-		organization: key + ' Organization'
+		organization: `${key} Organization`
 	};
 }
 
 function validateDefaultRoles(updatedUser) {
-	let keys = _.keys(testDefaultRoles);
+	const keys = _.keys(testDefaultRoles);
 
 	should.exist(updatedUser.roles);
 
@@ -52,7 +52,7 @@ function createSubjectUnderTest(dependencies) {
 describe('User Authentication Service:', () => {
 
 	describe('initializeNewUser', () => {
-		let userAuthenticationService = createSubjectUnderTest({
+		const userAuthenticationService = createSubjectUnderTest({
 			config: {
 				auth: {
 					defaultRoles: testDefaultRoles
@@ -61,7 +61,7 @@ describe('User Authentication Service:', () => {
 		});
 
 		it('should set default roles when none are initially set', (done) => {
-			let user = userSpec('Basic');
+			const user = userSpec('Basic');
 			userAuthenticationService.initializeNewUser(user)
 				.then(validateDefaultRoles)
 				.then(() => { done(); })
@@ -69,7 +69,7 @@ describe('User Authentication Service:', () => {
 		});
 
 		it('should set default roles when set to an empty object', (done) => {
-			let user = userSpec('Basic');
+			const user = userSpec('Basic');
 			user.roles = {};
 			userAuthenticationService.initializeNewUser(user)
 				.then(validateDefaultRoles)
@@ -78,7 +78,7 @@ describe('User Authentication Service:', () => {
 		});
 
 		it('should set default roles in addition to existing', (done) => {
-			let user = userSpec('Basic');
+			const user = userSpec('Basic');
 			user.roles = { admin: false, editor: true };
 			userAuthenticationService.initializeNewUser(user)
 				.then(validateDefaultRoles)
@@ -91,7 +91,7 @@ describe('User Authentication Service:', () => {
 		});
 
 		it('should not override existing roles', (done) => {
-			let user = userSpec('Basic');
+			const user = userSpec('Basic');
 
 			user.roles = _.clone(testDefaultRoles);
 			// reverse the boolean value of each default role

@@ -39,14 +39,14 @@ function userSpec(key) {
 }
 
 function localUserSpec(key) {
-	let spec = userSpec(key);
+	const spec = userSpec(key);
 	spec.provider = 'local';
 	spec.password = 'password';
 	return spec;
 }
 
 function proxyPkiUserSpec(key) {
-	let spec = userSpec(key);
+	const spec = userSpec(key);
 	spec.provider = 'proxy-pki';
 	spec.providerData = {
 		dn: key,
@@ -82,7 +82,7 @@ describe('User Auth Controller:', () => {
 
 
 	describe('\'local\' Strategy', () => {
-		let spec = { user: localUserSpec('user1') };
+		const spec = { user: localUserSpec('user1') };
 		let user;
 
 		before(() => {
@@ -105,12 +105,12 @@ describe('User Auth Controller:', () => {
 
 		describe('login', () => {
 			it('should succeed with correct credentials', (done) => {
-				let req = {};
+				const req = {};
 				req.body = { username: spec.user.username, password: spec.user.password };
 				req.headers = {};
 				req.login = (u, cb) => { return cb && cb(); };
 
-				let res = {};
+				const res = {};
 				res.status = (status) => {
 					should(status).equal(200);
 
@@ -133,12 +133,12 @@ describe('User Auth Controller:', () => {
 			});
 
 			it('should fail with incorrect password', (done) => {
-				let req = {};
+				const req = {};
 				req.body = { username: user.username, password: 'wrong' };
 				req.headers = {};
 				req.login = (u, cb) => { return cb && cb(); };
 
-				let res = {};
+				const res = {};
 				res.status = (status) => {
 					should(status).equal(401);
 
@@ -156,12 +156,12 @@ describe('User Auth Controller:', () => {
 			});
 
 			it('should fail with missing password', (done) => {
-				let req = {};
+				const req = {};
 				req.body = { username: user.username, password: undefined };
 				req.headers = {};
 				req.login = (user, cb) => { return cb && cb(); };
 
-				let res = {
+				const res = {
 					status: (status) => {
 						should(status).equal(400);
 
@@ -180,12 +180,12 @@ describe('User Auth Controller:', () => {
 			});
 
 			it('should fail with missing username', (done) => {
-				let req = {};
+				const req = {};
 				req.body = { username: undefined, password: 'asdfasdf' };
 				req.headers = {};
 				req.login = (user, cb) => { return cb && cb(); };
 
-				let res = {
+				const res = {
 					status: (status) => {
 						should(status).equal(400);
 
@@ -204,12 +204,12 @@ describe('User Auth Controller:', () => {
 			});
 
 			it('should fail with unknown user', (done) => {
-				let req = {};
+				const req = {};
 				req.body = { username: 'totally doesnt exist', password: 'asdfasdf' };
 				req.headers = {};
 				req.login = (user, cb) => { return cb && cb(); };
 
-				let res = {
+				const res = {
 					status: (status) => {
 						should(status).equal(401);
 
@@ -236,7 +236,7 @@ describe('User Auth Controller:', () => {
 	describe('Proxy PKI Strategy', () => {
 
 		// Specs for tests
-		let spec = { cache: {}, user: {} };
+		const spec = { cache: {}, user: {} };
 
 		// Synced User/Cache Entry
 		spec.cache.synced = cacheSpec('synced');
@@ -295,8 +295,8 @@ describe('User Auth Controller:', () => {
 		spec.user.userCanProxy.name = 'Trusted Server';
 		spec.user.userCanProxy.organization = 'Trusted Organization';
 
-		let cache = {};
-		let user = {};
+		const cache = {};
+		const user = {};
 
 		before(() => {
 			return clearDatabase().then(() => {
@@ -315,7 +315,7 @@ describe('User Auth Controller:', () => {
 				}));
 
 				return q.all(defers).then(() => {
-					let accessCheckerConfig = {
+					const accessCheckerConfig = {
 						userbypassed: {
 							name: 'Invalid Name',
 							organization: 'Invalid Org',
@@ -348,12 +348,12 @@ describe('User Auth Controller:', () => {
 		 */
 		describe('basic login', () => {
 
-			let req = {};
+			const req = {};
 			req.login = (user, cb) => { return cb && cb(); };
 
 			it('should work when user is synced with access checker', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.synced.providerData.dn };
-				let res = {
+				const res = {
 					status: (status) => {
 						should(status).equal(200);
 						return {
@@ -381,7 +381,7 @@ describe('User Auth Controller:', () => {
 			// No DN header
 			it('should fail when there is no dn', (done) => {
 				req.headers = {};
-				let res = {
+				const res = {
 					status: (status) => {
 						return {
 							json: (info) => {
@@ -401,7 +401,7 @@ describe('User Auth Controller:', () => {
 			it('should fail when the dn is unknown and auto create is disabled', (done) => {
 				config.auth.autoCreateAccounts = false;
 				req.headers = { 'x-ssl-client-s-dn': 'unknown' };
-				let res = {
+				const res = {
 					status: (status) => {
 						return {
 							json: (info) => {
@@ -427,12 +427,12 @@ describe('User Auth Controller:', () => {
 		 */
 		describe('syncing with access checker', () => {
 
-			let req = {};
+			const req = {};
 			req.login = (user, cb) => { return cb && cb(); };
 
 			it('should update the user info from access checker on login', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.oldMd.providerData.dn };
-				let res = {
+				const res = {
 					status: (status) => {
 						should(status).equal(200);
 						return {
@@ -454,7 +454,7 @@ describe('User Auth Controller:', () => {
 
 			it('should sync roles and groups from access checker on login', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.differentRolesAndGroups.providerData.dn };
-				let res = {
+				const res = {
 					status: (status) => {
 						should(status).equal(200);
 						return {
@@ -480,12 +480,12 @@ describe('User Auth Controller:', () => {
 		});
 
 		describe('missing or expired cache entries with no bypass', () => {
-			let req = {};
+			const req = {};
 			req.login = (user, cb) => { return cb && cb(); };
 
 			it('should have external roles and groups removed on login when missing from cache', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.missingUser.providerData.dn };
-				let res = {
+				const res = {
 					status: (status) => {
 						should(status).equal(200);
 						return {
@@ -514,7 +514,7 @@ describe('User Auth Controller:', () => {
 
 			it('should have external roles and groups removed on login when cache expired', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.expiredUser.providerData.dn };
-				let res = {
+				const res = {
 					status: (status) => {
 						should(status).equal(200);
 						return {
@@ -543,12 +543,12 @@ describe('User Auth Controller:', () => {
 		});
 
 		describe('missing cache entries with bypass access checker enabled', () => {
-			let req = {};
+			const req = {};
 			req.login = (user, cb) => { return cb && cb(); };
 
 			it('should preserve user info, roles and groups on login', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.missingUserBypassed.providerData.dn };
-				let res = {
+				const res = {
 					status: (status) => {
 						should(status).equal(200);
 						return {
@@ -579,12 +579,12 @@ describe('User Auth Controller:', () => {
 		});
 
 		describe('in cache, access checker enabled, but with fields modified locally', () => {
-			let req = {};
+			const req = {};
 			req.login = (user, cb) => { return cb && cb(); };
 
 			it('should preserve user info, roles and groups on login', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.userBypassed.providerData.dn };
-				let res = {
+				const res = {
 					status: (status) => {
 						should(status).equal(200);
 						return {
@@ -613,12 +613,12 @@ describe('User Auth Controller:', () => {
 		});
 
 		describe('auto create accounts', () => {
-			let req = {};
+			const req = {};
 			req.login = (user, cb) => { return cb && cb(); };
 
 			it('should create a new account from access checker information', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.cache.cacheOnly.key };
-				let res = {
+				const res = {
 					status: (status) => {
 						should(status).equal(200);
 						return {
@@ -648,7 +648,7 @@ describe('User Auth Controller:', () => {
 		});
 
 		describe('proxy for other users', () => {
-			let req = {};
+			const req = {};
 			req.login = (user, cb) => { return cb && cb(); };
 
 			it('should failed when not authorized to proxy users', (done) => {
@@ -656,7 +656,7 @@ describe('User Auth Controller:', () => {
 					'x-ssl-client-s-dn': spec.user.synced.providerData.dn,
 					'x-proxied-user-dn': spec.user.userBypassed.providerData.dn
 				};
-				let res = {
+				const res = {
 					status: (status) => {
 						should(status).equal(403);
 						return {
@@ -682,7 +682,7 @@ describe('User Auth Controller:', () => {
 					'x-ssl-client-s-dn': spec.user.userCanProxy.providerData.dn,
 					'x-proxied-user-dn': spec.user.userBypassed.providerData.dn
 				};
-				let res = {
+				const res = {
 					status: (status) => {
 						should(status).equal(200);
 						return {

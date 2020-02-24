@@ -6,7 +6,7 @@ const express = require('express'),
 	user = require('../user/user.controller');
 
 
-let router = express.Router();
+const router = express.Router();
 
 /**
  * @swagger

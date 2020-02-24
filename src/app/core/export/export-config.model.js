@@ -8,7 +8,7 @@ const _ = require('lodash'),
 
 	GetterSchema = deps.schemaService.GetterSchema;
 
-let ExportConfigSchema = new GetterSchema({
+const ExportConfigSchema = new GetterSchema({
 	type: {
 		type: String,
 		trim: true,
@@ -31,7 +31,7 @@ let ExportConfigSchema = new GetterSchema({
 });
 
 ExportConfigSchema.statics.auditCopy = (exportConfig) => {
-	let toReturn = {};
+	const toReturn = {};
 	exportConfig = exportConfig || {};
 
 	toReturn._id = exportConfig._id;

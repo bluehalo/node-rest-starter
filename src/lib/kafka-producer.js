@@ -10,7 +10,7 @@ const
 	logger = require('./bunyan').logger;
 
 let _producerPromise = null;
-let _events = new events.EventEmitter();
+const _events = new events.EventEmitter();
 
 let _timeout = null;
 let _retryPayloads = [];
@@ -22,16 +22,13 @@ let _connectTimeout = null;
  * @type {number} The number of milliseconds to wait before attempting to send any queued payloads.
  *   This can be changed in the config.
  */
-let retryMs = (null != config.kafka && null != config.kafka.kafkaRetryMs) ? config.kafka.kafkaRetryMs : 3000;
+const retryMs = (null != config.kafka && null != config.kafka.kafkaRetryMs) ? config.kafka.kafkaRetryMs : 3000;
 
 /**
  * @type {number} The number of milliseconds to wait before deciding that Zookeeper is unreachable.
  *   This can be changed in the config.
  */
-let zookeeperCommTimeout = (null != config.kafka && null != config.kafka.zookeeperCommTimeout) ? config.kafka.zookeeperCommTimeout : 1000;
-
-// Make JSLint happy
-let getProducer, send, retrySend, scheduleRetry;
+const zookeeperCommTimeout = (null != config.kafka && null != config.kafka.zookeeperCommTimeout) ? config.kafka.zookeeperCommTimeout : 1000;
 
 // Listen to our own error event so we don't crash the app.
 _events.on('error', () => {});
@@ -41,7 +38,7 @@ _events.on('error', () => {});
  *
  * @returns {Promise{HighLevelProducer}} A promise for the producer singleton.
  */
-getProducer = () => {
+const getProducer = () => {
 	if (null != _producerPromise) {
 		return _producerPromise.promise;
 	}
@@ -50,7 +47,7 @@ getProducer = () => {
 	_producerPromise = q.defer();
 
 	// Get the promise to return at this point, just in case onError is called before we have a chance to return it
-	let promise = _producerPromise.promise;
+	const promise = _producerPromise.promise;
 
 	function onError(err) {
 		logger.error(err, 'Kafka Producer: Failed to send payload');
@@ -109,15 +106,15 @@ getProducer = () => {
 	return promise;
 };
 
-send = (payloads, retry) => {
-	let defer = q.defer();
+const send = (payloads, retry) => {
+	const defer = q.defer();
 
 	// It's important that the payloads are sent in the correct order, so try to resend any queued up
 	// payloads before sending the new payload.
 	retrySend().then(getProducer).then((producer) => {
 
 		// Send the payload to Kafka.
-		let d = q.defer();
+		const d = q.defer();
 		producer.send(payloads, d.makeNodeResolver());
 		return d.promise;
 
@@ -140,7 +137,7 @@ send = (payloads, retry) => {
 	return defer.promise;
 };
 
-retrySend = () => {
+const retrySend = () => {
 	// If there is a timeout set to call this function, cancel it.
 	if (null != _timeout) {
 		clearTimeout(_timeout);
@@ -163,7 +160,7 @@ retrySend = () => {
 	getProducer().then((producer) => {
 
 		// Send the payload to Kafka
-		let d = q.defer();
+		const d = q.defer();
 		producer.send(_retryPayloads, d.makeNodeResolver());
 		return d.promise;
 
@@ -194,7 +191,7 @@ retrySend = () => {
 	return _retryPromise.promise;
 };
 
-scheduleRetry = () => {
+const scheduleRetry = () => {
 	if (null == _timeout) {
 		logger.info(`Kafka Producer: Attempting to resend payloads in ${retryMs} ms`);
 		_timeout = setTimeout(() => {

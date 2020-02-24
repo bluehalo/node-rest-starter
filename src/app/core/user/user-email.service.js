@@ -10,7 +10,7 @@ const
 // Send email alert to system admins about new account request
 module.exports.emailApprovedUser = async (user, req) => {
 	try {
-		let mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.approvedUserEmail, {}, {}, {
+		const mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.approvedUserEmail, {}, {}, {
 			to: user.email
 		});
 		await emailService.sendMail(mailOptions);
@@ -26,7 +26,7 @@ module.exports.emailApprovedUser = async (user, req) => {
 // Send email alert to system admins about new account request
 module.exports.signupEmail = async (user, req) => {
 	try {
-		let mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.userSignupAlert);
+		const mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.userSignupAlert);
 		await emailService.sendMail(mailOptions);
 		logger.debug(`Sent new user (${user.username}) alert email`);
 	} catch (error) {
@@ -40,7 +40,7 @@ module.exports.signupEmail = async (user, req) => {
 // Send welcome email to new user
 module.exports.welcomeEmail = async (user, req) => {
 	try {
-		let mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.welcomeEmail, {}, {}, {
+		const mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.welcomeEmail, {}, {}, {
 			to: user.email
 		});
 		await emailService.sendMail(mailOptions);

@@ -42,8 +42,7 @@ module.exports.has = (requirement) => {
 /**
  * Apply the array of auth functions in order, using AND logic
  */
-module.exports.hasAll = function() {
-	let requirements = arguments;
+module.exports.hasAll = function(...requirements) {
 	return (req, res, next) => {
 		q(module.exports.requiresAll(requirements)(req)).then((result) => {
 			next();
@@ -57,7 +56,7 @@ module.exports.requiresAll = (requirements) => {
 	return (req) => {
 
 		// Apply the requirements
-		let applyRequirement = (i) => {
+		const applyRequirement = (i) => {
 			if (i < requirements.length) {
 				return requirements[i](req).then((result) => {
 					// Success means try the next one
@@ -76,8 +75,7 @@ module.exports.requiresAll = (requirements) => {
 /**
  * Apply the array of auth functions in order, using OR logic
  */
-module.exports.hasAny = function() {
-	let requirements = arguments;
+module.exports.hasAny = function(...requirements) {
 	return (req, res, next) => {
 		q(module.exports.requiresAny(requirements)(req)).then((result) => {
 			next();
@@ -92,7 +90,7 @@ module.exports.requiresAny = (requirements) => {
 
 		// Apply the requirements
 		let error;
-		let applyRequirement = (i) => {
+		const applyRequirement = (i) => {
 			if (i < requirements.length) {
 				return requirements[i](req).then((result) => {
 					// Success means we're done

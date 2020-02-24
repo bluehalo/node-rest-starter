@@ -50,7 +50,7 @@ BaseSocket.prototype.addListeners = function() {
 
 BaseSocket.prototype.getUserId = function() {
 	if (null == this._userId) {
-		let s = this.getSocket();
+		const s = this.getSocket();
 		if (null != s && null != s.request && null != s.request.user) {
 			// Store this for the next request, since it won't change for this socket.
 			this._userId = s.request.user.id;
@@ -66,9 +66,9 @@ BaseSocket.prototype.getUserId = function() {
  *   actually socket request.
  */
 BaseSocket.prototype.getRequest = function() {
-	let self = this;
+	const self = this;
 
-	let data = {};
+	const data = {};
 	data.user = self.getSocket().request.user;
 
 	data.isAuthenticated = function() {
@@ -127,25 +127,25 @@ BaseSocket.prototype.getResponse = function(next) {
  *   listen for this or pass in a callback.
  */
 BaseSocket.prototype.applyMiddleware = function(callbacks, done) {
-	let self = this;
-	let defer = q.defer();
+	const self = this;
+	const defer = q.defer();
 
 	// Use the same request for all callbacks
-	let req = self.getRequest();
+	const req = self.getRequest();
 
-	let tasks = callbacks.map(function(callback) {
+	const tasks = callbacks.map((callback) => {
 		return function(next) {
 			// Create a new response for each next() callback
-			let res = self.getResponse(next);
+			const res = self.getResponse(next);
 
 			// Invoke the callback
 			callback(req, res, next);
 		};
 	});
-	async.series(tasks, function(err, results) {
+	async.series(tasks, (err, results) => {
 
 		// Get the result from the last task
-		let result = results[tasks.length - 1];
+		const result = results[tasks.length - 1];
 
 		// Invoke the callback if there is one
 		if (null != done) {

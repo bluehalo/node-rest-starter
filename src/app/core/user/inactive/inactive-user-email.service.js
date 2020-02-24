@@ -15,9 +15,9 @@ const
 const day = 86400000;
 
 async function sendEmail(user, emailConfig) {
-	let numOfDays = Math.floor((Date.now() - user.lastLogin)/day);
+	const numOfDays = Math.floor((Date.now() - user.lastLogin)/day);
 	try {
-		let mailOptions = await emailService.generateMailOptions(user, null, emailConfig, {
+		const mailOptions = await emailService.generateMailOptions(user, null, emailConfig, {
 			daysAgo: numOfDays
 		}, {}, {
 			to: user.email
@@ -31,7 +31,7 @@ async function sendEmail(user, emailConfig) {
 }
 
 async function deactivationAlert(dQuery) {
-	let deactivatedUsers = await User.find(dQuery).exec();
+	const deactivatedUsers = await User.find(dQuery).exec();
 	if (_.isArray(deactivatedUsers)) {
 
 		const promises = deactivatedUsers.map((user) => {
@@ -41,8 +41,8 @@ async function deactivationAlert(dQuery) {
 			user.roles.user = false;
 
 			return user.save().then(() => {
-				let emailPromise = sendEmail(user, config.coreEmails.userDeactivate);
-				let auditPromise = auditService.audit('deactivation due to inactivity','user','deactivation', null, {before: originalUser, after: User.auditCopy(user)}, null);
+				const emailPromise = sendEmail(user, config.coreEmails.userDeactivate);
+				const auditPromise = auditService.audit('deactivation due to inactivity','user','deactivation', null, {before: originalUser, after: User.auditCopy(user)}, null);
 				return Promise.all([emailPromise, auditPromise]);
 			});
 		});
@@ -53,7 +53,7 @@ async function deactivationAlert(dQuery) {
 
 
 async function inactivityAlert(dQuery) {
-	let inactiveUsers = await User.find(dQuery).exec();
+	const inactiveUsers = await User.find(dQuery).exec();
 	if (_.isArray(inactiveUsers)) {
 		const promises = inactiveUsers.map((user) => {
 			return sendEmail(user, config.coreEmails.userInactivity);
@@ -67,7 +67,7 @@ async function inactivityAlert(dQuery) {
  */
 module.exports.run = function(serviceConfig) {
 
-	let alertQueries = serviceConfig.alertInterval.map((interval) => ({
+	const alertQueries = serviceConfig.alertInterval.map((interval) => ({
 		lastLogin: {
 			$lte:  new Date(Date.now() - interval).toISOString(),
 			$gt: new Date(Date.now() - interval - day).toISOString()
@@ -75,15 +75,15 @@ module.exports.run = function(serviceConfig) {
 		'roles.user': true
 	}));
 
-	let deactivateQuery = {
+	const deactivateQuery = {
 		lastLogin: {
 			$lte: new Date(Date.now() - serviceConfig.deactivateAfter).toISOString()
 		},
 		'roles.user': true
 	};
 
-	let deactivatePromise = deactivationAlert(deactivateQuery);
-	let inactivityPromise = inactivityAlert(alertQueries);
+	const deactivatePromise = deactivationAlert(deactivateQuery);
+	const inactivityPromise = inactivityAlert(alertQueries);
 
 	return Promise.all([deactivatePromise, inactivityPromise]).then((data) => {
 		logger.debug('Both promises have resolved', data);

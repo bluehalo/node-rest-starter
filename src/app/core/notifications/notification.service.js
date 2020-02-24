@@ -10,7 +10,7 @@ const
 	Notification = dbs.admin.model('Notification');
 
 function doSearch(query, sortParams, page, limit) {
-	let countPromise = Notification.find(query).count();
+	const countPromise = Notification.find(query).count();
 	let searchPromise = Notification.find(query);
 
 	if (sortParams) {
@@ -50,10 +50,10 @@ module.exports.search = function(query, queryParams, user) {
 	// Always need to filter by user making the service call
 	query.user = user._id;
 
-	let page = util.getPage(queryParams);
-	let limit = util.getLimit(queryParams, 1000);
+	const page = util.getPage(queryParams);
+	const limit = util.getLimit(queryParams, 1000);
 
-	let sort = queryParams.sort;
+	const sort = queryParams.sort;
 	let dir = queryParams.dir;
 
 	// Sort can be null, but if it's non-null, dir defaults to DESC

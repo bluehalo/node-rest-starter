@@ -15,7 +15,7 @@ const sendFeedback = async (user, feedback, req) => {
 	}
 
 	try {
-		let mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.feedbackEmail, {
+		const mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.feedbackEmail, {
 			url: feedback.url,
 			feedback: feedback.body,
 			feedbackType: feedback.type
@@ -29,7 +29,7 @@ const sendFeedback = async (user, feedback, req) => {
 };
 
 const create = async (reqUser, newFeedback, userSpec) => {
-	let feedback = new Feedback({
+	const feedback = new Feedback({
 		body: newFeedback.body,
 		type: newFeedback.type,
 		url: newFeedback.url,
@@ -62,7 +62,7 @@ const search = async (reqUser, queryParams, query) => {
 		select: ['name', 'email']
 	});
 
-	let searchResults = {
+	const searchResults = {
 		totalSize: feedback.count,
 		pageNumber: page,
 		pageSize: limit,

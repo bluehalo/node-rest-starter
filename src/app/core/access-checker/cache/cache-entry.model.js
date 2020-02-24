@@ -11,7 +11,7 @@ const
 /**
  * Schema Declaration
  */
-let CacheEntrySchema = new GetterSchema({
+const CacheEntrySchema = new GetterSchema({
 	// The external id of this entry
 	key: {
 		type: String,

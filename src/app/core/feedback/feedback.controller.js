@@ -19,8 +19,8 @@ const
 
 module.exports.submitFeedback = async function(req, res) {
 	try {
-		let audit = await auditService.audit('Feedback submitted', 'feedback', 'create', TeamMember.auditCopy(req.user, utilService.getHeaderField(req.headers, 'x-real-ip')), req.body, req.headers);
-		let feedback = await feedbackService.create(req.user, req.body, audit.audit.userSpec);
+		const audit = await auditService.audit('Feedback submitted', 'feedback', 'create', TeamMember.auditCopy(req.user, utilService.getHeaderField(req.headers, 'x-real-ip')), req.body, req.headers);
+		const feedback = await feedbackService.create(req.user, req.body, audit.audit.userSpec);
 		await feedbackService.sendFeedback(req.user, feedback, req);
 		res.status(200).json(feedback);
 	} catch (err) {
@@ -47,7 +47,7 @@ module.exports.adminGetFeedbackCSV = async function(req, res) {
 
 	try {
 
-		let result = await exportConfigService.getConfigById(exportId);
+		const result = await exportConfigService.getConfigById(exportId);
 
 		if (null == result) {
 			return Promise.reject({
@@ -57,14 +57,14 @@ module.exports.adminGetFeedbackCSV = async function(req, res) {
 			});
 		}
 
-		let exportFileName = `${config.app.instanceName}-${result.type}.csv`;
+		const exportFileName = `${config.app.instanceName}-${result.type}.csv`;
 
 		await auditService.audit(`${result.type} CSV config retrieved`, 'export', 'export', TeamMember.auditCopy(req.user, utilService.getHeaderField(req.headers, 'x-real-ip')), ExportConfig.auditCopy(result), req.headers);
 
 		const query = (result.config.q) ? JSON.parse(result.config.q) : null;
 		const sortArr = [{property: result.config.sort, direction: result.config.dir}];
 
-		let feedbackResult = await Feedback.search(query, null, null, null, sortArr, true, {
+		const feedbackResult = await Feedback.search(query, null, null, null, sortArr, true, {
 			path: 'creator',
 			select: ['username', 'organization', 'name', 'email']
 		});

@@ -22,12 +22,12 @@ function clearDatabase() {
 
 function userSpec(key) {
 	return {
-		name: key + ' Name',
-		email: key + '@mail.com',
-		username: key + '_username',
+		name: `${key} Name`,
+		email: `${key}@mail.com`,
+		username: `${key}_username`,
 		password: 'password',
 		provider: 'local',
-		organization: key + ' Organization'
+		organization: `${key} Organization`
 	};
 }
 
@@ -36,14 +36,14 @@ function userSpec(key) {
  */
 describe('User Profile Controller:', () => {
 	// specs for tests
-	let spec = { user: {} };
+	const spec = { user: {} };
 
 	// Basic Users
 	spec.user.user1 = userSpec('basic1');
 	spec.user.user2 = userSpec('basic2');
 	spec.user.user3 = userSpec('basic3');
 
-	let user = {};
+	const user = {};
 
 	before(() => {
 		return clearDatabase().then(() => {
@@ -65,11 +65,11 @@ describe('User Profile Controller:', () => {
 	describe('adminGetAll', () => {
 
 		it('should return all usernames', (done) => {
-			let req = {
+			const req = {
 				body: { field: 'username', query: {}},
 				query: {}
 			};
-			let res = {
+			const res = {
 				status : (status) => {
 					should(status).equal(200);
 					return {
@@ -88,11 +88,11 @@ describe('User Profile Controller:', () => {
 		});
 
 		it('getting one username should return the 1 expected', (done) => {
-			let req = {
+			const req = {
 				body: { field: 'username', query: { username: spec.user.user1.username }},
 				query: {}
 			};
-			let res = {
+			const res = {
 				status : (status) => {
 					should(status).equal(200);
 					return {
@@ -111,11 +111,11 @@ describe('User Profile Controller:', () => {
 		});
 
 		it('getting one _id should return the 1 expected', (done) => {
-			let req = {
+			const req = {
 				body: { field: 'username', query: { _id: { $obj: user.user1._id.toString() } }},
 				query: {}
 			};
-			let res = {
+			const res = {
 				status : (status) => {
 					should(status).equal(200);
 					return {
@@ -138,38 +138,38 @@ describe('User Profile Controller:', () => {
 	describe('canEditProfile', () => {
 
 		it('local auth and undef bypass should be able to edit', () => {
-			let user = { };
-			let result = userProfileController.canEditProfile('local', user);
+			const user = { };
+			const result = userProfileController.canEditProfile('local', user);
 			result.should.equal(true);
 		});
 
 		it('local auth and no bypass should be able to edit', () => {
-			let user = { bypassAccessCheck: false };
-			let result = userProfileController.canEditProfile('local', user);
+			const user = { bypassAccessCheck: false };
+			const result = userProfileController.canEditProfile('local', user);
 			result.should.equal(true);
 		});
 
 		it('local auth and bypass should be able to edit', () => {
-			let user = { bypassAccessCheck: true };
-			let result = userProfileController.canEditProfile('local', user);
+			const user = { bypassAccessCheck: true };
+			const result = userProfileController.canEditProfile('local', user);
 			result.should.equal(true);
 		});
 
 		it('proxy-pki auth and undef bypass should not be able to edit', () => {
-			let user = { };
-			let result = userProfileController.canEditProfile('proxy-pki', user);
+			const user = { };
+			const result = userProfileController.canEditProfile('proxy-pki', user);
 			result.should.equal(false);
 		});
 
 		it('proxy-pki auth and no bypass should not be able to edit', () => {
-			let user = { bypassAccessCheck: false };
-			let result = userProfileController.canEditProfile('proxy-pki', user);
+			const user = { bypassAccessCheck: false };
+			const result = userProfileController.canEditProfile('proxy-pki', user);
 			result.should.equal(false);
 		});
 
 		it('proxy-pki auth and bypass should be able to edit', () => {
-			let user = { bypassAccessCheck: true };
-			let result = userProfileController.canEditProfile('proxy-pki', user);
+			const user = { bypassAccessCheck: true };
+			const result = userProfileController.canEditProfile('proxy-pki', user);
 			result.should.equal(true);
 		});
 

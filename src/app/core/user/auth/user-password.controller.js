@@ -20,9 +20,9 @@ exports.forgot = async (req, res) => {
 	logger.info('Password reset request for username: %s', req.body.username);
 
 	try {
-		let token = await userPasswordService.generateToken();
+		const token = await userPasswordService.generateToken();
 
-		let user = await userPasswordService.setResetTokenForUser(req.body.username, token);
+		const user = await userPasswordService.setResetTokenForUser(req.body.username, token);
 
 		await userPasswordService.sendResetPasswordEmail(user, token, req);
 		res.json(`An email has been sent to ${user.email} with further instructions.`);
@@ -36,7 +36,7 @@ exports.forgot = async (req, res) => {
  * Reset password GET from email token
  */
 exports.validateResetToken = async (req, res) => {
-	let user = await User.findOne({
+	const user = await User.findOne({
 		resetPasswordToken: req.params.token,
 		resetPasswordExpires: { $gt: Date.now() }
 	}).exec();
@@ -54,7 +54,7 @@ exports.validateResetToken = async (req, res) => {
  */
 exports.reset = async (req, res) => {
 	// Init Variables
-	let password = req.body.password;
+	const password = req.body.password;
 
 	// Make sure there is a username
 	if(null == password) {
@@ -62,7 +62,7 @@ exports.reset = async (req, res) => {
 	}
 
 	try {
-		let user = await userPasswordService.resetPasswordForToken(req.params.token, req.body.password);
+		const user = await userPasswordService.resetPasswordForToken(req.params.token, req.body.password);
 
 		await userPasswordService.sendPasswordResetConfirmEmail(user, req);
 

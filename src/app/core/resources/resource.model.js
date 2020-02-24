@@ -110,7 +110,7 @@ ResourceSchema.pre('save', function(next){
 
 // Create a filtered copy for auditing
 ResourceSchema.statics.auditCopy = function(src) {
-	let toReturn = {};
+	const toReturn = {};
 	src = src || {};
 
 	toReturn._id = src._id;
@@ -124,7 +124,7 @@ ResourceSchema.statics.auditCopy = function(src) {
 };
 
 ResourceSchema.statics.auditUpdateCopy = function(src) {
-	let toReturn = {};
+	const toReturn = {};
 	src = src || {};
 
 	toReturn._id = src._id;

@@ -26,12 +26,12 @@ const
 function searchUsers(req, res, copyUserFn) {
 
 	// Handle the query/search/page
-	let query = req.body.q;
-	let search = req.body.s;
+	const query = req.body.q;
+	const search = req.body.s;
 
 	let page = req.query.page;
 	let size = req.query.size;
-	let sort = req.query.sort;
+	const sort = req.query.sort;
 	let dir = req.query.dir;
 
 	// Limit has to be at least 1 and no more than 100
@@ -46,8 +46,8 @@ function searchUsers(req, res, copyUserFn) {
 	if (null != sort && dir == null) { dir = 'DESC'; }
 
 	// Create the variables to the search call
-	let limit = size;
-	let offset = page*size;
+	const limit = size;
+	const offset = page*size;
 	let sortArr;
 	if (null != sort){
 		sortArr = [{ property: sort, direction: dir }];
@@ -56,13 +56,13 @@ function searchUsers(req, res, copyUserFn) {
 	User.search(query, search, limit, offset, sortArr).then((result) => {
 
 		// Create the return copy of the users
-		let users = [];
+		const users = [];
 		result.results.forEach((element) => {
 			users.push(copyUserFn(element));
 		});
 
 		// success
-		let toReturn = {
+		const toReturn = {
 			totalSize: result.count,
 			pageNumber: page,
 			pageSize: size,
@@ -87,7 +87,7 @@ function searchUsers(req, res, copyUserFn) {
 exports.getCurrentUser = (req, res) => {
 
 	// The user that is a parameter of the request is stored in 'userParam'
-	let user = req.user;
+	const user = req.user;
 
 	if (null == user){
 		res.status(400).json({
@@ -96,7 +96,7 @@ exports.getCurrentUser = (req, res) => {
 		return;
 	}
 
-	let userCopy = User.fullCopy(user);
+	const userCopy = User.fullCopy(user);
 
 	userAuthorizationService.updateRoles(userCopy, config.auth);
 
@@ -120,7 +120,7 @@ exports.updateCurrentUser = (req, res) => {
 		_id: req.user._id
 	}).exec((err, user) => {
 
-		let originalUser = User.auditCopy(user);
+		const originalUser = User.auditCopy(user);
 
 		// Copy over the new user properties
 		user.name = req.body.name;
@@ -197,7 +197,7 @@ exports.updateRequiredOrgs = (req, res) => {
 exports.getUserById = (req, res) => {
 
 	// The user that is a parameter of the request is stored in 'userParam'
-	let user = req.userParam;
+	const user = req.userParam;
 
 	if (null == user){
 		res.status(400).json({
@@ -217,12 +217,12 @@ exports.searchUsers = (req, res) => {
 // Match users given a search fragment
 exports.matchUsers = (req, res) => {
 	// Handle the query/search/page
-	let query = req.body.q;
-	let search = req.body.s;
+	const query = req.body.q;
+	const search = req.body.s;
 
 	let page = req.query.page;
 	let size = req.query.size;
-	let sort = req.query.sort;
+	const sort = req.query.sort;
 	let dir = req.query.dir;
 
 	// Limit has to be at least 1 and no more than 100
@@ -237,8 +237,8 @@ exports.matchUsers = (req, res) => {
 	if (null != sort && dir == null){ dir = 'ASC'; }
 
 	// Create the variables to the search call
-	let limit = size;
-	let offset = page*size;
+	const limit = size;
+	const offset = page*size;
 	let sortArr;
 	if (null != sort){
 		sortArr = [{ property: sort, direction: dir }];
@@ -247,13 +247,13 @@ exports.matchUsers = (req, res) => {
 	User.containsQuery(query, ['name', 'username', 'email'], search, limit, offset, sortArr).then((result) => {
 
 		// Create the return copy of the users
-		let users = [];
+		const users = [];
 		result.results.forEach((element) => {
 			users.push(User.filteredCopy(element));
 		});
 
 		// success
-		let toReturn = {
+		const toReturn = {
 			totalSize: result.count,
 			pageNumber: page,
 			pageSize: size,
@@ -280,7 +280,7 @@ exports.matchUsers = (req, res) => {
 exports.adminGetUser = (req, res) => {
 
 	// The user that is a parameter of the request is stored in 'userParam'
-	let user = req.userParam;
+	const user = req.userParam;
 
 	if (null == user){
 		res.status(400).json({
@@ -296,17 +296,17 @@ exports.adminGetUser = (req, res) => {
 exports.adminGetAll = (req, res) => {
 
 	// The field that the admin is requesting is a query parameter
-	let field = req.body.field;
+	const field = req.body.field;
 	if ( null == field || field.length === 0 ) {
 		res.status(500).json({
 			message: 'Query field must be provided'
 		});
 	}
 
-	let query = req.body.query;
+	const query = req.body.query;
 
 	logger.debug('Querying Users for %s', field);
-	let proj = {};
+	const proj = {};
 	proj[field] = 1;
 	User.find(util.toMongoose(query), proj)
 		.exec((error, results) => {
@@ -325,10 +325,10 @@ exports.adminGetAll = (req, res) => {
 exports.adminUpdateUser = (req, res) => {
 
 	// The persistence user
-	let user = req.userParam;
+	const user = req.userParam;
 
 	// A copy of the original user for auditing
-	let originalUser = User.auditCopy(user);
+	const originalUser = User.auditCopy(user);
 
 	if (null == user){
 		res.status(400).json({
@@ -418,7 +418,7 @@ exports.adminSearchUsers = (req, res) => {
 	const strategy = _.get(config.auth, 'roleStrategy', 'local');
 	const isExternal = strategy === 'external';
 	if ((isExternal || strategy === 'hybrid') && req.body.q && req.body.q.$or) {
-		let externalRoleMap = config.auth.externalRoleMap;
+		const externalRoleMap = config.auth.externalRoleMap;
 
 		for (const role of _.keys(externalRoleMap)) {
 			if (req.body.q.$or.some((filter) => filter[`roles.${role}`])) {
@@ -431,7 +431,7 @@ exports.adminSearchUsers = (req, res) => {
 	}
 
 	searchUsers(req, res, (user) => {
-		let userCopy = User.fullCopy(user);
+		const userCopy = User.fullCopy(user);
 
 		userAuthorizationService.updateRoles(userCopy, config.auth);
 
@@ -447,7 +447,7 @@ exports.canEditProfile = canEditProfile;
 
 // Are allowed to edit user profile info
 exports.hasEdit = (req) => {
-	let defer = q.defer();
+	const defer = q.defer();
 
 	if (canEditProfile(config.auth.strategy, req.user)) {
 		defer.resolve();

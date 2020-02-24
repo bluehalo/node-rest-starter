@@ -16,7 +16,7 @@ const
  * Message Schema
  */
 
-let MessageSchema = new GetterSchema({
+const MessageSchema = new GetterSchema({
 	title: {
 		type: String,
 		trim: true,
@@ -51,7 +51,7 @@ let MessageSchema = new GetterSchema({
 	}
 });
 
-let DismissedMessageSchema = new GetterSchema({
+const DismissedMessageSchema = new GetterSchema({
 	messageId: {
 		type: mongoose.Schema.ObjectId,
 		ref: 'Message'
@@ -72,7 +72,7 @@ let DismissedMessageSchema = new GetterSchema({
  */
 
 // MessageSchema.index({created: -1});
-let expireAfterSeconds = _.get(config, 'messages.expireSeconds', 2592000); // default to 30 days
+const expireAfterSeconds = _.get(config, 'messages.expireSeconds', 2592000); // default to 30 days
 DismissedMessageSchema.index({ created: -1 }, { expireAfterSeconds: expireAfterSeconds });
 DismissedMessageSchema.index({ userId: 1});
 
@@ -91,7 +91,7 @@ MessageSchema.index({ title: 'text', body: 'text', type: 'text' });
  * Static Methods
  */
 MessageSchema.statics.auditCopy = function(src) {
-	let newMessage = {};
+	const newMessage = {};
 	src = src || {};
 
 	newMessage.type = src.type;
@@ -106,7 +106,7 @@ MessageSchema.statics.auditCopy = function(src) {
 };
 
 MessageSchema.statics.fullCopy = function(src) {
-	let newMessage = {};
+	const newMessage = {};
 	src = src || {};
 
 	newMessage.type = src.type;
@@ -125,7 +125,7 @@ MessageSchema.statics.search = function(queryTerms, searchTerms, limit, offset, 
 };
 
 DismissedMessageSchema.statics.auditCopy = function(src) {
-	let dismissedMessage = {};
+	const dismissedMessage = {};
 	src = src || {};
 
 	dismissedMessage.messageId = src.messageId;

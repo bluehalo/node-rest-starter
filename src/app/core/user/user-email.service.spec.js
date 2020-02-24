@@ -30,7 +30,7 @@ describe('User Email Service:', () => {
 
 	let mailOptions = null;
 
-	let userEmailService = createSubjectUnderTest({
+	const userEmailService = createSubjectUnderTest({
 		emailService: {
 			sendMail: (mo) => {
 				mailOptions = mo;
@@ -96,7 +96,7 @@ describe('User Email Service:', () => {
 		it('should create mailOptions properly', async() => {
 			const expectedEmailContent = `<p>Welcome to ${config.app.title}, ${user.name}!</p>
 <p>Thanks for requesting an account! We've alerted our admins and they will be reviewing your request shortly. </p>
-<p>While you're waiting, click <a href="${ config.app.clientUrl}/help/getting-started">here</a> to learn more about our system.</p>
+<p>While you're waiting, click <a href="${config.app.clientUrl}/help/getting-started">here</a> to learn more about our system.</p>
 <br/>
 <br/>
 <p>Thanks,</p>

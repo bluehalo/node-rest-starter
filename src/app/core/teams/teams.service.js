@@ -21,7 +21,7 @@ const
 
 module.exports = function() {
 
-	let teamRolesMap = {
+	const teamRolesMap = {
 		requester: { priority: 0 },
 		member: { priority: 1 },
 		editor: { priority: 5 },
@@ -29,7 +29,7 @@ module.exports = function() {
 	};
 
 	// Array of team role keys
-	let teamRoles = _.keys(teamRolesMap);
+	const teamRoles = _.keys(teamRolesMap);
 
 	/**
 	 * Copies the mutable fields from src to dest
@@ -53,7 +53,7 @@ module.exports = function() {
 	 * @returns Returns the role of the user in the team or null if user doesn't belong to team.
 	 */
 	function getTeamRole(user, team) {
-		let ndx = _.findIndex(user.teams, (t) => t._id.equals(team._id));
+		const ndx = _.findIndex(user.teams, (t) => t._id.equals(team._id));
 
 		if (-1 !== ndx) {
 			return user.teams[ndx].role;
@@ -117,7 +117,7 @@ module.exports = function() {
 
 	function meetsRoleRequirement(user, team, role) {
 		// Check role of the user in this team
-		let userRole = getActiveTeamRole(user, team);
+		const userRole = getActiveTeamRole(user, team);
 
 		if (null != userRole && meetsOrExceedsRole(userRole, role)) {
 			return Promise.resolve();
@@ -152,7 +152,7 @@ module.exports = function() {
 		}
 
 		// No matter what, we need to get these
-		let teamRole = getTeamRole(user, team);
+		const teamRole = getTeamRole(user, team);
 
 		const implicitMembersEnabled = _.get(config, 'teams.implicitMembers.strategy', null) !== null;
 
@@ -182,7 +182,7 @@ module.exports = function() {
 	 * @returns A promise that resolves if there are no more resources in the team, and rejects otherwise
 	 */
 	async function verifyNoResourcesInTeam(team) {
-		let resources = await Resource.find({ 'owner.type': 'team', 'owner._id': team._id } ).exec();
+		const resources = await Resource.find({ 'owner.type': 'team', 'owner._id': team._id } ).exec();
 
 		if (null != resources && resources.length > 0) {
 			return Promise.reject({ status: 400, type: 'bad-request', message: 'There are still resources in this group.'});
@@ -200,14 +200,14 @@ module.exports = function() {
 	 */
 	async function verifyNotLastAdmin(user, team) {
 		// Search for all users who have the admin role set to true
-		let results = await TeamMember.find({
+		const results = await TeamMember.find({
 			_id: { $ne: user._id },
 			teams: { $elemMatch: { _id: team._id, role: 'admin' } }
 		}).exec();
 
 		// Just need to make sure we find one active admin who isn't this user
-		let adminFound = results.some((u) => {
-			let role = getActiveTeamRole(u, team);
+		const adminFound = results.some((u) => {
+			const role = getActiveTeamRole(u, team);
 			return (null != role && role === 'admin');
 		});
 
@@ -220,7 +220,7 @@ module.exports = function() {
 	/**
 	 * Validates that the roles are one of the accepted values
 	 */
-	async function validateTeamRole(role) {
+	function validateTeamRole(role) {
 		if (-1 !== teamRoles.indexOf(role)) {
 			return Promise.resolve();
 		}
@@ -237,7 +237,7 @@ module.exports = function() {
 	 */
 	async function createTeam(teamInfo, creator, firstAdmin, headers) {
 		// Create the new team model
-		let newTeam = new Team();
+		const newTeam = new Team();
 
 		copyMutableFields(newTeam, teamInfo);
 
@@ -294,7 +294,7 @@ module.exports = function() {
 	 */
 	async function updateTeam(team, updatedTeam, user, headers) {
 		// Make a copy of the original team for auditing purposes
-		let originalTeam = Team.auditCopy(team);
+		const originalTeam = Team.auditCopy(team);
 
 		// Update the updated date
 		team.updated = Date.now();
@@ -333,10 +333,10 @@ module.exports = function() {
 	}
 
 	async function searchTeams(search, query, queryParams, user) {
-		let page = util.getPage(queryParams);
-		let limit = util.getLimit(queryParams, 1000);
+		const page = util.getPage(queryParams);
+		const limit = util.getLimit(queryParams, 1000);
 
-		let offset = page * limit;
+		const offset = page * limit;
 
 		// Default to sorting by ID
 		let sortArr = [{property: '_id', direction: 'DESC'}];
@@ -346,7 +346,7 @@ module.exports = function() {
 
 		// If user is not an admin, constrain the results to the user's teams
 		if (!userAuthService.hasRoles(user, ['admin'], config.auth)) {
-			let [userTeams, implicitTeams] = await Promise.all([getMemberTeamIds(user), getImplicitTeamIds(user)]);
+			const [userTeams, implicitTeams] = await Promise.all([getMemberTeamIds(user), getImplicitTeamIds(user)]);
 
 			let teamIds = [...userTeams, ...implicitTeams];
 
@@ -365,7 +365,7 @@ module.exports = function() {
 			};
 		}
 
-		let result = await Team.search(query, search, limit, offset, sortArr);
+		const result = await Team.search(query, search, limit, offset, sortArr);
 
 		if (null == result) {
 			return {
@@ -386,10 +386,10 @@ module.exports = function() {
 	}
 
 	async function searchTeamMembers(search, query, queryParams, team) {
-		let page = util.getPage(queryParams);
-		let limit = util.getLimit(queryParams);
+		const page = util.getPage(queryParams);
+		const limit = util.getLimit(queryParams);
 
-		let offset = page * limit;
+		const offset = page * limit;
 
 		// Default to sorting by ID
 		let sortArr = [{property: '_id', direction: 'DESC'}];
@@ -428,7 +428,7 @@ module.exports = function() {
 			});
 		}
 
-		let results = await TeamMember.search(query, search, limit, offset, sortArr);
+		const results = await TeamMember.search(query, search, limit, offset, sortArr);
 
 		// Create the return copy of the users
 		const members = results.results.map((result) => TeamMember.teamCopy(result, team._id));
@@ -458,7 +458,7 @@ module.exports = function() {
 		return TeamMember.update({ _id: user._id }, { $addToSet: { teams: new TeamRole({ _id: team._id, role: role }) } }).exec();
 	}
 
-	const addMembersToTeam = async (users, team, requester, headers) => {
+	const addMembersToTeam = (users, team, requester, headers) => {
 		users = users || [];
 		users = users.filter((user) => null != user._id);
 
@@ -471,7 +471,7 @@ module.exports = function() {
 	};
 
 	async function updateMemberRole(user, team, role, requester, headers) {
-		let currentRole = getTeamRole(user, team);
+		const currentRole = getTeamRole(user, team);
 
 		if (null != currentRole && currentRole === 'admin') {
 			await verifyNotLastAdmin(user, team);
@@ -507,7 +507,7 @@ module.exports = function() {
 
 	async function sendRequestEmail(toEmail, requester, team, req) {
 		try {
-			let mailOptions = await emailService.generateMailOptions(requester, null, config.coreEmails.teamAccessRequestEmail, {
+			const mailOptions = await emailService.generateMailOptions(requester, null, config.coreEmails.teamAccessRequestEmail, {
 				team: team
 			}, {
 				team: team
@@ -524,13 +524,13 @@ module.exports = function() {
 
 	async function requestAccessToTeam(requester, team, req) {
 		// Lookup the emails of all team admins
-		let admins = await TeamMember.find({ teams: { $elemMatch: { _id: mongoose.Types.ObjectId(team._id), role: 'admin' } }}).exec();
+		const admins = await TeamMember.find({ teams: { $elemMatch: { _id: mongoose.Types.ObjectId(team._id), role: 'admin' } }}).exec();
 
 		if (null == admins) {
 			return Promise.reject({ status: 404, message: 'Error retrieving team admins' });
 		}
 
-		let adminEmails = admins.map((admin) => admin.email);
+		const adminEmails = admins.map((admin) => admin.email);
 
 		if (null == adminEmails || adminEmails.length === 0) {
 			return Promise.reject({ status: 404, message: 'Error retrieving team admins' });
@@ -559,7 +559,7 @@ module.exports = function() {
 		try {
 			await auditService.audit('new team requested', 'team', 'request', TeamMember.auditCopy(requester), { org, aoi, description }, req.headers);
 
-			let mailOptions = await emailService.generateMailOptions(requester, req, config.coreEmails.newTeamRequest, {
+			const mailOptions = await emailService.generateMailOptions(requester, req, config.coreEmails.newTeamRequest, {
 				org: org,
 				aoi: aoi,
 				description: description
@@ -575,7 +575,7 @@ module.exports = function() {
 	/**
 	 * Team authorization Middleware
 	 */
-	async function getImplicitTeamIds(user) {
+	function getImplicitTeamIds(user) {
 		// Validate the user input
 		if (null == user) {
 			return Promise.reject({ status: 401, type: 'bad-request', message: 'User does not exist' });
@@ -616,7 +616,7 @@ module.exports = function() {
 		return Team.distinct('_id', query).exec();
 	}
 
-	async function getTeamIds(user, ...roles) {
+	function getTeamIds(user, ...roles) {
 		// Validate the user input
 		if (null == user) {
 			return Promise.reject({ status: 401, type: 'bad-request', message: 'User does not exist' });
@@ -631,26 +631,26 @@ module.exports = function() {
 			userTeams = userTeams.filter((t) => null != t.role && roles.includes(t.role));
 		}
 
-		let filteredTeamIds = userTeams.map((t) => t._id.toString());
+		const filteredTeamIds = userTeams.map((t) => t._id.toString());
 
 		return Promise.resolve(filteredTeamIds);
 	}
 
-	async function getMemberTeamIds(user) {
+	function getMemberTeamIds(user) {
 		return getTeamIds(user, 'member', 'editor', 'admin');
 	}
 
-	async function getEditorTeamIds(user) {
+	function getEditorTeamIds(user) {
 		return getTeamIds(user, 'editor', 'admin');
 	}
 
-	async function getAdminTeamIds(user) {
+	function getAdminTeamIds(user) {
 		return getTeamIds(user, 'admin');
 	}
 
 	// Constrain a set of teamIds provided by the user to those the user actually has access to.
 	async function filterTeamIds(user, teamIds) {
-		let memberTeamIds = await getMemberTeamIds(user);
+		const memberTeamIds = await getMemberTeamIds(user);
 
 		// If there were no teamIds to filter by, return all the team ids
 		if (null == teamIds || (_.isArray(teamIds) && teamIds.length === 0)) {

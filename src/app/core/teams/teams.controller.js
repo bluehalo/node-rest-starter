@@ -15,7 +15,7 @@ const
  */
 module.exports.create = async (req, res) => {
 	try {
-		let result = await teamsService.createTeam(req.body.team, req.user, req.body.firstAdmin, req.headers);
+		const result = await teamsService.createTeam(req.body.team, req.user, req.body.firstAdmin, req.headers);
 		res.status(200).json(result);
 	} catch(err) {
 		util.handleErrorResponse(res, err);
@@ -27,7 +27,7 @@ module.exports.create = async (req, res) => {
  */
 module.exports.get = async (req, res) => {
 	try {
-		let result = await teamsService.getTeams(req.query);
+		const result = await teamsService.getTeams(req.query);
 		res.status(200).json(result);
 	} catch(err) {
 		util.handleErrorResponse(res, err);
@@ -46,7 +46,7 @@ module.exports.read = (req, res) => {
  */
 module.exports.update = async (req, res) => {
 	try {
-		let result = await teamsService.updateTeam(req.team, req.body, req.user, req.headers);
+		const result = await teamsService.updateTeam(req.team, req.body, req.user, req.headers);
 		res.status(200).json(result);
 	} catch(err) {
 		util.handleErrorResponse(res, err);
@@ -76,7 +76,7 @@ module.exports.search = async (req, res) => {
 	query = util.toMongoose(query);
 
 	try {
-		let result = await teamsService.searchTeams(search, query, req.query, req.user);
+		const result = await teamsService.searchTeams(search, query, req.query, req.user);
 		res.status(200).json(result);
 	} catch (err) {
 		util.handleErrorResponse(res, err);
@@ -119,7 +119,7 @@ module.exports.searchMembers = async (req, res) => {
 	query = util.toMongoose(query);
 
 	try {
-		let result = await teamsService.searchTeamMembers(search, query, req.query, req.team);
+		const result = await teamsService.searchTeamMembers(search, query, req.query, req.team);
 		res.status(200).json(result);
 	} catch(err) {
 		util.handleErrorResponse(res, err);
@@ -189,25 +189,23 @@ module.exports.updateMemberRole = async (req, res) => {
  * Team middleware
  */
 module.exports.teamById = async (req, res, next, id) => {
-	let team = await Team.findOne({ _id: id }).exec();
+	const team = await Team.findOne({ _id: id }).exec();
 
 	if (null == team) {
-		next(new Error('Could not find team: ' + id));
-	} else {
-		req.team = team;
-		next();
+		return next(new Error(`Could not find team: ${id}`));
 	}
+	req.team = team;
+	return next();
 };
 
 module.exports.teamUserById = async (req, res, next, id) => {
-	let user = await TeamMember.findOne({ _id: id }).exec();
+	const user = await TeamMember.findOne({ _id: id }).exec();
 
 	if (null == user) {
-		next(new Error(`Failed to load team member ${id}`));
-	} else {
-		req.userParam = user;
-		next();
+		return next(new Error(`Failed to load team member ${id}`));
 	}
+	req.userParam = user;
+	return next();
 };
 
 /**
@@ -217,11 +215,11 @@ module.exports.requiresRole = function(role) {
 	return function(req) {
 
 		// Verify that the user and team are on the request
-		let user = req.user;
+		const user = req.user;
 		if (null == user) {
 			return Promise.reject({ status: 400, type: 'bad-request', message: 'No user for request' });
 		}
-		let team = req.team;
+		const team = req.team;
 		if (null == team) {
 			return Promise.reject({ status: 400, type: 'bad-request', message: 'No team for request' });
 		}

@@ -45,7 +45,7 @@ function initializeConfig(c) {
  * @returns {{method, url, headers, remoteAddress, remotePort}}
  */
 function reqSerializer(req) {
-	let output = bunyan.stdSerializers.req(req);
+	const output = bunyan.stdSerializers.req(req);
 	if(null != req && null != req.session && null != req.session.passport) {
 		output.user = req.session.passport.user;
 	}
@@ -55,9 +55,9 @@ function reqSerializer(req) {
 
 
 // Initialize the Config Object
-let loggerConfig = initializeConfig(config.logger);
+const loggerConfig = initializeConfig(config.logger);
 
-let appLogger = bunyan.createLogger({
+const appLogger = bunyan.createLogger({
 	name: 'application',
 	streams: loggerConfig.application,
 	serializers: {
@@ -66,7 +66,7 @@ let appLogger = bunyan.createLogger({
 	}
 });
 
-let auditLogger = bunyan.createLogger({
+const auditLogger = bunyan.createLogger({
 	name: 'audit',
 	streams: loggerConfig.audit,
 	serializers: {
@@ -75,7 +75,7 @@ let auditLogger = bunyan.createLogger({
 	}
 });
 
-let metricsLogger = bunyan.createLogger({
+const metricsLogger = bunyan.createLogger({
 	name: 'metrics',
 	streams: loggerConfig.metrics
 });
@@ -86,7 +86,7 @@ let metricsLogger = bunyan.createLogger({
 module.exports.logger = appLogger;
 module.exports.auditLogger = {
 	audit: function(message, eventType, eventAction, eventActor, eventObject, userAgentObject) {
-		let a = {
+		const a = {
 			audit: {
 				type: eventType,
 				action: eventAction,

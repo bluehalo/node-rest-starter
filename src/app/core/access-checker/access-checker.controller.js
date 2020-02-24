@@ -16,12 +16,12 @@ const
 module.exports.searchEntries = function(req, res) {
 
 	// Handle the query/search/page
-	let query = req.body.q;
-	let search = req.body.s;
+	const query = req.body.q;
+	const search = req.body.s;
 
 	let page = req.query.page;
 	let size = req.query.size;
-	let sort = req.query.sort;
+	const sort = req.query.sort;
 	let dir = req.query.dir;
 
 	// Limit has to be at least 1 and no more than 100
@@ -36,23 +36,23 @@ module.exports.searchEntries = function(req, res) {
 	if(null != sort && dir == null){ dir = 'DESC'; }
 
 	// Create the letiables to the search call
-	let limit = size;
-	let offset = page*size;
+	const limit = size;
+	const offset = page*size;
 	let sortArr;
 	if(null != sort){
 		sortArr = [{ property: sort, direction: dir }];
 	}
 
-	CacheEntry.search(query, search, limit, offset, sortArr).then(function(result){
+	CacheEntry.search(query, search, limit, offset, sortArr).then((result) => {
 
 		// Create the return copy of the users
-		let entries = [];
-		result.results.forEach(function(element){
+		const entries = [];
+		result.results.forEach((element) => {
 			entries.push(CacheEntry.fullCopy(element));
 		});
 
 		// success
-		let toReturn = {
+		const toReturn = {
 			totalSize: result.count,
 			pageNumber: page,
 			pageSize: size,
@@ -62,7 +62,7 @@ module.exports.searchEntries = function(req, res) {
 
 		// Serialize the response
 		res.json(toReturn);
-	}, function(error){
+	}, (error) => {
 		// failure
 		logger.error(error);
 		return util.send400Error(res, error);
@@ -74,12 +74,12 @@ module.exports.searchEntries = function(req, res) {
 // Match users given a search fragment
 exports.matchEntries = function(req, res) {
 	// Handle the query/search/page
-	let query = req.body.q;
-	let search = req.body.s;
+	const query = req.body.q;
+	const search = req.body.s;
 
 	let page = req.query.page;
 	let size = req.query.size;
-	let sort = req.query.sort;
+	const sort = req.query.sort;
 	let dir = req.query.dir;
 
 	// Limit has to be at least 1 and no more than 100
@@ -94,23 +94,23 @@ exports.matchEntries = function(req, res) {
 	if(null != sort && dir == null){ dir = 'ASC'; }
 
 	// Create the letiables to the search call
-	let limit = size;
-	let offset = page*size;
+	const limit = size;
+	const offset = page*size;
 	let sortArr;
 	if(null != sort){
 		sortArr = [{ property: sort, direction: dir }];
 	}
 
-	CacheEntry.containsQuery(query, ['key', 'valueString'], search, limit, offset, sortArr).then(function(result){
+	CacheEntry.containsQuery(query, ['key', 'valueString'], search, limit, offset, sortArr).then((result) => {
 
 		// Create the return copy of the users
-		let entries = [];
-		result.results.forEach(function(element){
+		const entries = [];
+		result.results.forEach((element) => {
 			entries.push(CacheEntry.fullCopy(element));
 		});
 
 		// success
-		let toReturn = {
+		const toReturn = {
 			totalSize: result.count,
 			pageNumber: page,
 			pageSize: size,
@@ -120,7 +120,7 @@ exports.matchEntries = function(req, res) {
 
 		// Serialize the response
 		res.json(toReturn);
-	}, function(error){
+	}, (error) => {
 		// failure
 		logger.error(error);
 		return util.send400Error(res, error);
@@ -132,9 +132,9 @@ exports.refreshEntry = function(req, res) {
 		util.handleErrorResponse(res, { status: 400, type: 'bad-request', message: 'Missing \'key\' request argument' });
 	}
 	else {
-		accessCheckerService.refreshEntry(req.params.key).then(function() {
+		accessCheckerService.refreshEntry(req.params.key).then(() => {
 			res.status(204).end();
-		}, function(error) {
+		}, (error) => {
 			util.handleErrorResponse(res, { status: 500, type: 'error', message: error });
 		});
 	}
@@ -145,19 +145,19 @@ exports.deleteEntry = function(req, res) {
 		util.handleErrorResponse(res, { status: 400, type: 'bad-request', message: 'Missing \'key\' request argument' });
 	}
 	else {
-		accessCheckerService.deleteEntry(req.params.key).then(function() {
+		accessCheckerService.deleteEntry(req.params.key).then(() => {
 			res.status(204).end();
-		}, function(error) {
+		}, (error) => {
 			util.handleErrorResponse(res, { status: 500, type: 'error', message: error });
 		});
 	}
 };
 
 exports.refreshCurrentUser = function(req, res) {
-	let key = (null != req.user && null != req.user.providerData)? req.user.providerData.dnLower: undefined;
-	accessCheckerService.refreshEntry(key).then(function() {
+	const key = (null != req.user && null != req.user.providerData)? req.user.providerData.dnLower: undefined;
+	accessCheckerService.refreshEntry(key).then(() => {
 		res.status(204).end();
-	}, function(error) {
+	}, (error) => {
 		util.handleErrorResponse(res, { status: 500, type: 'error', message: error });
 	});
 };
