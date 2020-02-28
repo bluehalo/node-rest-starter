@@ -67,7 +67,7 @@ const router = express.Router();
  *           message: 'User is not logged in'
  */
 router.route('/feedback')
-	.post(user.hasAccess, feedback.submitFeedback);
+	.post(user.has(user.requiresLogin), feedback.submitFeedback);
 
 router.route('/admin/feedback')
 	.post(user.hasAdminAccess, feedback.search);
