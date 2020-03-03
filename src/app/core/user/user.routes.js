@@ -31,21 +31,19 @@ const router = express.Router();
  *       name: 'Jane B. User'
  */
 
- /**
+/**
  * @swagger
  * /user/me:
  *   get:
- *      produces: application/json
- *      tags: [User]
- *      description: >
- *         Returns information about the authenticated user.
- *      responses:
- *         '200':
- *            description: The authenticated user's profile
- *            content:
- *               application/json:
- *            schema:
- *               $ref: '#/definitions/User'
+ *     produces:
+ *       - application/json
+ *     tags: [User]
+ *     description: Returns information about the authenticated user.
+ *     responses:
+ *       '200':
+ *         description: The authenticated user's profile
+ *         schema:
+ *           $ref: '#/definitions/User'
  */
 // Self-service user routes
 router.route('/user/me')
@@ -95,7 +93,50 @@ router.route('/admin/users/getAll')
 /**
  * Auth-specific routes
  */
+
+/**
+ * @swagger
+ * /auth/signin:
+ *   post:
+ *     consumes:
+ *       - application/json
+ *     produces:
+ *       - application/json
+ *     tags: [Auth]
+ *     description: authenticates the user.
+ *     parameters:
+ *       - in: body
+ *         name: credentials
+ *         schema:
+ *           type: object
+ *           properties:
+ *             username:
+ *               type: string
+ *             password:
+ *               type: string
+ *           example:
+ *             username: 'some_user'
+ *             password: 'abc124'
+ *     responses:
+ *       '200':
+ *          description: The authenticated user's profile
+ *          schema:
+ *            $ref: '#/definitions/User'
+ */
 router.route('/auth/signin').post(users.signin);
+
+/**
+ * @swagger
+ * /auth/signout:
+ *   get:
+ *     produces:
+ *       - application/json
+ *     tags: [Auth]
+ *     description: signs out the user.
+ *     responses:
+ *       '200':
+ *          description: User was signed out.
+ */
 router.route('/auth/signout')
 	.get(users.has(users.requiresLogin), users.signout);
 

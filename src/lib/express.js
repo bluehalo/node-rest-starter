@@ -212,6 +212,7 @@ function initSwaggerAPI(app) {
 
 	const swaggerOptions = {
 		swaggerDefinition: {
+			swagger: '2.0',
 			info: {
 				title: config.app.title,
 				description: config.app.description,
