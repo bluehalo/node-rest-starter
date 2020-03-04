@@ -1,6 +1,6 @@
 'use strict';
 
-const request = require('supertest'),
+const request = require('supertest'), q = require('q'),
 	should = require('should'),
 	express = require('express'),
 	bodyParser = require('body-parser'),
@@ -41,6 +41,12 @@ describe('Feedback Controller', () => {
 
 		// Mock access for the User Controller method that adds authentication to these endpoints
 		mock('../user/user.controller', {
+			has: () => {
+				return (req, res, next) => {
+					req.user = fakeUser;
+					next();
+				};
+			},
 			hasAccess: (req, res, next) => {
 				req.user = fakeUser;
 				next(); // pass-through
