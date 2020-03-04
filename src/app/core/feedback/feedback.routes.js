@@ -26,45 +26,43 @@ const router = express.Router();
  *       type: 'Bug'
  */
 
- /**
+/**
  * @swagger
  * /feedback:
  *   post:
- *     produces: application/json
+ *     produces:
+ *       - application/json
  *     tags: [Feedback]
  *     description: >
  *       Echoes the feedback submitted, including the appended timestamp and user ID
  *     parameters:
- *       - name: Feedback
+ *       - in: body
+ *         name: Feedback
  *         description: >
  *             The Feedback that is submitted by the user from some part
  *             of the application
- *         in: body
  *         schema:
  *           $ref: '#/definitions/Feedback'
  *     responses:
  *       '200':
  *         description: Feedback was submitted successfully
- *         content:
- *           application/json:
  *         schema:
  *           $ref: '#/definitions/Feedback'
  *       '401':
  *         description: Anonymous user attempted to submit feedback
- *         content:
- *           application/json:
- *         type: object
- *         properties:
- *           status:
- *             type: number
- *           type:
- *             type: string
- *           message:
- *             type: string
- *         example:
- *           status: 401
- *           type: 'no-login'
- *           message: 'User is not logged in'
+ *         schema:
+ *           type: object
+ *           properties:
+ *             status:
+ *               type: number
+ *             type:
+ *               type: string
+ *             message:
+ *               type: string
+ *           example:
+ *             status: 401
+ *             type: 'no-login'
+ *             message: 'User is not logged in'
  */
 router.route('/feedback')
 	.post(user.has(user.requiresLogin), feedback.submitFeedback);
