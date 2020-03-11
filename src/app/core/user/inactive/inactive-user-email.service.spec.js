@@ -3,7 +3,6 @@
 const
 	should = require('should'),
 	proxyquire = require('proxyquire'),
-	moment = require('moment'),
 
 	deps = require('../../../../dependencies'),
 	config = deps.config;
@@ -23,12 +22,14 @@ function createSubjectUnderTest(dependencies) {
  */
 describe('User Email Service:', () => {
 
+	const day = 86400000;
 	const daysAgo = 90;
+
 	const user = {
 		name: 'test',
 		username: 'test',
 		email: 'test@test.test',
-		lastLogin: moment().subtract(daysAgo, 'days').toDate()
+		lastLogin: Date.now() - (day * daysAgo)
 	};
 
 	describe('sendEmail', () => {
