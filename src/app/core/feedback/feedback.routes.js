@@ -10,59 +10,63 @@ const router = express.Router();
 
 /**
  * @swagger
- * definitions:
- *   Feedback:
- *     type: object
- *     properties:
- *       body:
- *          type: string
- *       url:
- *          type: string
- *       type:
- *          type: string
- *     example:
- *       body: 'This is a great tool! Thanks for building it.'
- *       url: 'http://localhost:3000/#/path/to/page'
- *       type: 'Bug'
+ * components:
+ *   schemas:
+ *     Feedback:
+ *       type: object
+ *       properties:
+ *         body:
+ *           type: string
+ *         url:
+ *           type: string
+ *         type:
+ *           type: string
+ *       example:
+ *         body: 'This is a great tool! Thanks for building it.'
+ *         url: 'http://localhost:3000/#/path/to/page'
+ *         type: 'Bug'
  */
 
 /**
  * @swagger
  * /feedback:
  *   post:
- *     produces:
- *       - application/json
  *     tags: [Feedback]
  *     description: >
  *       Echoes the feedback submitted, including the appended timestamp and user ID
- *     parameters:
- *       - in: body
- *         name: Feedback
- *         description: >
+ *     requestBody:
+ *       description: >
  *             The Feedback that is submitted by the user from some part
  *             of the application
- *         schema:
- *           $ref: '#/definitions/Feedback'
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Feedback'
  *     responses:
  *       '200':
  *         description: Feedback was submitted successfully
- *         schema:
- *           $ref: '#/definitions/Feedback'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Feedback'
  *       '401':
  *         description: Anonymous user attempted to submit feedback
- *         schema:
- *           type: object
- *           properties:
- *             status:
- *               type: number
- *             type:
- *               type: string
- *             message:
- *               type: string
- *           example:
- *             status: 401
- *             type: 'no-login'
- *             message: 'User is not logged in'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: number
+ *                 type:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 status: 401
+ *                 type: 'no-login'
+ *                 message: 'User is not logged in'
  */
 router.route('/feedback')
 	.post(user.has(user.requiresLogin), feedback.submitFeedback);

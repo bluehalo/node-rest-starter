@@ -16,12 +16,16 @@ describe('Init Swagger API:', () => {
 	it('Generated Swagger API should be valid', async () => {
 		const swaggerOptions = {
 			swaggerDefinition: {
+				openapi: '3.0.2',
 				info: {
 					title: config.app.title,
 					description: config.app.description,
 					version: 'test'
 				},
-				basePath: '/api'
+				servers: [{
+					url: 'https://api.example.com/api'
+				}]
+				// basePath: '/api'
 			},
 			apis: config.files.routes.map((route) => path.posix.resolve(route))
 		};

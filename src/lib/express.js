@@ -212,6 +212,7 @@ function initSwaggerAPI(app) {
 
 	const swaggerOptions = {
 		swaggerDefinition: {
+			openapi: '3.0.2',
 			info: {
 				title: config.app.title,
 				description: config.app.description,

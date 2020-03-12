@@ -18,32 +18,33 @@ const router = express.Router();
 
 /**
  * @swagger
- * definitions:
- *   User:
- *     type: object
- *     properties:
- *       username:
- *          type: string
- *       name:
- *          type: string
- *     example:
- *       username: 'jbuser'
- *       name: 'Jane B. User'
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         username:
+ *           type: string
+ *         name:
+ *           type: string
+ *       example:
+ *         username: 'jbuser'
+ *         name: 'Jane B. User'
  */
 
 /**
  * @swagger
  * /user/me:
  *   get:
- *     produces:
- *       - application/json
  *     tags: [User]
  *     description: Returns information about the authenticated user.
  *     responses:
  *       '200':
  *         description: The authenticated user's profile
- *         schema:
- *           $ref: '#/definitions/User'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
  */
 // Self-service user routes
 router.route('/user/me')
@@ -98,30 +99,29 @@ router.route('/admin/users/getAll')
  * @swagger
  * /auth/signin:
  *   post:
- *     consumes:
- *       - application/json
- *     produces:
- *       - application/json
  *     tags: [Auth]
  *     description: authenticates the user.
- *     parameters:
- *       - in: body
- *         name: credentials
- *         schema:
- *           type: object
- *           properties:
- *             username:
- *               type: string
- *             password:
- *               type: string
- *           example:
- *             username: 'some_user'
- *             password: 'abc124'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *             example:
+ *               username: 'some_user'
+ *               password: 'abc124'
  *     responses:
  *       '200':
  *          description: The authenticated user's profile
- *          schema:
- *            $ref: '#/definitions/User'
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/User'
  */
 router.route('/auth/signin').post(users.signin);
 
@@ -129,8 +129,6 @@ router.route('/auth/signin').post(users.signin);
  * @swagger
  * /auth/signout:
  *   get:
- *     produces:
- *       - application/json
  *     tags: [Auth]
  *     description: signs out the user.
  *     responses:
