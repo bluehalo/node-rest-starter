@@ -2,6 +2,7 @@
 
 const
 	_ = require('lodash'),
+	moment = require('moment'),
 
 	deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
@@ -12,10 +13,8 @@ const
 
 	User = dbs.admin.model('User');
 
-const day = 86400000;
-
 async function sendEmail(user, emailConfig) {
-	const numOfDays = Math.floor((Date.now() - user.lastLogin)/day);
+	const numOfDays = moment().diff(user.lastLogin, 'days');
 	try {
 		const mailOptions = await emailService.generateMailOptions(user, null, emailConfig, {
 			daysAgo: numOfDays
@@ -70,7 +69,7 @@ module.exports.run = function(serviceConfig) {
 	const alertQueries = serviceConfig.alertInterval.map((interval) => ({
 		lastLogin: {
 			$lte:  new Date(Date.now() - interval).toISOString(),
-			$gt: new Date(Date.now() - interval - day).toISOString()
+			$gt: new Date(Date.now() - interval - 86400000).toISOString()
 		},
 		'roles.user': true
 	}));
