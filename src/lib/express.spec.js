@@ -27,7 +27,10 @@ describe('Init Swagger API:', () => {
 				}]
 				// basePath: '/api'
 			},
-			apis: config.files.routes.map((route) => path.posix.resolve(route))
+			apis: [
+				'./src/app/**/*.routes.js',
+				'./src/app/**/*.model.js'
+			]
 		};
 
 		if (config.auth.strategy === 'local') {

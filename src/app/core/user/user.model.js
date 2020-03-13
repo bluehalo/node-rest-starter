@@ -65,7 +65,7 @@ const passwordMessage = 'Password must be at least 6 characters long';
  *           default: false
  *         messsagesAcknowledged:
  *           type: integer
- *           min: 0
+ *           minimum: 0
  *         acceptedEua:
  *           type: boolean
  *           default: null
