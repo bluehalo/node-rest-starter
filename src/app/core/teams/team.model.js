@@ -18,6 +18,18 @@ const
  * Team Schema
  */
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Team:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         role:
+ *           type: string
+ */
 const TeamRoleSchema = new GetterSchema({
 	_id: {
 		type: mongoose.Schema.ObjectId,

@@ -34,6 +34,77 @@ const passwordMessage = 'Password must be at least 6 characters long';
  * User Schema
  */
 
+ /**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       required:
+ *         - name
+ *         - organization
+ *         - email
+ *         - username
+ *         - provider
+ *       properties:
+ *         phone:
+ *           type: string
+ *         canProxy:
+ *           type: boolean
+ *           default: false
+ *         externalGroups:
+ *           type: array
+ *           items:
+ *             type: string
+ *         externalRoles:
+ *           type: array
+ *           items:
+ *             type: string
+ *         bypassAccessCheck:
+ *           type: boolean
+ *           default: false
+ *         messsagesAcknowledged:
+ *           type: integer
+ *           min: 0
+ *         acceptedEua:
+ *           type: boolean
+ *           default: null
+ *         lastLogin:
+ *           type: integer
+ *         newFeatureDismissed:
+ *           type: boolean
+ *           default: null
+ *         _id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         organization:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         username:
+ *           type: string
+ *         created:
+ *           type: integer
+ *         updated:
+ *           type: integer
+ *         alertsViewed:
+ *           type: integer
+ *         teams:
+ *           type: array
+ *           items:
+ *             $ref: "#/components/schemas/Team"
+ *         roles:
+ *           type: object
+ *         provider:
+ *           type: string
+ *         resetPasswordExpires:
+ *           type: boolean
+ *           default: null
+ *         id:
+ *           type: string
+ */
 const UserSchema = new GetterSchema({
 	name: {
 		type: String,
@@ -304,6 +375,10 @@ UserSchema.statics.fullCopy = function(user) {
 		if (_.has(toReturn, 'password')) {
 			delete toReturn.password;
 		}
+		if (_.has(toReturn, 'salt')) {
+			delete toReturn.salt;
+		}
+
 	}
 
 	return toReturn;

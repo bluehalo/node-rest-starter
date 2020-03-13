@@ -222,7 +222,10 @@ function initSwaggerAPI(app) {
 			},
 			basePath: baseApiPath
 		},
-		apis: config.files.routes.map((route) => path.posix.resolve(route))
+		apis: [
+			'./src/app/**/*.routes.js',
+			'./src/app/**/*.model.js'
+		]
 	};
 
 	if (config.auth.strategy === 'local') {
