@@ -223,8 +223,8 @@ function initSwaggerAPI(app) {
 			basePath: baseApiPath
 		},
 		apis: [
-			'./src/app/**/*.routes.js',
-			'./src/app/**/*.model.js'
+			...config.files.routes.map((route) => path.posix.resolve(route)),
+			...config.files.model.map((model) => path.posix.resolve(model))
 		]
 	};
 
