@@ -18,22 +18,6 @@ const router = express.Router();
 
 /**
  * @swagger
- * components:
- *   schemas:
- *     User:
- *       type: object
- *       properties:
- *         username:
- *           type: string
- *         name:
- *           type: string
- *       example:
- *         username: 'jbuser'
- *         name: 'Jane B. User'
- */
-
-/**
- * @swagger
  * /user/me:
  *   get:
  *     tags: [User]
