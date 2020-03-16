@@ -94,7 +94,7 @@ const passwordMessage = 'Password must be at least 6 characters long';
  *         teams:
  *           type: array
  *           items:
- *             $ref: "#/components/schemas/Team"
+ *             $ref: "#/components/schemas/TeamRole"
  *         roles:
  *           type: object
  *         provider:

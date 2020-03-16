@@ -22,7 +22,7 @@ const
  * @swagger
  * components:
  *   schemas:
- *     Team:
+ *     TeamRole:
  *       type: object
  *       properties:
  *         _id:
