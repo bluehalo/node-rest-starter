@@ -220,7 +220,9 @@ function initSwaggerAPI(app) {
 					email: _.get(config.mailer, 'from')
 				}
 			},
-			basePath: baseApiPath
+			servers: [{
+				url: baseApiPath
+			}]
 		},
 		apis: [
 			...config.files.routes.map((route) => path.posix.resolve(route)),
