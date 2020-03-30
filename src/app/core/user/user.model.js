@@ -34,7 +34,7 @@ const passwordMessage = 'Password must be at least 6 characters long';
  * User Schema
  */
 
- /**
+/**
  * @swagger
  * components:
  *   schemas:
@@ -230,23 +230,8 @@ const UserSchema = new GetterSchema({
 		default: null,
 		get: util.dateParse
 	},
-	viewPreferences: {
-		type: {
-			sidebarOpen: {
-				type: Boolean,
-				default: true
-			},
-			preferredResultsView: {
-				type: String,
-				trim: true,
-				default: 'list',
-				enum: ['list', 'map']
-			},
-			hasTracked: {
-				type: Boolean,
-				default: false
-			}
-		}
+	preferences: {
+		type: {}
 	}
 });
 UserSchema.plugin(uniqueValidator);
@@ -353,12 +338,8 @@ UserSchema.statics.filteredCopy = function(user) {
 			};
 		}
 
-		if (null != user.viewPreferences) {
-			toReturn.viewPreferences = {
-				sidebarOpen: user.viewPreferences.sidebarOpen,
-				preferredResultsView: user.viewPreferences.preferredResultsView,
-				hasTracked: user.hasTracked
-			};
+		if (null != user.preferences) {
+			toReturn.preferences = user.preferences;
 		}
 	}
 
@@ -401,12 +382,8 @@ UserSchema.statics.createCopy = function(user) {
 	toReturn.alertsViewed = user.alertsViewed;
 	toReturn.newFeatureDismissed = user.newFeatureDismissed;
 
-	if (null != user.viewPreferences) {
-		toReturn.viewPreferences = {
-			sidebarOpen: user.viewPreferences.sidebarOpen,
-			preferredResultsView: user.viewPreferences.preferredResultsView,
-			hasTracked: user.hasTracked
-		};
+	if (null != user.preferences) {
+		toReturn.preferences = user.preferences;
 	}
 
 	return toReturn;
@@ -439,12 +416,8 @@ UserSchema.statics.auditCopy = function(user, userIP) {
 		toReturn.dn = user.providerData.dn;
 	}
 
-	if (null != user.viewPreferences) {
-		toReturn.viewPreferences = {
-			sidebarOpen: user.viewPreferences.sidebarOpen,
-			preferredResultsView: user.viewPreferences.preferredResultsView,
-			hasTracked: user.hasTracked
-		};
+	if (null != user.preferences) {
+		toReturn.preferences = user.preferences;
 	}
 
 	return toReturn;
