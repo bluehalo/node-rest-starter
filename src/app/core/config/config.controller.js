@@ -21,7 +21,9 @@ const getSystemConfig = function() {
 
 		maxExport: config.maxExport,
 		feedback: config.feedback,
-		teams: config.teams
+		teams: config.teams,
+
+		userPreferences: config.userPreferences
 	};
 
 	return toReturn;

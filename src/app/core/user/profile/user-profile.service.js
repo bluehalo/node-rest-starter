@@ -26,20 +26,10 @@ const
 
 module.exports.updatePreferences = (id, pref) => {
 	return User.findOne({ _id: id }).then((user) => {
-		const viewPreferences = user.viewPreferences || {};
+		const preferences = user.preferences || {};
+		Object.assign(preferences, pref);
 
-		[
-			'sidebarOpen',
-			'preferredResultsView',
-			'hasTracked'
-		]
-		.forEach((prefKey) => {
-			if (_.has(pref, prefKey)) {
-				viewPreferences[prefKey] = pref[prefKey];
-			}
-		});
-
-		return user.update({$set: { viewPreferences: viewPreferences } }).exec();
+		return user.update({$set: { preferences: preferences } }).exec();
 	});
 };
 
