@@ -341,7 +341,12 @@ module.exports.submitPostRequest = (httpOpts, postBody) => {
 	return defer.promise;
 };
 
-module.exports.getPagingResults = (pageSize, pageNumber=0, totalSize=0, elements=[]) => {
+module.exports.getPagingResults = (pageSize, pageNumber, totalSize, elements) => {
+	pageSize = pageSize || 20;
+	pageNumber = pageNumber || 0;
+	totalSize = totalSize || 0;
+	elements = elements || [];
+
 	if (totalSize === 0) {
 		pageNumber = 0;
 	}

@@ -381,4 +381,59 @@ describe('Utils:', () => {
 
 	});
 
+	describe('getPagingResults:', () => {
+		[{
+			pageSize: null,
+			pageNumber: null,
+			totalSize: null,
+			elements: null,
+			expected: {
+				pageSize: 20,
+				pageNumber: 0,
+				totalSize: 0,
+				totalPages: 0,
+				elements: []
+			},
+			name: 'should handle null values with defaults'
+		}, {
+			pageSize: 10,
+			pageNumber: 10,
+			totalSize: 0,
+			elements: [],
+			expected: {
+				pageSize: 10,
+				pageNumber: 0,
+				totalSize: 0,
+				totalPages: 0,
+				elements: []
+			},
+			name: 'should set pageNumber to 0 if totalSize is 0'
+		}, {
+			pageSize: 10,
+			pageNumber: 10,
+			totalSize: 42,
+			elements: [1, 2],
+			expected: {
+				pageSize: 10,
+				pageNumber: 10,
+				totalSize: 42,
+				totalPages: 5,
+				elements: [1, 2]
+			},
+			name: 'should correctly calculate totalPages'
+		}].forEach((test) => {
+			it(test.name, () => {
+				const actual = util.getPagingResults(test.pageSize, test.pageNumber, test.totalSize, test.elements);
+				// delete actual.elements;
+				Object.keys(actual).forEach((key) => {
+					if (key === 'elements') {
+						should(actual[key]).containDeep(test.expected[key]);
+					} else {
+						should(actual[key]).equal(test.expected[key]);
+					}
+				});
+				// should(actual).equal(test.expected);
+			});
+		});
+	});
 });
