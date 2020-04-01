@@ -340,3 +340,16 @@ module.exports.submitPostRequest = (httpOpts, postBody) => {
 
 	return defer.promise;
 };
+
+module.exports.getPagingResults = (pageSize, pageNumber=0, totalSize=0, elements=[]) => {
+	if (totalSize === 0) {
+		pageNumber = 0;
+	}
+	return {
+		pageSize,
+		pageNumber,
+		totalSize,
+		totalPages: Math.ceil(totalSize / pageSize),
+		elements
+	};
+};

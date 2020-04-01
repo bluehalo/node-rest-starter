@@ -21,25 +21,16 @@ module.exports.searchEuas = (req, res) => {
 	const query = req.body.q;
 	const search = req.body.s;
 
-	let page = req.query.page;
-	let size = req.query.size;
+	const page = util.getPage(req.query);
+	const limit = util.getLimit(req.query);
 	const sort = req.query.sort;
 	let dir = req.query.dir;
-
-	// Limit has to be at least 1 and no more than 100
-	if (null == size) { size = 20; }
-	size = Math.max(1, Math.min(100, size));
-
-	// Page needs to be positive and has no upper bound
-	if (null == page) { page = 0; }
-	page = Math.max(0, page);
 
 	// Sort can be null, but if it's non-null, dir defaults to DESC
 	if (null != sort && dir == null) { dir = 'DESC'; }
 
 	// Create the variables to the search call
-	const limit = size;
-	const offset = page*size;
+	const offset = page * limit;
 	let sortArr;
 	if (null != sort) {
 		sortArr = [{ property: sort, direction: dir }];
@@ -48,15 +39,7 @@ module.exports.searchEuas = (req, res) => {
 	UserAgreement.search(query, search, limit, offset, sortArr)
 		.then(
 			(result) => {
-				const toReturn = {
-					totalSize: result.count,
-					pageNumber: page,
-					pageSize: size,
-					totalPages: Math.ceil(result.count / size),
-					elements: result.results
-				};
-
-				return q(toReturn);
+				return q(util.getPagingResults(limit, page, result.count, result.results));
 			})
 		.then(
 			(results) => {
@@ -96,12 +79,12 @@ module.exports.acceptEua = (req, res) => {
 	else {
 		// Audit accepted eua
 		auditService.audit('eua accepted', 'eua', 'accepted', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), {}, req.headers).then(
-				() => {
-					return User.findOneAndUpdate(
-						{ _id: req.user._id },
-						{ acceptedEua: Date.now() },
-						{ new: true, upsert: false }).exec();
-				})
+			() => {
+				return User.findOneAndUpdate(
+					{ _id: req.user._id },
+					{ acceptedEua: Date.now() },
+					{ new: true, upsert: false }).exec();
+			})
 			.then(
 				(user) => {
 					res.status(200).json(User.fullCopy(user));
@@ -121,9 +104,9 @@ module.exports.createEua = (req, res) => {
 
 	// Audit eua creates
 	auditService.audit('eua create', 'eua', 'create', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), UserAgreement.auditCopy(eua), req.headers).then(
-			() => {
-				return eua.save();
-			})
+		() => {
+			return eua.save();
+		})
 		.then(
 			(results) => {
 				res.status(200).json(results);
@@ -184,12 +167,12 @@ module.exports.updateEua = (req, res) => {
 
 		// Audit user update
 		auditService.audit('end user agreement updated', 'eua', 'update', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), {
-				before: originalEua,
-				after: UserAgreement.auditCopy(eua)
-			}, req.headers).then(
-				() => {
-					return eua.save();
-				})
+			before: originalEua,
+			after: UserAgreement.auditCopy(eua)
+		}, req.headers).then(
+			() => {
+				return eua.save();
+			})
 			.then(
 				(results) => {
 					res.status(200).json(results);
@@ -213,9 +196,9 @@ module.exports.deleteEua = (req, res) => {
 	else {
 		// Audit eua delete
 		auditService.audit('eua deleted', 'eua', 'delete', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), UserAgreement.auditCopy(eua), req.headers).then(
-				() => {
-					return eua.remove();
-				})
+			() => {
+				return eua.remove();
+			})
 			.then(
 				(results) => {
 					res.status(200).json(results);
@@ -264,4 +247,3 @@ module.exports.requiresEua = (req) => {
 				return q.reject({ status: 500, type: 'error', error: error });
 			});
 };
-
