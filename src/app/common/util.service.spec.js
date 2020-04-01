@@ -424,7 +424,6 @@ describe('Utils:', () => {
 		}].forEach((test) => {
 			it(test.name, () => {
 				const actual = util.getPagingResults(test.pageSize, test.pageNumber, test.totalSize, test.elements);
-				// delete actual.elements;
 				Object.keys(actual).forEach((key) => {
 					if (key === 'elements') {
 						should(actual[key]).containDeep(test.expected[key]);
@@ -432,7 +431,6 @@ describe('Utils:', () => {
 						should(actual[key]).equal(test.expected[key]);
 					}
 				});
-				// should(actual).equal(test.expected);
 			});
 		});
 	});
