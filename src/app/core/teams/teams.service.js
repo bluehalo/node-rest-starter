@@ -275,13 +275,7 @@ module.exports = function() {
 		// Query for Teams
 		const teams = await Team.search({}, null, limit, offset, sortArr);
 
-		return {
-			totalSize: teams.count,
-			pageNumber: page,
-			pageSize: limit,
-			totalPages: Math.ceil(teams.count / limit),
-			elements: teams.results
-		};
+		return util.getPagingResults(limit, page, teams.count, teams.results);
 	}
 
 	/**
@@ -367,22 +361,7 @@ module.exports = function() {
 
 		const result = await Team.search(query, search, limit, offset, sortArr);
 
-		if (null == result) {
-			return {
-				totalSize: 0,
-				pageNumber: 0,
-				pageSize: limit,
-				totalPages: 0,
-				elements: []
-			};
-		}
-		return {
-			totalSize: result.count,
-			pageNumber: page,
-			pageSize: limit,
-			totalPages: Math.ceil(result.count / limit),
-			elements: result.results
-		};
+		return result == null ? util.getPagingResults(limit) : util.getPagingResults(limit, page, result.count, result.results);
 	}
 
 	async function searchTeamMembers(search, query, queryParams, team) {
@@ -433,13 +412,8 @@ module.exports = function() {
 		// Create the return copy of the users
 		const members = results.results.map((result) => TeamMember.teamCopy(result, team._id));
 
-		return {
-			totalSize: results.count,
-			pageNumber: page,
-			pageSize: limit,
-			totalPages: Math.ceil(results.count/limit),
-			elements: members
-		};
+		return util.getPagingResults(limit, page, results.count, members);
+
 	}
 
 	/**

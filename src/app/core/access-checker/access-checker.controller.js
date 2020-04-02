@@ -19,25 +19,16 @@ module.exports.searchEntries = function(req, res) {
 	const query = req.body.q;
 	const search = req.body.s;
 
-	let page = req.query.page;
-	let size = req.query.size;
+	const page = util.getPage(req.query);
+	const limit = util.getLimit(req.query);
 	const sort = req.query.sort;
 	let dir = req.query.dir;
-
-	// Limit has to be at least 1 and no more than 100
-	if(null == size){ size = 20; }
-	size = Math.max(1, Math.min(100, size));
-
-	// Page needs to be positive and has no upper bound
-	if(null == page){ page = 0; }
-	page = Math.max(0, page);
 
 	// Sort can be null, but if it's non-null, dir defaults to DESC
 	if(null != sort && dir == null){ dir = 'DESC'; }
 
 	// Create the letiables to the search call
-	const limit = size;
-	const offset = page*size;
+	const offset = page * limit;
 	let sortArr;
 	if(null != sort){
 		sortArr = [{ property: sort, direction: dir }];
@@ -52,13 +43,7 @@ module.exports.searchEntries = function(req, res) {
 		});
 
 		// success
-		const toReturn = {
-			totalSize: result.count,
-			pageNumber: page,
-			pageSize: size,
-			totalPages: Math.ceil(result.count/size),
-			elements: entries
-		};
+		const toReturn = util.getPagingResults(limit, page, result.count, entries);
 
 		// Serialize the response
 		res.json(toReturn);
@@ -77,25 +62,16 @@ exports.matchEntries = function(req, res) {
 	const query = req.body.q;
 	const search = req.body.s;
 
-	let page = req.query.page;
-	let size = req.query.size;
+	const page = util.getPage(req.query);
+	const limit = util.getLimit(req.query);
 	const sort = req.query.sort;
 	let dir = req.query.dir;
-
-	// Limit has to be at least 1 and no more than 100
-	if(null == size){ size = 20; }
-	size = Math.max(1, Math.min(100, size));
-
-	// Page needs to be positive and has no upper bound
-	if(null == page){ page = 0; }
-	page = Math.max(0, page);
 
 	// Sort can be null, but if it's non-null, dir defaults to DESC
 	if(null != sort && dir == null){ dir = 'ASC'; }
 
 	// Create the letiables to the search call
-	const limit = size;
-	const offset = page*size;
+	const offset = page * limit;
 	let sortArr;
 	if(null != sort){
 		sortArr = [{ property: sort, direction: dir }];
@@ -110,13 +86,7 @@ exports.matchEntries = function(req, res) {
 		});
 
 		// success
-		const toReturn = {
-			totalSize: result.count,
-			pageNumber: page,
-			pageSize: size,
-			totalPages: Math.ceil(result.count/size),
-			elements: entries
-		};
+		const toReturn = util.getPagingResults(limit, page, result.count, entries);
 
 		// Serialize the response
 		res.json(toReturn);
