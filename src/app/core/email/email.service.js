@@ -106,6 +106,9 @@ module.exports.buildEmailSubject = (template, user, overrides = {}) => {
 };
 
 module.exports.generateMailOptions = async (user, req, emailConfig, emailContentData = {}, emailSubjectData = {}, mailOpts = {}) => {
+	if (user.toObject) {
+		user = user.toObject();
+	}
 	let emailContent, emailSubject;
 	try {
 		emailContent = await module.exports.buildEmailContent(path.posix.resolve(emailConfig.templatePath), user, emailContentData);

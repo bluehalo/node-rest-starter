@@ -107,7 +107,7 @@ function initSession(app, db) {
 		secret: config.auth.sessionSecret,
 		cookie: config.auth.sessionCookie,
 		store: new MongoStore({
-			db: db.connection.db,
+			mongooseConnection: db.connection,
 			collection: config.auth.sessionCollection
 		})
 	}));
