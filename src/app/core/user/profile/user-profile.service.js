@@ -1,7 +1,6 @@
 'use strict';
 
 const
-	_ = require('lodash'),
 	q = require('q'),
 
 	deps = require('../../../../dependencies'),

@@ -1,6 +1,6 @@
 'use strict';
 
-const request = require('supertest'), q = require('q'),
+const request = require('supertest'),
 	should = require('should'),
 	express = require('express'),
 	bodyParser = require('body-parser'),
