@@ -16,7 +16,7 @@ const
 
 function clearDatabase() {
 	return q.all([
-		User.remove()
+		User.deleteMany({})
 	]);
 }
 

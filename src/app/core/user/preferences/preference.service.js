@@ -11,7 +11,7 @@ const
 
 
 function doSearch(query, sortParams, page, limit) {
-	const countPromise = Preference.find(query).count();
+	const countPromise = Preference.find(query).countDocuments();
 	let searchPromise = Preference.find(query);
 
 	if (sortParams) {

@@ -54,7 +54,7 @@ function pagingQuery(schema, find, projection, options, sort, limit, offset, run
 		runCount = true;
 
 	if (runCount) {
-		baseQuery.count((error, results) => {
+		baseQuery.countDocuments((error, results) => {
 			if (null != error) {
 				countDefer.reject(error);
 			} else {
@@ -169,7 +169,7 @@ module.exports.count = function(schema, query) {
 
 	// Build the promise response
 	const countDefer = q.defer();
-	baseQuery.count((error, results) => {
+	baseQuery.countDocuments((error, results) => {
 		if(null != error){
 			countDefer.reject(error);
 		} else {

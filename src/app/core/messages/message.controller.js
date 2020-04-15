@@ -116,7 +116,7 @@ exports.update = function(req, res) {
 // Delete
 exports.delete = function(req, res) {
 	const message = req.message;
-	Message.remove({_id: message._id}, (err) => {
+	Message.deleteOne({ _id: message._id }, (err) => {
 		util.catchError(res, err, () => {
 			res.status(200).json(message);
 		});
@@ -195,7 +195,7 @@ exports.searchTest = function(req, res) {
 	}
 
 	const doSearch = function(query) {
-		const getSearchCount = Message.find(query).count();
+		const getSearchCount = Message.find(query).countDocuments();
 		const getSearchInfo = Message.find(query).sort(sortParams).skip(offset).limit(limit);
 
 		return q.all([getSearchCount, getSearchInfo])

@@ -59,7 +59,7 @@ module.exports = function() {
 		const offset = page * limit;
 
 		return q.all([
-			Resource.find(query).count(),
+			Resource.find(query).countDocuments(),
 			Resource.find(query).sort(sortParams).collation({caseLevel: true, locale: 'en'}).skip(offset).limit(limit)
 		]).then((results) => {
 			return q({
@@ -209,9 +209,9 @@ module.exports = function() {
 					{ tags: { $in: [ tagName ] } }
 				]
 			};
-			return Resource.update(finalQuery, { $addToSet: { tags: newTagName }}, { multi: true}).exec();
+			return Resource.updateMany(finalQuery, { $addToSet: { tags: newTagName } }).exec();
 		}).then(() => {
-			return Resource.update(finalQuery, { $pull: { tags: tagName }}, { multi: true}).exec();
+			return Resource.updateMany(finalQuery, { $pull: { tags: tagName } }).exec();
 		});
 	}
 
@@ -221,7 +221,7 @@ module.exports = function() {
 		}
 
 		return constrainTagResults(teamId, user, false).then((query) => {
-			return Resource.update(query, { $pull: { tags: tagName }}, { multi: true}).exec();
+			return Resource.updateMany(query, { $pull: { tags: tagName } }).exec();
 		});
 	}
 
@@ -268,7 +268,7 @@ module.exports = function() {
 	}
 
 	const deleteResourcesWithOwner = (ownerId, ownerType) => {
-		return Resource.remove({ 'owner.type': ownerType, 'owner._id': ownerId });
+		return Resource.deleteMany({ 'owner.type': ownerType, 'owner._id': ownerId });
 	};
 
 	return {

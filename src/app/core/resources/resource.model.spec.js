@@ -16,8 +16,8 @@ const
  */
 function clearDatabase() {
 	return q.all([
-		Resource.remove(),
-		Owner.remove()
+		Resource.deleteMany({}),
+		Owner.deleteMany({})
 	]);
 }
 

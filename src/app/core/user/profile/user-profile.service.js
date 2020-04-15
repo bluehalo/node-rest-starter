@@ -33,7 +33,7 @@ module.exports.updatePreferences = (id, pref) => {
 };
 
 module.exports.updateRequiredOrgs = (id, requiredOrgs) => {
-	return User.update({ _id: id }, { $set: { organizationLevels: requiredOrgs } }).exec();
+	return User.updateOne({ _id: id }, { $set: { organizationLevels: requiredOrgs } }).exec();
 };
 
 module.exports.userById = (id) => {

@@ -24,8 +24,8 @@ const
  */
 function clearDatabase() {
 	return q.all([
-		User.remove(),
-		CacheEntry.remove()
+		User.deleteMany({}),
+		CacheEntry.deleteMany({})
 	]);
 }
 

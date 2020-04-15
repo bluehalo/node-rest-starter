@@ -25,8 +25,8 @@ function createSubjectUnderTest(dependencies) {
 
 function clearDatabase() {
 	return Promise.all([
-		Team.remove(),
-		User.remove()
+		Team.deleteMany({}),
+		User.deleteMany({})
 	]);
 }
 
@@ -127,7 +127,7 @@ describe('Team Service:', () => {
 
 				// Do this here because of issues using extended mongo schema in tests
 				if (k === 'explicit') {
-					return TeamMember.update(
+					return TeamMember.updateOne(
 						{ _id: e._id },
 						{ $addToSet: { teams: new TeamRole({ _id: team.teamWithNoExternalTeam._id, role: 'member' }) } }
 						)
