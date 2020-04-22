@@ -104,6 +104,8 @@ const passwordMessage = 'Password must be at least 6 characters long';
  *           default: null
  *         id:
  *           type: string
+ *         preferences:
+ *           type: object
  */
 const UserSchema = new GetterSchema({
 	name: {
