@@ -434,4 +434,35 @@ describe('Utils:', () => {
 			});
 		});
 	});
+
+	describe('removeStringsEndingWithWildcard:', () => {
+		[{
+			input: null,
+			name: 'should handle null input with default',
+			expected: {
+				input: null,
+				output: []
+			}
+		}, {
+			input: ['foo'],
+			name: 'should leave original list as is and return empty list if no strings ending in wildcard',
+			expected: {
+				input: ['foo'],
+				output: []
+			}
+		}, {
+			input: ['foo*', 'bar'],
+			name: 'should remove strings ending with wildcard from input and add them to output list',
+			expected: {
+				input: ['bar'],
+				output: ['foo*']
+			}
+		}].forEach((test) => {
+			it(test.name, () => {
+				const actual = util.removeStringsEndingWithWildcard(test.input);
+				should(test.input).containDeep(test.expected.input);
+				should(actual).containDeep(test.expected.output);
+			});
+		});
+	});
 });

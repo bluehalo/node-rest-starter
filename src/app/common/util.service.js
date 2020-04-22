@@ -358,3 +358,14 @@ module.exports.getPagingResults = (pageSize, pageNumber, totalSize, elements) =>
 		elements
 	};
 };
+
+/**
+ * Given an array of values, remove the values ending with a wildcard character (*)
+ * @param stringArray {Array} - an array of string values
+ * @return {Array} - an array of the strings removed from the input list because they end with a '*' character
+ */
+module.exports.removeStringsEndingWithWildcard = (stringArray) => {
+	return _.remove(stringArray, (value) => {
+		return _.endsWith(value, '*');
+	});
+};
