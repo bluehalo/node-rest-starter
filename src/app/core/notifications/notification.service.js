@@ -10,7 +10,7 @@ const
 	Notification = dbs.admin.model('Notification');
 
 function doSearch(query, sortParams, page, limit) {
-	const countPromise = Notification.find(query).count();
+	const countPromise = Notification.find(query).countDocuments();
 	let searchPromise = Notification.find(query);
 
 	if (sortParams) {

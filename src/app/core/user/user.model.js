@@ -256,7 +256,7 @@ UserSchema.pre('save', function(next) {
 
 	// If the password is modified and it is valid, then re- salt/hash it
 	if (user.isModified('password') && validatePassword.call(user, user.password)) {
-		user.salt = new Buffer(crypto.randomBytes(16).toString('base64'), 'base64');
+		user.salt = Buffer.from(crypto.randomBytes(16).toString('base64'), 'base64');
 		user.password = user.hashPassword(user.password);
 	}
 

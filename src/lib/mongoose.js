@@ -40,7 +40,14 @@ function getDbSpec(dbSpecName, dbConfigs) {
 	const dbSpec = dbConfigs[dbSpecName];
 
 	const connectionString = _.has(dbSpec, 'uri') ? dbSpec.uri : dbSpec;
-	const options = _.has(dbSpec, 'options') ? dbSpec.options : { useNewUrlParser: true };
+	const options = {
+		useNewUrlParser: true,
+		useUnifiedTopology: true,
+		useFindAndModify: false
+	};
+	if (_.has(dbSpec, 'options')) {
+		Object.assign(options, dbSpec.options);
+	}
 
 	return {
 		name: dbSpecName,

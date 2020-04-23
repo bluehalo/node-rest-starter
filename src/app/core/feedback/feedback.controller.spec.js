@@ -19,7 +19,7 @@ describe('Feedback Controller', () => {
 		username: 'some-user'
 	});
 
-	const clearDB = () => Feedback.remove({});
+	const clearDB = () => Feedback.deleteMany({});
 
 	const spec = [];
 
@@ -136,7 +136,7 @@ describe('Feedback Controller', () => {
 		let savedFeedback;
 
 		before(() => {
-			return Feedback.remove()
+			return Feedback.deleteMany({})
 				.then(() => {
 					return new Feedback({
 						body: 'testing',

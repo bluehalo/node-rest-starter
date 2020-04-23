@@ -318,8 +318,8 @@ module.exports = function() {
 
 		// Delete the team and update all members in the team
 		return Promise.all([
-			team.remove(),
-			TeamMember.update(
+			team.deleteMany({}),
+			TeamMember.updateOne(
 				{'teams._id': team._id },
 				{ $pull: { teams: { _id: team._id } } }
 			)
@@ -429,7 +429,7 @@ module.exports = function() {
 		// Audit the member add request
 		await auditService.audit(`team ${role} added`, 'team-role', 'user add', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, role), headers);
 
-		return TeamMember.update({ _id: user._id }, { $addToSet: { teams: new TeamRole({ _id: team._id, role: role }) } }).exec();
+		return TeamMember.updateOne({ _id: user._id }, { $addToSet: { teams: new TeamRole({ _id: team._id, role: role }) } }).exec();
 	}
 
 	const addMembersToTeam = (users, team, requester, headers) => {
@@ -476,7 +476,7 @@ module.exports = function() {
 		await auditService.audit('team member removed', 'team-role', 'user remove', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, ''), headers);
 
 		// Apply the update
-		return TeamMember.update({_id: user._id}, {$pull: {teams: {_id: team._id}}}).exec();
+		return TeamMember.updateOne({ _id: user._id }, { $pull: { teams: { _id: team._id } } }).exec();
 	}
 
 	async function sendRequestEmail(toEmail, requester, team, req) {

@@ -17,7 +17,7 @@ const
  */
 function clearDatabase() {
 	return Promise.all([
-		CacheEntry.remove()
+		CacheEntry.deleteMany({})
 	]);
 }
 
