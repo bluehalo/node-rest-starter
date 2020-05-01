@@ -61,14 +61,8 @@ module.exports = function() {
 		return q.all([
 			Resource.find(query).countDocuments(),
 			Resource.find(query).sort(sortParams).collation({caseLevel: true, locale: 'en'}).skip(offset).limit(limit)
-		]).then((results) => {
-			return q({
-				totalSize: results[0],
-				pageNumber: page,
-				pageSize: limit,
-				totalPages: Math.ceil(results[0]/limit),
-				elements: results[1]
-			});
+		]).then(([countResult, searchResult]) => {
+			return q(util.getPagingResults(page, limit, countResult, searchResult));
 		});
 	}
 
@@ -120,13 +114,8 @@ module.exports = function() {
 			Resource.aggregate(resultAggregation)
 		]).then((results) => {
 			const totalSize = _.get(results, '[0][0].total', 0);
-			return q({
-				totalSize: totalSize,
-				pageNumber: page,
-				pageSize: limit,
-				totalPages: Math.ceil(totalSize/limit),
-				elements: results[1].map((result) => result._id)
-			});
+			const elements = results[1].map((result) => result._id);
+			return q(util.getPagingResults(limit, page, totalSize, elements));
 		});
 	}
 

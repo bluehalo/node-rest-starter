@@ -23,14 +23,8 @@ function doSearch(query, sortParams, page, limit) {
 	}
 
 	return q.all([ countPromise, searchPromise ])
-		.then((results) => {
-			return q({
-				totalSize: results[0],
-				pageNumber: page,
-				pageSize: limit,
-				totalPages: Math.ceil(results[0] / limit),
-				elements: results[1]
-			});
+		.then(([countResult, searchResult]) => {
+			return q(util.getPagingResults(limit, page, countResult, searchResult));
 		});
 }
 

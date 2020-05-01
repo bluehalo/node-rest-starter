@@ -157,37 +157,30 @@ describe('Utils:', () => {
 
 		[{
 			inputQueryParams: null,
-			inputMaxSize: null,
 			expected: defaultLimit,
 			name: 'should handle null values with default'
 		}, {
 			inputQueryParams: {},
-			inputMaxSize: null,
 			expected: defaultLimit,
 			name: 'should handle empty values with default'
 		}, {
 			inputQueryParams: { size: -5 },
-			inputMaxSize: null,
 			expected: 1,
 			name: 'should return 1 for negative values'
 		}, {
 			inputQueryParams: { size: 0 },
-			inputMaxSize: null,
 			expected: 1,
 			name: 'should return 1 for zero values'
 		}, {
 			inputQueryParams: { size: 5 },
-			inputMaxSize: null,
 			expected: 5,
 			name: 'should return value for positive input'
 		}, {
 			inputQueryParams: { size: 'twenty' },
-			inputMaxSize: null,
 			expected: defaultLimit,
 			name: 'should return default for string'
 		}, {
 			inputQueryParams: { size: 10000000 },
-			inputMaxSize: null,
 			expected: defaultMax,
 			name: 'should cap limit to default max'
 		}, {
@@ -202,6 +195,60 @@ describe('Utils:', () => {
 			});
 		});
 	});
+
+	describe('getSort:', () => {
+		[{
+			input: null,
+			expected: null,
+			name: 'should return null for null params '
+		}, {
+			input: {},
+			expected: null,
+			name: 'should return null for empty params'
+		}].forEach((test) => {
+			it(test.name, () => {
+				const actual = util.getSort(test.input);
+				should(actual).equal(test.expected);
+			});
+		});
+
+		[{
+			input: { sort: 'field1', dir: 'DESC' },
+			expected: [{property: 'field1', direction: 'DESC'}],
+			name: 'should create sort array from request parameters'
+		}, {
+			input: { sort: 'field1' },
+			expected: [{property: 'field1', direction: 'ASC'}],
+			name: 'should use default sort'
+		}, {
+			input: { sort: 'field1' },
+			defaultDir: 'DESC',
+			expected: [{property: 'field1', direction: 'DESC'}],
+			name: 'should use override default dir'
+		}, {
+			input: {},
+			defaultSort: 'field1',
+			expected: [{property: 'field1', direction: 'ASC'}],
+			name: 'should use override default sort'
+		}, {
+			input: {},
+			defaultDir: 'DESC',
+			defaultSort: 'field1',
+			expected: [{property: 'field1', direction: 'DESC'}],
+			name: 'should use override default sort and dir'
+		}].forEach((test) => {
+			it(test.name, () => {
+				const actual = util.getSort(test.input, test.defaultDir, test.defaultSort);
+				should.exist(actual);
+				actual.should.be.Array();
+				test.expected.forEach((item, index) => {
+					item.property.should.equal(actual[index].property);
+					item.direction.should.equal(actual[index].direction);
+				});
+			});
+		});
+	});
+
 
 	describe('contains:', () => {
 		[{
@@ -383,10 +430,6 @@ describe('Utils:', () => {
 
 	describe('getPagingResults:', () => {
 		[{
-			pageSize: null,
-			pageNumber: null,
-			totalSize: null,
-			elements: null,
 			expected: {
 				pageSize: 20,
 				pageNumber: 0,
@@ -394,7 +437,7 @@ describe('Utils:', () => {
 				totalPages: 0,
 				elements: []
 			},
-			name: 'should handle null values with defaults'
+			name: 'should handle undefined values with defaults'
 		}, {
 			pageSize: 10,
 			pageNumber: 10,

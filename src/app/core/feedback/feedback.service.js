@@ -5,7 +5,7 @@ const
 	dbs = deps.dbs,
 	config = deps.config,
 	emailService = deps.emailService,
-	utilService = deps.utilService,
+	util = deps.utilService,
 	logger = deps.logger,
 	Feedback = dbs.admin.model('Feedback');
 
@@ -50,11 +50,10 @@ const create = async (reqUser, newFeedback, userSpec) => {
 
 const search = async (reqUser, queryParams, query) => {
 	query = query || {};
-	const page = utilService.getPage(queryParams);
-	const limit = utilService.getLimit(queryParams, 100);
-
+	const page = util.getPage(queryParams);
+	const limit = util.getLimit(queryParams, 100);
+	const sortArr = util.getSort(queryParams);
 	const offset = page * limit;
-	const sortArr = [{ property: queryParams.sort, direction: queryParams.dir }];
 
 	// Query for feedback
 	const feedback = await Feedback.search(query, null, limit, offset, sortArr, true, {
@@ -62,16 +61,7 @@ const search = async (reqUser, queryParams, query) => {
 		select: ['name', 'email']
 	});
 
-	const searchResults = {
-		totalSize: feedback.count,
-		pageNumber: page,
-		pageSize: limit,
-		totalPages: Math.ceil(feedback.count / limit)
-	};
-
-	searchResults.elements = feedback.results;
-
-	return searchResults;
+	return util.getPagingResults(limit, page, feedback.count, feedback.results);
 };
 
 module.exports = {
