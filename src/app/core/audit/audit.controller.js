@@ -32,27 +32,9 @@ exports.search = function(req, res) {
 	let query = req.body.q || {};
 	query = util.toMongoose(query);
 
-	// Get the limit provided by the user, if there is one.
-	// Limit has to be at least 1 and no more than 100.
-	let limit = Math.floor(req.query.size);
-	if (null == limit || isNaN(limit)) {
-		limit = 20;
-	}
-	limit = Math.max(1, Math.min(100, limit));
-
-	// default sorting by ID
-	let sortArr = [{ property: '_id', direction: 'DESC' }];
-	if(null != req.query.sort && null != req.query.dir) {
-		sortArr = [{ property:  req.query.sort, direction: req.query.dir }];
-	}
-
-	// Page needs to be positive and has no upper bound
-	let page = req.query.page;
-	if (null == page){
-		page = 0;
-	}
-	page = Math.max(0, page);
-
+	const page = util.getPage(req.query);
+	const limit = util.getLimit(req.query);
+	const sortArr = util.getSort(req.query, 'DESC', '_id');
 	const offset = page * limit;
 
 	Audit.search(query, search, limit, offset, sortArr).then((result) => {
@@ -72,14 +54,7 @@ exports.search = function(req, res) {
 		});
 
 		// success
-		const toReturn = {
-			hasMore: result.count > result.results.length,
-			elements: results,
-			totalSize: result.count,
-			pageNumber: page,
-			pageSize: limit,
-			totalPages: Math.ceil(result.count / limit)
-		};
+		const toReturn = util.getPagingResults(page, limit, result.count, results);
 
 		// Serialize the response
 		res.status(200).json(toReturn);

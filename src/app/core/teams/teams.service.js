@@ -263,14 +263,8 @@ module.exports = function() {
 	async function getTeams(queryParams) {
 		const page = util.getPage(queryParams);
 		const limit = util.getLimit(queryParams, 1000);
-
+		const sortArr = util.getSort(queryParams, 'DESC', '_id');
 		const offset = page * limit;
-
-		// Default to sorting by ID
-		let sortArr = [{property: '_id', direction: 'DESC'}];
-		if (null != queryParams.sort && null != queryParams.dir) {
-			sortArr = [{property: queryParams.sort, direction: queryParams.dir}];
-		}
 
 		// Query for Teams
 		const teams = await Team.search({}, null, limit, offset, sortArr);
@@ -329,14 +323,8 @@ module.exports = function() {
 	async function searchTeams(search, query, queryParams, user) {
 		const page = util.getPage(queryParams);
 		const limit = util.getLimit(queryParams, 1000);
-
+		const sortArr = util.getSort(queryParams, 'DESC', '_id');
 		const offset = page * limit;
-
-		// Default to sorting by ID
-		let sortArr = [{property: '_id', direction: 'DESC'}];
-		if (null != queryParams.sort && null != queryParams.dir) {
-			sortArr = [{property: queryParams.sort, direction: queryParams.dir}];
-		}
 
 		// If user is not an admin, constrain the results to the user's teams
 		if (!userAuthService.hasRoles(user, ['admin'], config.auth)) {
@@ -367,14 +355,8 @@ module.exports = function() {
 	async function searchTeamMembers(search, query, queryParams, team) {
 		const page = util.getPage(queryParams);
 		const limit = util.getLimit(queryParams);
-
+		const sortArr = util.getSort(queryParams, 'DESC', '_id');
 		const offset = page * limit;
-
-		// Default to sorting by ID
-		let sortArr = [{property: '_id', direction: 'DESC'}];
-		if (null != queryParams.sort && null != queryParams.dir) {
-			sortArr = [{property: queryParams.sort, direction: queryParams.dir}];
-		}
 
 		// Inject the team query parameters
 		// Finds members explicitly added to the team using the id OR

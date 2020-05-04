@@ -183,10 +183,9 @@ module.exports.dateParse = function (date) {
  * @param maxSize (optional) default: 100
  * @returns {number}
  */
-module.exports.getLimit = function (queryParams, maxSize) {
-	const max = maxSize || 100;
+module.exports.getLimit = function (queryParams, maxSize = 100) {
 	const limit = _.get(queryParams, 'size', 20);
-	return isNaN(limit) ? 20 : Math.max(1, Math.min(max, Math.floor(limit)));
+	return isNaN(limit) ? 20 : Math.max(1, Math.min(maxSize, Math.floor(limit)));
 };
 
 /**
@@ -197,6 +196,25 @@ module.exports.getLimit = function (queryParams, maxSize) {
 module.exports.getPage = function (queryParams) {
 	const page = _.get(queryParams, 'page', 0);
 	return isNaN(page) ? 0 : Math.max(0, page);
+};
+
+/**
+ * Get the sort provided by the user, if there is one.
+ * Limit has to be at least 1 and no more than 100, with
+ * a default value of 20.
+ *
+ * @param queryParams
+ * @param defaultDir (optional) default: ASC
+ * @param defaultSort (optional)
+ * @returns {Array}
+ */
+module.exports.getSort = function (queryParams, defaultDir = 'ASC', defaultSort) {
+	const sort = _.get(queryParams, 'sort', defaultSort);
+	const dir = _.get(queryParams, 'dir', defaultDir);
+	if (!sort) {
+		return null;
+	}
+	return [{ property: sort, direction: dir }];
 };
 
 /**
@@ -341,12 +359,7 @@ module.exports.submitPostRequest = (httpOpts, postBody) => {
 	return defer.promise;
 };
 
-module.exports.getPagingResults = (pageSize, pageNumber, totalSize, elements) => {
-	pageSize = pageSize || 20;
-	pageNumber = pageNumber || 0;
-	totalSize = totalSize || 0;
-	elements = elements || [];
-
+module.exports.getPagingResults = (pageSize = 20, pageNumber = 0, totalSize = 0, elements = []) => {
 	if (totalSize === 0) {
 		pageNumber = 0;
 	}

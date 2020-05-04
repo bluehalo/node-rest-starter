@@ -23,18 +23,8 @@ module.exports.searchEuas = (req, res) => {
 
 	const page = util.getPage(req.query);
 	const limit = util.getLimit(req.query);
-	const sort = req.query.sort;
-	let dir = req.query.dir;
-
-	// Sort can be null, but if it's non-null, dir defaults to DESC
-	if (null != sort && dir == null) { dir = 'DESC'; }
-
-	// Create the variables to the search call
+	const sortArr = util.getSort(req.query, 'DESC');
 	const offset = page * limit;
-	let sortArr;
-	if (null != sort) {
-		sortArr = [{ property: sort, direction: dir }];
-	}
 
 	UserAgreement.search(query, search, limit, offset, sortArr)
 		.then(
