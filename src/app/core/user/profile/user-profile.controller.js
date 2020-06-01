@@ -34,7 +34,7 @@ function searchUsers(req, res, copyUserFn) {
 	const sortArr = util.getSort(req.query, 'DESC');
 	const offset = page * limit;
 
-	User.search(query, search, limit, offset, sortArr).then((result) => {
+	User.textSearch(query, search, limit, offset, sortArr).then((result) => {
 
 		// Create the return copy of the users
 		const users = [];
@@ -200,7 +200,7 @@ exports.matchUsers = (req, res) => {
 	const sortArr = util.getSort(req.query);
 	const offset = page * limit;
 
-	User.containsQuery(query, ['name', 'username', 'email'], search, limit, offset, sortArr).then((result) => {
+	User.containsSearch(query, ['name', 'username', 'email'], search, limit, offset, sortArr).then((result) => {
 
 		// Create the return copy of the users
 		const users = [];

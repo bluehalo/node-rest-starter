@@ -4,10 +4,10 @@ const
 	_ = require('lodash'),
 	mongoose = require('mongoose'),
 
+	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	util = deps.utilService,
-	query = deps.queryService,
 	GetterSchema = deps.schemaService.GetterSchema,
 
 	UserModel = require('../user/user.model'),
@@ -87,6 +87,8 @@ const TeamSchema = new GetterSchema({
 	}
 });
 
+TeamSchema.plugin(pagingSearchPlugin);
+
 
 /**
  * Index declarations
@@ -107,12 +109,6 @@ TeamSchema.index({ name: 'text', description: 'text' });
 /**
  * Static Methods
  */
-
-
-// Search teams by text and other criteria
-TeamSchema.statics.search = function(queryTerms, searchTerms, limit, offset, sortArr) {
-	return query.search(this, queryTerms, searchTerms, limit, offset, sortArr);
-};
 
 // Copy Team for creation
 TeamSchema.statics.createCopy = function(team) {

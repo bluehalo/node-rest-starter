@@ -267,7 +267,7 @@ module.exports = function() {
 		const offset = page * limit;
 
 		// Query for Teams
-		const teams = await Team.search({}, null, limit, offset, sortArr);
+		const teams = await Team.textSearch({}, null, limit, offset, sortArr);
 
 		return util.getPagingResults(limit, page, teams.count, teams.results);
 	}
@@ -347,7 +347,7 @@ module.exports = function() {
 			};
 		}
 
-		const result = await Team.search(query, search, limit, offset, sortArr);
+		const result = await Team.textSearch(query, search, limit, offset, sortArr);
 
 		return result == null ? util.getPagingResults(limit) : util.getPagingResults(limit, page, result.count, result.results);
 	}
@@ -389,7 +389,7 @@ module.exports = function() {
 			});
 		}
 
-		const results = await TeamMember.search(query, search, limit, offset, sortArr);
+		const results = await TeamMember.textSearch(query, search, limit, offset, sortArr);
 
 		// Create the return copy of the users
 		const members = results.results.map((result) => TeamMember.teamCopy(result, team._id));

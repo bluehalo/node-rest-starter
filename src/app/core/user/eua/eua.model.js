@@ -2,10 +2,9 @@
 
 const
 	mongoose = require('mongoose'),
-
+	pagingSearchPlugin = require('../../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../../dependencies'),
 	util = deps.utilService,
-	query = deps.queryService,
 	GetterSchema = deps.schemaService.GetterSchema;
 
 /**
@@ -39,6 +38,8 @@ const UserAgreementSchema = new GetterSchema({
 	}
 });
 
+UserAgreementSchema.plugin(pagingSearchPlugin);
+
 
 /**
  * Index declarations
@@ -60,11 +61,6 @@ UserAgreementSchema.index({ title: 'text', text: 'text' });
 /**
  * Static Methods
  */
-
-//Search euas by text and other criteria
-UserAgreementSchema.statics.search = function(queryTerms, searchTerms, limit, offset, sortArr) {
-	return query.search(this, queryTerms, searchTerms, limit, offset, sortArr);
-};
 
 //Get the most recent eua
 const getCurrentEua = function() {

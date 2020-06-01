@@ -9,7 +9,7 @@ const
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	util = deps.utilService,
-	query = deps.queryService,
+	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	userAuthorizationService = require('./auth/user-authorization.service'),
 	GetterSchema = deps.schemaService.GetterSchema;
 
@@ -237,6 +237,7 @@ const UserSchema = new GetterSchema({
 	}
 });
 UserSchema.plugin(uniqueValidator);
+UserSchema.plugin(pagingSearchPlugin);
 
 /**
  * Index declarations
@@ -305,16 +306,6 @@ UserSchema.statics.hasRoles = function(user, roles){
 	}
 
 	return toReturn;
-};
-
-//Search users by text and other criteria
-UserSchema.statics.search = function(queryTerms, searchTerms, limit, offset, sortArr) {
-	return query.search(this, queryTerms, searchTerms, limit, offset, sortArr);
-};
-
-// Find users using a contains/wildcard regex on a fixed set of fields
-UserSchema.statics.containsQuery = function(queryTerms, fields, search, limit, offset, sortArr) {
-	return query.containsQuery(this, queryTerms, fields, search, limit, offset, sortArr);
 };
 
 // Filtered Copy of a User (public)

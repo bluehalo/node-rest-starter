@@ -56,7 +56,7 @@ const search = async (reqUser, queryParams, query) => {
 	const offset = page * limit;
 
 	// Query for feedback
-	const feedback = await Feedback.search(query, null, limit, offset, sortArr, true, {
+	const feedback = await Feedback.textSearch(query, null, limit, offset, sortArr, true, {
 		path: 'creator',
 		select: ['name', 'email']
 	});

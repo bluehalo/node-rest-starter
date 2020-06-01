@@ -9,8 +9,31 @@ const
 	logger = deps.logger,
 
 	User = dbs.admin.model('User'),
-	queryMongoService = require('../../../common/query.service'),
 	preferenceService = require('./preference.service');
+
+/**
+ * Query for multiple documents by ID and get results as a map from id -> result.
+ * @param schema
+ * @param ids
+ * @param fieldsToReturn Optional array of fields to include in results. If empty will include all fields.
+ * @param lean If true, will return as plain javascript objects instead of mongoose docs
+ * @returns {Promise}
+ */
+const getAllByIdAsMap = function(ids, fieldsToReturn, lean) {
+	fieldsToReturn = fieldsToReturn || [];
+
+	const projection = {};
+	fieldsToReturn.forEach((field) => {
+		projection[field] = 1;
+	});
+
+	let promise = User.find( { _id: { $in: ids } }, projection );
+	if (lean) {
+		promise = promise.lean();
+	}
+
+	return promise.then((results) => _.keyBy(results, (result) => result._id));
+};
 
 /**
  * Clean up orphaned preferences (referenced user no longer exists)
@@ -21,7 +44,7 @@ module.exports.run = function() {
 		.then((preferences) => {
 			if (_.isArray(preferences)) {
 				const userIds = _.uniqBy(preferences.map((preference) => preference.user), (id) => id.toString());
-				return queryMongoService.getAllByIdAsMap(User, userIds, ['_id'])
+				return getAllByIdAsMap(userIds, ['_id'])
 					.then((users) => {
 						const removals = [];
 						preferences.forEach((preference) => {

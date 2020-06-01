@@ -85,6 +85,7 @@
     "nodemon": "^2.0.3",
     "nyc": "14.1.1",
     "proxyquire": "2",
+    "rewire": "^5.0.0",
     "should": "13",
     "sinon": "7",
     "supertest": "3.3"

@@ -1,10 +1,10 @@
 'use strict';
 
-const mongoose = require('mongoose'),
-
+const
+	mongoose = require('mongoose'),
+	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
 	util = deps.utilService,
-	query = deps.queryService,
 
 	GetterSchema = deps.schemaService.GetterSchema;
 
@@ -35,6 +35,8 @@ const AuditSchema = new GetterSchema({
 	}
 });
 
+AuditSchema.plugin(pagingSearchPlugin);
+
 /**
  * Index declarations
  */
@@ -59,11 +61,6 @@ AuditSchema.index({ 'message': 'text', 'audit.auditType': 'text', 'audit.action'
 /*****************
  * Static Methods
  *****************/
-
-// Search audit events by text and other criteria
-AuditSchema.statics.search = function(queryTerms, searchTerms, limit, offset, sortArr) {
-	return query.search(this, queryTerms, searchTerms, limit, offset, sortArr);
-};
 
 /**
  * Register the Schema with Mongoose
