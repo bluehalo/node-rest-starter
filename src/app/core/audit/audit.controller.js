@@ -37,7 +37,7 @@ exports.search = function(req, res) {
 	const sortArr = util.getSort(req.query, 'DESC', '_id');
 	const offset = page * limit;
 
-	Audit.search(query, search, limit, offset, sortArr).then((result) => {
+	Audit.textSearch(query, search, limit, offset, sortArr).then((result) => {
 		// If any audit objects are strings, try to parse them as json. we may have stringified objects because mongo
 		// can't support keys with dots
 		const results = result.results.map((doc) => {

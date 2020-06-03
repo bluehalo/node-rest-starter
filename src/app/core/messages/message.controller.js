@@ -139,7 +139,7 @@ exports.search = function(req, res) {
 	const sortArr = util.getSort(req.query, 'DESC');
 	const offset = page * limit;
 
-	Message.search(query, search, limit, offset, sortArr).then((result) => {
+	Message.textSearch(query, search, limit, offset, sortArr).then((result) => {
 
 		// Create the return copy of the messages
 		const messages = [];

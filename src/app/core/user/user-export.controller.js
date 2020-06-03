@@ -73,7 +73,7 @@ exports.adminGetCSV = (req, res) => {
 				}
 			});
 
-			return TeamMember.search(query, search, null, null, sortArr)
+			return TeamMember.textSearch(query, search, null, null, sortArr)
 				.then((userResult) => {
 					// Process user data to be usable for CSV
 					userData = (null != userResult.results) ? userResult.results.map((user) => {
@@ -109,6 +109,5 @@ exports.adminGetCSV = (req, res) => {
 				});
 		}, (error) => {
 			utilService.handleErrorResponse(res, error);
-		})
-		.done();
+		});
 };

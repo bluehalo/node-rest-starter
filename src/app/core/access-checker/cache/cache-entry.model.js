@@ -2,10 +2,9 @@
 
 const
 	mongoose = require('mongoose'),
-
+	pagingSearchPlugin = require('../../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../../dependencies'),
 	util = deps.utilService,
-	query = deps.queryService,
 	GetterSchema = deps.schemaService.GetterSchema;
 
 /**
@@ -34,6 +33,7 @@ const CacheEntrySchema = new GetterSchema({
 	}
 });
 
+CacheEntrySchema.plugin(pagingSearchPlugin);
 
 
 /**
@@ -66,16 +66,6 @@ CacheEntrySchema.statics.fullCopy = function(entry) {
 	}
 
 	return toReturn;
-};
-
-//Search entries by text and other criteria
-CacheEntrySchema.statics.search = function(queryTerms, searchTerms, limit, offset, sortArr) {
-	return query.search(this, queryTerms, searchTerms, limit, offset, sortArr);
-};
-
-// Find entries using a contains/wildcard regex on a fixed set of fields
-CacheEntrySchema.statics.containsQuery = function(queryTerms, fields, search, limit, offset, sortArr) {
-	return query.containsQuery(this, queryTerms, fields, search, limit, offset, sortArr);
 };
 
 /**

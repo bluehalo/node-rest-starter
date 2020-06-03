@@ -24,7 +24,7 @@ module.exports.searchEntries = function(req, res) {
 	const sortArr = util.getSort(req.query, 'DESC');
 	const offset = page * limit;
 
-	CacheEntry.search(query, search, limit, offset, sortArr).then((result) => {
+	CacheEntry.textSearch(query, search, limit, offset, sortArr).then((result) => {
 
 		// Create the return copy of the users
 		const entries = [];
@@ -57,7 +57,7 @@ exports.matchEntries = function(req, res) {
 	const sortArr = util.getSort(req.query);
 	const offset = page * limit;
 
-	CacheEntry.containsQuery(query, ['key', 'valueString'], search, limit, offset, sortArr).then((result) => {
+	CacheEntry.containsSearch(query, ['key', 'valueString'], search, limit, offset, sortArr).then((result) => {
 
 		// Create the return copy of the users
 		const entries = [];

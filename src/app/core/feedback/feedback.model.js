@@ -1,10 +1,10 @@
 'use strict';
 
-const mongoose = require('mongoose'),
-
+const
+	mongoose = require('mongoose'),
+	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
 	util = deps.utilService,
-	query = deps.queryService,
 
 	GetterSchema = deps.schemaService.GetterSchema;
 
@@ -28,6 +28,8 @@ const FeedbackSchema = new GetterSchema({
 	browser: { type: String },
 	classification: { type: String }
 });
+
+FeedbackSchema.plugin(pagingSearchPlugin);
 
 /**
  * Index declarations
@@ -53,11 +55,6 @@ FeedbackSchema.index({ 'body': 'text' });
 /*****************
  * Static Methods
  *****************/
-
-// Search feedback by text and other criteria
-FeedbackSchema.statics.search = function(queryTerms, searchTerms, limit, offset, sortArr, runCount, populate) {
-	return query.search(this, queryTerms, searchTerms, limit, offset, sortArr, runCount, populate);
-};
 
 /**
  * Register the Schema with Mongoose

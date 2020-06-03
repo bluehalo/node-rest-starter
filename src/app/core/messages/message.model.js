@@ -4,11 +4,11 @@ const
 	_ = require('lodash'),
 	mongoose = require('mongoose'),
 
+	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
 	util = deps.utilService,
-	query = deps.queryService,
 
 	GetterSchema = deps.schemaService.GetterSchema;
 
@@ -50,6 +50,8 @@ const MessageSchema = new GetterSchema({
 		ref: 'User'
 	}
 });
+
+MessageSchema.plugin(pagingSearchPlugin);
 
 const DismissedMessageSchema = new GetterSchema({
 	messageId: {
@@ -118,10 +120,6 @@ MessageSchema.statics.fullCopy = function(src) {
 	newMessage._id = src._id;
 
 	return newMessage;
-};
-
-MessageSchema.statics.search = function(queryTerms, searchTerms, limit, offset, sortArr) {
-	return query.search(this, queryTerms, searchTerms, limit, offset, sortArr);
 };
 
 DismissedMessageSchema.statics.auditCopy = function(src) {

@@ -26,7 +26,7 @@ module.exports.searchEuas = (req, res) => {
 	const sortArr = util.getSort(req.query, 'DESC');
 	const offset = page * limit;
 
-	UserAgreement.search(query, search, limit, offset, sortArr)
+	UserAgreement.textSearch(query, search, limit, offset, sortArr)
 		.then(
 			(result) => {
 				return q(util.getPagingResults(limit, page, result.count, result.results));
@@ -37,8 +37,7 @@ module.exports.searchEuas = (req, res) => {
 			},
 			(err) => {
 				util.handleErrorResponse(res, err);
-			})
-		.done();
+			});
 };
 
 

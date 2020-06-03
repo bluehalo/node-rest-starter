@@ -64,7 +64,7 @@ module.exports.adminGetFeedbackCSV = async function(req, res) {
 		const query = (result.config.q) ? JSON.parse(result.config.q) : null;
 		const sortArr = [{property: result.config.sort, direction: result.config.dir}];
 
-		const feedbackResult = await Feedback.search(query, null, null, null, sortArr, true, {
+		const feedbackResult = await Feedback.textSearch(query, null, null, null, sortArr, true, {
 			path: 'creator',
 			select: ['username', 'organization', 'name', 'email']
 		});
