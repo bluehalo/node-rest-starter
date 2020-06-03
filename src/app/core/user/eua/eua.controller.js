@@ -1,125 +1,93 @@
 'use strict';
 
 const
-	q = require('q'),
-
 	deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
 	util = deps.utilService,
-	logger = deps.logger,
 	auditService = deps.auditService,
+	euaService = require('./eua.service'),
 
 	TeamMember = dbs.admin.model('TeamUser'),
 	User = dbs.admin.model('User'),
 	UserAgreement = dbs.admin.model('UserAgreement');
 
-
 // Search (Retrieve) all user Agreements
-module.exports.searchEuas = (req, res) => {
-
-	// Handle the query/search/page
+module.exports.searchEuas = async (req, res) => {
+	// Handle the query/search
 	const query = req.body.q;
 	const search = req.body.s;
 
-	const page = util.getPage(req.query);
-	const limit = util.getLimit(req.query);
-	const sortArr = util.getSort(req.query, 'DESC');
-	const offset = page * limit;
-
-	UserAgreement.textSearch(query, search, limit, offset, sortArr)
-		.then(
-			(result) => {
-				return q(util.getPagingResults(limit, page, result.count, result.results));
-			})
-		.then(
-			(results) => {
-				res.status(200).json(results);
-			},
-			(err) => {
-				util.handleErrorResponse(res, err);
-			});
+	try {
+		const results = await euaService.search(req.query, query, search);
+		res.status(200).json(results);
+	} catch(err) {
+		util.handleErrorResponse(res, err);
+	}
 };
-
 
 // Publish the EUA
-module.exports.publishEua = (req, res) => {
+module.exports.publishEua = async (req, res) => {
 	// The eua is placed into this parameter by the middleware
 	const eua = req.euaParam;
-	eua.published = Date.now();
 
-	eua.save()
-		.then(
-			(results) => {
-				res.status(200).json(results);
-			},
-			(err) => {
-				util.handleErrorResponse(res, err);
-			})
-		.done();
+	if (null == eua) {
+		return util.handleErrorResponse(res, {
+			status: 400,
+			type: 'error',
+			message: 'Could not find end user agreement'
+		});
+	}
+
+	try {
+		const result = await euaService.publishEua(eua);
+
+		// Audit eua create
+		await auditService.audit('eua published', 'eua', 'published', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), UserAgreement.auditCopy(result), req.headers);
+
+		res.status(200).json(result);
+	} catch(err) {
+		util.handleErrorResponse(res, err);
+	}
+
 };
 
-
 // Accept the current EUA
-module.exports.acceptEua = (req, res) => {
-	// Make sure the user is logged in
-	if (null == req.user) {
-		util.handleErrorResponse(res, { status: 400, type: 'error', message: 'User is not signed in' });
-	}
-	else {
+module.exports.acceptEua = async (req, res) => {
+	try {
+		const user = await euaService.acceptEua(req.user);
+
 		// Audit accepted eua
-		auditService.audit('eua accepted', 'eua', 'accepted', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), {}, req.headers).then(
-			() => {
-				return User.findOneAndUpdate(
-					{ _id: req.user._id },
-					{ acceptedEua: Date.now() },
-					{ new: true, upsert: false }).exec();
-			})
-			.then(
-				(user) => {
-					res.status(200).json(User.fullCopy(user));
-				},
-				(err) => {
-					util.handleErrorResponse(res, err);
-				})
-			.done();
+		await auditService.audit('eua accepted', 'eua', 'accepted', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), {}, req.headers);
+
+		res.status(200).json(User.fullCopy(user));
+	} catch(err) {
+		util.handleErrorResponse(res, err);
 	}
 };
 
 // Create a new User Agreement
-module.exports.createEua = (req, res) => {
-	const eua = new UserAgreement(req.body);
-	eua.created = Date.now();
-	eua.updated = eua.created;
+module.exports.createEua = async (req, res) => {
+	try {
+		const result = euaService.create(req.body);
 
-	// Audit eua creates
-	auditService.audit('eua create', 'eua', 'create', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), UserAgreement.auditCopy(eua), req.headers).then(
-		() => {
-			return eua.save();
-		})
-		.then(
-			(results) => {
-				res.status(200).json(results);
-			},
-			(err) => {
-				util.handleErrorResponse(res, err);
-			})
-		.done();
+		// Audit eua create
+		await auditService.audit('eua create', 'eua', 'create', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), UserAgreement.auditCopy(result), req.headers);
+
+		res.status(200).json(result);
+	} catch (err) {
+		util.handleErrorResponse(res, err);
+	}
 };
-
 
 // Retrieve the Current User Agreement
-module.exports.getCurrentEua = (req, res) => {
-	UserAgreement.getCurrentEua()
-		.then(
-			(results) => {
-				res.status(200).json(results);
-			},
-			(err) => {
-				util.handleErrorResponse(res, err);
-			})
-		.done();
+module.exports.getCurrentEua = async (req, res) => {
+	try {
+		const results = await euaService.getCurrentEua();
+		res.status(200).json(results);
+	} catch(err) {
+		util.handleErrorResponse(res, err);
+	}
 };
-
 
 // Retrieve the arbitrary User Agreement
 module.exports.getEuaById = (req, res) => {
@@ -127,112 +95,82 @@ module.exports.getEuaById = (req, res) => {
 	const eua = req.euaParam;
 
 	if (null == eua) {
-		util.handleErrorResponse(res, { status: 400, type: 'error', message: 'End User Agreement does not exist' });
+		return util.handleErrorResponse(res, { status: 400, type: 'error', message: 'End User Agreement does not exist' });
 	}
-	else {
-		res.status(200).json(eua);
-	}
+	res.status(200).json(eua);
 };
-
 
 // Update a User Agreement
-module.exports.updateEua = (req, res) => {
+module.exports.updateEua = async (req, res) => {
 	// The eua is placed into this parameter by the middleware
 	const eua = req.euaParam;
 
-	// A copy of the original eua for auditing
-	const originalEua = UserAgreement.auditCopy(eua);
-
 	if (null == eua) {
-		util.handleErrorResponse(res, { status: 400, type: 'error', message: 'Could not find end user agreement' });
+		return util.handleErrorResponse(res, { status: 400, type: 'error', message: 'Could not find end user agreement' });
 	}
-	else {
-		// Copy over the new user properties
-		eua.text = req.body.text;
-		eua.title = req.body.title;
+	try {
+		// A copy of the original eua for auditing
+		const originalEua = UserAgreement.auditCopy(eua);
 
-		// Update the updated date
-		eua.updated = Date.now();
+		const results = await euaService.update(eua, req.body);
 
 		// Audit user update
-		auditService.audit('end user agreement updated', 'eua', 'update', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), {
+		await auditService.audit('end user agreement updated', 'eua', 'update', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), {
 			before: originalEua,
-			after: UserAgreement.auditCopy(eua)
-		}, req.headers).then(
-			() => {
-				return eua.save();
-			})
-			.then(
-				(results) => {
-					res.status(200).json(results);
-				},
-				(err) => {
-					util.handleErrorResponse(res, err);
-				})
-			.done();
+			after: UserAgreement.auditCopy(results)
+		}, req.headers);
+
+		res.status(200).json(results);
+	} catch (err) {
+		util.handleErrorResponse(res, err);
 	}
 };
 
-
 // Delete a User Agreement
-module.exports.deleteEua = (req, res) => {
+module.exports.deleteEua = async (req, res) => {
 	// The eua is placed into this parameter by the middleware
 	const eua = req.euaParam;
 
 	if (null == eua) {
-		util.handleErrorResponse(res, { status: 400, type: 'error', message: 'Could not find end user agreement' });
+		return util.handleErrorResponse(res, { status: 400, type: 'error', message: 'Could not find end user agreement' });
 	}
-	else {
+	try {
+		const results = await euaService.remove(eua);
+
 		// Audit eua delete
-		auditService.audit('eua deleted', 'eua', 'delete', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), UserAgreement.auditCopy(eua), req.headers).then(
-			() => {
-				return eua.remove();
-			})
-			.then(
-				(results) => {
-					res.status(200).json(results);
-				},
-				(err) => {
-					util.handleErrorResponse(res, err);
-				})
-			.done();
+		await auditService.audit('eua deleted', 'eua', 'delete', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), UserAgreement.auditCopy(eua), req.headers);
+
+		res.status(200).json(results);
+	} catch (err) {
+		util.handleErrorResponse(res, err);
 	}
 };
-
 
 // EUA middleware - stores user corresponding to id in 'euaParam'
-module.exports.euaById = (req, res, next, id) => {
-	UserAgreement.findOne({ _id: id })
-		.exec()
-		.then(
-			(eua) => {
-				if (null == eua) {
-					return next(new Error(`Failed to load User Agreement ${id}`));
-				}
-				req.euaParam = eua;
-				return next();
-			}, next);
+module.exports.euaById = async (req, res, next, id) => {
+	const eua = await euaService.read(id);
+	if (null == eua) {
+		return next(new Error(`Failed to load User Agreement ${id}`));
+	}
+	req.euaParam = eua;
+	return next();
 };
-
 
 /**
  * Check the state of the EUA
  */
-module.exports.requiresEua = (req) => {
-	return UserAgreement.getCurrentEua()
-		.then(
-			(result) => {
-				// Compare the current eua to the user's acceptance state
-				if (null == result || null == result.published || (req.user.acceptedEua && req.user.acceptedEua >= result.published)) {
-					// if the user's acceptance is valid, then proceed
-					return q();
-				} else {
-					return q.reject({ status: 403, type: 'eua', message: 'User must accept end-user agreement.'});
-				}
-			},
-			(error) => {
-				// Failure
-				logger.error(error);
-				return q.reject({ status: 500, type: 'error', error: error });
-			});
+module.exports.requiresEua = async (req) => {
+	let result;
+	try {
+		result = await euaService.getCurrentEua();
+	} catch (error) {
+		return Promise.reject({ status: 500, type: 'error', error: error });
+	}
+
+	// Compare the current eua to the user's acceptance state
+	if (null == result || null == result.published || (req.user.acceptedEua && req.user.acceptedEua >= result.published)) {
+		// if the user's acceptance is valid, then proceed
+		return Promise.resolve();
+	}
+	return Promise.reject({ status: 403, type: 'eua', message: 'User must accept end-user agreement.'});
 };

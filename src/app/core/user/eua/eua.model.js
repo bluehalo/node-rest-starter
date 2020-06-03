@@ -62,15 +62,6 @@ UserAgreementSchema.index({ title: 'text', text: 'text' });
  * Static Methods
  */
 
-//Get the most recent eua
-const getCurrentEua = function() {
-	return this.findOne({ 'published': { '$ne': null, '$exists': true } })
-		.sort({ 'published': -1 })
-		.exec();
-};
-UserAgreementSchema.statics.getCurrentEua = getCurrentEua;
-
-
 //Copy a user for audit logging
 UserAgreementSchema.statics.auditCopy = function(eua) {
 	const newEua = {};
