@@ -2,6 +2,8 @@ const
 	deps = require('../../../dependencies'),
 	config = deps.config;
 
+const MONGO_TIMEOUT_ERROR_CODE = 50;
+
 function escapeRegex(str) {
 	return (`${str}`).replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&');
 }
@@ -17,12 +19,22 @@ function generateSort(sortArr) {
 	}, {});
 }
 
-const pagingQuery = async (schema, filter, projection, options, sort, limit, offset, runCount = true, populate = []) => {
+const pagingQuery = async (schema, filter, projection, options, sort, limit, offset, runCount = true, populate = [], countTimeout = config.maxCountTimeMS) => {
 	// Build the queries
-	const countQuery = schema.find(filter);
+	const countQuery = schema.find(filter).maxTimeMS(countTimeout);
 	const resultsQuery = schema.find(filter, projection, options).sort(sort).skip(offset).limit(limit).maxTimeMS(config.maxTimeMS).populate(populate);
 
-	const countPromise = runCount ? countQuery.countDocuments().exec() : Promise.resolve(Number.MAX_SAFE_INTEGER);
+	const countPromise = runCount ?
+							countQuery.countDocuments().exec()
+										.catch((err) => {
+												// Hit timeout
+												if(err.code === MONGO_TIMEOUT_ERROR_CODE) {
+													return Promise.resolve(Number.MAX_SAFE_INTEGER);
+												}
+												else {
+													return err;
+												}
+											}) : Promise.resolve(Number.MAX_SAFE_INTEGER);
 	const resultsPromise = resultsQuery.exec();
 
 	const [count, results] = await Promise.all([countPromise, resultsPromise]);
@@ -31,7 +43,7 @@ const pagingQuery = async (schema, filter, projection, options, sort, limit, off
 };
 
 // Generic contains regex search
-const searchContainsQuery = (schema, query, fields, search, limit, offset, sortArr, runCount) => {
+const searchContainsQuery = (schema, query, fields, search, limit, offset, sortArr, runCount, countTimeout) => {
 	const filter = generateFilter(query);
 	const sort = generateSort(sortArr);
 	const projection = {};
@@ -48,11 +60,11 @@ const searchContainsQuery = (schema, query, fields, search, limit, offset, sortA
 		}
 	}
 
-	return pagingQuery(schema, filter, projection, options, sort, limit, offset, runCount);
+	return pagingQuery(schema, filter, projection, options, sort, limit, offset, runCount, countTimeout);
 };
 
 // Generic Full text search
-const searchTextQuery = (schema, query, search, limit, offset, sortArr, runCount, populate) => {
+const searchTextQuery = (schema, query, search, limit, offset, sortArr, runCount, populate, countTimeout) => {
 	const filter = generateFilter(query);
 	const sort = generateSort(sortArr);
 	const projection = {};
@@ -68,18 +80,18 @@ const searchTextQuery = (schema, query, search, limit, offset, sortArr, runCount
 		sort.score = { $meta: 'textScore' };
 	}
 
-	return pagingQuery(schema, filter, projection, options, sort, limit, offset, runCount, populate);
+	return pagingQuery(schema, filter, projection, options, sort, limit, offset, runCount, populate, countTimeout);
 };
 
 function pagingSearchPlugin(schema, options) {
 	// Search by text and other criteria
-	schema.statics.textSearch = function (queryTerms, searchTerms, limit, offset, sortArr, runCount, populate) {
-		return searchTextQuery(this, queryTerms, searchTerms, limit, offset, sortArr, runCount, populate);
+	schema.statics.textSearch = function (queryTerms, searchTerms, limit, offset, sortArr, runCount, populate, countTimeout) {
+		return searchTextQuery(this, queryTerms, searchTerms, limit, offset, sortArr, runCount, populate, countTimeout);
 	};
 
 	// Find using a contains/wildcard regex on a fixed set of fields
-	schema.statics.containsSearch = function (queryTerms, fields, search, limit, offset, sortArr) {
-		return searchContainsQuery(this, queryTerms, fields, search, limit, offset, sortArr);
+	schema.statics.containsSearch = function (queryTerms, fields, search, limit, offset, sortArr, runCount, countTimeout) {
+		return searchContainsQuery(this, queryTerms, fields, search, limit, offset, sortArr, runCount, countTimeout);
 	};
 }
 
