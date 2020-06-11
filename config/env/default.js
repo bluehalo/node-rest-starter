@@ -371,6 +371,11 @@ module.exports = {
 	maxTimeMS: 30000,
 
 	/*
+	 * The maximum time in milliseconds allowed for a count operation on the cursor by a mongo search/pagination query
+	 */
+	maxCountTimeMS: 5000,
+
+	/*
 	 * The maximum number of records allowed to be exported to csv
 	 */
 	maxExport: 1000,
