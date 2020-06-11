@@ -78,8 +78,8 @@ function pagingSearchPlugin(schema, options) {
 	};
 
 	// Find using a contains/wildcard regex on a fixed set of fields
-	schema.statics.containsSearch = function (queryTerms, fields, search, limit, offset, sortArr) {
-		return searchContainsQuery(this, queryTerms, fields, search, limit, offset, sortArr);
+	schema.statics.containsSearch = function (queryTerms, fields, search, limit, offset, sortArr, runCount) {
+		return searchContainsQuery(this, queryTerms, fields, search, limit, offset, sortArr, runCount);
 	};
 }
 
