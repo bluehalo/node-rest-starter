@@ -54,7 +54,7 @@ exports.search = function(req, res) {
 		});
 
 		// success
-		const toReturn = util.getPagingResults(page, limit, result.count, results);
+		const toReturn = util.getPagingResults(limit, page, result.count, results);
 
 		// Serialize the response
 		res.status(200).json(toReturn);
