@@ -23,7 +23,7 @@ function doSearch(query, sortParams, page, limit) {
 
 	return q.all([ countPromise, searchPromise ])
 		.then(([countResult, searchResult]) => {
-			return q(util.getPagingResults(page, limit, countResult, searchResult));
+			return q(util.getPagingResults(limit, page, countResult, searchResult));
 		});
 }
 

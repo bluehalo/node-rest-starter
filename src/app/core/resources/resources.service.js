@@ -62,7 +62,7 @@ module.exports = function() {
 			Resource.find(query).countDocuments(),
 			Resource.find(query).sort(sortParams).collation({caseLevel: true, locale: 'en'}).skip(offset).limit(limit)
 		]).then(([countResult, searchResult]) => {
-			return q(util.getPagingResults(page, limit, countResult, searchResult));
+			return q(util.getPagingResults(limit, page, countResult, searchResult));
 		});
 	}
 
