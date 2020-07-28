@@ -18,7 +18,7 @@ describe('Paging Search Plugin:', () => {
 			expected: 'abcdef',
 			description: 'Nothing to escape'
 		}, {
-			input: '.?*+^$[\]\\(){}|-',
+			input: '.?*+^$[]\\(){}|-',
 			expected: '\\.\\?\\*\\+\\^\\$\\[\\]\\\\\\(\\)\\{\\}\\|\\-',
 			description: 'All of the characters to escape'
 		}];

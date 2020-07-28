@@ -135,14 +135,14 @@ module.exports.get = function (id) {
 				}
 
 				// No result was found, so query access provider for it
-				q(provider.get(id)).then((result) => {
+				q(provider.get(id)).then((_result) => {
 					// Store it in the cache
-					saveToCache(id, result).then((cacheEntry) => {
+					saveToCache(id, _result).then((cacheEntry) => {
 						// Return the saved value if possible
-						defer.resolve((null != cacheEntry && null != cacheEntry.value)? cacheEntry.value : result);
+						defer.resolve((null != cacheEntry && null != cacheEntry.value)? cacheEntry.value : _result);
 					}, (err) => {
 						// To avoid failures, we will return the result even if the save to cache fails
-						defer.resolve(result);
+						defer.resolve(_result);
 					});
 				}, defer.reject).done();
 			} catch(ex) {

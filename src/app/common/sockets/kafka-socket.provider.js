@@ -260,8 +260,8 @@ KafkaSocket.prototype.unsubscribe = function(topic) {
 	// Unsubscribe from ALL topics
 	else {
 		logger.debug('%s: Closing connection to all topics', self.name);
-		_.forOwn(this._connections, (connection, topic) => {
-			logger.debug('%s: Closing connection to topic: %s', self.name, topic);
+		_.forOwn(this._connections, (connection, _topic) => {
+			logger.debug('%s: Closing connection to topic: %s', self.name, _topic);
 			connection.close();
 		});
 		this._connections = {};

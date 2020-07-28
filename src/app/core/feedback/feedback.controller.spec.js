@@ -21,19 +21,8 @@ describe('Feedback Controller', () => {
 
 	const clearDB = () => Feedback.deleteMany({});
 
-	const spec = [];
-
 	before(clearDB);
 	after(clearDB);
-
-	before(() => {
-		// Reduce to insert them in order
-		return spec.reduce((promise, spec) => {
-			return promise.then((res) => {
-				return new Feedback(spec).save().then(Array.prototype.concat.bind(res));
-			});
-		}, Promise.resolve([]));
-	});
 
 	before(() => {
 		app = express();

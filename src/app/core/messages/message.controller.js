@@ -60,6 +60,8 @@ function sendMessage(message) {
 	// Turn Mongo models into regular objects before we serialize
 	if (null != message && null != message.toObject) {
 		message = message.toObject();
+	} else {
+		throw new Error('\'message\' parameter must be defined\'');
 	}
 
 	const payload = {
@@ -184,9 +186,9 @@ exports.searchTest = function(req, res) {
 		sortParams[sort] = dir === 'ASC' ? 1 : -1;
 	}
 
-	const doSearch = function(query) {
-		const getSearchCount = Message.find(query).countDocuments();
-		const getSearchInfo = Message.find(query).sort(sortParams).skip(offset).limit(limit);
+	const doSearch = function(_query) {
+		const getSearchCount = Message.find(_query).countDocuments();
+		const getSearchInfo = Message.find(_query).sort(sortParams).skip(offset).limit(limit);
 
 		return q.all([getSearchCount, getSearchInfo])
 			.then((results) => {

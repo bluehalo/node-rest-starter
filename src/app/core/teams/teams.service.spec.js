@@ -601,8 +601,8 @@ describe('Team Service:', () => {
 
 			const toEmails = ['email1@server.com', 'email2@server.com'];
 
-			const expectedEmailContent = `<p>Hey there <b>${team.name}</b> Admin,</p>
-<p>A user named <b>${user.name}</b> with username <b>${user.username}</b> has requested access to the team.</p>
+			const expectedEmailContent = `<p>Hey there <strong>${team.name}</strong> Admin,</p>
+<p>A user named <strong>${user.name}</strong> with username <strong>${user.username}</strong> has requested access to the team.</p>
 <p>Click <a href="${config.app.clientUrl}/team/${team._id}">here</a> to give them access!</p>
 `;
 
@@ -695,11 +695,11 @@ describe('Team Service:', () => {
 
 		it('should create mailOptions properly', async() => {
 			const expectedEmailContent = `<p>Hey there ${config.app.title} Admins,</p>
-<p>A user named <b>${user.name}</b> with username <b>${user.username}</b> has requested a new team:</p>
+<p>A user named <strong>${user.name}</strong> with username <strong>${user.username}</strong> has requested a new team:</p>
 <p>
-\t<b>Organization:</b> org<br/>
-\t<b>AOI:</b> aoi<br/>
-\t<b>Description:</b> description<br/>
+\t<strong>Organization:</strong> org<br/>
+\t<strong>AOI:</strong> aoi<br/>
+\t<strong>Description:</strong> description<br/>
 </p>
 <p>Click <a href="${config.app.clientUrl}/team/create">here</a> to create this team!</p>
 `;

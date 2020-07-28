@@ -15,10 +15,10 @@ const
  * Unit tests
  */
 
-function createSubjectUnderTest(config) {
+function createSubjectUnderTest(emailServiceConfig) {
 	const stubConfig = _.merge({
 
-	}, config);
+	}, emailServiceConfig);
 
 	const stubs = {};
 	stubs['../../../dependencies'] = { config: stubConfig };
@@ -97,8 +97,7 @@ describe('Email Service:', () => {
 
 	describe('sendMail:', () => {
 		it('should fail for invalid mail provider', async () => {
-			const emailService = createSubjectUnderTest({
-			});
+			const emailService = createSubjectUnderTest({});
 
 			let error = null;
 
