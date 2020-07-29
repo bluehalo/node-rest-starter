@@ -40,6 +40,10 @@ module.exports = function() {
 
 	function dismissMessage(messageIds, user, headers) {
 		const dismissedMessagePromises = [];
+		const saveDismissedMessagePromise = (dismissedMessage) => {
+			const dismissedMessagePromise = dismissedMessage.save();
+			dismissedMessagePromises.push(dismissedMessagePromise);
+		};
 
 		for (let i = 0; i < messageIds.length; i++) {
 			const dismissedMessage = new DismissedMessage();
@@ -48,11 +52,7 @@ module.exports = function() {
 
 			// Audit creation of messages
 			auditService.audit('message dismissed', 'message', 'dismissed', TeamMember.auditCopy(user), Message.auditCopy(dismissedMessage), headers)
-				.then(() => {
-					const dismissedMessagePromise = dismissedMessage.save();
-
-					dismissedMessagePromises.push(dismissedMessagePromise);
-				});
+				.then(saveDismissedMessagePromise);
 		}
 		return q.all(dismissedMessagePromises);
 

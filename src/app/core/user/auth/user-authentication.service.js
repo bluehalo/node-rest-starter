@@ -66,12 +66,12 @@ module.exports.login = function(user, req) {
 				{ _id: user._id },
 				{ lastLogin: Date.now() },
 				{ new: true, upsert: false },
-				(err, user) => {
-					if(null != err) {
-						defer.reject({ status: 500, type: 'login-error', message: err });
+				(_err, _user) => {
+					if(null != _err) {
+						defer.reject({ status: 500, type: 'login-error', message: _err });
 					}
 					else {
-						defer.resolve(User.fullCopy(user));
+						defer.resolve(User.fullCopy(_user));
 					}
 				}
 			);

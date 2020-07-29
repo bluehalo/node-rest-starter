@@ -5,8 +5,8 @@ const
 	http = require('http'),
 	passport = require('passport'),
 	socketio = require('socket.io'),
-	session = require('express-session'),
-	MongoStore = require('connect-mongo')(session),
+	expressSession = require('express-session'),
+	MongoStore = require('connect-mongo')(expressSession),
 
 	config = require('../config'),
 	logger = require('./bunyan.js').logger;
@@ -50,7 +50,7 @@ module.exports = (app, db) => {
 	// Intercept Socket.io's handshake request
 	io.use((socket, next) => {
 		// Use the 'cookie-parser' module to parse the request cookies
-		cookieParser(config.auth.sessionSecret)(socket.request, {}, (err) => {
+		cookieParser(config.auth.sessionSecret)(socket.request, {}, () => {
 			// Get the session id from the request cookies
 			const sessionId = socket.request.signedCookies['connect.sid'];
 

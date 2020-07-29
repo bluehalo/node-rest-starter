@@ -208,9 +208,9 @@ KafkaConsumer.prototype.getConsumer = function() {
 
 							// Update the offsets and commit them
 							consumer.updateOffsets(offsets, true);
-							consumer.commit(false, (err) => {
-								if (err) {
-									consumer.emit('error', err);
+							consumer.commit(false, (_err) => {
+								if (_err) {
+									consumer.emit('error', _err);
 								}
 								else {
 									self.offsetsInitialized = true;

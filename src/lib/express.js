@@ -205,7 +205,7 @@ function initErrorRoutes(app) {
 
 function initSwaggerAPI(app) {
 
-	if (!config.apiDocs || !(config.apiDocs.enabled === true)) {
+	if (!config.apiDocs || config.apiDocs.enabled !== true) {
 		// apiDocs must be enabled explicitly in the config
 		return;
 	}
@@ -244,8 +244,8 @@ function initSwaggerAPI(app) {
 	 * Some api calls are dependent on whether local or proxy-pki are used.
 	 * If no strategy is defined, assume it is used in both.
 	 */
-	swaggerSpec.paths = _.pickBy(swaggerSpec.paths, (path) => {
-		return path.strategy === undefined || path.strategy === config.auth.strategy;
+	swaggerSpec.paths = _.pickBy(swaggerSpec.paths, (_path) => {
+		return _path.strategy === undefined || _path.strategy === config.auth.strategy;
 	});
 
 	app.use(config.apiDocs.path || '/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

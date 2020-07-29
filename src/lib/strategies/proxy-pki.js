@@ -192,9 +192,10 @@ async function handleUser(dn, req, isProxy) {
 	}
 
 	// Else if the user is known locally, but not in access checker, update their user info to reflect
+	let updatedUser;
 	if (null == acUser) {
 		// Update the user
-		const updatedUser = await updateUser(dn, { externalRoles: [], externalGroups: [] });
+		updatedUser = await updateUser(dn, { externalRoles: [], externalGroups: [] });
 
 		// Audit user update
 		await auditService.audit('user updated from access checker', 'user', 'update', TeamMember.auditCopy(localUser), User.auditCopy(updatedUser));
@@ -203,7 +204,7 @@ async function handleUser(dn, req, isProxy) {
 	}
 
 	// Else if the user is known locally and in access checker, update their user info
-	const updatedUser = await updateUser(dn, copyACGroups(copyACRoles(copyACMetadata({}, acUser), acUser), acUser));
+	updatedUser = await updateUser(dn, copyACGroups(copyACRoles(copyACMetadata({}, acUser), acUser), acUser));
 
 	// Audit user update
 	await auditService.audit('user updated from access checker', 'user', 'update', TeamMember.auditCopy(localUser), User.auditCopy(updatedUser));
