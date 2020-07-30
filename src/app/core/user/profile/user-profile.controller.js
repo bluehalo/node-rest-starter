@@ -129,8 +129,8 @@ exports.updateCurrentUser = (req, res) => {
 		}
 
 		// Save the user
-		user.save((err) => {
-			util.catchError(res, err, () => {
+		user.save((_err) => {
+			util.catchError(res, _err, () => {
 				// Remove the password/salt
 				delete user.password;
 				delete user.salt;
@@ -139,9 +139,9 @@ exports.updateCurrentUser = (req, res) => {
 				auditService.audit('user updated', 'user', 'update', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), { before: originalUser, after: User.auditCopy(user) }, req.headers);
 
 				// Log in with the new info
-				req.login(user, (err) => {
-					if (err) {
-						res.status(400).json(err);
+				req.login(user, (error) => {
+					if (error) {
+						res.status(400).json(error);
 					} else {
 						res.status(200).json(User.fullCopy(user));
 					}
@@ -327,7 +327,7 @@ exports.adminUpdateUser = (req, res) => {
 				emailPromise.then(() => {
 						res.status(200).json(User.fullCopy(user));
 					},
-					(err) => {
+					() => {
 						util.handleErrorResponse(res, {status: 400, message: 'Email failed to send'});
 					});
 			}
@@ -369,14 +369,17 @@ exports.adminSearchUsers = (req, res) => {
 	const isExternal = strategy === 'external';
 	if ((isExternal || strategy === 'hybrid') && req.body.q && req.body.q.$or) {
 		const externalRoleMap = config.auth.externalRoleMap;
-
-		for (const role of _.keys(externalRoleMap)) {
+		const updateRoleFilters = (role) => {
 			if (req.body.q.$or.some((filter) => filter[`roles.${role}`])) {
 				req.body.q.$or.push({ externalRoles: externalRoleMap[role] });
 				if (isExternal) {
 					_.remove(req.body.q.$or, (filter) => filter[`roles.${role}`]);
 				}
 			}
+		};
+
+		for (const role of _.keys(externalRoleMap)) {
+			updateRoleFilters(role);
 		}
 	}
 

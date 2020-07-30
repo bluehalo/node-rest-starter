@@ -32,14 +32,14 @@ const remove = (eua) => {
 	return eua.remove();
 };
 
-const search = async (queryParams, query, search) => {
+const search = async (queryParams, query, _search) => {
 	query = query || {};
 	const page = util.getPage(queryParams);
 	const limit = util.getLimit(queryParams);
 	const sortArr = util.getSort(queryParams,'DESC');
 	const offset = page * limit;
 
-	const euas = await UserAgreement.textSearch(query, search, limit, offset, sortArr, true);
+	const euas = await UserAgreement.textSearch(query, _search, limit, offset, sortArr, true);
 
 	return util.getPagingResults(limit, page, euas.count, euas.results);
 };

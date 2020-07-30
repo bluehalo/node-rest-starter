@@ -138,38 +138,38 @@ describe('User Profile Controller:', () => {
 	describe('canEditProfile', () => {
 
 		it('local auth and undef bypass should be able to edit', () => {
-			const user = { };
-			const result = userProfileController.canEditProfile('local', user);
+			const _user = { };
+			const result = userProfileController.canEditProfile('local', _user);
 			result.should.equal(true);
 		});
 
 		it('local auth and no bypass should be able to edit', () => {
-			const user = { bypassAccessCheck: false };
-			const result = userProfileController.canEditProfile('local', user);
+			const _user = { bypassAccessCheck: false };
+			const result = userProfileController.canEditProfile('local', _user);
 			result.should.equal(true);
 		});
 
 		it('local auth and bypass should be able to edit', () => {
-			const user = { bypassAccessCheck: true };
-			const result = userProfileController.canEditProfile('local', user);
+			const _user = { bypassAccessCheck: true };
+			const result = userProfileController.canEditProfile('local', _user);
 			result.should.equal(true);
 		});
 
 		it('proxy-pki auth and undef bypass should not be able to edit', () => {
-			const user = { };
-			const result = userProfileController.canEditProfile('proxy-pki', user);
+			const _user = { };
+			const result = userProfileController.canEditProfile('proxy-pki', _user);
 			result.should.equal(false);
 		});
 
 		it('proxy-pki auth and no bypass should not be able to edit', () => {
-			const user = { bypassAccessCheck: false };
-			const result = userProfileController.canEditProfile('proxy-pki', user);
+			const _user = { bypassAccessCheck: false };
+			const result = userProfileController.canEditProfile('proxy-pki', _user);
 			result.should.equal(false);
 		});
 
 		it('proxy-pki auth and bypass should be able to edit', () => {
-			const user = { bypassAccessCheck: true };
-			const result = userProfileController.canEditProfile('proxy-pki', user);
+			const _user = { bypassAccessCheck: true };
+			const result = userProfileController.canEditProfile('proxy-pki', _user);
 			result.should.equal(true);
 		});
 

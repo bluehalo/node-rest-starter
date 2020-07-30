@@ -79,31 +79,32 @@ module.exports.connect = () => {
 
 
 	// Connect to the default db to kick off the process
-	return mongoose.connect(defaultDbSpec.connectionString, defaultDbSpec.options).then((result) => {
-		logger.info(`Mongoose: Connected to "${defaultDbSpec.name}" default db`);
+	if (defaultDbSpec) {
+		return mongoose.connect(defaultDbSpec.connectionString, defaultDbSpec.options).then((result) => {
+			logger.info(`Mongoose: Connected to "${defaultDbSpec.name}" default db`);
 
-		// store it in the db list
-		dbs[defaultDbSpec.name] = mongoose;
+			// store it in the db list
+			dbs[defaultDbSpec.name] = mongoose;
 
-		// Connect to the rest of the dbs
-		dbSpecs.forEach((spec) => {
-			// Create the secondary connection
-			dbs[spec.name] = mongoose.createConnection(spec.connectionString, spec.options);
+			// Connect to the rest of the dbs
+			dbSpecs.forEach((spec) => {
+				// Create the secondary connection
+				dbs[spec.name] = mongoose.createConnection(spec.connectionString, spec.options);
+			});
+
+			mongoose.set('useCreateIndex', true);
+
+			// Since all the db connections worked, we will load the mongoose models
+			loadModels();
+
+			// Resolve the dbs since everything succeeded
+			return dbs;
+
+		}, (err) => {
+			logger.fatal('Mongoose: Could not connect to admin db');
+			return q.reject(err);
 		});
-
-		mongoose.set('useCreateIndex', true);
-
-		// Since all the db connections worked, we will load the mongoose models
-		loadModels();
-
-		// Resolve the dbs since everything succeeded
-		return dbs;
-
-	}, (err) => {
-		logger.fatal('Mongoose: Could not connect to admin db');
-		return q.reject(err);
-	});
-
+	}
 };
 
 

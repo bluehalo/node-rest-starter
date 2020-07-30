@@ -63,7 +63,7 @@ describe('Feedback Service:', () => {
 
 			const expectedEmailContent = `HEADER
 <p>Hey there ${config.app.title} Admins,</p>
-<p>A user named <b>${user.name}</b> with username <b>${user.username}</b> and email <b>${user.email}</b> has submitted the following ${feedback.type}:</p>
+<p>A user named <strong>${user.name}</strong> with username <strong>${user.username}</strong> and email <strong>${user.email}</strong> has submitted the following ${feedback.type}:</p>
 <p>${feedback.body}</p>
 <p>Submitted from: ${feedback.url}</p>
 FOOTER

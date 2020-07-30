@@ -128,7 +128,7 @@ module.exports = function() {
 		else if (null == user.roles || !user.roles.admin) {
 			// If user is not admin, constrain results to user's teams
 			return teamsController.filterTeamIds(user).then((teamIds) => {
-				teamIds = teamIds.map((teamId) => _.isString(teamId) ? mongoose.Types.ObjectId(teamId): teamId);
+				teamIds = teamIds.map((_teamId) => _.isString(_teamId) ? mongoose.Types.ObjectId(_teamId): _teamId);
 
 				const query = { $or: [
 					{ 'owner.type': 'team', 'owner._id': { $in: teamIds }},

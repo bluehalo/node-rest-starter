@@ -145,21 +145,21 @@ describe('Team Service:', () => {
 
 	// Test implicit team membership
 	describe('searchTeamMembers', () => {
-		const config = _.merge({}, deps.config, {
+		const _config = _.merge({}, deps.config, {
 			teams: {
 				implicitMembers: {
 					strategy: 'teams'
 				}
 			}
 		});
-		const teamsService = createSubjectUnderTest(_.merge({}, deps, {config}));
+		const teamsService = createSubjectUnderTest(_.merge({}, deps, {config: _config}));
 
 		it('user implicitly added to a team via externalGroups', async () => {
 			const queryParams = { dir: 'ASC', page: '0', size: '5', sort: 'name' };
 
-			const team = await Team.findOne({ name: 'external-team' }).exec();
+			const _team = await Team.findOne({ name: 'external-team' }).exec();
 
-			const searchResults = await teamsService.searchTeamMembers(null, {}, queryParams, team);
+			const searchResults = await teamsService.searchTeamMembers(null, {}, queryParams, _team);
 			searchResults.elements.should.have.length(1);
 			searchResults.elements[0].name.should.equal('implicit1 Name');
 		});
@@ -168,9 +168,9 @@ describe('Team Service:', () => {
 		it('user explicitly added to a team through the user.teams property', async () => {
 			const queryParams = { dir: 'ASC', page: '0', size: '5', sort: 'name' };
 
-			const team = await Team.findOne({ name: 'no-external' }).exec();
+			const _team = await Team.findOne({ name: 'no-external' }).exec();
 
-			const searchResults = await teamsService.searchTeamMembers(null, {}, queryParams, team);
+			const searchResults = await teamsService.searchTeamMembers(null, {}, queryParams, _team);
 			searchResults.elements.should.be.an.Array();
 			searchResults.elements.should.have.length(1);
 			searchResults.elements[0].name.should.equal('explicit Name');
@@ -181,66 +181,66 @@ describe('Team Service:', () => {
 		const teamsService = createSubjectUnderTest(deps);
 
 		it('meetsRequiredExternalTeams', () => {
-			let user = { bypassAccessCheck: true };
-			let team = {};
+			let _user = { bypassAccessCheck: true };
+			let _team = {};
 
-			let match = teamsService.meetsRequiredExternalTeams(user, team);
+			let match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
 			match.should.equal(true);
 
-			user = { bypassAccessCheck: false };
-			team = {};
+			_user = { bypassAccessCheck: false };
+			_team = {};
 
-			match = teamsService.meetsRequiredExternalTeams(user, team);
+			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
 			match.should.equal(false);
 
-			user = { bypassAccessCheck: false };
-			team = { requiresExternalTeams: ['one']};
+			_user = { bypassAccessCheck: false };
+			_team = { requiresExternalTeams: ['one']};
 
-			match = teamsService.meetsRequiredExternalTeams(user, team);
-
-			match.should.equal(false);
-
-			user = { bypassAccessCheck: false, externalGroups: ['two'] };
-			team = { requiresExternalTeams: ['one']};
-
-			match = teamsService.meetsRequiredExternalTeams(user, team);
+			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
 			match.should.equal(false);
 
-			user = { bypassAccessCheck: false, externalGroups: ['one'] };
-			team = { requiresExternalTeams: ['one']};
+			_user = { bypassAccessCheck: false, externalGroups: ['two'] };
+			_team = { requiresExternalTeams: ['one']};
 
-			match = teamsService.meetsRequiredExternalTeams(user, team);
+			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
-			match.should.equal(true);
+			match.should.equal(false);
 
-			user = { bypassAccessCheck: false, externalGroups: ['two'] };
-			team = { requiresExternalTeams: ['one', 'two']};
+			_user = { bypassAccessCheck: false, externalGroups: ['one'] };
+			_team = { requiresExternalTeams: ['one']};
 
-			match = teamsService.meetsRequiredExternalTeams(user, team);
-
-			match.should.equal(true);
-
-			user = { bypassAccessCheck: false, externalGroups: ['two', 'four'] };
-			team = { requiresExternalTeams: ['one', 'two']};
-
-			match = teamsService.meetsRequiredExternalTeams(user, team);
+			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
 			match.should.equal(true);
 
-			user = { bypassAccessCheck: false, externalGroups: ['two', 'four'] };
-			team = { requiresExternalTeams: ['four', 'one', 'two']};
+			_user = { bypassAccessCheck: false, externalGroups: ['two'] };
+			_team = { requiresExternalTeams: ['one', 'two']};
 
-			match = teamsService.meetsRequiredExternalTeams(user, team);
+			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
 			match.should.equal(true);
 
-			user = { bypassAccessCheck: false, externalGroups: ['two'] };
-			team = { requiresExternalTeams: []};
+			_user = { bypassAccessCheck: false, externalGroups: ['two', 'four'] };
+			_team = { requiresExternalTeams: ['one', 'two']};
 
-			match = teamsService.meetsRequiredExternalTeams(user, team);
+			match = teamsService.meetsRequiredExternalTeams(_user, _team);
+
+			match.should.equal(true);
+
+			_user = { bypassAccessCheck: false, externalGroups: ['two', 'four'] };
+			_team = { requiresExternalTeams: ['four', 'one', 'two']};
+
+			match = teamsService.meetsRequiredExternalTeams(_user, _team);
+
+			match.should.equal(true);
+
+			_user = { bypassAccessCheck: false, externalGroups: ['two'] };
+			_team = { requiresExternalTeams: []};
+
+			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
 			match.should.equal(false);
 		});
@@ -250,59 +250,59 @@ describe('Team Service:', () => {
 		const teamsService = createSubjectUnderTest(deps);
 
 		it('meetsRequiredExternalRoles', () => {
-			let user = {};
-			let team = {};
+			let _user = {};
+			let _team = {};
 
-			let match = teamsService.meetsRequiredExternalRoles(user, team);
-
-			match.should.equal(false);
-
-			user = {};
-			team = { requiresExternalRoles: ['one']};
-
-			match = teamsService.meetsRequiredExternalRoles(user, team);
+			let match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
 			match.should.equal(false);
 
-			user = { externalRoles: ['two'] };
-			team = { requiresExternalRoles: ['one']};
+			_user = {};
+			_team = { requiresExternalRoles: ['one']};
 
-			match = teamsService.meetsRequiredExternalRoles(user, team);
+			match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
 			match.should.equal(false);
 
-			user = { externalRoles: ['one'] };
-			team = { requiresExternalRoles: ['one']};
+			_user = { externalRoles: ['two'] };
+			_team = { requiresExternalRoles: ['one']};
 
-			match = teamsService.meetsRequiredExternalRoles(user, team);
+			match = teamsService.meetsRequiredExternalRoles(_user, _team);
+
+			match.should.equal(false);
+
+			_user = { externalRoles: ['one'] };
+			_team = { requiresExternalRoles: ['one']};
+
+			match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
 			match.should.equal(true);
 
-			user = { externalRoles: ['two'] };
-			team = { requiresExternalRoles: ['one', 'two']};
+			_user = { externalRoles: ['two'] };
+			_team = { requiresExternalRoles: ['one', 'two']};
 
-			match = teamsService.meetsRequiredExternalRoles(user, team);
+			match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
 			match.should.equal(false);
 
-			user = { externalRoles: ['one', 'two', 'three'] };
-			team = { requiresExternalRoles: ['one', 'two']};
+			_user = { externalRoles: ['one', 'two', 'three'] };
+			_team = { requiresExternalRoles: ['one', 'two']};
 
-			match = teamsService.meetsRequiredExternalRoles(user, team);
+			match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
 			match.should.equal(true);
 
-			user = { externalRoles: ['two', 'four'] };
-			team = { requiresExternalRoles: ['four', 'one', 'two']};
+			_user = { externalRoles: ['two', 'four'] };
+			_team = { requiresExternalRoles: ['four', 'one', 'two']};
 
-			match = teamsService.meetsRequiredExternalRoles(user, team);
+			match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
 			match.should.equal(false);
 
-			user = { externalRoles: ['two'] };
-			team = { requiresExternalRoles: []};
+			_user = { externalRoles: ['two'] };
+			_team = { requiresExternalRoles: []};
 
-			match = teamsService.meetsRequiredExternalRoles(user, team);
+			match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
 			match.should.equal(false);
 		});
@@ -311,127 +311,127 @@ describe('Team Service:', () => {
 	describe('isImplicitMember',  () => {
 
 		it('strategy = roles', () => {
-			const config = _.merge({}, deps.config, {
+			const _config = _.merge({}, deps.config, {
 				teams: {
 					implicitMembers: {
 						strategy: 'roles'
 					}
 				}
 			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, { config }));
+			const teamsService = createSubjectUnderTest(_.merge({}, deps, { config: _config }));
 
 			it('should not match when user.externalRoles and team.requiresExternalRoles are undefined', () => {
-				const user = {};
-				const team = {};
-				const match = teamsService.isImplicitMember(user, team);
+				const _user = {};
+				const _team = {};
+				const match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(false);
 			});
 
 			it('should not match when team does not have requiresExternalRoles', () => {
-				const user = { externalRoles: ['one', 'two', 'three'] };
-				let team = { };
-				let match = teamsService.isImplicitMember(user, team);
+				const _user = { externalRoles: ['one', 'two', 'three'] };
+				let _team = { };
+				let match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(false);
 
-				team = { requiresExternalRoles: [] };
-				match = teamsService.isImplicitMember(user, team);
+				_team = { requiresExternalRoles: [] };
+				match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(false);
 			});
 
 			it('should match when user has required external roles', () => {
-				const user = { externalRoles: ['one', 'two', 'three'] };
-				let team = { requiresExternalRoles: ['one']};
-				let match = teamsService.isImplicitMember(user, team);
+				const _user = { externalRoles: ['one', 'two', 'three'] };
+				let _team = { requiresExternalRoles: ['one']};
+				let match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(true);
 
-				team = { requiresExternalRoles: ['one', 'two']};
-				match = teamsService.isImplicitMember(user, team);
+				_team = { requiresExternalRoles: ['one', 'two']};
+				match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(true);
 
-				team = { requiresExternalRoles: ['one', 'three']};
-				match = teamsService.isImplicitMember(user, team);
+				_team = { requiresExternalRoles: ['one', 'three']};
+				match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(true);
 			});
 		});
 
 		describe('strategy = teams', () => {
-			const config = _.merge({}, deps.config, {
+			const _config = _.merge({}, deps.config, {
 				teams: {
 					implicitMembers: {
 						strategy: 'teams'
 					}
 				}
 			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, {config}));
+			const teamsService = createSubjectUnderTest(_.merge({}, deps, {config: _config}));
 
 			it('should not match when user.externalRoles and team.requiresExternalTeams are undefined', () => {
-				const user = {};
-				const team = {};
-				const match = teamsService.isImplicitMember(user, team);
+				const _user = {};
+				const _team = {};
+				const match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(false);
 			});
 
 			it('should not match when team does not have requiresExternalTeams', () => {
-				const user = { externalGroups: ['one', 'two', 'three'] };
-				let team = { };
-				let match = teamsService.isImplicitMember(user, team);
+				const _user = { externalGroups: ['one', 'two', 'three'] };
+				let _team = { };
+				let match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(false);
 
-				team = { requiresExternalTeams: [] };
-				match = teamsService.isImplicitMember(user, team);
+				_team = { requiresExternalTeams: [] };
+				match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(false);
 			});
 
 			it('should match when user has required external teams', () => {
-				let user = { externalGroups: ['one'] };
-				const team = { requiresExternalTeams: ['one', 'two', 'three']};
-				let match = teamsService.isImplicitMember(user, team);
+				let _user = { externalGroups: ['one'] };
+				const _team = { requiresExternalTeams: ['one', 'two', 'three']};
+				let match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(true);
 
-				user = { externalGroups: ['two'] };
-				match = teamsService.isImplicitMember(user, team);
+				_user = { externalGroups: ['two'] };
+				match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(true);
 
-				user = { externalGroups: ['three'] };
-				match = teamsService.isImplicitMember(user, team);
+				_user = { externalGroups: ['three'] };
+				match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(true);
 			});
 		});
 
 		describe('strategy = undefined', () => {
-			const config = _.merge({}, deps.config, {
+			const _config = _.merge({}, deps.config, {
 				teams: {
 					implicitMembers: {
 						strategy: null
 					}
 				}
 			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, {config}));
+			const teamsService = createSubjectUnderTest(_.merge({}, deps, {config: _config}));
 
 			it('should not match any since disabled', () => {
-				let user = {};
-				let team = {};
-				let match = teamsService.isImplicitMember(user, team);
+				let _user = {};
+				let _team = {};
+				let match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(false);
 
-				user = { externalRoles: ['one', 'two', 'three'], externalGroups: ['one', 'two', 'three'] };
-				match = teamsService.isImplicitMember(user, team);
+				_user = { externalRoles: ['one', 'two', 'three'], externalGroups: ['one', 'two', 'three'] };
+				match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(false);
 
-				team = { requiresExternalRoles: [], requiresExternalGroups: [] };
-				match = teamsService.isImplicitMember(user, team);
+				_team = { requiresExternalRoles: [], requiresExternalGroups: [] };
+				match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(false);
 
-				team = { requiresExternalRoles: ['one']};
-				match = teamsService.isImplicitMember(user, team);
+				_team = { requiresExternalRoles: ['one']};
+				match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(false);
 
-				team = { requiresExternalRoles: ['one', 'two']};
-				match = teamsService.isImplicitMember(user, team);
+				_team = { requiresExternalRoles: ['one', 'two']};
+				match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(false);
 
-				team = { requiresExternalRoles: ['one', 'three']};
-				match = teamsService.isImplicitMember(user, team);
+				_team = { requiresExternalRoles: ['one', 'three']};
+				match = teamsService.isImplicitMember(_user, _team);
 				match.should.equal(false);
 			});
 		});
@@ -460,8 +460,8 @@ describe('Team Service:', () => {
 
 			// null admin should default to creator
 			await teamsService.createTeam(teamSpec('test-create'), creator, null, {});
-			const team = await Team.findOne({name: 'test-create'}).exec();
-			const members = await teamsService.searchTeamMembers(null, {}, queryParams, team);
+			const _team = await Team.findOne({name: 'test-create'}).exec();
+			const members = await teamsService.searchTeamMembers(null, {}, queryParams, _team);
 			(members.elements).should.have.length(1);
 			(members.elements[0]).name.should.equal(creator.name);
 		});
@@ -470,33 +470,33 @@ describe('Team Service:', () => {
 	describe('getImplicitTeamIds',  () => {
 
 		describe('strategy = roles', () => {
-			const config = _.merge({}, deps.config, {
+			const _config = _.merge({}, deps.config, {
 				teams: {
 					implicitMembers: {
 						strategy: 'roles'
 					}
 				}
 			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, { config }));
+			const teamsService = createSubjectUnderTest(_.merge({}, deps, { config: _config }));
 
 
 			it('should find implicit teams for user with matching external roles', async () => {
-				const user = await User.findOne({username: 'implicit2_username'});
-				should.exist(user, 'expected implicit2 to exist');
-				user.username.should.equal('implicit2_username');
+				const _user = await User.findOne({username: 'implicit2_username'});
+				should.exist(_user, 'expected implicit2 to exist');
+				_user.username.should.equal('implicit2_username');
 
-				const teamIds = await teamsService.getImplicitTeamIds(user);
+				const teamIds = await teamsService.getImplicitTeamIds(_user);
 				should.exist(teamIds);
 				teamIds.should.be.Array();
 				teamIds.length.should.equal(1);
 			});
 
 			it('should not find implicit teams for user without matching external roles', async () => {
-				const user = await User.findOne({username: 'implicit1_username'});
-				should.exist(user, 'expected implicit1 to exist');
-				user.username.should.equal('implicit1_username');
+				const _user = await User.findOne({username: 'implicit1_username'});
+				should.exist(_user, 'expected implicit1 to exist');
+				_user.username.should.equal('implicit1_username');
 
-				const teamIds = await teamsService.getImplicitTeamIds(user);
+				const teamIds = await teamsService.getImplicitTeamIds(_user);
 				should.exist(teamIds);
 				teamIds.should.be.Array();
 				teamIds.should.be.empty();
@@ -505,32 +505,32 @@ describe('Team Service:', () => {
 		});
 
 		describe('strategy = teams;', () => {
-			const config = _.merge({}, deps.config, {
+			const _config = _.merge({}, deps.config, {
 				teams: {
 					implicitMembers: {
 						strategy: 'teams'
 					}
 				}
 			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, {config}));
+			const teamsService = createSubjectUnderTest(_.merge({}, deps, {config: _config}));
 
 			it('should find implicit teams for user with matching external teams', async () => {
-				const user = await User.findOne({username: 'implicit1_username'});
-				should.exist(user, 'expected implicit1 to exist');
-				user.username.should.equal('implicit1_username');
+				const _user = await User.findOne({username: 'implicit1_username'});
+				should.exist(_user, 'expected implicit1 to exist');
+				_user.username.should.equal('implicit1_username');
 
-				const teamIds = await teamsService.getImplicitTeamIds(user);
+				const teamIds = await teamsService.getImplicitTeamIds(_user);
 				should.exist(teamIds);
 				teamIds.should.be.Array();
 				teamIds.length.should.equal(1);
 			});
 
 			it('should not find implicit teams for user without matching external teams', async () => {
-				const user = await User.findOne({username: 'implicit2_username'});
-				should.exist(user, 'expected user2 to exist');
-				user.username.should.equal('implicit2_username');
+				const _user = await User.findOne({username: 'implicit2_username'});
+				should.exist(_user, 'expected user2 to exist');
+				_user.username.should.equal('implicit2_username');
 
-				const teamIds = await teamsService.getImplicitTeamIds(user);
+				const teamIds = await teamsService.getImplicitTeamIds(_user);
 				should.exist(teamIds);
 				teamIds.should.be.Array();
 				teamIds.should.be.empty();
@@ -538,14 +538,14 @@ describe('Team Service:', () => {
 		});
 
 		describe('strategy = null;', () => {
-			const config = _.merge({}, deps.config, {
+			const _config = _.merge({}, deps.config, {
 				teams: {
 					implicitMembers: {
 						strategy: null
 					}
 				}
 			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, { config }));
+			const teamsService = createSubjectUnderTest(_.merge({}, deps, { config: _config }));
 
 
 			it('should not find implicit teams for users with matching external roles/teams if disabled', async () => {
@@ -588,25 +588,25 @@ describe('Team Service:', () => {
 				}
 			});
 
-			const user = {
+			const _user = {
 				name: 'test',
 				username: 'test',
 				email: 'test@test.test'
 			};
 
-			const team = {
+			const _team = {
 				_id: '12345',
 				name: 'test team'
 			};
 
 			const toEmails = ['email1@server.com', 'email2@server.com'];
 
-			const expectedEmailContent = `<p>Hey there <b>${team.name}</b> Admin,</p>
-<p>A user named <b>${user.name}</b> with username <b>${user.username}</b> has requested access to the team.</p>
-<p>Click <a href="${config.app.clientUrl}/team/${team._id}">here</a> to give them access!</p>
+			const expectedEmailContent = `<p>Hey there <strong>${_team.name}</strong> Admin,</p>
+<p>A user named <strong>${_user.name}</strong> with username <strong>${_user.username}</strong> has requested access to the team.</p>
+<p>Click <a href="${config.app.clientUrl}/team/${_team._id}">here</a> to give them access!</p>
 `;
 
-			await teamsService.sendRequestEmail(toEmails, user, team, {});
+			await teamsService.sendRequestEmail(toEmails, _user, _team, {});
 
 			should.exist(mailOptions, 'expected mailOptions to exist');
 
@@ -620,7 +620,7 @@ describe('Team Service:', () => {
 			mailOptions.bcc[1].should.equal(toEmails[1]);
 			mailOptions.from.should.equal(config.coreEmails.default.from);
 			mailOptions.replyTo.should.equal(config.coreEmails.default.replyTo);
-			mailOptions.subject.should.equal(`${config.app.title}: A user has requested access to Team ${team.name}`);
+			mailOptions.subject.should.equal(`${config.app.title}: A user has requested access to Team ${_team.name}`);
 			mailOptions.html.should.equal(expectedEmailContent);
 		});
 	});
@@ -640,7 +640,7 @@ describe('Team Service:', () => {
 			}
 		});
 
-		const user = new User({
+		const _user = new User({
 			name: 'test',
 			username: 'test',
 			email: 'test@test.test'
@@ -695,16 +695,16 @@ describe('Team Service:', () => {
 
 		it('should create mailOptions properly', async() => {
 			const expectedEmailContent = `<p>Hey there ${config.app.title} Admins,</p>
-<p>A user named <b>${user.name}</b> with username <b>${user.username}</b> has requested a new team:</p>
+<p>A user named <strong>${_user.name}</strong> with username <strong>${_user.username}</strong> has requested a new team:</p>
 <p>
-\t<b>Organization:</b> org<br/>
-\t<b>AOI:</b> aoi<br/>
-\t<b>Description:</b> description<br/>
+\t<strong>Organization:</strong> org<br/>
+\t<strong>AOI:</strong> aoi<br/>
+\t<strong>Description:</strong> description<br/>
 </p>
 <p>Click <a href="${config.app.clientUrl}/team/create">here</a> to create this team!</p>
 `;
 
-			await teamsService.requestNewTeam('org', 'aoi', 'description', user, { headers: {} });
+			await teamsService.requestNewTeam('org', 'aoi', 'description', _user, { headers: {} });
 
 			should.exist(mailOptions, 'expected mailOptions to exist');
 
@@ -723,7 +723,7 @@ describe('Team Service:', () => {
 	describe('getTeamIds', () => {
 		const teamsService = createSubjectUnderTest();
 
-		const user = {
+		const _user = {
 			teams: [{
 				_id: 1, role: 'member'
 			}, {
@@ -738,18 +738,18 @@ describe('Team Service:', () => {
 		};
 
 		it('should return all team ids when roles is not specified', async () => {
-			const teamIds = await teamsService.getTeamIds(user);
+			const teamIds = await teamsService.getTeamIds(_user);
 
 			should.exist(teamIds, 'expected teamIds to exist');
 			teamIds.length.should.equal(5);
 
 			for (let i = 0; i < teamIds.length; i++) {
-				teamIds[i].should.equal(user.teams[i]._id.toString());
+				teamIds[i].should.equal(_user.teams[i]._id.toString());
 			}
 		});
 
 		it('should return only team ids where user is a member', async () => {
-			const teamIds = await teamsService.getTeamIds(user, 'member');
+			const teamIds = await teamsService.getTeamIds(_user, 'member');
 
 			should.exist(teamIds, 'expected teamIds to exist');
 			teamIds.length.should.equal(2);
@@ -759,7 +759,7 @@ describe('Team Service:', () => {
 		});
 
 		it('should return only team ids where user is an editor', async () => {
-			const teamIds = await teamsService.getTeamIds(user, 'editor');
+			const teamIds = await teamsService.getTeamIds(_user, 'editor');
 
 			should.exist(teamIds, 'expected teamIds to exist');
 			teamIds.length.should.equal(2);
@@ -769,7 +769,7 @@ describe('Team Service:', () => {
 		});
 
 		it('should return only team ids where user is an admin', async () => {
-			const teamIds = await teamsService.getTeamIds(user, 'admin');
+			const teamIds = await teamsService.getTeamIds(_user, 'admin');
 
 			should.exist(teamIds, 'expected teamIds to exist');
 			teamIds.length.should.equal(1);
@@ -778,19 +778,19 @@ describe('Team Service:', () => {
 		});
 
 		it('should find all team members', async () => {
-			const teamIds = await teamsService.getMemberTeamIds(user);
+			const teamIds = await teamsService.getMemberTeamIds(_user);
 			should.exist(teamIds);
 			teamIds.should.have.length(5);
 		});
 
 		it('should find all team editors', async () => {
-			const teamIds = await teamsService.getEditorTeamIds(user);
+			const teamIds = await teamsService.getEditorTeamIds(_user);
 			should.exist(teamIds);
 			teamIds.should.have.length(3);
 		});
 
 		it('should find all team admins', async () => {
-			const teamIds = await teamsService.getAdminTeamIds(user);
+			const teamIds = await teamsService.getAdminTeamIds(_user);
 			should.exist(teamIds);
 			teamIds.should.have.length(1);
 		});
@@ -799,7 +799,7 @@ describe('Team Service:', () => {
 	describe('filterTeamIds', () => {
 		const teamsService = createSubjectUnderTest();
 
-		const user = {
+		const _user = {
 			teams: [{
 				_id: 1, role: 'member'
 			}, {
@@ -814,14 +814,14 @@ describe('Team Service:', () => {
 		};
 
 		it ('should filter teamIds for membership (basic)', async () => {
-			const teamIds = await teamsService.filterTeamIds(user, ['1']);
+			const teamIds = await teamsService.filterTeamIds(_user, ['1']);
 			should.exist(teamIds);
 			teamIds.should.have.length(1);
 			should(teamIds[0]).equal('1');
 		});
 
 		it ('should filter teamIds for membership (advanced)', async () => {
-			const teamIds = await teamsService.filterTeamIds(user, [ '1', '2']);
+			const teamIds = await teamsService.filterTeamIds(_user, [ '1', '2']);
 			should.exist(teamIds);
 			teamIds.should.have.length(2);
 			should(teamIds[0]).equal('1');
@@ -829,13 +829,13 @@ describe('Team Service:', () => {
 		});
 
 		it ('should filter teamIds for membership when no access', async () => {
-			const teamIds = await teamsService.filterTeamIds(user, [ '6' ]);
+			const teamIds = await teamsService.filterTeamIds(_user, [ '6' ]);
 			should.exist(teamIds);
 			teamIds.should.have.length(0);
 		});
 
 		it ('should filter teamIds for membership when no filter', async () => {
-			const teamIds = await teamsService.filterTeamIds(user);
+			const teamIds = await teamsService.filterTeamIds(_user);
 			should.exist(teamIds);
 			teamIds.should.have.length(5);
 			should(teamIds[0]).equal('1');

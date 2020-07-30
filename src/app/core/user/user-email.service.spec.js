@@ -72,7 +72,7 @@ describe('User Email Service:', () => {
 	describe('signupEmail', () => {
 		it('should create mailOptions properly', async() => {
 			const expectedEmailContent = `<p>Hey there ${config.app.title} Admins,</p>
-<p>A new user named <b>${user.name}</b> with username <b>${user.username}</b> has requested an account.</p>
+<p>A new user named <strong>${user.name}</strong> with username <strong>${user.username}</strong> has requested an account.</p>
 <p>Go to <a href="${config.app.clientUrl}/admin/users">${config.app.clientUrl}/admin/users</a> to give them access so they can start using ${config.app.title}!</p>
 `;
 

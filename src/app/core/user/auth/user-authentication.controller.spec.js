@@ -159,7 +159,7 @@ describe('User Auth Controller:', () => {
 				const req = {};
 				req.body = { username: user.username, password: undefined };
 				req.headers = {};
-				req.login = (user, cb) => { return cb && cb(); };
+				req.login = (_user, cb) => { return cb && cb(); };
 
 				const res = {
 					status: (status) => {
@@ -183,7 +183,7 @@ describe('User Auth Controller:', () => {
 				const req = {};
 				req.body = { username: undefined, password: 'asdfasdf' };
 				req.headers = {};
-				req.login = (user, cb) => { return cb && cb(); };
+				req.login = (_user, cb) => { return cb && cb(); };
 
 				const res = {
 					status: (status) => {
@@ -207,7 +207,7 @@ describe('User Auth Controller:', () => {
 				const req = {};
 				req.body = { username: 'totally doesnt exist', password: 'asdfasdf' };
 				req.headers = {};
-				req.login = (user, cb) => { return cb && cb(); };
+				req.login = (_user, cb) => { return cb && cb(); };
 
 				const res = {
 					status: (status) => {
@@ -349,7 +349,7 @@ describe('User Auth Controller:', () => {
 		describe('basic login', () => {
 
 			const req = {};
-			req.login = (user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => { return cb && cb(); };
 
 			it('should work when user is synced with access checker', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.synced.providerData.dn };
@@ -428,7 +428,7 @@ describe('User Auth Controller:', () => {
 		describe('syncing with access checker', () => {
 
 			const req = {};
-			req.login = (user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => { return cb && cb(); };
 
 			it('should update the user info from access checker on login', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.oldMd.providerData.dn };
@@ -481,7 +481,7 @@ describe('User Auth Controller:', () => {
 
 		describe('missing or expired cache entries with no bypass', () => {
 			const req = {};
-			req.login = (user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => { return cb && cb(); };
 
 			it('should have external roles and groups removed on login when missing from cache', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.missingUser.providerData.dn };
@@ -544,7 +544,7 @@ describe('User Auth Controller:', () => {
 
 		describe('missing cache entries with bypass access checker enabled', () => {
 			const req = {};
-			req.login = (user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => { return cb && cb(); };
 
 			it('should preserve user info, roles and groups on login', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.missingUserBypassed.providerData.dn };
@@ -580,7 +580,7 @@ describe('User Auth Controller:', () => {
 
 		describe('in cache, access checker enabled, but with fields modified locally', () => {
 			const req = {};
-			req.login = (user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => { return cb && cb(); };
 
 			it('should preserve user info, roles and groups on login', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.userBypassed.providerData.dn };
@@ -614,7 +614,7 @@ describe('User Auth Controller:', () => {
 
 		describe('auto create accounts', () => {
 			const req = {};
-			req.login = (user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => { return cb && cb(); };
 
 			it('should create a new account from access checker information', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.cache.cacheOnly.key };
@@ -649,7 +649,7 @@ describe('User Auth Controller:', () => {
 
 		describe('proxy for other users', () => {
 			const req = {};
-			req.login = (user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => { return cb && cb(); };
 
 			it('should failed when not authorized to proxy users', (done) => {
 				req.headers = {

@@ -208,7 +208,7 @@ module.exports.getPage = function (queryParams) {
  * @param defaultSort (optional)
  * @returns {Array}
  */
-module.exports.getSort = function (queryParams, defaultDir = 'ASC', defaultSort) {
+module.exports.getSort = function (queryParams, defaultDir = 'ASC', defaultSort = undefined) {
 	const sort = _.get(queryParams, 'sort', defaultSort);
 	const dir = _.get(queryParams, 'dir', defaultDir);
 	if (!sort) {
@@ -324,8 +324,7 @@ module.exports.submitRequest = (httpOpts) => {
 				defer.reject({ status: response.statusCode, message: response.statusMessage });
 			}
 			else {
-				const response = (_.isEmpty(responseBody)) ? {} : JSON.parse(responseBody);
-				defer.resolve(response);
+				defer.resolve((_.isEmpty(responseBody)) ? {} : JSON.parse(responseBody));
 			}
 		});
 	}).on('error', (err) => defer.reject(err)).end();
@@ -346,8 +345,7 @@ module.exports.submitPostRequest = (httpOpts, postBody) => {
 				defer.reject({ status: response.statusCode, message: response.statusMessage });
 			}
 			else {
-				const response = (_.isEmpty(responseBody)) ? {} : JSON.parse(responseBody);
-				defer.resolve(response);
+				defer.resolve((_.isEmpty(responseBody)) ? {} : JSON.parse(responseBody));
 			}
 		});
 	});
