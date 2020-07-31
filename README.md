@@ -38,7 +38,7 @@ For example, the Email Service at `./src/app/core/email/email.service.js` can be
 
 The default provider for a service will be included in `dependencies` in NPM's `package.json`. On the other hand, any non-default providers should include their dependencies as `devDependencies` in order to reduce the inclusion of unnecessary modules in production builds.
 
-If a non-default provider is used (e.g., `kafka-publish.provider.js` for the `Event` service), the application instance should include this module in `dependencies` on its own fork, instead of updating the `node-rest-starter` reference application.
+If a non-default provider is used (e.g., `node-kafka` for the `Event` service), the application instance should include this module in `dependencies` on its own fork, instead of updating the `node-rest-starter` reference application.
 
 ## Testing
 

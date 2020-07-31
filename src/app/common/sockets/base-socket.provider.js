@@ -2,7 +2,6 @@
 
 const
 	async = require('async'),
-	q = require('q'),
 
 	deps = require('../../../dependencies'),
 	logger = deps.logger;
@@ -128,35 +127,39 @@ BaseSocket.prototype.getResponse = function(next) {
  */
 BaseSocket.prototype.applyMiddleware = function(callbacks, done) {
 	const self = this;
-	const defer = q.defer();
+	return new Promise((resolve, reject) => {
+		// Use the same request for all callbacks
+		const req = self.getRequest();
 
-	// Use the same request for all callbacks
-	const req = self.getRequest();
+		const tasks = callbacks.map((callback) => {
+			return function(next) {
+				// Create a new response for each next() callback
+				const res = self.getResponse(next);
 
-	const tasks = callbacks.map((callback) => {
-		return function(next) {
-			// Create a new response for each next() callback
-			const res = self.getResponse(next);
+				// Invoke the callback
+				callback(req, res, next);
+			};
+		});
+		async.series(tasks, (err, results) => {
 
-			// Invoke the callback
-			callback(req, res, next);
-		};
+			// Get the result from the last task
+			const result = results[tasks.length - 1];
+
+			// Invoke the callback if there is one
+			if (null != done) {
+				done(err, result);
+			}
+
+			// In addition to the optional callback,
+			// resolve or reject the promise
+			if (err) {
+				reject(err);
+			}
+			else {
+				resolve(result);
+			}
+		});
 	});
-	async.series(tasks, (err, results) => {
-
-		// Get the result from the last task
-		const result = results[tasks.length - 1];
-
-		// Invoke the callback if there is one
-		if (null != done) {
-			done(err, result);
-		}
-		// Resolve the promise
-		defer.makeNodeResolver()(err, result);
-	});
-
-	// Return the promise.
-	return defer.promise;
 };
 
 module.exports = BaseSocket;

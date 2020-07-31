@@ -208,10 +208,6 @@ module.exports = {
 	publishProvider: './src/app/common/event/event-publish.provider.js',
 	socketProvider: './src/app/common/sockets/event-socket.provider.js',
 
-	// Use the following for Kafka.  Note, must also uncomment Kafka configuration.
-	// publishProvider: './src/app/common/event/kafka-publish.provider.js',
-	// socketProvider: './src/app/common/sockets/kafka-socket.provider.js',
-
 	messages: {
 		topic: 'message.posted'
 	},
