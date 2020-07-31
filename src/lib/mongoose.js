@@ -108,12 +108,12 @@ module.exports.disconnect = () => {
 	// Create defers for mongoose connections
 	const promises = _.values(this.dbs).map((d) => {
 		if (d.disconnect) {
-			return d.disconnect();
+			return d.disconnect().catch(() => Promise.resolve());
 		}
 		return Promise.resolve();
 	});
 
-	// Create a join for the defers
+	// Wait for all to finish, successful or not
 	return Promise.all(promises);
 
 };
