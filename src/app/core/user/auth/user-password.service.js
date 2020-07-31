@@ -31,7 +31,7 @@ module.exports.setResetTokenForUser = async (username, token) => {
 	// Try to find the user
 	let user;
 	try {
-		user = await User.findOne({	username: username }, '-salt -password');
+		user = await User.findOne({	username: username }, '-salt -password').exec();
 	} catch (error) {
 		return Promise.reject({ message: 'No account with that username has been found.' });
 	}
@@ -62,7 +62,7 @@ module.exports.resetPasswordForToken = async (token, password) => {
 		user = await User.findOne({
 			resetPasswordToken: token,
 			resetPasswordExpires: { $gt: Date.now() }
-		});
+		}).exec();
 	} catch (error) {
 		return Promise.reject({ message: 'Password reset token is invalid or has expired.' });
 	}

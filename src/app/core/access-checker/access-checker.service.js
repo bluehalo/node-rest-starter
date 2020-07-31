@@ -58,14 +58,14 @@ const saveToCache = (id, value) => {
  * Delete the entry in the cache
  * @param id The unique identifier for the entry
  */
-const deleteFromCache = (id) => CacheEntry.findOneAndRemove({ key: id });
+const deleteFromCache = (id) => CacheEntry.findOneAndRemove({ key: id }).exec();
 
 /**
  * Get the entry from the cache. Gets the most recent version.
  * @param id The unique identifier for the entry to get
  * @returns The retrieved cache value
  */
-const getFromCache = (id) => CacheEntry.findOne({ key: id }).sort({ ts: -1 });
+const getFromCache = (id) => CacheEntry.findOne({ key: id }).sort({ ts: -1 }).exec();
 
 
 /**

@@ -189,7 +189,7 @@ module.exports.updateMemberRole = async (req, res) => {
  * Team middleware
  */
 module.exports.teamById = async (req, res, next, id) => {
-	const team = await Team.findOne({ _id: id });
+	const team = await Team.findOne({ _id: id }).exec();
 
 	if (null == team) {
 		return next(new Error(`Could not find team: ${id}`));
@@ -199,7 +199,7 @@ module.exports.teamById = async (req, res, next, id) => {
 };
 
 module.exports.teamUserById = async (req, res, next, id) => {
-	const user = await TeamMember.findOne({ _id: id });
+	const user = await TeamMember.findOne({ _id: id }).exec();
 
 	if (null == user) {
 		return next(new Error(`Failed to load team member ${id}`));

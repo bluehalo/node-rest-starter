@@ -167,7 +167,7 @@ UserSchema.statics.auditCopy = (user) => {
 
 	const teams = userObj.teams || [];
 
-	return Promise.all(teams.filter((team) => team.role !== 'requester').map((team) => dbs.admin.model('Team').findOne({_id: team._id}).then((t) => _.get(t, 'name', null)))).then((teamNames) => {
+	return Promise.all(teams.filter((team) => team.role !== 'requester').map((team) => dbs.admin.model('Team').findOne({_id: team._id}).exec().then((t) => _.get(t, 'name', null)))).then((teamNames) => {
 		toReturn.teams = teamNames.filter((name) => null != name);
 		return toReturn;
 	}, () => {

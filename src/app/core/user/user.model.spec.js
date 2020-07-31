@@ -43,7 +43,7 @@ describe('User Model:', () => {
 
 	describe('Method Save', () => {
 		it('should begin with no users', () => {
-			return User.find({})
+			return User.find({}).exec()
 				.then((result) => {
 					should(result).be.an.Array();
 					should(result).have.length(0);
@@ -58,7 +58,7 @@ describe('User Model:', () => {
 		});
 
 		it('should result in 1 user', () => {
-			return User.find({})
+			return User.find({}).exec()
 				.then((result) => {
 					should(result).be.an.Array();
 					should(result).have.length(1);

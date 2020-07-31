@@ -83,7 +83,7 @@ exports.adminGetCSV = (req, res) => {
 					userData.forEach((user) => {
 							teamIds = teamIds.concat(user.teams.map((t) => { return t._id; }));
 						});
-						return Team.find({_id: {$in: teamIds}});
+						return Team.find({_id: {$in: teamIds}}).exec();
 					}
 					else {
 						return Promise.resolve();

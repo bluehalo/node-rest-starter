@@ -26,7 +26,7 @@ function doSearch(query, sortParams, page, limit) {
 }
 
 module.exports.searchAll = function(query) {
-	return Preference.find(query);
+	return Preference.find(query).exec();
 };
 
 module.exports.search = function(query, queryParams) {

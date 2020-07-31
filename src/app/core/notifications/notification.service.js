@@ -25,7 +25,7 @@ function doSearch(query, sortParams, page, limit) {
 }
 
 module.exports.searchAll = function(query) {
-	return Notification.find(query);
+	return Notification.find(query).exec();
 };
 
 

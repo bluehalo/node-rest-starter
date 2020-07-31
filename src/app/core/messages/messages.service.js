@@ -15,11 +15,11 @@ module.exports = function() {
 	function getAllMessages() {
 		const timeLimit = config.dismissedMessagesTimePeriod || 604800000;
 
-		return Message.find({created: {'$gte': new Date(Date.now() - timeLimit)}}).lean();
+		return Message.find({created: {'$gte': new Date(Date.now() - timeLimit)}}).lean().exec();
 	}
 
 	function getDismissedMessages(userId) {
-		return DismissedMessage.find({userId: userId}).lean();
+		return DismissedMessage.find({userId: userId}).lean().exec();
 	}
 
 	// Get recent, unread messages

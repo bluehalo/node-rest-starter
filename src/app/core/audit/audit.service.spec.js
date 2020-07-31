@@ -37,7 +37,7 @@ describe('Audit Service:', () => {
 	describe('Create new Audit entry', () => {
 
 		it('should begin with no audits', () => {
-			return Audit.find({}).then((results) => {
+			return Audit.find({}).exec().then((results) => {
 				should(results).be.an.Array();
 				should(results).have.length(0);
 			});
@@ -48,7 +48,7 @@ describe('Audit Service:', () => {
 		});
 
 		it('should have one audit entry', () => {
-			return Audit.find({})
+			return Audit.find({}).exec()
 				.then((results) => {
 					should(results).be.an.Array();
 					should(results).have.length(1);
@@ -67,7 +67,7 @@ describe('Audit Service:', () => {
 		});
 
 		it('should have one distinct action', () => {
-			return Audit.distinct('audit.action', {})
+			return Audit.distinct('audit.action', {}).exec()
 				.then((results) => {
 					should(results).be.an.Array();
 					should(results.length).equal(1);

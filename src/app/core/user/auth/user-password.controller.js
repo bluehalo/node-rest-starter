@@ -39,7 +39,7 @@ exports.validateResetToken = async (req, res) => {
 	const user = await User.findOne({
 		resetPasswordToken: req.params.token,
 		resetPasswordExpires: { $gt: Date.now() }
-	});
+	}).exec();
 
 	if (!user) {
 		res.status('400').json({ message: 'invalid-token' });

@@ -200,7 +200,7 @@ describe('Access Checker Service:', () => {
 			return accessChecker.get(spec.cache.expired.key).then((info) => {
 				validateCacheEntry(info, provider.expired);
 
-				return CacheEntry.findOne({ key: cache.expired.key })
+				return CacheEntry.findOne({ key: cache.expired.key }).exec()
 					.then((result) => {
 						validateCacheEntry(result.value, provider.expired);
 					});
@@ -213,7 +213,7 @@ describe('Access Checker Service:', () => {
 			return accessChecker.get(spec.cache.cacheonly.key).then((info) => {
 				validateCacheEntry(info, spec.cache.cacheonly.value);
 
-				return CacheEntry.findOne({ key: cache.cacheonly.key })
+				return CacheEntry.findOne({ key: cache.cacheonly.key }).exec()
 					.then((result) => {
 						validateCacheEntry(result.value, spec.cache.cacheonly.value);
 					});
@@ -226,7 +226,7 @@ describe('Access Checker Service:', () => {
 			return accessChecker.get('provideronly').then((info) => {
 				validateCacheEntry(info, provider.provideronly);
 
-				return CacheEntry.findOne({ key: 'provideronly' })
+				return CacheEntry.findOne({ key: 'provideronly' }).exec()
 					.then((result) => {
 						validateCacheEntry(result.value, provider.provideronly);
 					});
@@ -238,7 +238,7 @@ describe('Access Checker Service:', () => {
 			// should return the info from the cache
 			await accessChecker.refreshEntry('provideronly');
 
-			const result = await CacheEntry.findOne({ key: 'provideronly' });
+			const result = await CacheEntry.findOne({ key: 'provideronly' }).exec();
 
 			validateCacheEntry(result.value, provider.provideronly);
 		});

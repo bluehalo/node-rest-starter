@@ -25,5 +25,5 @@ module.exports.generateConfig = function(req) {
  * Returns a Promise.
  */
 module.exports.getConfigById = function(exportId) {
-	return ExportConfig.findOne({_id: exportId});
+	return ExportConfig.findOne({_id: exportId}).exec();
 };

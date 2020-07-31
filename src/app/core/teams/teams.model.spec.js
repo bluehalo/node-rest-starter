@@ -67,7 +67,7 @@ describe('Team Model:', () => {
 
 	describe('Method Save', () => {
 		it('should begin with no teams', async () => {
-			const teams = await Team.find({});
+			const teams = await Team.find({}).exec();
 			teams.should.have.length(0);
 		});
 
@@ -90,7 +90,7 @@ describe('Team Model:', () => {
 		const user1 = new TeamMember(spec.user1);
 
 		it('should begin with no users', (done) => {
-			TeamMember.find({}).then((users) => {
+			TeamMember.find({}).exec().then((users) => {
 				users.should.have.length(0);
 				done();
 			}, done);

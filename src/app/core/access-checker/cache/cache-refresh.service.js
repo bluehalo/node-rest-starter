@@ -13,7 +13,7 @@ module.exports.run = async (svcConfig) => {
 	const refresh = svcConfig.refresh || 8*3600000; // default to 8 hours
 
 	// Find all the keys that need to be refreshed
-	const results = await CacheEntry.find({ ts: { $lt: Date.now() - refresh } });
+	const results = await CacheEntry.find({ ts: { $lt: Date.now() - refresh } }).exec();
 
 	if(results.length > 0) {
 		logger.info('Access Checker: Refreshing %s users', results.length);

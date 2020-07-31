@@ -25,7 +25,7 @@ module.exports = function() {
 		}
 		else {
 			const ownerId = _.isString(search.owner.id) ? mongoose.Types.ObjectId(search.owner.id) : search.owner.id;
-			ownerPromise = Team.findOne({ _id: ownerId }).then((ownerObj) => {
+			ownerPromise = Team.findOne({ _id: ownerId }).exec().then((ownerObj) => {
 				if (null != ownerObj) {
 					search.owner.name = ownerObj.name;
 				}
@@ -39,7 +39,7 @@ module.exports = function() {
 			}
 			else {
 				const creatorId = _.isString(s.creator) ? mongoose.Types.ObjectId(s.creator) : s.creator;
-				return User.findOne({ _id: creatorId }).then((creatorObj) => {
+				return User.findOne({ _id: creatorId }).exec().then((creatorObj) => {
 					if (null != creatorObj) {
 						s.creatorName = creatorObj.name;
 						s.creatorId = creatorId;
@@ -197,9 +197,9 @@ module.exports = function() {
 					{ tags: { $in: [ tagName ] } }
 				]
 			};
-			return Resource.updateMany(finalQuery, { $addToSet: { tags: newTagName } });
+			return Resource.updateMany(finalQuery, { $addToSet: { tags: newTagName } }).exec();
 		}).then(() => {
-			return Resource.updateMany(finalQuery, { $pull: { tags: tagName } });
+			return Resource.updateMany(finalQuery, { $pull: { tags: tagName } }).exec();
 		});
 	}
 
@@ -209,7 +209,7 @@ module.exports = function() {
 		}
 
 		return constrainTagResults(teamId, user, false).then((query) => {
-			return Resource.updateMany(query, { $pull: { tags: tagName } });
+			return Resource.updateMany(query, { $pull: { tags: tagName } }).exec();
 		});
 	}
 
@@ -233,7 +233,7 @@ module.exports = function() {
 					]
 				};
 
-				return Resource.find(query);
+				return Resource.find(query).exec();
 			}).then((resources) => {
 				return (null != resources) ? Promise.resolve(resources.map((resource) => resource._id)) : Promise.resolve([]);
 			});
@@ -244,11 +244,11 @@ module.exports = function() {
 	}
 
 	function resourceById(id) {
-		return Resource.findOne({ _id: id });
+		return Resource.findOne({ _id: id }).exec();
 	}
 
 	function find(query, projection, lean) {
-		let promise = Resource.find(query, projection);
+		let promise = Resource.find(query, projection).exec();
 		if (lean) {
 			promise = promise.lean();
 		}
@@ -256,7 +256,7 @@ module.exports = function() {
 	}
 
 	const deleteResourcesWithOwner = (ownerId, ownerType) => {
-		return Resource.deleteMany({ 'owner.type': ownerType, 'owner._id': ownerId });
+		return Resource.deleteMany({ 'owner.type': ownerType, 'owner._id': ownerId }).exec();
 	};
 
 	return {

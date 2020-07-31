@@ -203,7 +203,7 @@ module.exports.userByExternalId = function(req, res, next) {
 		};
 	}
 
-	return User.findOne(find)
+	return User.findOne(find).exec()
 		.then((result) => {
 			if(null != result) {
 				// If we got a result, we're good

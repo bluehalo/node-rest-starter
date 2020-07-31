@@ -52,14 +52,14 @@ const publishEua = (eua) => {
 
 const getCurrentEua = () => {
 	return UserAgreement.findOne({ 'published': { '$ne': null, '$exists': true } })
-		.sort({ 'published': -1 });
+		.sort({ 'published': -1 }).exec();
 };
 
 const acceptEua = (user) => {
 	return User.findOneAndUpdate(
 		{ _id: user._id },
 		{ acceptedEua: Date.now() },
-		{ new: true, upsert: false });
+		{ new: true, upsert: false }).exec();
 };
 
 module.exports = {
