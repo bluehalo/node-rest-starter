@@ -142,7 +142,7 @@ async function createUser(dn, acUser) {
 		{ username: initializedUser.username },
 		{ 'providerData.dn': dn, 'providerData.dnLower': dn.toLowerCase() },
 		{ new: true, upsert: true }
-	);
+	).exec();
 }
 
 function updateUser(dn, fields) {

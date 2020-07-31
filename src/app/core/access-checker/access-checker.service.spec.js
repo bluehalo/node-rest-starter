@@ -134,7 +134,7 @@ describe('Access Checker Service:', () => {
 				// Should have errored
 				should.exist(err);
 
-				return CacheEntry.findOne({ key: 'provideronly' })
+				return CacheEntry.findOne({ key: 'provideronly' }).exec()
 					.then((result) => {
 						should.not.exist(result);
 					});
@@ -150,7 +150,7 @@ describe('Access Checker Service:', () => {
 				should.exist(err);
 
 				// Query for the cache object and verify it hasn't been updated
-				return CacheEntry.findOne({ _id: cache.outdated._id })
+				return CacheEntry.findOne({ _id: cache.outdated._id }).exec()
 					.then((result) => {
 						validateCacheEntry(result.value, spec.cache.outdated.value);
 					});

@@ -14,7 +14,7 @@ const create = (input) => {
 };
 
 const read = (id, populate = []) => {
-	return UserAgreement.findById(id).populate(populate);
+	return UserAgreement.findById(id).populate(populate).exec();
 };
 
 const update = (eua, updatedEua) => {
