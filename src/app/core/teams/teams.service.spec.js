@@ -131,7 +131,7 @@ describe('Team Service:', () => {
 						{ _id: e._id },
 						{ $addToSet: { teams: new TeamRole({ _id: team.teamWithNoExternalTeam._id, role: 'member' }) } }
 						)
-						.exec();
+						;
 				}
 			}));
 		});
@@ -157,7 +157,7 @@ describe('Team Service:', () => {
 		it('user implicitly added to a team via externalGroups', async () => {
 			const queryParams = { dir: 'ASC', page: '0', size: '5', sort: 'name' };
 
-			const _team = await Team.findOne({ name: 'external-team' }).exec();
+			const _team = await Team.findOne({ name: 'external-team' });
 
 			const searchResults = await teamsService.searchTeamMembers(null, {}, queryParams, _team);
 			searchResults.elements.should.have.length(1);
@@ -168,7 +168,7 @@ describe('Team Service:', () => {
 		it('user explicitly added to a team through the user.teams property', async () => {
 			const queryParams = { dir: 'ASC', page: '0', size: '5', sort: 'name' };
 
-			const _team = await Team.findOne({ name: 'no-external' }).exec();
+			const _team = await Team.findOne({ name: 'no-external' });
 
 			const searchResults = await teamsService.searchTeamMembers(null, {}, queryParams, _team);
 			searchResults.elements.should.be.an.Array();
@@ -444,11 +444,11 @@ describe('Team Service:', () => {
 
 		it('explicit admin should be used', async () => {
 			const queryParams = { dir: 'ASC', page: '0', size: '5', sort: 'name' };
-			const creator = await User.findOne({ name: 'user1 Name' }).exec();
-			const admin = await User.findOne({ name: 'user2 Name' }).exec();
+			const creator = await User.findOne({ name: 'user1 Name' });
+			const admin = await User.findOne({ name: 'user2 Name' });
 
 			await teamsService.createTeam(teamSpec('test-create-2'), creator, admin, {});
-			team = await Team.findOne({ name: 'test-create-2' }).exec();
+			team = await Team.findOne({ name: 'test-create-2' });
 			const members = await teamsService.searchTeamMembers(null, {}, queryParams, team);
 			(members.elements).should.have.length(1);
 			(members.elements[0]).name.should.equal(admin.name);
@@ -456,11 +456,11 @@ describe('Team Service:', () => {
 
 		it('null admin should default admin to creator', async () => {
 			const queryParams = {dir: 'ASC', page: '0', size: '5', sort: 'name'};
-			const creator = await User.findOne({name: 'user1 Name'}).exec();
+			const creator = await User.findOne({name: 'user1 Name'});
 
 			// null admin should default to creator
 			await teamsService.createTeam(teamSpec('test-create'), creator, null, {});
-			const _team = await Team.findOne({name: 'test-create'}).exec();
+			const _team = await Team.findOne({name: 'test-create'});
 			const members = await teamsService.searchTeamMembers(null, {}, queryParams, _team);
 			(members.elements).should.have.length(1);
 			(members.elements[0]).name.should.equal(creator.name);

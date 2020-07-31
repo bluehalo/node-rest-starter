@@ -14,7 +14,7 @@ const create = (input) => {
 };
 
 const read = (id, populate = []) => {
-	return UserAgreement.findById(id).populate(populate).exec();
+	return UserAgreement.findById(id).populate(populate);
 };
 
 const update = (eua, updatedEua) => {
@@ -52,15 +52,14 @@ const publishEua = (eua) => {
 
 const getCurrentEua = () => {
 	return UserAgreement.findOne({ 'published': { '$ne': null, '$exists': true } })
-		.sort({ 'published': -1 })
-		.exec();
+		.sort({ 'published': -1 });
 };
 
 const acceptEua = (user) => {
 	return User.findOneAndUpdate(
 		{ _id: user._id },
 		{ acceptedEua: Date.now() },
-		{ new: true, upsert: false }).exec();
+		{ new: true, upsert: false });
 };
 
 module.exports = {

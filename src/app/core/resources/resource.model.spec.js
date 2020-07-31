@@ -2,8 +2,6 @@
 
 const
 	mongoose = require('mongoose'),
-	q = require('q'),
-	should = require('should'),
 
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
@@ -15,7 +13,7 @@ const
  * Globals
  */
 function clearDatabase() {
-	return q.all([
+	return Promise.all([
 		Resource.deleteMany({}),
 		Owner.deleteMany({})
 	]);
@@ -51,7 +49,7 @@ describe('Resource Model:', () => {
 
 	describe('Method Save', () => {
 		it('should begin with no resources', () => {
-			return Resource.find({}).exec().then((resources) => {
+			return Resource.find({}).then((resources) => {
 				resources.should.have.length(0);
 			});
 		});
@@ -62,7 +60,7 @@ describe('Resource Model:', () => {
 		});
 
 		it('should have one resource', () => {
-			return Resource.find({}).exec().then((resources) => {
+			return Resource.find({}).then((resources) => {
 				resources.should.have.length(1);
 			});
 		});

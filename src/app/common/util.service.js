@@ -5,7 +5,6 @@ const _ = require('lodash'),
 	https = require('https'),
 	mongoose = require('mongoose'),
 	platform = require('platform'),
-	q = require('q'),
 
 	deps = require('../../dependencies'),
 	config = deps.config,
@@ -312,49 +311,47 @@ module.exports.toProvenance = function(user) {
 module.exports.emailMatcher = /.+@.+\..+/;
 
 module.exports.submitRequest = (httpOpts) => {
-	const defer = q.defer();
-	let responseBody = '';
+	return new Promise((resolve, reject) => {
+		let responseBody = '';
 
-	const httpClient = httpOpts.protocol === 'https:' ? https : http;
+		const httpClient = httpOpts.protocol === 'https:' ? https : http;
 
-	httpClient.request(httpOpts, (response) => {
-		response.on('data', (chunk) => responseBody += chunk);
-		response.on('end', () => {
-			if (response.statusCode !== 200) {
-				defer.reject({ status: response.statusCode, message: response.statusMessage });
-			}
-			else {
-				defer.resolve((_.isEmpty(responseBody)) ? {} : JSON.parse(responseBody));
-			}
-		});
-	}).on('error', (err) => defer.reject(err)).end();
-
-	return defer.promise;
+		httpClient.request(httpOpts, (response) => {
+			response.on('data', (chunk) => responseBody += chunk);
+			response.on('end', () => {
+				if (response.statusCode !== 200) {
+					reject({ status: response.statusCode, message: response.statusMessage });
+				}
+				else {
+					resolve((_.isEmpty(responseBody)) ? {} : JSON.parse(responseBody));
+				}
+			});
+		}).on('error', (err) => reject(err)).end();
+	});
 };
 
 module.exports.submitPostRequest = (httpOpts, postBody) => {
-	const defer = q.defer();
-	let responseBody = '';
+	return new Promise((resolve, reject) => {
+		let responseBody = '';
 
-	const httpClient = httpOpts.protocol === 'https:' ? https : http;
+		const httpClient = httpOpts.protocol === 'https:' ? https : http;
 
-	const postRequest = httpClient.request(httpOpts, (response) => {
-		response.on('data', (chunk) => responseBody += chunk);
-		response.on('end', () => {
-			if (response.statusCode !== 200) {
-				defer.reject({ status: response.statusCode, message: response.statusMessage });
-			}
-			else {
-				defer.resolve((_.isEmpty(responseBody)) ? {} : JSON.parse(responseBody));
-			}
+		const postRequest = httpClient.request(httpOpts, (response) => {
+			response.on('data', (chunk) => responseBody += chunk);
+			response.on('end', () => {
+				if (response.statusCode !== 200) {
+					reject({ status: response.statusCode, message: response.statusMessage });
+				}
+				else {
+					resolve((_.isEmpty(responseBody)) ? {} : JSON.parse(responseBody));
+				}
+			});
 		});
+
+		postRequest.on('error', (err) => reject(err));
+		postRequest.write(JSON.stringify(postBody));
+		postRequest.end();
 	});
-
-	postRequest.on('error', (err) => defer.reject(err));
-	postRequest.write(JSON.stringify(postBody));
-	postRequest.end();
-
-	return defer.promise;
 };
 
 module.exports.getPagingResults = (pageSize = 20, pageNumber = 0, totalSize = 0, elements = []) => {

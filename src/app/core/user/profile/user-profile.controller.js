@@ -2,7 +2,6 @@
 
 const
 	_ = require('lodash'),
-	q = require('q'),
 
 	deps = require('../../../../dependencies'),
 	config = deps.config,
@@ -47,7 +46,7 @@ function searchUsers(req, res, copyUserFn) {
 
 		// Serialize the response
 		res.status(200).json(toReturn);
-	}, (error) => {
+	}).catch((error) => {
 		// failure
 		logger.error(error);
 		return util.send400Error(res, error);
@@ -155,7 +154,7 @@ exports.updateCurrentUser = (req, res) => {
 exports.updatePreferences = (req, res) => {
 	userProfileService.updatePreferences(req.user._id, req.body).then(() => {
 		res.status(200).json({});
-	}, (err) => {
+	}).catch((err) => {
 		util.handleErrorResponse(res, err);
 	});
 };
@@ -163,7 +162,7 @@ exports.updatePreferences = (req, res) => {
 exports.updateRequiredOrgs = (req, res) => {
 	userProfileService.updateRequiredOrgs(req.user._id, req.body).then(() => {
 		res.status(200).json({});
-	}, (err) => {
+	}).catch((err) => {
 		util.handleErrorResponse(res, err);
 	});
 };
@@ -213,7 +212,7 @@ exports.matchUsers = (req, res) => {
 
 		// Serialize the response
 		res.status(200).json(toReturn);
-	}, (error) => {
+	}).catch((error) => {
 		// failure
 		logger.error(error);
 		return util.send400Error(res, error);
@@ -337,28 +336,23 @@ exports.adminUpdateUser = (req, res) => {
 
 
 // Admin Delete a User
-exports.adminDeleteUser = (req, res) => {
+exports.adminDeleteUser = async (req, res) => {
 	// Init Variables
 	const user = req.userParam;
 
 	// Audit deletion, then remove all resources owned by user, then remove user
-	q().then(() => {
-		if (null == user) {
-			return q.reject({ status: 400, message: 'Could not find user' });
-		}
+	if (null == user) {
+		return Promise.reject({ status: 400, message: 'Could not find user' });
+	}
 
-		return q();
-	}).then(() => {
-		return auditService.audit('admin user deleted', 'user', 'admin delete', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), User.auditCopy(user), req.headers);
-	}).then(() => {
-		return resourcesService.deleteResourcesWithOwner(user._id, 'user');
-	}).then(() => {
-		return user.remove();
-	}).then(() => {
+	try {
+		await auditService.audit('admin user deleted', 'user', 'admin delete', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), User.auditCopy(user), req.headers);
+		await resourcesService.deleteResourcesWithOwner(user._id, 'user');
+		await user.remove();
 		res.status(200).json(User.fullCopy(user));
-	}, (err) => {
+	} catch(err) {
 		util.handleErrorResponse(res, err);
-	});
+	}
 };
 
 
@@ -400,14 +394,12 @@ exports.canEditProfile = canEditProfile;
 
 // Are allowed to edit user profile info
 exports.hasEdit = (req) => {
-	const defer = q.defer();
-
-	if (canEditProfile(config.auth.strategy, req.user)) {
-		defer.resolve();
-	}
-	else {
-		defer.reject({ status: 403, type: 'not-authorized', message: 'User not authorized to edit their profile' });
-	}
-
-	return defer.promise;
+	return new Promise((resolve, reject) => {
+		if (canEditProfile(config.auth.strategy, req.user)) {
+			resolve();
+		}
+		else {
+			reject({ status: 403, type: 'not-authorized', message: 'User not authorized to edit their profile' });
+		}
+	});
 };

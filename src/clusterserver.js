@@ -21,7 +21,6 @@ startupPromise
 		sticky(options, () => app).listen(config.port, () => {
 			logger.info(`server started on ${config.port} port`);
 		});
-	},
-	(error) => {
+	}).catch((error) => {
 		logger.fatal(error, 'Startup initialization failed.');
-	}).done();
+	});

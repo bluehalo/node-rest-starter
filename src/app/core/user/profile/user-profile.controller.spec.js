@@ -3,7 +3,6 @@
 const
 	_ = require('lodash'),
 	mongoose = require('mongoose'),
-	q = require('q'),
 	should = require('should'),
 
 	User = mongoose.model('User'),
@@ -15,7 +14,7 @@ const
  */
 
 function clearDatabase() {
-	return q.all([
+	return Promise.all([
 		User.deleteMany({})
 	]);
 }
@@ -53,7 +52,7 @@ describe('User Profile Controller:', () => {
 				return (new User(spec.user[k])).save().then((e) => { user[k] = e; });
 			}));
 
-			return q.all(defers);
+			return Promise.all(defers);
 		});
 	});
 

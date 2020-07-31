@@ -1,8 +1,6 @@
 'use strict';
 
-const
-	q = require('q'),
-	should = require('should'),
+const should = require('should'),
 
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
@@ -13,7 +11,7 @@ const
  * Globals
  */
 function clearDatabase() {
-	return q.all([
+	return Promise.all([
 		User.deleteMany({})
 	]);
 }
@@ -45,7 +43,7 @@ describe('User Model:', () => {
 
 	describe('Method Save', () => {
 		it('should begin with no users', () => {
-			return User.find({}).exec()
+			return User.find({})
 				.then((result) => {
 					should(result).be.an.Array();
 					should(result).have.length(0);
@@ -60,7 +58,7 @@ describe('User Model:', () => {
 		});
 
 		it('should result in 1 user', () => {
-			return User.find({}).exec()
+			return User.find({})
 				.then((result) => {
 					should(result).be.an.Array();
 					should(result).have.length(1);
@@ -71,7 +69,7 @@ describe('User Model:', () => {
 			const validUser = new User(userSpec('valid'));
 			return validUser.save().then(() => {
 				should.fail();
-			}, (err) => {
+			}).catch((err) => {
 				should.exist(err);
 			});
 		});
@@ -87,7 +85,7 @@ describe('User Model:', () => {
 				return u.save()
 					.then(() => {
 						should.fail();
-					}, (err) => {
+					}).catch((err) => {
 						should.exist(err);
 					});
 			});

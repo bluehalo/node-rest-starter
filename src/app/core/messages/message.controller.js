@@ -4,7 +4,6 @@ const
 	mongoose = require('mongoose'),
 	path = require('path'),
 	ValidationError = mongoose.Error.ValidationError,
-	q = require('q'),
 
 	deps = require('../../../dependencies'),
 	config = deps.config,
@@ -118,7 +117,7 @@ exports.update = function(req, res) {
 // Delete
 exports.delete = function(req, res) {
 	const message = req.message;
-	Message.deleteOne({ _id: message._id }, (err) => {
+	Message.deleteOne({ _id: message._id }).catch((err) => {
 		util.catchError(res, err, () => {
 			res.status(200).json(message);
 		});
@@ -154,7 +153,7 @@ exports.search = function(req, res) {
 
 		// Serialize the response
 		res.status(200).json(toReturn);
-	}, (error) => {
+	}).catch((error) => {
 		// failure
 		logger.error(error);
 		return util.send400Error(res, error);
@@ -190,9 +189,9 @@ exports.searchTest = function(req, res) {
 		const getSearchCount = Message.find(_query).countDocuments();
 		const getSearchInfo = Message.find(_query).sort(sortParams).skip(offset).limit(limit);
 
-		return q.all([getSearchCount, getSearchInfo])
+		return Promise.all([getSearchCount, getSearchInfo])
 			.then((results) => {
-				return q(util.getPagingResults(limit, page, results[0], results[1]));
+				return util.getPagingResults(limit, page, results[0], results[1]);
 			});
 	};
 
@@ -203,10 +202,10 @@ exports.searchTest = function(req, res) {
 	// Now execute the search promise
 	searchPromise.then((results) => {
 		res.status(200).json(results);
-	}, (err) => {
+	}).catch((err) => {
 		logger.error({err: err, req: req}, 'Error searching for messages');
 		return util.handleErrorResponse(res, err);
-	}).done();
+	});
 
 };
 
@@ -229,7 +228,7 @@ exports.messageById = function(req, res, next, id) {
 module.exports.getRecentMessages = function(req, res) {
 	messageService.getRecentMessages(req.user._id).then((result) => {
 		res.status(200).json(result);
-	}, (err) => {
+	}).catch((err) => {
 		util.handleErrorResponse(res, err);
 	});
 };
@@ -242,7 +241,7 @@ module.exports.getRecentMessages = function(req, res) {
 exports.dismissMessage = function(req, res) {
 	messageService.dismissMessage(req.body.messageIds, req.user, req.headers).then((result) => {
 		res.status(200).json(result);
-	}, (err) => {
+	}).catch((err) => {
 		util.handleErrorResponse(res, err);
 	});
 };

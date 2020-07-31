@@ -1,9 +1,6 @@
 'use strict';
 
-const
-	q = require('q'),
-
-	deps = require('../../../dependencies'),
+const deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
 	auditService = deps.auditService,
@@ -18,11 +15,11 @@ module.exports = function() {
 	function getAllMessages() {
 		const timeLimit = config.dismissedMessagesTimePeriod || 604800000;
 
-		return Message.find({created: {'$gte': new Date(Date.now() - timeLimit)}}).lean().exec();
+		return Message.find({created: {'$gte': new Date(Date.now() - timeLimit)}}).lean();
 	}
 
 	function getDismissedMessages(userId) {
-		return DismissedMessage.find({userId: userId}).lean().exec();
+		return DismissedMessage.find({userId: userId}).lean();
 	}
 
 	// Get recent, unread messages
@@ -54,7 +51,7 @@ module.exports = function() {
 			auditService.audit('message dismissed', 'message', 'dismissed', TeamMember.auditCopy(user), Message.auditCopy(dismissedMessage), headers)
 				.then(saveDismissedMessagePromise);
 		}
-		return q.all(dismissedMessagePromises);
+		return Promise.all(dismissedMessagePromises);
 
 	}
 

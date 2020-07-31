@@ -2,8 +2,6 @@
 
 const
 	_ = require('lodash'),
-	q = require('q'),
-
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	dbs = deps.dbs,
@@ -25,7 +23,7 @@ exports.adminGetCSV = (req, res) => {
 	exportConfigService.getConfigById(exportId)
 		.then((result) => {
 			if (null == result) {
-				return q.reject({
+				return Promise.reject({
 					status: 404,
 					type: 'bad-argument',
 					message: 'Export configuration not found. Document may have expired.'
@@ -33,7 +31,7 @@ exports.adminGetCSV = (req, res) => {
 			}
 
 			return auditService.audit(`${result.type} CSV config retrieved`, 'export', 'export', TeamMember.auditCopy(req.user), ExportConfig.auditCopy(result), req.headers).then(() => {
-					return q(result);
+					return Promise.resolve(result);
 				});
 		})
 		.then((result) => {
@@ -85,11 +83,11 @@ exports.adminGetCSV = (req, res) => {
 					userData.forEach((user) => {
 							teamIds = teamIds.concat(user.teams.map((t) => { return t._id; }));
 						});
-						return Team.find({_id: {$in: teamIds}}).exec();
+						return Team.find({_id: {$in: teamIds}});
 					}
 					else {
-						return q();
-							}
+						return Promise.resolve();
+					}
 				})
 				.then((teamResults) => {
 					if (null != teamResults) {
@@ -107,7 +105,7 @@ exports.adminGetCSV = (req, res) => {
 					}
 					exportConfigController.exportCSV(req, res, fileName, columns, userData);
 				});
-		}, (error) => {
+		}).catch((error) => {
 			utilService.handleErrorResponse(res, error);
 		});
 };

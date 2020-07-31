@@ -58,7 +58,7 @@ exports.search = function(req, res) {
 
 		// Serialize the response
 		res.status(200).json(toReturn);
-	}, (err) => {
+	}).catch((err) => {
 		// failure
 		logger.error({err: err, req: req}, 'Error searching for audit entries');
 		return util.handleErrorResponse(res, err);

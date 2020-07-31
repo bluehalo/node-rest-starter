@@ -130,7 +130,7 @@ async function createUser(dn, acUser) {
 	const initializedUser = await userAuthService.initializeNewUser(newUser);
 
 	// Check for existing user with same username
-	const existingUser = await User.findOne({username: initializedUser.username}).exec();
+	const existingUser = await User.findOne({username: initializedUser.username});
 
 	// If existing user doesn't exists, save
 	if (null == existingUser) {
@@ -142,17 +142,17 @@ async function createUser(dn, acUser) {
 		{ username: initializedUser.username },
 		{ 'providerData.dn': dn, 'providerData.dnLower': dn.toLowerCase() },
 		{ new: true, upsert: true }
-	).exec();
+	);
 }
 
 function updateUser(dn, fields) {
-	return User.findOneAndUpdate( { 'providerData.dnLower': dn.toLowerCase() }, fields, { new: true, upsert: false }).exec();
+	return User.findOneAndUpdate( { 'providerData.dnLower': dn.toLowerCase() }, fields, { new: true, upsert: false });
 }
 
 async function handleUser(dn, req, isProxy) {
 	const dnLower = dn.toLowerCase();
 
-	const localUser = await User.findOne({ 'providerData.dnLower': dnLower }).exec();
+	const localUser = await User.findOne({ 'providerData.dnLower': dnLower });
 
 	// Bypass AC check
 	if (localUser && localUser.bypassAccessCheck) {

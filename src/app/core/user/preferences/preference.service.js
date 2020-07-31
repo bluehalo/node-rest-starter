@@ -1,9 +1,6 @@
 'use strict';
 
-const
-	q = require('q'),
-
-	deps = require('../../../../dependencies'),
+const deps = require('../../../../dependencies'),
 	util = deps.utilService,
 	dbs = deps.dbs,
 
@@ -22,14 +19,14 @@ function doSearch(query, sortParams, page, limit) {
 		searchPromise = searchPromise.skip(page * limit).limit(limit);
 	}
 
-	return q.all([ countPromise, searchPromise ])
+	return Promise.all([ countPromise, searchPromise ])
 		.then(([countResult, searchResult]) => {
-			return q(util.getPagingResults(limit, page, countResult, searchResult));
+			return util.getPagingResults(limit, page, countResult, searchResult);
 		});
 }
 
 module.exports.searchAll = function(query) {
-	return Preference.find(query).exec();
+	return Preference.find(query);
 };
 
 module.exports.search = function(query, queryParams) {

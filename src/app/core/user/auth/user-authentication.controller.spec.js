@@ -2,7 +2,6 @@
 
 const
 	_ = require('lodash'),
-	q = require('q'),
 	should = require('should'),
 
 	deps = require('../../../../dependencies'),
@@ -23,7 +22,7 @@ const
  * Helpers
  */
 function clearDatabase() {
-	return q.all([
+	return Promise.all([
 		User.deleteMany({}),
 		CacheEntry.deleteMany({})
 	]);
@@ -314,7 +313,7 @@ describe('User Auth Controller:', () => {
 					});
 				}));
 
-				return q.all(defers).then(() => {
+				return Promise.all(defers).then(() => {
 					const accessCheckerConfig = {
 						userbypassed: {
 							name: 'Invalid Name',

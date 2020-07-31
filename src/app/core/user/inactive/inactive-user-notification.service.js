@@ -1,8 +1,6 @@
 'use strict';
 
-const
-	q = require('q'),
-	deps = require('../../../../dependencies'),
+const deps = require('../../../../dependencies'),
 	logger = deps.logger;
 
 const services = [
@@ -14,17 +12,14 @@ const services = [
 
 module.exports.run = function(config) {
 
-	const notifyInactiveUsers = services.map((service) => service.path.run(config));
-	return q.allSettled(notifyInactiveUsers)
-		.then((results) => {
-			results.forEach((result, idx) => {
-				if (result.state === 'rejected') {
-					logger.error(`Error running service=${services[idx].name}. Error=${JSON.stringify(result.reason)}`);
-				} else {
-					logger.debug(`Ran service=${services[idx].name} to email inactive users`);
-				}
-			});
+	const notifyInactiveUsers = services.map((service) => service.path.run(config).then(() => {
+		logger.debug(`Ran service=${service.name} to email inactive users`);
+	}).catch((err) => {
+		logger.error(`Error running service=${service.name}. Error=${JSON.stringify(err)}`);
+		// Ignore any errors notifying inactive users by returning a resolved promise
+		return Promise.resolve();
+	}));
 
-		});
+	return Promise.all(notifyInactiveUsers);
 };
 

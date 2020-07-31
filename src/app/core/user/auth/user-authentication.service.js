@@ -3,7 +3,6 @@
 const
 	_ = require('lodash'),
 	passport = require('passport'),
-	q = require('q'),
 
 	deps = require('../../../../dependencies'),
 	auditService = deps.auditService,
@@ -39,7 +38,7 @@ module.exports.initializeNewUser = function(user) {
 	}
 
 	// Resolve the user (this might seem like overkill, but planning for the future)
-	return q(user);
+	return Promise.resolve(user);
 };
 
 /**
@@ -48,85 +47,82 @@ module.exports.initializeNewUser = function(user) {
  * Updates the last logged in time
  * Audits the action
  */
-module.exports.login = function(user, req) {
-	const defer = q.defer();
+module.exports.login = (user, req) => {
 
-	// Remove sensitive data before login
-	delete user.password;
-	delete user.salt;
+	return new Promise((resolve, reject) => {
+		// Remove sensitive data before login
+		delete user.password;
+		delete user.salt;
 
-	// Calls the login function (which goes to passport)
-	req.login(user, (err) => {
-		if (err) {
-			defer.reject({ status: 500, type: 'login-error', message: err });
-		} else {
+		// Calls the login function (which goes to passport)
+		req.login(user, (err) => {
+			if (err) {
+				reject({ status: 500, type: 'login-error', message: err });
+			} else {
 
-			// update the user's last login time
-			User.findOneAndUpdate(
-				{ _id: user._id },
-				{ lastLogin: Date.now() },
-				{ new: true, upsert: false },
-				(_err, _user) => {
-					if(null != _err) {
-						defer.reject({ status: 500, type: 'login-error', message: _err });
+				// update the user's last login time
+				User.findOneAndUpdate(
+					{ _id: user._id },
+					{ lastLogin: Date.now() },
+					{ new: true, upsert: false },
+					(_err, _user) => {
+						if(null != _err) {
+							reject({ status: 500, type: 'login-error', message: _err });
+						}
+						else {
+							resolve(User.fullCopy(_user));
+						}
 					}
-					else {
-						defer.resolve(User.fullCopy(_user));
-					}
-				}
-			);
+				);
 
-			// Audit the login
-			auditService.audit('User successfully logged in', 'user-authentication', 'authentication succeeded', {}, User.auditCopy(user, util.getHeaderField(req.headers, 'x-real-ip')), req.headers);
-		}
+				// Audit the login
+				auditService.audit('User successfully logged in', 'user-authentication', 'authentication succeeded', {}, User.auditCopy(user, util.getHeaderField(req.headers, 'x-real-ip')), req.headers);
+			}
+		});
 	});
-
-	return defer.promise;
 };
 
 /**
  * Authenticate and then login depending on the outcome
  */
 module.exports.authenticateAndLogin = function(req, res, next) {
-	const defer = q.defer();
+	return new Promise((resolve, reject) => {
+		// Attempt to authenticate the user using passport
+		passport.authenticate(config.auth.strategy, (err, user, info, status) => {
 
-	// Attempt to authenticate the user using passport
-	passport.authenticate(config.auth.strategy, (err, user, info, status) => {
-
-		// If there was an error
-		if(null != err) {
-			// Reject the promise with a 500 error
-			defer.reject({ status: 500, type: 'authentication-error', message: err });
-		}
-		// If the authentication failed
-		else if (!user) {
-			// In the case of a auth failure, info should have the reason
-			// Here is a hack for the local strategy...
-			if(null == info.status && null != status) {
-				info.status = status;
-				if(info.message === 'Missing credentials') {
-					info.type = 'missing-credentials';
+			// If there was an error
+			if(null != err) {
+				// Reject the promise with a 500 error
+				reject({ status: 500, type: 'authentication-error', message: err });
+			}
+			// If the authentication failed
+			else if (!user) {
+				// In the case of a auth failure, info should have the reason
+				// Here is a hack for the local strategy...
+				if(null == info.status && null != status) {
+					info.status = status;
+					if(info.message === 'Missing credentials') {
+						info.type = 'missing-credentials';
+					}
 				}
+
+				reject(info);
+
+				// Try to grab the username from the request
+				const username = (req.body && req.body.username)? req.body.username : 'none provided';
+
+				// Audit the failed attempt
+				auditService.audit(info.message, 'user-authentication', 'authentication failed',
+					{ }, { username: username }, req.headers);
+
+			}
+			// Else the authentication was successful
+			else {
+				// Set the user ip if available.
+				user.ip = ( _.isUndefined(req.headers['x-real-ip']) ) ? null : req.headers['x-real-ip'];
+				module.exports.login(user, req).then(resolve).catch(reject);
 			}
 
-			defer.reject(info);
-
-			// Try to grab the username from the request
-			const username = (req.body && req.body.username)? req.body.username : 'none provided';
-
-			// Audit the failed attempt
-			auditService.audit(info.message, 'user-authentication', 'authentication failed',
-				{ }, { username: username }, req.headers);
-
-		}
-		// Else the authentication was successful
-		else {
-			// Set the user ip if available.
-			user.ip = ( _.isUndefined(req.headers['x-real-ip']) ) ? null : req.headers['x-real-ip'];
-			module.exports.login(user, req).then(defer.resolve, defer.reject);
-		}
-
-	})(req, res, next);
-
-	return defer.promise;
+		})(req, res, next);
+	});
 };

@@ -1,11 +1,8 @@
 'use strict';
 
-const
-	q = require('q'),
-	logger = require('./lib/bunyan').logger,
+const logger = require('./lib/bunyan').logger,
 	express = require('./lib/express'),
 	mongoose = require('./lib/mongoose');
-
 
 module.exports = function () {
 	logger.info('Starting initialization of Node.js server');
@@ -31,7 +28,7 @@ module.exports = function () {
 
 			} catch (err) {
 				logger.fatal('Express initialization failed.');
-				return q.reject(err);
+				return Promise.reject(err);
 			}
 		});
 };

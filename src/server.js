@@ -10,7 +10,6 @@ startupPromise
 		// Start the app
 		app.listen(config.port);
 		logger.info(`${config.app.instanceName} started on port ${config.port}`);
-	},
-	(error) => {
+	}).catch((error) => {
 		logger.fatal(error, 'Startup initialization failed.');
-	}).done();
+	});

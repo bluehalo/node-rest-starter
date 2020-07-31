@@ -182,7 +182,7 @@ module.exports = function() {
 	 * @returns A promise that resolves if there are no more resources in the team, and rejects otherwise
 	 */
 	async function verifyNoResourcesInTeam(team) {
-		const resources = await Resource.find({ 'owner.type': 'team', 'owner._id': team._id } ).exec();
+		const resources = await Resource.find({ 'owner.type': 'team', 'owner._id': team._id } );
 
 		if (null != resources && resources.length > 0) {
 			return Promise.reject({ status: 400, type: 'bad-request', message: 'There are still resources in this group.'});
@@ -203,7 +203,7 @@ module.exports = function() {
 		const results = await TeamMember.find({
 			_id: { $ne: user._id },
 			teams: { $elemMatch: { _id: team._id, role: 'admin' } }
-		}).exec();
+		});
 
 		// Just need to make sure we find one active admin who isn't this user
 		const adminFound = results.some((u) => {
@@ -247,7 +247,7 @@ module.exports = function() {
 		newTeam.updated = Date.now();
 		newTeam.creatorName = creator.name;
 
-		let user = await User.findById(firstAdmin).exec();
+		let user = await User.findById(firstAdmin);
 		user = User.filteredCopy(user);
 
 		// Audit the creation action
@@ -411,7 +411,7 @@ module.exports = function() {
 		// Audit the member add request
 		await auditService.audit(`team ${role} added`, 'team-role', 'user add', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, role), headers);
 
-		return TeamMember.updateOne({ _id: user._id }, { $addToSet: { teams: new TeamRole({ _id: team._id, role: role }) } }).exec();
+		return TeamMember.updateOne({ _id: user._id }, { $addToSet: { teams: new TeamRole({ _id: team._id, role: role }) } });
 	}
 
 	const addMembersToTeam = (users, team, requester, headers) => {
@@ -438,7 +438,7 @@ module.exports = function() {
 		// Audit the member update request
 		await auditService.audit(`team role changed to ${role}`, 'team-role', 'user add', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, role), headers);
 
-		return TeamMember.findOneAndUpdate({ _id: user._id, 'teams._id': team._id }, { $set: { 'teams.$.role': role } }).exec();
+		return TeamMember.findOneAndUpdate({ _id: user._id, 'teams._id': team._id }, { $set: { 'teams.$.role': role } });
 	}
 
 	/**
@@ -458,7 +458,7 @@ module.exports = function() {
 		await auditService.audit('team member removed', 'team-role', 'user remove', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, ''), headers);
 
 		// Apply the update
-		return TeamMember.updateOne({ _id: user._id }, { $pull: { teams: { _id: team._id } } }).exec();
+		return TeamMember.updateOne({ _id: user._id }, { $pull: { teams: { _id: team._id } } });
 	}
 
 	async function sendRequestEmail(toEmail, requester, team, req) {
@@ -480,7 +480,7 @@ module.exports = function() {
 
 	async function requestAccessToTeam(requester, team, req) {
 		// Lookup the emails of all team admins
-		const admins = await TeamMember.find({ teams: { $elemMatch: { _id: mongoose.Types.ObjectId(team._id), role: 'admin' } }}).exec();
+		const admins = await TeamMember.find({ teams: { $elemMatch: { _id: mongoose.Types.ObjectId(team._id), role: 'admin' } }});
 
 		if (null == admins) {
 			return Promise.reject({ status: 404, message: 'Error retrieving team admins' });
@@ -569,7 +569,7 @@ module.exports = function() {
 			return [];
 		}
 
-		return Team.distinct('_id', query).exec();
+		return Team.distinct('_id', query);
 	}
 
 	function getTeamIds(user, ...roles) {

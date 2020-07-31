@@ -20,7 +20,7 @@ module.exports = function() {
 				return done(null, false, {status: 400, type: 'missing-credentials', message: 'No username provided' });
 			}
 
-			User.findOne({ username: username }).exec().then((user) => {
+			User.findOne({ username: username }).then((user) => {
 
 				// The user wasn't found or the password was wrong
 				if (!user || !user.authenticate(password)) {
@@ -30,7 +30,7 @@ module.exports = function() {
 				// Return the user
 				return done(null, user);
 
-			}, (err) => done(err)).done();
+			}).catch((err) => done(err));
 
 		})
 

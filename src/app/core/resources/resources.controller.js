@@ -13,9 +13,9 @@ module.exports.searchTags = (req, res) => {
 
 	resourcesService.searchTagsInResources(teamId, search, req.query, req.user).then((result) => {
 		res.status(200).json(result);
-	}, (err) => {
+	}).catch((err) => {
 		utilService.handleErrorResponse(res, err);
-	}).done();
+	});
 };
 
 module.exports.updateTag = (req, res) => {
@@ -25,9 +25,9 @@ module.exports.updateTag = (req, res) => {
 
 	resourcesService.updateTagInResources(teamId, prevTagName, newTagName, req.user).then((result) => {
 		res.status(200).json(result);
-	}, (err) => {
+	}).catch((err) => {
 		utilService.handleErrorResponse(res, err);
-	}).done();
+	});
 };
 
 module.exports.deleteTag = (req, res) => {
@@ -36,7 +36,7 @@ module.exports.deleteTag = (req, res) => {
 
 	resourcesService.deleteTagFromResources(teamId, tagName, req.user).then((result) => {
 		res.status(200).json(result);
-	}, (err) => {
+	}).catch((err) => {
 		utilService.handleErrorResponse(res, err);
-	}).done();
+	});
 };

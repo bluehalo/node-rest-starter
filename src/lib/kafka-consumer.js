@@ -71,8 +71,7 @@ function disconnect(connection) {
 
 				// Re-emit this error to listeners.
 				connection.emit('error', err);
-			})
-			.done();
+			});
 	}
 }
 

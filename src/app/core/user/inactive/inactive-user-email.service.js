@@ -30,7 +30,7 @@ async function sendEmail(user, emailConfig) {
 }
 
 async function deactivationAlert(dQuery) {
-	const deactivatedUsers = await User.find(dQuery).exec();
+	const deactivatedUsers = await User.find(dQuery);
 	if (_.isArray(deactivatedUsers)) {
 
 		const promises = deactivatedUsers.map((user) => {
@@ -52,7 +52,7 @@ async function deactivationAlert(dQuery) {
 
 
 async function inactivityAlert(dQuery) {
-	const inactiveUsers = await User.find(dQuery).exec();
+	const inactiveUsers = await User.find(dQuery);
 	if (_.isArray(inactiveUsers)) {
 		const promises = inactiveUsers.map((user) => {
 			return sendEmail(user, config.coreEmails.userInactivity);

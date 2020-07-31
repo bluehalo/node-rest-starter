@@ -2,7 +2,6 @@
 
 const
 	_ = require('lodash'),
-	q = require('q'),
 
 	deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
@@ -53,14 +52,14 @@ module.exports.run = function() {
 								removals.push(preference.remove());
 							}
 						});
-						return q.all(removals);
+						return Promise.all(removals);
 					});
 			}
-			return q();
+			return Promise.resolve();
 		})
 		.fail((err) => {
 			logger.error(`Failed scheduled run to clean up orphaned preferences. Error=${JSON.stringify(err)}`);
-			return q.reject(err);
+			return Promise.reject(err);
 		});
 
 };

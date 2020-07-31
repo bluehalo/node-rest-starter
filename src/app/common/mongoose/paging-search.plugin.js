@@ -25,7 +25,7 @@ const pagingQuery = async (schema, filter, projection, options, sort, limit, off
 	const resultsQuery = schema.find(filter, projection, options).sort(sort).skip(offset).limit(limit).maxTimeMS(config.maxTimeMS).populate(populate);
 
 	const countPromise = runCount ?
-							countQuery.countDocuments().exec()
+							countQuery.countDocuments()
 										.catch((err) => {
 												// Hit timeout
 												if(err.code === MONGO_TIMEOUT_ERROR_CODE) {
@@ -35,7 +35,7 @@ const pagingQuery = async (schema, filter, projection, options, sort, limit, off
 													return err;
 												}
 											}) : Promise.resolve(Number.MAX_SAFE_INTEGER);
-	const resultsPromise = resultsQuery.exec();
+	const resultsPromise = resultsQuery;
 
 	const [count, results] = await Promise.all([countPromise, resultsPromise]);
 

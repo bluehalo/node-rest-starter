@@ -2,7 +2,6 @@
 
 const
 	os = require('os'),
-	q = require('q'),
 	stream = require('stream'),
 
 	deps = require('../../../dependencies'),
@@ -34,7 +33,7 @@ exports.requestExport = (req, res) => {
 	.then((generatedConfig) => {
 			return auditService.audit(`${req.body.type} config created`, 'export', 'create', TeamMember.auditCopy(req.user, utilService.getHeaderField(req.headers, 'x-real-ip')), ExportConfig.auditCopy(generatedConfig), req.headers)
 				.then(() => {
-					return q(generatedConfig);
+					return Promise.resolve(generatedConfig);
 				});
 		}).then(
 			(result) => {
@@ -42,8 +41,7 @@ exports.requestExport = (req, res) => {
 			},
 			(err) => {
 				utilService.handleErrorResponse(res, err);
-			})
-		.done();
+			});
 };
 
 exports.exportCSV = (req, res, filename, columns, data) => {
