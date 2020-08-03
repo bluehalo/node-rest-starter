@@ -50,7 +50,7 @@ const saveToCache = (id, value) => {
 	}
 
 	// Upsert the cache entry
-	return CacheEntry.findOneAndUpdate({ key: id }, { value: value, valueString: valueString, ts: Date.now() }, { new: true, upsert: true });
+	return CacheEntry.findOneAndUpdate({ key: id }, { value: value, valueString: valueString, ts: Date.now() }, { new: true, upsert: true }).exec();
 
 };
 

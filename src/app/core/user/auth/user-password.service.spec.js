@@ -48,7 +48,7 @@ describe('User Password Service:', () => {
 		}
 	});
 
-	const clearDB = () => User.deleteMany({});
+	const clearDB = () => User.deleteMany({}).exec();
 
 	before(clearDB);
 	after(clearDB);
