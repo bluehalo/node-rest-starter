@@ -25,7 +25,7 @@ module.exports.updatePreferences = (_id, pref) => {
 		const preferences = user.preferences || {};
 		Object.assign(preferences, pref);
 
-		return user.update({$set: { preferences: preferences } });
+		return user.update({$set: { preferences: preferences } }).exec();
 	});
 };
 
