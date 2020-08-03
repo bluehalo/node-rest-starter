@@ -19,7 +19,7 @@ module.exports.init = function() {
 			_id: id
 		}, '-salt -password', (err, user) => {
 			done(err, user);
-		});
+		}).exec();
 	});
 
 	// Initialize strategies

@@ -15,7 +15,7 @@ const
 
 function clearDatabase() {
 	return Promise.all([
-		User.deleteMany({})
+		User.deleteMany({}).exec()
 	]);
 }
 

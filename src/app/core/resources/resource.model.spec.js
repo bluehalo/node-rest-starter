@@ -14,8 +14,8 @@ const
  */
 function clearDatabase() {
 	return Promise.all([
-		Resource.deleteMany({}),
-		Owner.deleteMany({})
+		Resource.deleteMany({}).exec(),
+		Owner.deleteMany({}).exec()
 	]);
 }
 

@@ -25,8 +25,8 @@ function createSubjectUnderTest(dependencies) {
 
 function clearDatabase() {
 	return Promise.all([
-		Team.deleteMany({}),
-		User.deleteMany({})
+		Team.deleteMany({}).exec(),
+		User.deleteMany({}).exec()
 	]);
 }
 

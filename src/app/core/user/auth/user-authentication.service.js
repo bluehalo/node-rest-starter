@@ -73,7 +73,7 @@ module.exports.login = (user, req) => {
 							resolve(User.fullCopy(_user));
 						}
 					}
-				);
+				).exec();
 
 				// Audit the login
 				auditService.audit('User successfully logged in', 'user-authentication', 'authentication succeeded', {}, User.auditCopy(user, util.getHeaderField(req.headers, 'x-real-ip')), req.headers);

@@ -117,7 +117,9 @@ exports.update = function(req, res) {
 // Delete
 exports.delete = function(req, res) {
 	const message = req.message;
-	Message.deleteOne({ _id: message._id }).catch((err) => {
+	Message.deleteOne({ _id: message._id })
+	.exec()
+	.catch((err) => {
 		util.catchError(res, err, () => {
 			res.status(200).json(message);
 		});
@@ -189,7 +191,7 @@ exports.searchTest = function(req, res) {
 		const getSearchCount = Message.find(_query).countDocuments();
 		const getSearchInfo = Message.find(_query).sort(sortParams).skip(offset).limit(limit);
 
-		return Promise.all([getSearchCount, getSearchInfo])
+		return Promise.all([getSearchCount.exec(), getSearchInfo.exec()])
 			.then((results) => {
 				return util.getPagingResults(limit, page, results[0], results[1]);
 			});
