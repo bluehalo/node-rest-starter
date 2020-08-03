@@ -438,7 +438,7 @@ module.exports = function() {
 		// Audit the member update request
 		await auditService.audit(`team role changed to ${role}`, 'team-role', 'user add', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, role), headers);
 
-		return TeamMember.findOneAndUpdate({ _id: user._id, 'teams._id': team._id }, { $set: { 'teams.$.role': role } });
+		return TeamMember.findOneAndUpdate({ _id: user._id, 'teams._id': team._id }, { $set: { 'teams.$.role': role } }).exec();
 	}
 
 	/**
