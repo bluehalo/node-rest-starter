@@ -50,7 +50,7 @@ describe('Feedback Controller', () => {
 			}
 		});
 
-		router.use(require('./feedback.routes'));
+		router.use(mock.reRequire('./feedback.routes'));
 		app.use(router);
 	});
 
