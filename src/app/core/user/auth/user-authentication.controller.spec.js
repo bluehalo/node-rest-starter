@@ -23,8 +23,8 @@ const
  */
 function clearDatabase() {
 	return Promise.all([
-		User.deleteMany({}),
-		CacheEntry.deleteMany({})
+		User.deleteMany({}).exec(),
+		CacheEntry.deleteMany({}).exec()
 	]);
 }
 

@@ -240,7 +240,7 @@ module.exports = () => {
 							{ _id: proxiedUser._id },
 							{ lastLogin: Date.now() },
 							{ new: true, upsert: false }
-						);
+						).exec();
 					}
 				}
 				else {

@@ -18,7 +18,7 @@ function doSearch(query, sortParams, page, limit) {
 		searchPromise = searchPromise.skip(page * limit).limit(limit);
 	}
 
-	return Promise.all([ countPromise, searchPromise ])
+	return Promise.all([ countPromise.exec(), searchPromise.exec() ])
 		.then(([countResult, searchResult]) => {
 			return util.getPagingResults(limit, page, countResult, searchResult);
 		});

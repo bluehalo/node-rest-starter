@@ -58,8 +58,8 @@ module.exports = function() {
 		const offset = page * limit;
 
 		return Promise.all([
-			Resource.find(query).countDocuments(),
-			Resource.find(query).sort(sortParams).collation({caseLevel: true, locale: 'en'}).skip(offset).limit(limit)
+			Resource.find(query).countDocuments().exec(),
+			Resource.find(query).sort(sortParams).collation({caseLevel: true, locale: 'en'}).skip(offset).limit(limit).exec()
 		]).then(([countResult, searchResult]) => {
 			return util.getPagingResults(limit, page, countResult, searchResult);
 		});

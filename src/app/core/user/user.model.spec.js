@@ -12,7 +12,7 @@ const should = require('should'),
  */
 function clearDatabase() {
 	return Promise.all([
-		User.deleteMany({})
+		User.deleteMany({}).exec()
 	]);
 }
 

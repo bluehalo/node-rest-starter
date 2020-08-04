@@ -14,11 +14,11 @@ const
 describe('EUA Service:', () => {
 
 	beforeEach(async () => {
-		await Promise.all([User.deleteMany(), UserAgreement.deleteMany()]);
+		await Promise.all([User.deleteMany().exec(), UserAgreement.deleteMany().exec()]);
 	});
 
 	afterEach(async () => {
-		await Promise.all([User.deleteMany(), UserAgreement.deleteMany()]);
+		await Promise.all([User.deleteMany().exec(), UserAgreement.deleteMany().exec()]);
 	});
 
 	describe('create', () => {

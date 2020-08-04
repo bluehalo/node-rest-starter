@@ -13,7 +13,7 @@ const
  * Globals
  */
 function clearDatabase() {
-	return Audit.deleteMany({});
+	return Audit.deleteMany({}).exec();
 }
 
 /**
