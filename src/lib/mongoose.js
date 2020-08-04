@@ -3,7 +3,6 @@
 const _ = require('lodash'),
 	mongoose = require('mongoose'),
 	path = require('path'),
-	q = require('q'),
 
 	config = require('../config'),
 	logger = require('./bunyan').logger;
@@ -13,11 +12,6 @@ const _ = require('lodash'),
 const mongooseDebug = (config.mongooseLogging) || false;
 logger.info(`Mongoose: Setting debug to ${mongooseDebug}`);
 mongoose.set('debug', mongooseDebug);
-
-
-// Override the global mongoose to use q for promises
-mongoose.Promise = require('q').Promise;
-
 
 // Load the mongoose models
 function loadModels() {
@@ -100,9 +94,9 @@ module.exports.connect = () => {
 			// Resolve the dbs since everything succeeded
 			return dbs;
 
-		}, (err) => {
+		}).catch((err) => {
 			logger.fatal('Mongoose: Could not connect to admin db');
-			return q.reject(err);
+			return Promise.reject(err);
 		});
 	}
 };
@@ -114,12 +108,12 @@ module.exports.disconnect = () => {
 	// Create defers for mongoose connections
 	const promises = _.values(this.dbs).map((d) => {
 		if (d.disconnect) {
-			return d.disconnect();
+			return d.disconnect().catch(() => Promise.resolve());
 		}
-		return q();
+		return Promise.resolve();
 	});
 
-	// Create a join for the defers
-	return q.allSettled(promises);
+	// Wait for all to finish, successful or not
+	return Promise.all(promises);
 
 };

@@ -15,9 +15,9 @@ const
  */
 function clearDatabase() {
 	return Promise.all([
-		Audit.deleteMany({}),
-		Team.deleteMany({}),
-		TeamMember.deleteMany({})
+		Audit.deleteMany({}).exec(),
+		Team.deleteMany({}).exec(),
+		TeamMember.deleteMany({}).exec()
 	]);
 }
 

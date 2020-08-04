@@ -94,7 +94,7 @@ NotificationSocket.prototype.handleSubscribe = function(payload) {
 		const topic = self.getTopic();
 		self.subscribe(topic);
 		self._subscriptionCount++;
-	}, (err) => {
+	}).catch((err) => {
 		logger.warn(`Unauthorized access to notifications by inactive user ${self.getUserId()}: ${err}`);
 	});
 };

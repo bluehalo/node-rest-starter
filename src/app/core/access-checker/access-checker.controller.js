@@ -37,7 +37,7 @@ module.exports.searchEntries = function(req, res) {
 
 		// Serialize the response
 		res.json(toReturn);
-	}, (error) => {
+	}).catch((error) => {
 		// failure
 		logger.error(error);
 		return util.send400Error(res, error);
@@ -70,7 +70,7 @@ exports.matchEntries = function(req, res) {
 
 		// Serialize the response
 		res.json(toReturn);
-	}, (error) => {
+	}).catch((error) => {
 		// failure
 		logger.error(error);
 		return util.send400Error(res, error);
@@ -84,7 +84,7 @@ exports.refreshEntry = function(req, res) {
 	else {
 		accessCheckerService.refreshEntry(req.params.key).then(() => {
 			res.status(204).end();
-		}, (error) => {
+		}).catch((error) => {
 			util.handleErrorResponse(res, { status: 500, type: 'error', message: error });
 		});
 	}
@@ -97,7 +97,7 @@ exports.deleteEntry = function(req, res) {
 	else {
 		accessCheckerService.deleteEntry(req.params.key).then(() => {
 			res.status(204).end();
-		}, (error) => {
+		}).catch((error) => {
 			util.handleErrorResponse(res, { status: 500, type: 'error', message: error });
 		});
 	}
@@ -107,7 +107,7 @@ exports.refreshCurrentUser = function(req, res) {
 	const key = (null != req.user && null != req.user.providerData)? req.user.providerData.dnLower: undefined;
 	accessCheckerService.refreshEntry(key).then(() => {
 		res.status(204).end();
-	}, (error) => {
+	}).catch((error) => {
 		util.handleErrorResponse(res, { status: 500, type: 'error', message: error });
 	});
 };

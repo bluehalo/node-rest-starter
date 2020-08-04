@@ -1,9 +1,6 @@
 'use strict';
 
-const
-	q = require('q'),
-
-	deps = require('../../../../dependencies'),
+const deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
 	util = deps.utilService,
@@ -25,47 +22,37 @@ const
 // Login the user
 function login(user, req, res) {
 	userAuthService.login(user, req)
-		.then(
-			(result) => {
-				userAuthorizationService.updateRoles(result, config.auth);
-				res.status(200).json(result);
-			},
-			(err) => {
-				util.handleErrorResponse(res, err);
-			})
-		.done();
+		.then((result) => {
+			userAuthorizationService.updateRoles(result, config.auth);
+			res.status(200).json(result);
+		}).catch((err) => {
+			util.handleErrorResponse(res, err);
+		});
 }
 
 //Authenticate and login the user. Passport handles authentication.
 function authenticateAndLogin(req, res, next) {
 	userAuthService.authenticateAndLogin(req, res, next)
-		.then(
-			(result) => {
-				userAuthorizationService.updateRoles(result, config.auth);
-				res.status(200).json(result);
-			},
-			(err) => {
-				util.handleErrorResponse(res, err);
-			})
-		.done();
+		.then((result) => {
+			userAuthorizationService.updateRoles(result, config.auth);
+			res.status(200).json(result);
+		}).catch((err) => {
+			util.handleErrorResponse(res, err);
+		});
 }
 
 // Admin creates a user
 function adminCreateUser(user, req, res) {
 	// Initialize the user
-
-		userAuthService.initializeNewUser(user).then((result) => {
-			return result.save();
-		}).then((result) => {
-			return auditService.audit('admin user create', 'user', 'admin user create', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), User.auditCopy(result), req.headers)
-				.then(() => q(result));
-		}).then((result) => {
-				res.status(200).json(User.fullCopy(result));
-			},
-			(err) => {
-				util.handleErrorResponse(res, err);
-			})
-		.done();
+	userAuthService.initializeNewUser(user)
+		.then(async (result) => {
+			await result.save();
+			await auditService.audit('admin user create', 'user', 'admin user create', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), User.auditCopy(result), req.headers);
+			res.status(200).json(User.fullCopy(result));
+		})
+		.catch((err) => {
+			util.handleErrorResponse(res, err);
+		});
 }
 
 // Signup the user - creates the user object and logs in the user
@@ -88,9 +75,9 @@ const signup = (user, req, res) => {
 		return auditService.audit('user signup', 'user', 'user signup', {}, User.auditCopy(newUser), req.headers).then(() => newUser);
 	}).then((newUser) => {
 		login(newUser, req, res);
-	}, (err) => {
+	}).catch((err) => {
 		util.handleErrorResponse(res, err);
-	}).done();
+	});
 };
 
 
@@ -197,7 +184,7 @@ module.exports.userByExternalId = function(req, res, next) {
 
 	// If the identifier is missing, reject the request
 	if(null == identifier) {
-		return q.reject({ status: 400, message: 'Missing required parameter userId'});
+		return Promise.reject({ status: 400, message: 'Missing required parameter userId'});
 	} else {
 		identifier = identifier.toLowerCase();
 	}
@@ -221,12 +208,10 @@ module.exports.userByExternalId = function(req, res, next) {
 			if(null != result) {
 				// If we got a result, we're good
 				req.userParam = result;
-				return q();
+				return Promise.resolve();
 			}
 			else {
-				return q.reject({ status: 401, message: `Unknown user ' ${identifier} `});
+				return Promise.reject({ status: 401, message: `Unknown user ' ${identifier} `});
 			}
-		}, (err) => {
-			return q.reject(err);
 		});
 };

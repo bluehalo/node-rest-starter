@@ -17,7 +17,7 @@ const
  */
 function clearDatabase() {
 	return Promise.all([
-		CacheEntry.deleteMany({})
+		CacheEntry.deleteMany({}).exec()
 	]);
 }
 
@@ -130,7 +130,7 @@ describe('Access Checker Service:', () => {
 		it('should not update the cache when the access checker provider fails', () => {
 			return accessChecker.get('provideronly').then((result) => {
 				should.fail('Fail provider should throw an error');
-			}, (err) => {
+			}).catch((err) => {
 				// Should have errored
 				should.exist(err);
 
@@ -145,7 +145,7 @@ describe('Access Checker Service:', () => {
 		it('should not update the cache on refresh when the access checker provider fails', () => {
 			return accessChecker.refreshEntry(spec.cache.outdated.key).then((result) => {
 				should.fail('Fail provider should throw an error');
-			}, (err) => {
+			}).catch((err) => {
 				// Should have errored
 				should.exist(err);
 
@@ -181,7 +181,7 @@ describe('Access Checker Service:', () => {
 			// should return the info from the cache
 			return accessChecker.get(null).then((info) => {
 				should.fail('Should error when key is null');
-			}, (err) => {
+			}).catch((err) => {
 				should.exist(err);
 			});
 		});
@@ -231,6 +231,16 @@ describe('Access Checker Service:', () => {
 						validateCacheEntry(result.value, provider.provideronly);
 					});
 			});
+		});
+
+		// Refresh cache entry
+		it('should refresh the cache when forced', async () => {
+			// should return the info from the cache
+			await accessChecker.refreshEntry('provideronly');
+
+			const result = await CacheEntry.findOne({ key: 'provideronly' }).exec();
+
+			validateCacheEntry(result.value, provider.provideronly);
 		});
 	});
 

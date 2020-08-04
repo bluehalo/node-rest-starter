@@ -25,8 +25,8 @@ function createSubjectUnderTest(dependencies) {
 
 function clearDatabase() {
 	return Promise.all([
-		Team.deleteMany({}),
-		User.deleteMany({})
+		Team.deleteMany({}).exec(),
+		User.deleteMany({}).exec()
 	]);
 }
 
@@ -130,8 +130,7 @@ describe('Team Service:', () => {
 					return TeamMember.updateOne(
 						{ _id: e._id },
 						{ $addToSet: { teams: new TeamRole({ _id: team.teamWithNoExternalTeam._id, role: 'member' }) } }
-						)
-						.exec();
+					).exec();
 				}
 			}));
 		});
@@ -481,7 +480,7 @@ describe('Team Service:', () => {
 
 
 			it('should find implicit teams for user with matching external roles', async () => {
-				const _user = await User.findOne({username: 'implicit2_username'});
+				const _user = await User.findOne({username: 'implicit2_username'}).exec();
 				should.exist(_user, 'expected implicit2 to exist');
 				_user.username.should.equal('implicit2_username');
 
@@ -492,7 +491,7 @@ describe('Team Service:', () => {
 			});
 
 			it('should not find implicit teams for user without matching external roles', async () => {
-				const _user = await User.findOne({username: 'implicit1_username'});
+				const _user = await User.findOne({username: 'implicit1_username'}).exec();
 				should.exist(_user, 'expected implicit1 to exist');
 				_user.username.should.equal('implicit1_username');
 
@@ -515,7 +514,7 @@ describe('Team Service:', () => {
 			const teamsService = createSubjectUnderTest(_.merge({}, deps, {config: _config}));
 
 			it('should find implicit teams for user with matching external teams', async () => {
-				const _user = await User.findOne({username: 'implicit1_username'});
+				const _user = await User.findOne({username: 'implicit1_username'}).exec();
 				should.exist(_user, 'expected implicit1 to exist');
 				_user.username.should.equal('implicit1_username');
 
@@ -526,7 +525,7 @@ describe('Team Service:', () => {
 			});
 
 			it('should not find implicit teams for user without matching external teams', async () => {
-				const _user = await User.findOne({username: 'implicit2_username'});
+				const _user = await User.findOne({username: 'implicit2_username'}).exec();
 				should.exist(_user, 'expected user2 to exist');
 				_user.username.should.equal('implicit2_username');
 
@@ -549,11 +548,11 @@ describe('Team Service:', () => {
 
 
 			it('should not find implicit teams for users with matching external roles/teams if disabled', async () => {
-				const user1 = await User.findOne({username: 'user1_username'});
+				const user1 = await User.findOne({username: 'user1_username'}).exec();
 				should.exist(user1, 'expected user1 to exist');
 				user1.username.should.equal('user1_username');
 
-				const user2 = await User.findOne({username: 'user2_username'});
+				const user2 = await User.findOne({username: 'user2_username'}).exec();
 				should.exist(user2, 'expected user2 to exist');
 				user2.username.should.equal('user2_username');
 

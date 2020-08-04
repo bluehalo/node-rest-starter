@@ -1,9 +1,6 @@
 'use strict';
 
-const
-	q = require('q'),
-
-	deps = require('../../../dependencies'),
+const deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
 	auditService = deps.auditService,
@@ -39,23 +36,17 @@ module.exports = function() {
 	}
 
 	function dismissMessage(messageIds, user, headers) {
-		const dismissedMessagePromises = [];
-		const saveDismissedMessagePromise = (dismissedMessage) => {
-			const dismissedMessagePromise = dismissedMessage.save();
-			dismissedMessagePromises.push(dismissedMessagePromise);
-		};
-
-		for (let i = 0; i < messageIds.length; i++) {
+		const dismissals = messageIds.map((messageId) => {
 			const dismissedMessage = new DismissedMessage();
-			dismissedMessage.messageId = messageIds[i];
+			dismissedMessage.messageId = messageId;
 			dismissedMessage.userId = user._id;
-
-			// Audit creation of messages
-			auditService.audit('message dismissed', 'message', 'dismissed', TeamMember.auditCopy(user), Message.auditCopy(dismissedMessage), headers)
-				.then(saveDismissedMessagePromise);
-		}
-		return q.all(dismissedMessagePromises);
-
+			// Audit dismissal of messages
+			return auditService.audit('message dismissed', 'message', 'dismissed', TeamMember.auditCopy(user), Message.auditCopy(dismissedMessage), headers)
+				.then(() => {
+					return dismissedMessage.save();
+				});
+		});
+		return Promise.all(dismissals);
 	}
 
 	return {

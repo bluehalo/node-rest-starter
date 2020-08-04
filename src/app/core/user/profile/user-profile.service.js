@@ -1,9 +1,6 @@
 'use strict';
 
-const
-	q = require('q'),
-
-	deps = require('../../../../dependencies'),
+const deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
 
 	User = dbs.admin.model('User');
@@ -23,8 +20,8 @@ const
  * ==========================================================
  */
 
-module.exports.updatePreferences = (id, pref) => {
-	return User.findOne({ _id: id }).then((user) => {
+module.exports.updatePreferences = (_id, pref) => {
+	return User.findOne({ _id }).exec().then((user) => {
 		const preferences = user.preferences || {};
 		Object.assign(preferences, pref);
 
@@ -32,26 +29,16 @@ module.exports.updatePreferences = (id, pref) => {
 	});
 };
 
-module.exports.updateRequiredOrgs = (id, requiredOrgs) => {
-	return User.updateOne({ _id: id }, { $set: { organizationLevels: requiredOrgs } }).exec();
+module.exports.updateRequiredOrgs = (_id, requiredOrgs) => {
+	return User.updateOne({ _id }, { $set: { organizationLevels: requiredOrgs } }).exec();
 };
 
-module.exports.userById = (id) => {
-	const defer = q.defer();
+module.exports.userById = (_id) => {
 
-	User.findOne({
-		_id: id
-	}).exec((err, user) => {
-		if (err) {
-			defer.reject(err);
+	return User.findOne({ _id }).exec().then((user) => {
+		if (!user) {
+			return Promise.reject(new Error(`Failed to load User ${_id}`));
 		}
-		else if (!user) {
-			defer.reject(new Error(`Failed to load User ${id}`));
-		}
-		else {
-			defer.resolve(user);
-		}
+		return user;
 	});
-
-	return defer.promise;
 };

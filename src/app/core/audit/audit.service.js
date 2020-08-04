@@ -1,9 +1,6 @@
 'use strict';
 
-const
-	q = require('q'),
-
-	deps = require('../../../dependencies'),
+const deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	logger = deps.logger,
 	auditLogger = deps.auditLogger;
@@ -13,7 +10,7 @@ module.exports.audit = function(message, eventType, eventAction, eventActor, eve
 	const Audit = dbs.admin.model('Audit');
 	const utilService = deps.utilService;
 
-	return q.resolve(eventActor).then((actor) => {
+	return Promise.resolve(eventActor).then((actor) => {
 		// Extract additional metadata to audit
 		const userAgentObj = utilService.getUserAgentFromHeader(eventMetadata);
 
@@ -36,14 +33,10 @@ module.exports.audit = function(message, eventType, eventAction, eventActor, eve
 
 		return newAudit
 			.save()
-			.then(
-				(result) => {
-					return q(result);
-				},
-				(err) => {
-					// Log and continue the error
-					logger.error({err: err, audit: newAudit}, 'Error trying to persist audit record to storage.');
-					return q.reject(err);
-				});
+			.catch((err) => {
+				// Log and continue the error
+				logger.error({err: err, audit: newAudit}, 'Error trying to persist audit record to storage.');
+				return Promise.reject(err);
+			});
 	});
 };

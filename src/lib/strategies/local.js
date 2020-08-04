@@ -30,7 +30,7 @@ module.exports = function() {
 				// Return the user
 				return done(null, user);
 
-			}, (err) => done(err)).done();
+			}).catch((err) => done(err));
 
 		})
 

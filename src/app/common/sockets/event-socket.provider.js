@@ -3,7 +3,6 @@
 const
 	_ = require('lodash'),
 	nodeUtil = require('util'),
-	q = require('q'),
 
 	deps = require('../../../dependencies'),
 	config = deps.config,
@@ -158,11 +157,11 @@ EventSocket.prototype.socketPayloadHandler = function(eventName, message) {
 			}
 
 			// The message can be either an object or a promise for an object
-			q(message).then((msg) => {
+			Promise.all([message]).then(([msg]) => {
 				if (null != msg) {
 					self.emitMessage(self.getEmitType(), msg);
 				}
-			}).fail(function(err) {
+			}).catch(function(err) {
 				if (logger.debug()) {
 					logger.debug('Ignoring payload for user %s: %s', this.getUserId(), err);
 				}

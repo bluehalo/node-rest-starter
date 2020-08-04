@@ -2,8 +2,6 @@
 
 const
 	_ = require('lodash'),
-	q = require('q'),
-
 	deps = require('../../../dependencies'),
 	util = deps.utilService;
 
@@ -31,11 +29,11 @@ module.exports.has = (requirement) => {
 
 	// Return a function that adapts the requirements to middleware
 	return (req, res, next) => {
-		q(requirement(req)).then((result) => {
+		Promise.resolve(requirement(req)).then((result) => {
 			next();
-		}, (errorResult) => {
+		}).catch((errorResult) => {
 			util.handleErrorResponse(res, errorResult);
-		}).done();
+		});
 	};
 };
 
@@ -44,11 +42,11 @@ module.exports.has = (requirement) => {
  */
 module.exports.hasAll = function(...requirements) {
 	return (req, res, next) => {
-		q(module.exports.requiresAll(requirements)(req)).then((result) => {
+		Promise.resolve(module.exports.requiresAll(requirements)(req)).then((result) => {
 			next();
-		}, (errorResult) => {
+		}).catch((errorResult) => {
 			util.handleErrorResponse(res, errorResult);
-		}).done();
+		});
 	};
 };
 
@@ -64,7 +62,7 @@ module.exports.requiresAll = (requirements) => {
 				});
 			} else {
 				// Once they all pass, we're good
-				return q();
+				return Promise.resolve();
 			}
 		};
 
@@ -77,11 +75,11 @@ module.exports.requiresAll = (requirements) => {
  */
 module.exports.hasAny = function(...requirements) {
 	return (req, res, next) => {
-		q(module.exports.requiresAny(requirements)(req)).then((result) => {
+		Promise.resolve(module.exports.requiresAny(requirements)(req)).then((result) => {
 			next();
-		}, (errorResult) => {
+		}).catch((errorResult) => {
 			util.handleErrorResponse(res, errorResult);
-		}).done();
+		});
 	};
 };
 
@@ -94,15 +92,15 @@ module.exports.requiresAny = (requirements) => {
 			if (i < requirements.length) {
 				return requirements[i](req).then((result) => {
 					// Success means we're done
-					return q();
-				}, (errorResult) => {
+					return Promise.resolve();
+				}).catch((errorResult) => {
 					// Failure means keep going
 					error = errorResult;
 					return applyRequirement(++i);
 				});
 			} else {
 				// If we run out of requirements, fail with the last error
-				return q.reject(error);
+				return Promise.reject(error);
 			}
 		};
 
@@ -111,7 +109,7 @@ module.exports.requiresAny = (requirements) => {
 		}
 		else {
 			// Nothing to check passes
-			return q();
+			return Promise.resolve();
 		}
 	};
 };

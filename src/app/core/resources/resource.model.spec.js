@@ -2,8 +2,6 @@
 
 const
 	mongoose = require('mongoose'),
-	q = require('q'),
-	should = require('should'),
 
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
@@ -15,9 +13,9 @@ const
  * Globals
  */
 function clearDatabase() {
-	return q.all([
-		Resource.deleteMany({}),
-		Owner.deleteMany({})
+	return Promise.all([
+		Resource.deleteMany({}).exec(),
+		Owner.deleteMany({}).exec()
 	]);
 }
 

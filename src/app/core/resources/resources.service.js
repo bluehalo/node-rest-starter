@@ -3,7 +3,6 @@
 const
 	_ = require('lodash'),
 	mongoose = require('mongoose'),
-	q = require('q'),
 
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
@@ -22,7 +21,7 @@ module.exports = function() {
 		let ownerPromise;
 
 		if (null == search.owner || search.owner.type !== 'team') {
-			ownerPromise = q(search);
+			ownerPromise = Promise.resolve(search);
 		}
 		else {
 			const ownerId = _.isString(search.owner.id) ? mongoose.Types.ObjectId(search.owner.id) : search.owner.id;
@@ -30,13 +29,13 @@ module.exports = function() {
 				if (null != ownerObj) {
 					search.owner.name = ownerObj.name;
 				}
-				return q(search);
+				return search;
 			});
 		}
 
 		return ownerPromise.then((s) => {
 			if (null == s.creator) {
-				return q(s);
+				return Promise.resolve(s);
 			}
 			else {
 				const creatorId = _.isString(s.creator) ? mongoose.Types.ObjectId(s.creator) : s.creator;
@@ -45,24 +44,24 @@ module.exports = function() {
 						s.creatorName = creatorObj.name;
 						s.creatorId = creatorId;
 					}
-					return q(s);
+					return s;
 				});
 			}
 		});
 	}
 
 	function populateMultiOwnerAndCreatorInfo(searches) {
-		return q.all(searches.map((search) => populateOwnerAndCreatorInfo(search)));
+		return Promise.all(searches.map((search) => populateOwnerAndCreatorInfo(search)));
 	}
 
 	function doSearch(query, sortParams, page, limit) {
 		const offset = page * limit;
 
-		return q.all([
-			Resource.find(query).countDocuments(),
-			Resource.find(query).sort(sortParams).collation({caseLevel: true, locale: 'en'}).skip(offset).limit(limit)
+		return Promise.all([
+			Resource.find(query).countDocuments().exec(),
+			Resource.find(query).sort(sortParams).collation({caseLevel: true, locale: 'en'}).skip(offset).limit(limit).exec()
 		]).then(([countResult, searchResult]) => {
-			return q(util.getPagingResults(limit, page, countResult, searchResult));
+			return util.getPagingResults(limit, page, countResult, searchResult);
 		});
 	}
 
@@ -103,19 +102,19 @@ module.exports = function() {
 		return searchPromise.then((results) => {
 			return populateMultiOwnerAndCreatorInfo(results.elements).then((populated) => {
 				results.elements = populated;
-				return q(results);
+				return results;
 			});
 		});
 	}
 
 	function doSearchTags(countAggregation, resultAggregation, page, limit) {
-		return q.all([
+		return Promise.all([
 			Resource.aggregate(countAggregation),
 			Resource.aggregate(resultAggregation)
 		]).then((results) => {
 			const totalSize = _.get(results, '[0][0].total', 0);
 			const elements = results[1].map((result) => result._id);
-			return q(util.getPagingResults(limit, page, totalSize, elements));
+			return util.getPagingResults(limit, page, totalSize, elements);
 		});
 	}
 
@@ -123,7 +122,7 @@ module.exports = function() {
 		if (null != teamId) {
 			const teamQuery = { 'owner._id': mongoose.Types.ObjectId(teamId) };
 			// Constrain to specific team
-			return (aggregation) ? q([{ $match: teamQuery }]) : q(teamQuery);
+			return Promise.resolve((aggregation) ? [{ $match: teamQuery }] : teamQuery);
 		}
 		else if (null == user.roles || !user.roles.admin) {
 			// If user is not admin, constrain results to user's teams
@@ -135,11 +134,11 @@ module.exports = function() {
 					{ 'owner.type': 'user', 'owner._id': user._id }
 				]};
 
-				return (aggregation) ? q([{ $match: query }]) : q(query);
+				return Promise.resolve((aggregation) ? [{ $match: query }] : query);
 			});
 		}
 		else {
-			return (aggregation) ? q([]) : q({});
+			return Promise.resolve((aggregation) ? [] : {});
 		}
 	}
 
@@ -183,11 +182,11 @@ module.exports = function() {
 
 	function updateTagInResources(teamId, tagName, newTagName, user) {
 		if (null == tagName) {
-			return q.reject({status: 404, message: 'Invalid tag name'});
+			return Promise.reject({status: 404, message: 'Invalid tag name'});
 		}
 
 		if (null == newTagName) {
-			return q.reject({status: 404, message: 'Cannot set tag name to null'});
+			return Promise.reject({status: 404, message: 'Cannot set tag name to null'});
 		}
 
 		let finalQuery;
@@ -206,7 +205,7 @@ module.exports = function() {
 
 	function deleteTagFromResources(teamId, tagName, user) {
 		if (null == tagName) {
-			return q.reject({status: 404, message: 'Invalid tag name'});
+			return Promise.reject({status: 404, message: 'Invalid tag name'});
 		}
 
 		return constrainTagResults(teamId, user, false).then((query) => {
@@ -216,7 +215,7 @@ module.exports = function() {
 
 	function filterResourcesByAccess(ids, user) {
 		if (!_.isArray(ids)) {
-			return q([]);
+			return Promise.resolve([]);
 		}
 		else if (null == user.roles || user.roles.admin !== true) {
 			// If user is not admin, perform the filtering
@@ -236,11 +235,11 @@ module.exports = function() {
 
 				return Resource.find(query).exec();
 			}).then((resources) => {
-				return (null != resources) ? q(resources.map((resource) => resource._id)) : q([]);
+				return (null != resources) ? Promise.resolve(resources.map((resource) => resource._id)) : Promise.resolve([]);
 			});
 		}
 		else {
-			return q(ids);
+			return Promise.resolve(ids);
 		}
 	}
 
@@ -249,7 +248,7 @@ module.exports = function() {
 	}
 
 	function find(query, projection, lean) {
-		let promise = Resource.find(query, projection);
+		let promise = Resource.find(query, projection).exec();
 		if (lean) {
 			promise = promise.lean();
 		}
@@ -257,7 +256,7 @@ module.exports = function() {
 	}
 
 	const deleteResourcesWithOwner = (ownerId, ownerType) => {
-		return Resource.deleteMany({ 'owner.type': ownerType, 'owner._id': ownerId });
+		return Resource.deleteMany({ 'owner.type': ownerType, 'owner._id': ownerId }).exec();
 	};
 
 	return {

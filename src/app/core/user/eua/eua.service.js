@@ -52,8 +52,7 @@ const publishEua = (eua) => {
 
 const getCurrentEua = () => {
 	return UserAgreement.findOne({ 'published': { '$ne': null, '$exists': true } })
-		.sort({ 'published': -1 })
-		.exec();
+		.sort({ 'published': -1 }).exec();
 };
 
 const acceptEua = (user) => {

@@ -17,6 +17,5 @@ module.exports.search = function(req, res) {
 			},
 			(err) => {
 				util.handleErrorResponse(res, err);
-			})
-		.done();
+			});
 };

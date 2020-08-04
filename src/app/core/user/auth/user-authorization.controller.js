@@ -2,7 +2,6 @@
 
 const
 	_ = require('lodash'),
-	q = require('q'),
 
 	deps = require('../../../../dependencies'),
 	config = deps.config,
@@ -23,7 +22,7 @@ module.exports.userById = (req, res, next, id) => {
 		.then((user) => {
 			req.userParam = user;
 			next();
-		}, (err) => {
+		}).catch((err) => {
 			next(err);
 		});
 };
@@ -34,7 +33,7 @@ module.exports.userById = (req, res, next, id) => {
  */
 module.exports.requiresLogin = (req) => {
 	if (req.isAuthenticated()) {
-		return q();
+		return Promise.resolve();
 	} else {
 
 		// Only try to auto login if it's explicitly set in the config
@@ -43,7 +42,7 @@ module.exports.requiresLogin = (req) => {
 		}
 		// Otherwise don't
 		else {
-			return q.reject({ status: 401, type: 'no-login', message: 'User is not logged in' });
+			return Promise.reject({ status: 401, type: 'no-login', message: 'User is not logged in' });
 		}
 	}
 };
@@ -58,7 +57,7 @@ module.exports.requiresRoles = (roles, rejectStatus) => {
 		const strategy = _.get(config, 'auth.roleStrategy', 'local');
 		if (strategy === 'local' || strategy === 'hybrid') {
 			if (User.hasRoles(req.user, roles)) {
-				return q();
+				return Promise.resolve();
 			}
 		}
 
@@ -67,7 +66,7 @@ module.exports.requiresRoles = (roles, rejectStatus) => {
 			return module.exports.requiresExternalRoles(req, requiredRoles);
 		}
 
-		return q.reject(rejectStatus);
+		return Promise.reject(rejectStatus);
 	};
 };
 
@@ -108,16 +107,16 @@ module.exports.requiresExternalRoles = (req, requiredRoles) => {
 
 		// Reject if the user is missing required roles
 		if (_.difference(requiredRoles, userRoles).length > 0) {
-			promise = q.reject({ status: 403, type: 'noaccess', message: 'User is missing required roles' });
+			promise = Promise.reject({ status: 403, type: 'noaccess', message: 'User is missing required roles' });
 		}
 		// Resolve if they had all the roles
 		else {
-			promise = q();
+			promise = Promise.resolve();
 		}
 	}
 	// Resolve if we don't need to check
 	else {
-		promise = q();
+		promise = Promise.resolve();
 	}
 
 	return promise;
@@ -125,7 +124,7 @@ module.exports.requiresExternalRoles = (req, requiredRoles) => {
 
 module.exports.runAsExternalId = function(req, res, next) {
 	req.user = req.userParam;
-	return q();
+	return Promise.resolve();
 };
 
 /**
@@ -136,13 +135,13 @@ module.exports.requiresOrganizationLevels = (req) => {
 
 	if (!required) {
 		// Organization levels are not required, proceed
-		return q();
+		return Promise.resolve();
 	}
 
 	if (User.hasRoles(req.user, ['admin'])) {
 		// Admins can bypass this requirement
-		return q();
+		return Promise.resolve();
 	}
 
-	return (!_.isEmpty(req.user.organizationLevels)) ? q() : q.reject({ status: 403, type: 'requiredOrg', message: 'User must select organization levels.'});
+	return (!_.isEmpty(req.user.organizationLevels)) ? Promise.resolve() : Promise.reject({ status: 403, type: 'requiredOrg', message: 'User must select organization levels.'});
 };

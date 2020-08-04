@@ -38,7 +38,7 @@ function timeoutHandler() {
 					service.lastRun = Date.now();
 					service.running = false;
 					logger.debug('Scheduler: Ran %s in %s ms', service.file, (Date.now() - startTs));
-				}, (err) => {
+				}).catch((err) => {
 					// failure... eventually, we may want to react differently
 					service.lastRun = Date.now();
 					service.running = false;

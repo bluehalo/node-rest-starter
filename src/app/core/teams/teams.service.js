@@ -312,11 +312,11 @@ module.exports = function() {
 
 		// Delete the team and update all members in the team
 		return Promise.all([
-			team.deleteMany({}),
+			team.deleteMany({}).exec(),
 			TeamMember.updateOne(
 				{'teams._id': team._id },
 				{ $pull: { teams: { _id: team._id } } }
-			)
+			).exec()
 		]);
 	}
 

@@ -2,7 +2,6 @@
 
 const
 	_ = require('lodash'),
-	q = require('q'),
 	should = require('should'),
 	proxyquire = require('proxyquire');
 
@@ -36,7 +35,7 @@ function validateDefaultRoles(updatedUser) {
 		should(updatedUser.roles[key]).equal(testDefaultRoles[key]);
 	});
 
-	return q(updatedUser);
+	return Promise.resolve(updatedUser);
 
 }
 
