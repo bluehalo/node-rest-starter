@@ -13,6 +13,7 @@ module.exports = _.extend(
 	require('./auth/user-authorization.controller'),
 	require('./auth/user-password.controller'),
 	require('./profile/user-profile.controller'),
+	require('./admin/user-admin.controller'),
 	require('./eua/eua.controller'),
 	require('./user-export.controller')
 );

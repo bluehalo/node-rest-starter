@@ -57,27 +57,23 @@ module.exports.login = (user, req) => {
 		// Calls the login function (which goes to passport)
 		req.login(user, (err) => {
 			if (err) {
-				reject({ status: 500, type: 'login-error', message: err });
-			} else {
-
-				// update the user's last login time
-				User.findOneAndUpdate(
-					{ _id: user._id },
-					{ lastLogin: Date.now() },
-					{ new: true, upsert: false },
-					(_err, _user) => {
-						if(null != _err) {
-							reject({ status: 500, type: 'login-error', message: _err });
-						}
-						else {
-							resolve(User.fullCopy(_user));
-						}
-					}
-				).exec();
-
-				// Audit the login
-				auditService.audit('User successfully logged in', 'user-authentication', 'authentication succeeded', {}, User.auditCopy(user, util.getHeaderField(req.headers, 'x-real-ip')), req.headers);
+				return reject({ status: 500, type: 'login-error', message: err });
 			}
+			// update the user's last login time
+			User.findOneAndUpdate(
+				{ _id: user._id },
+				{ lastLogin: Date.now() },
+				{ new: true, upsert: false },
+				(_err, _user) => {
+					if(null != _err) {
+						return reject({ status: 500, type: 'login-error', message: _err });
+					}
+					return resolve(User.fullCopy(_user));
+				}
+			).exec();
+
+			// Audit the login
+			auditService.audit('User successfully logged in', 'user-authentication', 'authentication succeeded', {}, User.auditCopy(user, util.getHeaderField(req.headers, 'x-real-ip')), req.headers);
 		});
 	});
 };
@@ -91,22 +87,20 @@ module.exports.authenticateAndLogin = function(req, res, next) {
 		passport.authenticate(config.auth.strategy, (err, user, info, status) => {
 
 			// If there was an error
-			if(null != err) {
+			if (err) {
 				// Reject the promise with a 500 error
-				reject({ status: 500, type: 'authentication-error', message: err });
+				return reject({ status: 500, type: 'authentication-error', message: err });
 			}
 			// If the authentication failed
-			else if (!user) {
+			if (!user) {
 				// In the case of a auth failure, info should have the reason
 				// Here is a hack for the local strategy...
-				if(null == info.status && null != status) {
+				if (null == info.status && null != status) {
 					info.status = status;
-					if(info.message === 'Missing credentials') {
+					if (info.message === 'Missing credentials') {
 						info.type = 'missing-credentials';
 					}
 				}
-
-				reject(info);
 
 				// Try to grab the username from the request
 				const username = (req.body && req.body.username)? req.body.username : 'none provided';
@@ -115,14 +109,12 @@ module.exports.authenticateAndLogin = function(req, res, next) {
 				auditService.audit(info.message, 'user-authentication', 'authentication failed',
 					{ }, { username: username }, req.headers);
 
+				return reject(info);
 			}
 			// Else the authentication was successful
-			else {
-				// Set the user ip if available.
-				user.ip = ( _.isUndefined(req.headers['x-real-ip']) ) ? null : req.headers['x-real-ip'];
-				module.exports.login(user, req).then(resolve).catch(reject);
-			}
-
+			// Set the user ip if available.
+			user.ip = ( _.isUndefined(req.headers['x-real-ip']) ) ? null : req.headers['x-real-ip'];
+			module.exports.login(user, req).then(resolve).catch(reject);
 		})(req, res, next);
 	});
 };

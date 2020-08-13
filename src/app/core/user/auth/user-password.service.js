@@ -9,20 +9,26 @@ const
 	config = deps.config,
 	logger = deps.logger,
 	emailService = deps.emailService,
-	errorService = deps.errorService,
+
+	userService = require('../user.service'),
 
 	User = dbs.admin.model('User');
+
+module.exports.findUserForActiveToken = (token) => {
+	return User.findOne({
+		resetPasswordToken: token,
+		resetPasswordExpires: { $gt: Date.now() }
+	}).exec();
+};
 
 module.exports.generateToken = () => {
 	return new Promise((resolve, reject) => {
 		crypto.randomBytes(20, (error, buffer) => {
 			if (error) {
-				reject(error);
-			} else {
-				const token = buffer.toString('hex');
-				logger.debug('Generated reset token.');
-				resolve(token);
+				return reject(error);
 			}
+			const token = buffer.toString('hex');
+			resolve(token);
 		});
 	});
 };
@@ -32,40 +38,30 @@ module.exports.setResetTokenForUser = async (username, token) => {
 	let user;
 	try {
 		user = await User.findOne({	username: username }, '-salt -password').exec();
-	} catch (error) {
-		return Promise.reject({ message: 'No account with that username has been found.' });
+	} catch {
+		// ignore error
 	}
 
 	if (!user) {
 		return Promise.reject({ message: 'No account with that username has been found.' });
 	}
 
-	logger.debug('Found the user.');
-
 	// Generate the token and the expire date/time
 	user.resetPasswordToken = token;
 	user.resetPasswordExpires = moment().add(1, 'hour');
 
 	// Save the user with the token
-	try {
-		await user.save();
-	} catch (error) {
-		logger.debug('Saved the user with reset token.');
-	}
-
-	return user;
+	return userService.update(user);
 };
 
 module.exports.resetPasswordForToken = async (token, password) => {
 	let user;
 	try {
-		user = await User.findOne({
-			resetPasswordToken: token,
-			resetPasswordExpires: { $gt: Date.now() }
-		}).exec();
-	} catch (error) {
-		return Promise.reject({ message: 'Password reset token is invalid or has expired.' });
+		user = await module.exports.findUserForActiveToken(token);
+	} catch {
+		// ignore error
 	}
+
 	if (!user) {
 		return Promise.reject({ message: 'Password reset token is invalid or has expired.' });
 	}
@@ -74,13 +70,7 @@ module.exports.resetPasswordForToken = async (token, password) => {
 	user.resetPasswordToken = undefined;
 	user.resetPasswordExpires = undefined;
 
-	try {
-		await user.save();
-	} catch (error) {
-		return Promise.reject({ message: errorService.getErrorMessage(error) });
-	}
-
-	return user;
+	return userService.update(user);
 };
 
 // Send email to user with instructions on resetting password
@@ -97,8 +87,6 @@ module.exports.sendResetPasswordEmail = async (user, token, req) => {
 		// Log the error but this shouldn't block
 		logger.error({err: error, req: req}, 'Failure sending email.');
 	}
-
-	return user;
 };
 
 // Send email to user confirming password was reset
@@ -113,6 +101,4 @@ module.exports.sendPasswordResetConfirmEmail = async (user, req) => {
 		// Log the error but this shouldn't block
 		logger.error({err: error, req: req}, 'Failure sending email.');
 	}
-
-	return user;
 };
