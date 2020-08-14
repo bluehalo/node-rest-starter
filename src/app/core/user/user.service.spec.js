@@ -98,7 +98,7 @@ describe('User Profile Service:', () => {
 			await Promise.all(users.map((user) => user.save()));
 		});
 
-		describe('search results page returned', async () => {
+		it('search results page returned', async () => {
 			const queryParams = {size: 10};
 			const query = null;
 			const search = '';
@@ -114,7 +114,7 @@ describe('User Profile Service:', () => {
 			result.elements.length.should.be.equal(queryParams.size);
 		});
 
-		describe('search (w/ searchFields) results page returned', async () => {
+		it('search (w/ searchFields) results page returned', async () => {
 			const queryParams = {size: 10};
 			const query = null;
 			const search = '';
