@@ -95,7 +95,7 @@ describe('User Profile Service:', () => {
 		beforeEach(async () => {
 			const users = [...Array(100).keys()].map((index) => userSpec(`user${index}`));
 
-			await Promise.all(users.map((user) => user.save()));
+			await User.insertMany(users);
 		});
 
 		it('search results page returned', async () => {
