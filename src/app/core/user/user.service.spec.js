@@ -95,10 +95,10 @@ describe('User Profile Service:', () => {
 		beforeEach(async () => {
 			const users = [...Array(100).keys()].map((index) => userSpec(`user${index}`));
 
-			await Promise.all(users.map((user) => user.save()));
+			await User.insertMany(users);
 		});
 
-		describe('search results page returned', async () => {
+		it('search results page returned', async () => {
 			const queryParams = {size: 10};
 			const query = null;
 			const search = '';
@@ -114,7 +114,7 @@ describe('User Profile Service:', () => {
 			result.elements.length.should.be.equal(queryParams.size);
 		});
 
-		describe('search (w/ searchFields) results page returned', async () => {
+		it('search (w/ searchFields) results page returned', async () => {
 			const queryParams = {size: 10};
 			const query = null;
 			const search = '';
