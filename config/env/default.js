@@ -54,11 +54,12 @@ module.exports = {
 
 		roleStrategy: 'local', // 'local' || 'external' || 'hybrid'
 
-		// externalRoleMap: {
-		// 	user: 'USER',
-		// 	admin: 'ADMIN',
-		// 	auditor: 'AUDITOR'
-		// },
+		externalRoleMap: {
+			user: 'USER',
+			admin: 'ADMIN',
+			auditor: 'AUDITOR',
+			editor: 'EDITOR'
+		},
 
 		/**
 		 * Session settings are required regardless of auth strategy

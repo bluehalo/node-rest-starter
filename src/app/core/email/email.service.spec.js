@@ -3,6 +3,7 @@
 const
 	proxyquire = require('proxyquire'),
 	should = require('should'),
+	uuid = require('uuid'),
 	_ = require('lodash'),
 	deps = require('../../../dependencies'),
 	config = deps.config;
@@ -159,21 +160,23 @@ describe('Email Service:', () => {
 	});
 
 	describe('buildEmailContent:', () => {
-		it('should build email content', async () => {
-			const emailService = createSubjectUnderTest({
-				app: config.app,
-				coreEmails: {
-					default: {
-						header: 'header',
-						footer: 'footer'
-					}
+		const header = uuid.v4();
+		const footer = uuid.v4();
+		const emailService = createSubjectUnderTest({
+			app: config.app,
+			coreEmails: {
+				default: {
+					header,
+					footer
 				}
-			});
+			}
+		});
 
-			const user = {
-				name: 'test'
-			};
+		const user = {
+			name: 'test'
+		};
 
+		it('should build email content', async () => {
 			const expectedResult = `<p>Welcome to ${config.app.title}, ${user.name}!</p>
 <p>Thanks for requesting an account! We've alerted our admins and they will be reviewing your request shortly. </p>
 <p>While you're waiting, click <a href="${config.app.clientUrl}/help/getting-started">here</a> to learn more about our system.</p>
@@ -186,6 +189,18 @@ describe('Email Service:', () => {
 			const subject = await emailService.buildEmailContent('src/app/core/user/templates/user-welcome-email.server.view.html', user);
 			should.exist(subject);
 			subject.should.equal(expectedResult);
+		});
+
+		it('should throw error for invalid template path', async() => {
+			let error;
+			let subject;
+			try {
+				subject = await emailService.buildEmailContent('src/app/core/user/templates/file-that-doesnt-exist.view.html', user);
+			} catch (err) {
+				error = err;
+			}
+			should.exist(error);
+			should.not.exist(subject);
 		});
 	});
 
@@ -202,7 +217,62 @@ describe('Email Service:', () => {
 			const subject = emailService.buildEmailSubject('{{ subjectPrefix }} subject {{ otherVariable }}', {}, { otherVariable: '2'});
 			should.exist(subject);
 			subject.should.equal('(pre) subject 2');
+
+			const subject2 = emailService.buildEmailSubject('{{ subjectPrefix }} subject {{ otherVariable }}', {});
+			should.exist(subject2);
+			subject2.should.equal('(pre) subject ');
 		});
+	});
+
+	describe('generateMailOptions', () => {
+		const header = uuid.v4();
+		const footer = uuid.v4();
+		const emailService = createSubjectUnderTest({
+			app: config.app,
+			coreEmails: {
+				default: {
+					header,
+					footer
+				}
+			}
+		});
+
+		const user = {
+			name: 'test'
+		};
+
+		it('should return merged mail options', async() => {
+			const emailConfig = {
+				subject: 'Test',
+				templatePath: 'src/app/core/user/templates/user-welcome-email.server.view.html'
+			};
+
+			const options = await emailService.generateMailOptions(user, {}, emailConfig);
+
+			should.exist(options);
+			options.header.should.equal(header);
+			options.footer.should.equal(footer);
+			options.subject.should.equal(emailConfig.subject);
+		});
+
+		it('should log and throw error', async() => {
+			const emailConfig = {
+				subject: 'Test',
+				templatePath: 'src/app/core/user/templates/file-that-doesnt-exist.view.html'
+			};
+
+			let options;
+			let error;
+			try {
+				options = await emailService.generateMailOptions(user, {}, emailConfig);
+			} catch (err) {
+				error = err;
+			}
+
+			should.not.exist(options);
+			should.exist(error);
+		});
+
 	});
 
 });

@@ -1,21 +1,12 @@
 'use strict';
 
 const
-	should = require('should'),
-	proxyquire = require('proxyquire'),
+	sinon = require('sinon'),
 
 	deps = require('../../../dependencies'),
-	config = deps.config;
+	config = deps.config,
 
-/**
- * Helpers
- */
-
-function createSubjectUnderTest(dependencies) {
-	const stubs = {};
-	stubs['../../../dependencies'] = dependencies || {};
-	return proxyquire('./user-email.service', stubs);
-}
+	userEmailService = require('./user-email.service');
 
 /**
  * Unit tests
@@ -28,21 +19,27 @@ describe('User Email Service:', () => {
 		email: 'test@test.test'
 	};
 
-	let mailOptions = null;
+	let sandbox;
 
-	const userEmailService = createSubjectUnderTest({
-		emailService: {
-			sendMail: (mo) => {
-				mailOptions = mo;
-			},
-			buildEmailContent: deps.emailService.buildEmailContent,
-			buildEmailSubject: deps.emailService.buildEmailSubject,
-			generateMailOptions: deps.emailService.generateMailOptions
-		}
+	beforeEach(() => {
+		sandbox = sinon.createSandbox();
+		sandbox.stub(deps.logger, 'error').returns();
+	});
+
+	afterEach(() => {
+		sandbox.restore();
 	});
 
 	describe('emailApprovedUser', () => {
-		it('should create mailOptions properly', async() => {
+		it('error sending email', async () => {
+			sandbox.stub(deps.emailService, 'sendMail').rejects(new Error('error'));
+
+			await userEmailService.emailApprovedUser(user, {});
+
+			sinon.assert.calledOnce(deps.logger.error);
+		});
+
+		it('should create mailOptions properly', async () => {
 			const expectedEmailContent = `<p>Hello ${user.name},</p>
 <br>
 <p>Your ${config.app.title} account has been approved! Come <a href="${config.app.clientUrl}">check us out</a>!</p>
@@ -53,46 +50,60 @@ describe('User Email Service:', () => {
 <p>The ${config.app.title} Support Team</p>
 `;
 
+			sandbox.stub(deps.emailService, 'sendMail').resolves();
+
 			await userEmailService.emailApprovedUser(user, {});
 
-			should.exist(mailOptions, 'expected mailOptions to exist');
-
-			for (const key of ['to', 'from', 'replyTo', 'subject', 'html']) {
-				should.exist(mailOptions[key], `expected mailOptions.${key} to exist`);
-			}
-
-			mailOptions.to.should.equal(user.email);
-			mailOptions.from.should.equal(config.coreEmails.default.from);
-			mailOptions.replyTo.should.equal(config.coreEmails.default.replyTo);
-			mailOptions.subject.should.equal(`Your ${config.app.title} account has been approved!`);
-			mailOptions.html.should.equal(expectedEmailContent);
+			sinon.assert.calledWithMatch(deps.emailService.sendMail, {
+				to: user.email,
+				from: config.coreEmails.default.from,
+				replyTo: config.coreEmails.default.replyTo,
+				subject: `Your ${config.app.title} account has been approved!`,
+				html: expectedEmailContent
+			});
+			sinon.assert.notCalled(deps.logger.error);
 		});
 	});
 
 	describe('signupEmail', () => {
+		it('error sending email', async () => {
+			sandbox.stub(deps.emailService, 'sendMail').rejects(new Error('error'));
+
+			await userEmailService.signupEmail(user, {});
+
+			sinon.assert.calledOnce(deps.logger.error);
+		});
+
 		it('should create mailOptions properly', async() => {
 			const expectedEmailContent = `<p>Hey there ${config.app.title} Admins,</p>
 <p>A new user named <strong>${user.name}</strong> with username <strong>${user.username}</strong> has requested an account.</p>
 <p>Go to <a href="${config.app.clientUrl}/admin/users">${config.app.clientUrl}/admin/users</a> to give them access so they can start using ${config.app.title}!</p>
 `;
 
+			sandbox.stub(deps.emailService, 'sendMail').resolves();
+
 			await userEmailService.signupEmail(user, {});
 
-			should.exist(mailOptions, 'expected mailOptions to exist');
-
-			for (const key of ['to', 'from', 'replyTo', 'subject', 'html']) {
-				should.exist(mailOptions[key], `expected mailOptions.${key} to exist`);
-			}
-
-			mailOptions.to.should.equal(config.coreEmails.userSignupAlert.to);
-			mailOptions.from.should.equal(config.coreEmails.default.from);
-			mailOptions.replyTo.should.equal(config.coreEmails.default.replyTo);
-			mailOptions.subject.should.equal(`New Account Request - ${config.app.serverUrl}`);
-			mailOptions.html.should.equal(expectedEmailContent);
+			sinon.assert.calledWithMatch(deps.emailService.sendMail, {
+				to: config.coreEmails.userSignupAlert.to,
+				from: config.coreEmails.default.from,
+				replyTo: config.coreEmails.default.replyTo,
+				subject: `New Account Request - ${config.app.serverUrl}`,
+				html: expectedEmailContent
+			});
+			sinon.assert.notCalled(deps.logger.error);
 		});
 	});
 
 	describe('welcomeEmail', () => {
+		it('error sending email', async () => {
+			sandbox.stub(deps.emailService, 'sendMail').rejects(new Error('error'));
+
+			await userEmailService.welcomeEmail(user, {});
+
+			sinon.assert.calledOnce(deps.logger.error);
+		});
+
 		it('should create mailOptions properly', async() => {
 			const expectedEmailContent = `<p>Welcome to ${config.app.title}, ${user.name}!</p>
 <p>Thanks for requesting an account! We've alerted our admins and they will be reviewing your request shortly. </p>
@@ -103,19 +114,18 @@ describe('User Email Service:', () => {
 <p>The ${config.app.title} Support Team</p><p></p>
 `;
 
+			sandbox.stub(deps.emailService, 'sendMail').resolves();
+
 			await userEmailService.welcomeEmail(user, {});
 
-			should.exist(mailOptions, 'expected mailOptions to exist');
-
-			for (const key of ['to', 'from', 'replyTo', 'subject', 'html']) {
-				should.exist(mailOptions[key], `expected mailOptions.${key} to exist`);
-			}
-
-			mailOptions.to.should.equal(user.email);
-			mailOptions.from.should.equal(config.coreEmails.default.from);
-			mailOptions.replyTo.should.equal(config.coreEmails.default.replyTo);
-			mailOptions.subject.should.equal(`Welcome to ${config.app.title}!`);
-			mailOptions.html.should.equal(expectedEmailContent);
+			sinon.assert.calledWithMatch(deps.emailService.sendMail, {
+				to: user.email,
+				from: config.coreEmails.default.from,
+				replyTo: config.coreEmails.default.replyTo,
+				subject: `Welcome to ${config.app.title}!`,
+				html: expectedEmailContent
+			});
+			sinon.assert.notCalled(deps.logger.error);
 		});
 	});
 });

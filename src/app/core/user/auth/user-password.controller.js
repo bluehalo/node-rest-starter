@@ -1,23 +1,16 @@
 'use strict';
 
 const
-	deps = require('../../../../dependencies'),
-	dbs = deps.dbs,
-	logger = deps.logger,
-	userPasswordService = require('./user-password.service'),
-
-	User = dbs.admin.model('User');
+	userPasswordService = require('./user-password.service');
 
 /**
  * Forgot for reset password (forgot POST)
  */
 exports.forgot = async (req, res) => {
 	// Make sure there is a username
-	if(null == req.body.username) {
+	if (!req.body.username) {
 		return res.status(400).json({ message: 'Username is missing.' });
 	}
-
-	logger.info('Password reset request for username: %s', req.body.username);
 
 	try {
 		const token = await userPasswordService.generateToken();
@@ -25,29 +18,24 @@ exports.forgot = async (req, res) => {
 		const user = await userPasswordService.setResetTokenForUser(req.body.username, token);
 
 		await userPasswordService.sendResetPasswordEmail(user, token, req);
-		res.json(`An email has been sent to ${user.email} with further instructions.`);
+
+		res.status(200).json(`An email has been sent to ${user.email} with further instructions.`);
 	} catch (error) {
 		res.status(400).json({ message: 'Failure generating reset password token.' });
 	}
 };
 
-
 /**
  * Reset password GET from email token
  */
 exports.validateResetToken = async (req, res) => {
-	const user = await User.findOne({
-		resetPasswordToken: req.params.token,
-		resetPasswordExpires: { $gt: Date.now() }
-	}).exec();
+	const user = await userPasswordService.findUserForActiveToken(req.params.token);
 
 	if (!user) {
-		res.status('400').json({ message: 'invalid-token' });
-	} else {
-		res.json({ message: 'valid-token' });
+		return res.status(400).json({ message: 'invalid-token' });
 	}
+	res.status(200).json({ message: 'valid-token' });
 };
-
 
 /**
  * Reset password POST from email token
@@ -56,8 +44,8 @@ exports.reset = async (req, res) => {
 	// Init Variables
 	const password = req.body.password;
 
-	// Make sure there is a username
-	if(null == password) {
+	// Make sure there is a password
+	if (!password) {
 		return res.status(400).json({ message: 'Password is missing.' });
 	}
 
@@ -66,7 +54,7 @@ exports.reset = async (req, res) => {
 
 		await userPasswordService.sendPasswordResetConfirmEmail(user, req);
 
-		res.json(`An email has been sent to ${user.email} letting them know their password was reset.`);
+		res.status(200).json(`An email has been sent to ${user.email} letting them know their password was reset.`);
 	} catch (error) {
 		res.status(400).json({ message: 'Failure resetting password.' });
 	}

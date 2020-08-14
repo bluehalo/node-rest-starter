@@ -18,7 +18,7 @@ const read = (id, populate = []) => {
 };
 
 const update = (eua, updatedEua) => {
-	// Copy over the new user properties
+	// Copy over the new eua properties
 	eua.text = updatedEua.text;
 	eua.title = updatedEua.title;
 

@@ -7,24 +7,22 @@ const
 	config = deps.config,
 	dbs = deps.dbs,
 
-	userProfileService = require('../profile/user-profile.service'),
+	userService = require('../user.service'),
 	userAuthService = require('./user-authentication.service'),
 	User = dbs.admin.model('User');
-
 
 /**
  * Exposed API
  */
 
 // User middleware - stores user corresponding to id in 'userParam'
-module.exports.userById = (req, res, next, id) => {
-	userProfileService.userById(id)
-		.then((user) => {
-			req.userParam = user;
-			next();
-		}).catch((err) => {
-			next(err);
-		});
+module.exports.userById = async (req, res, next, id) => {
+	const user = await userService.read(id);
+	if (!user) {
+		return next(new Error(`Failed to load User ${id}`));
+	}
+	req.userParam = user;
+	return next();
 };
 
 
@@ -34,17 +32,14 @@ module.exports.userById = (req, res, next, id) => {
 module.exports.requiresLogin = (req) => {
 	if (req.isAuthenticated()) {
 		return Promise.resolve();
-	} else {
-
-		// Only try to auto login if it's explicitly set in the config
-		if(config.auth.autoLogin) {
-			return userAuthService.authenticateAndLogin(req);
-		}
-		// Otherwise don't
-		else {
-			return Promise.reject({ status: 401, type: 'no-login', message: 'User is not logged in' });
-		}
 	}
+
+	// Only try to auto login if it's explicitly set in the config
+	if (config.auth.autoLogin) {
+		return userAuthService.authenticateAndLogin(req);
+	}
+	// Otherwise don't
+	return Promise.reject({ status: 401, type: 'no-login', message: 'User is not logged in' });
 };
 
 /**
@@ -55,10 +50,8 @@ module.exports.requiresRoles = (roles, rejectStatus) => {
 
 	return (req) => {
 		const strategy = _.get(config, 'auth.roleStrategy', 'local');
-		if (strategy === 'local' || strategy === 'hybrid') {
-			if (User.hasRoles(req.user, roles)) {
-				return Promise.resolve();
-			}
+		if ((strategy === 'local' || strategy === 'hybrid') && User.hasRoles(req.user, roles)) {
+			return Promise.resolve();
 		}
 
 		if (strategy === 'external' || strategy === 'hybrid') {
@@ -97,33 +90,19 @@ module.exports.requiresAdminRole = (req) => {
 module.exports.requiresExternalRoles = (req, requiredRoles) => {
 	requiredRoles = requiredRoles || config.auth.requiredRoles;
 
-	let promise;
-
 	// If there are required roles, check for them
 	if(req.user.bypassAccessCheck === false && null != config.auth && _.isArray(requiredRoles) && requiredRoles.length > 0) {
-
 		// Get the user roles
 		const userRoles = (null != req.user && _.isArray(req.user.externalRoles))? req.user.externalRoles : [];
 
 		// Reject if the user is missing required roles
 		if (_.difference(requiredRoles, userRoles).length > 0) {
-			promise = Promise.reject({ status: 403, type: 'noaccess', message: 'User is missing required roles' });
+			return Promise.reject({ status: 403, type: 'noaccess', message: 'User is missing required roles' });
 		}
 		// Resolve if they had all the roles
-		else {
-			promise = Promise.resolve();
-		}
+		return Promise.resolve();
 	}
 	// Resolve if we don't need to check
-	else {
-		promise = Promise.resolve();
-	}
-
-	return promise;
-};
-
-module.exports.runAsExternalId = function(req, res, next) {
-	req.user = req.userParam;
 	return Promise.resolve();
 };
 

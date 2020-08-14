@@ -4,7 +4,7 @@ const
 	deps = require('../../../dependencies'),
 	utilService = deps.utilService,
 
-	resourcesService = require('./resources.service')();
+	resourcesService = require('./resources.service');
 
 module.exports.searchTags = (req, res) => {
 	// Get search and query parameters

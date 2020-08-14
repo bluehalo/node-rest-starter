@@ -20,45 +20,43 @@ const deps = require('../../../../dependencies'),
  */
 
 // Login the user
-function login(user, req, res) {
-	userAuthService.login(user, req)
-		.then((result) => {
-			userAuthorizationService.updateRoles(result, config.auth);
-			res.status(200).json(result);
-		}).catch((err) => {
-			util.handleErrorResponse(res, err);
-		});
+async function login(user, req, res) {
+	try {
+		const result = await userAuthService.login(user, req);
+		userAuthorizationService.updateRoles(result, config.auth);
+		res.status(200).json(result);
+	} catch(err) {
+		util.handleErrorResponse(res, err);
+	}
 }
 
 //Authenticate and login the user. Passport handles authentication.
-function authenticateAndLogin(req, res, next) {
-	userAuthService.authenticateAndLogin(req, res, next)
-		.then((result) => {
-			userAuthorizationService.updateRoles(result, config.auth);
-			res.status(200).json(result);
-		}).catch((err) => {
-			util.handleErrorResponse(res, err);
-		});
+async function authenticateAndLogin(req, res, next) {
+	try {
+		const result = await userAuthService.authenticateAndLogin(req, res, next);
+		userAuthorizationService.updateRoles(result, config.auth);
+		res.status(200).json(result);
+	} catch (err) {
+		util.handleErrorResponse(res, err);
+	}
 }
 
 // Admin creates a user
-function adminCreateUser(user, req, res) {
+async function adminCreateUser(user, req, res) {
 	// Initialize the user
-	userAuthService.initializeNewUser(user)
-		.then(async (result) => {
-			await result.save();
-			await auditService.audit('admin user create', 'user', 'admin user create', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), User.auditCopy(result), req.headers);
-			res.status(200).json(User.fullCopy(result));
-		})
-		.catch((err) => {
-			util.handleErrorResponse(res, err);
-		});
+	try {
+		const result = await userAuthService.initializeNewUser(user);
+		await result.save();
+		await auditService.audit('admin user create', 'user', 'admin user create', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), User.auditCopy(result), req.headers);
+		res.status(200).json(User.fullCopy(result));
+	} catch (err) {
+		util.handleErrorResponse(res, err);
+	}
 }
 
 // Signup the user - creates the user object and logs in the user
 const signup = (user, req, res) => {
 	// Initialize the user
-
 	userAuthService.initializeNewUser(user).then(() => {
 		return user.save();
 	}).then((newUser) => {
@@ -168,50 +166,10 @@ exports.signin = (req, res, next) => {
 	authenticateAndLogin(req, res, next);
 };
 
-
 /**
  * Signout - logs the user out and redirects them
  */
 exports.signout = (req, res) => {
 	req.logout();
 	res.redirect('/');
-};
-
-
-// API middleware - stores the user corresponding to the externally identifiable id in 'userParam'
-module.exports.userByExternalId = function(req, res, next) {
-	let identifier = req.query.userId;
-
-	// If the identifier is missing, reject the request
-	if(null == identifier) {
-		return Promise.reject({ status: 400, message: 'Missing required parameter userId'});
-	} else {
-		identifier = identifier.toLowerCase();
-	}
-
-	let find;
-	if(config.auth.strategy === 'local') {
-		// If we're in local mode, the external id is the username
-		find = {
-			username: identifier
-		};
-	}
-	else if(config.auth.strategy === 'proxy-pki') {
-		// If we're in proxy-pki mode, the external id is the DN of the user
-		find = {
-			'providerData.dnLower': identifier
-		};
-	}
-
-	return User.findOne(find).exec()
-		.then((result) => {
-			if(null != result) {
-				// If we got a result, we're good
-				req.userParam = result;
-				return Promise.resolve();
-			}
-			else {
-				return Promise.reject({ status: 401, message: `Unknown user ' ${identifier} `});
-			}
-		});
 };

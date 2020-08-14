@@ -1,24 +1,17 @@
 'use strict';
 
 const
+	crypto = require('crypto'),
 	should = require('should'),
-	proxyquire = require('proxyquire'),
+	sinon = require('sinon'),
 
 	deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
 
+	userPasswordService = require('./user-password.service'),
+
 	User = dbs.admin.model('User');
-
-/**
- * Helpers
- */
-
-function createSubjectUnderTest(dependencies) {
-	const stubs = {};
-	stubs['../../../../dependencies'] = dependencies || {};
-	return proxyquire('./user-password.service', stubs);
-}
 
 /**
  * Unit tests
@@ -35,17 +28,15 @@ describe('User Password Service:', () => {
 	};
 	const testToken = 'test_token';
 
-	let mailOptions = null;
+	let sandbox;
 
-	const userPasswordService = createSubjectUnderTest({
-		emailService: {
-			sendMail: (mo) => {
-				mailOptions = mo;
-			},
-			buildEmailContent: deps.emailService.buildEmailContent,
-			buildEmailSubject: deps.emailService.buildEmailSubject,
-			generateMailOptions: deps.emailService.generateMailOptions
-		}
+	beforeEach(() => {
+		sandbox = sinon.createSandbox();
+		sandbox.stub(deps.logger, 'error').returns();
+	});
+
+	afterEach(() => {
+		sandbox.restore();
 	});
 
 	const clearDB = () => User.deleteMany({}).exec();
@@ -63,6 +54,21 @@ describe('User Password Service:', () => {
 			should.exist(token);
 			token.should.be.String();
 			token.should.be.length(40);
+		});
+
+		it('error generating token', async() => {
+			sandbox.stub(crypto, 'randomBytes').callsArgWith(1, new Error('error'));
+
+			let token;
+			let error;
+			try {
+				token = await userPasswordService.generateToken();
+			} catch (err) {
+				error = err;
+			}
+			should.not.exist(token);
+			should.exist(error);
+			error.message.should.equal('error');
 		});
 	});
 
@@ -118,6 +124,14 @@ describe('User Password Service:', () => {
 	});
 
 	describe('sendResetPasswordEmail', () => {
+		it('error sending email', async () => {
+			sandbox.stub(deps.emailService, 'sendMail').rejects(new Error('error'));
+
+			await userPasswordService.sendResetPasswordEmail(testUser, {});
+
+			sinon.assert.calledOnce(deps.logger.error);
+		});
+
 		it('should create mailOptions properly', async() => {
 			const expectedEmailContent = `<p>Hey there ${testUser.name},</p>
 <br>
@@ -131,23 +145,29 @@ describe('User Password Service:', () => {
 <p>The ${config.app.title} Support Team</p>
 `;
 
+			sandbox.stub(deps.emailService, 'sendMail').resolves();
+
 			await userPasswordService.sendResetPasswordEmail(testUser, testToken, {});
 
-			should.exist(mailOptions, 'expected mailOptions to exist');
-
-			for (const key of ['to', 'from', 'replyTo', 'subject', 'html']) {
-				should.exist(mailOptions[key], `expected mailOptions.${key} to exist`);
-			}
-
-			mailOptions.to.should.equal(testUser.email);
-			mailOptions.from.should.equal(config.coreEmails.default.from);
-			mailOptions.replyTo.should.equal(config.coreEmails.default.replyTo);
-			mailOptions.subject.should.equal('Password Reset');
-			mailOptions.html.should.equal(expectedEmailContent);
+			sinon.assert.calledWithMatch(deps.emailService.sendMail, {
+				to: testUser.email,
+				from: config.coreEmails.default.from,
+				replyTo: config.coreEmails.default.replyTo,
+				subject: 'Password Reset',
+				html: expectedEmailContent
+			});
 		});
 	});
 
 	describe('sendPasswordResetConfirmEmail', () => {
+		it('error sending email', async () => {
+			sandbox.stub(deps.emailService, 'sendMail').rejects(new Error('error'));
+
+			await userPasswordService.sendPasswordResetConfirmEmail(testUser, {});
+
+			sinon.assert.calledOnce(deps.logger.error);
+		});
+
 		it('should create mailOptions properly', async() => {
 			const expectedEmailContent = `<p>Dear ${testUser.name},</p>
 <p></p>
@@ -157,19 +177,17 @@ describe('User Password Service:', () => {
 <p>The ${config.app.title} Support Team</p>
 `;
 
+			sandbox.stub(deps.emailService, 'sendMail').resolves();
+
 			await userPasswordService.sendPasswordResetConfirmEmail(testUser, {});
 
-			should.exist(mailOptions, 'expected mailOptions to exist');
-
-			for (const key of ['to', 'from', 'replyTo', 'subject', 'html']) {
-				should.exist(mailOptions[key], `expected mailOptions.${key} to exist`);
-			}
-
-			mailOptions.to.should.equal(testUser.email);
-			mailOptions.from.should.equal(config.coreEmails.default.from);
-			mailOptions.replyTo.should.equal(config.coreEmails.default.replyTo);
-			mailOptions.subject.should.equal('Your password has been changed');
-			mailOptions.html.should.equal(expectedEmailContent);
+			sinon.assert.calledWithMatch(deps.emailService.sendMail, {
+				to: testUser.email,
+				from: config.coreEmails.default.from,
+				replyTo: config.coreEmails.default.replyTo,
+				subject: 'Your password has been changed',
+				html: expectedEmailContent
+			});
 		});
 	});
 

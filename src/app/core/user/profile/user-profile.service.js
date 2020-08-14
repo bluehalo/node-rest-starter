@@ -2,9 +2,7 @@
 
 const deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
-
 	User = dbs.admin.model('User');
-
 
 /**
  * ==========================================================
@@ -12,33 +10,26 @@ const deps = require('../../../../dependencies'),
  * ==========================================================
  */
 
-
-
 /**
  * ==========================================================
  * Public Methods
  * ==========================================================
  */
 
-module.exports.updatePreferences = (_id, pref) => {
-	return User.findOne({ _id }).exec().then((user) => {
-		const preferences = user.preferences || {};
-		Object.assign(preferences, pref);
+const updatePreferences = async (_id, pref) => {
+	const user = await User.findById(_id);
 
-		return user.update({$set: { preferences: preferences } }).exec();
-	});
+	const preferences = user.preferences || {};
+	Object.assign(preferences, pref);
+
+	return user.update({$set: { preferences: preferences } }).exec();
 };
 
-module.exports.updateRequiredOrgs = (_id, requiredOrgs) => {
+const updateRequiredOrgs = (_id, requiredOrgs) => {
 	return User.updateOne({ _id }, { $set: { organizationLevels: requiredOrgs } }).exec();
 };
 
-module.exports.userById = (_id) => {
-
-	return User.findOne({ _id }).exec().then((user) => {
-		if (!user) {
-			return Promise.reject(new Error(`Failed to load User ${_id}`));
-		}
-		return user;
-	});
+module.exports = {
+	updatePreferences,
+	updateRequiredOrgs
 };

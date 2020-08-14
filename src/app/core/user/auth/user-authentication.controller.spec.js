@@ -710,20 +710,4 @@ describe('User Auth Controller:', () => {
 		});
 
 	});
-
-	describe('#userByExternalId', () => {
-
-		it('should reject for a missing input', () => {
-			const req = { query: {} };
-			return userAuthenticationController.userByExternalId(req)
-			.then(() => {
-				return Promise.reject('should not have succeeded!');
-			})
-			.catch((err) => {
-				return Promise.resolve();
-			});
-		});
-
-	});
-
 });
