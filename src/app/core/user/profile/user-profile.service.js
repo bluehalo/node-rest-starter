@@ -17,7 +17,7 @@ const deps = require('../../../../dependencies'),
  */
 
 const updatePreferences = async (_id, pref) => {
-	const user = await User.findById(_id);
+	const user = await User.findById(_id).exec();
 
 	const preferences = user.preferences || {};
 	Object.assign(preferences, pref);
