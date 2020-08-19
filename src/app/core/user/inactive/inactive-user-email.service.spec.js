@@ -48,7 +48,8 @@ describe('User Email Service:', () => {
 		});
 
 		it('should create mailOptions properly for deactivate template', async() => {
-			const expectedEmailContent = `<p>Hello ${user.name},</p>
+			const expectedEmailContent = `HEADER
+<p>Hello ${user.name},</p>
 <br>
 <p>It seems you haven't logged into your ${config.app.title} account in ${daysAgo} days.</p>
 <p>Therefore, your account has been deactivated.</p>
@@ -57,7 +58,7 @@ describe('User Email Service:', () => {
 <br>
 <p>Thanks,</p>
 <p>The ${config.app.title} Support Team</p>
-`;
+FOOTER`;
 
 			await inactiveUserEmailService.sendEmail(user, config.coreEmails.userDeactivate);
 
@@ -75,7 +76,8 @@ describe('User Email Service:', () => {
 		});
 
 		it('should create mailOptions properly for inactivity template', async() => {
-			const expectedEmailContent = `<p>Hello ${user.name},</p>
+			const expectedEmailContent = `HEADER
+<p>Hello ${user.name},</p>
 <br>
 <p>It seems you haven't logged into your ${config.app.title} account in ${daysAgo} days. Why not check in and see what's new!</p>
 <p>Have a question or just want to know what's new? Take a look at our Message of the Day page:</p>
@@ -86,7 +88,7 @@ describe('User Email Service:', () => {
 <br>
 <p>Thanks,</p>
 <p>The ${config.app.title} Support Team</p>
-`;
+FOOTER`;
 
 			await inactiveUserEmailService.sendEmail(user, config.coreEmails.userInactivity);
 

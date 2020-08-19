@@ -40,7 +40,8 @@ describe('User Email Service:', () => {
 		});
 
 		it('should create mailOptions properly', async () => {
-			const expectedEmailContent = `<p>Hello ${user.name},</p>
+			const expectedEmailContent = `HEADER
+<p>Hello ${user.name},</p>
 <br>
 <p>Your ${config.app.title} account has been approved! Come <a href="${config.app.clientUrl}">check us out</a>!</p>
 <p>Have a question? Take a look at our <a href="${config.app.helpUrl}">Help documentation</a>.</p>
@@ -48,7 +49,7 @@ describe('User Email Service:', () => {
 <br><br>
 <p>Thanks,</p>
 <p>The ${config.app.title} Support Team</p>
-`;
+FOOTER`;
 
 			sandbox.stub(deps.emailService, 'sendMail').resolves();
 
@@ -75,10 +76,11 @@ describe('User Email Service:', () => {
 		});
 
 		it('should create mailOptions properly', async() => {
-			const expectedEmailContent = `<p>Hey there ${config.app.title} Admins,</p>
+			const expectedEmailContent = `HEADER
+<p>Hey there ${config.app.title} Admins,</p>
 <p>A new user named <strong>${user.name}</strong> with username <strong>${user.username}</strong> has requested an account.</p>
 <p>Go to <a href="${config.app.clientUrl}/admin/users">${config.app.clientUrl}/admin/users</a> to give them access so they can start using ${config.app.title}!</p>
-`;
+FOOTER`;
 
 			sandbox.stub(deps.emailService, 'sendMail').resolves();
 
@@ -105,14 +107,15 @@ describe('User Email Service:', () => {
 		});
 
 		it('should create mailOptions properly', async() => {
-			const expectedEmailContent = `<p>Welcome to ${config.app.title}, ${user.name}!</p>
+			const expectedEmailContent = `HEADER
+<p>Welcome to ${config.app.title}, ${user.name}!</p>
 <p>Thanks for requesting an account! We've alerted our admins and they will be reviewing your request shortly. </p>
 <p>While you're waiting, click <a href="${config.app.clientUrl}/help/getting-started">here</a> to learn more about our system.</p>
 <br/>
 <br/>
 <p>Thanks,</p>
 <p>The ${config.app.title} Support Team</p><p></p>
-`;
+FOOTER`;
 
 			sandbox.stub(deps.emailService, 'sendMail').resolves();
 
