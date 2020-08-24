@@ -87,9 +87,7 @@ describe('Mongoose', () => {
 			return mongooseLib.connect().then((dbs) => {
 				dbs.should.have.property('other');
 				dbs.other.name.should.eql(otherDatabaseName);
-				return new Promise( (resolve) => {
-					dbs.other.on('connected', resolve);
-				});
+				dbs.other.readyState.should.eql(1);
 			});
 		});
 

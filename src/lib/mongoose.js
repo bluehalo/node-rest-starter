@@ -74,17 +74,24 @@ module.exports.connect = () => {
 
 	// Connect to the default db to kick off the process
 	if (defaultDbSpec) {
-		return mongoose.connect(defaultDbSpec.connectionString, defaultDbSpec.options).then((result) => {
+		return mongoose.connect(defaultDbSpec.connectionString, defaultDbSpec.options).then(async (result) => {
 			logger.info(`Mongoose: Connected to "${defaultDbSpec.name}" default db`);
 
 			// store it in the db list
 			dbs[defaultDbSpec.name] = mongoose;
 
 			// Connect to the rest of the dbs
-			dbSpecs.forEach((spec) => {
-				// Create the secondary connection
-				dbs[spec.name] = mongoose.createConnection(spec.connectionString, spec.options);
-			});
+			await dbSpecs.reduce((last, spec) => {
+				return last.then(() => {
+					return new Promise((resolve, reject) => {
+						// Create the secondary connection
+						const conn = mongoose.createConnection(spec.connectionString, spec.options);
+						dbs[spec.name] = conn;
+						conn.on('connected', () => { resolve(); });
+						conn.on('error', () => { reject(); });
+					});
+				});
+			}, Promise.resolve());
 
 			mongoose.set('useCreateIndex', true);
 
