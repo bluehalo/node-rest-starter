@@ -56,55 +56,49 @@ module.exports.dbs = dbs;
 
 
 // Initialize Mongoose, returns a promise
-module.exports.connect = () => {
+module.exports.connect = async () => {
 	const dbSpecs = [];
 	let defaultDbSpec;
 
-
 	// Organize the dbs we need to connect
-	for(const dbSpec in config.db) {
-		if(dbSpec === 'admin') {
+	for (const dbSpec in config.db) {
+		if (dbSpec === 'admin') {
 			defaultDbSpec = getDbSpec(dbSpec, config.db);
-		}
-		else {
+		} else {
 			dbSpecs.push(getDbSpec(dbSpec, config.db));
 		}
 	}
 
-
 	// Connect to the default db to kick off the process
 	if (defaultDbSpec) {
-		return mongoose.connect(defaultDbSpec.connectionString, defaultDbSpec.options).then(async (result) => {
+		try {
+			await mongoose.connect(defaultDbSpec.connectionString, defaultDbSpec.options);
+
 			logger.info(`Mongoose: Connected to "${defaultDbSpec.name}" default db`);
 
 			// store it in the db list
 			dbs[defaultDbSpec.name] = mongoose;
 
 			// Connect to the rest of the dbs
-			await dbSpecs.reduce((last, spec) => {
-				return last.then(() => {
-					return new Promise((resolve, reject) => {
-						// Create the secondary connection
-						const conn = mongoose.createConnection(spec.connectionString, spec.options);
-						dbs[spec.name] = conn;
-						conn.on('connected', () => { resolve(); });
-						conn.on('error', () => { reject(); });
-					});
-				});
-			}, Promise.resolve());
+			await Promise.all(dbSpecs.map((spec) => new Promise((resolve, reject) => {
+				// Create the secondary connection
+				const conn = mongoose.createConnection(spec.connectionString, spec.options);
+				dbs[spec.name] = conn;
+				conn.on('connected', () => { resolve(); });
+				conn.on('error', () => { reject(); });
+			})));
 
 			mongoose.set('useCreateIndex', true);
 
 			// Since all the db connections worked, we will load the mongoose models
 			loadModels();
 
-			// Resolve the dbs since everything succeeded
+			// Return the dbs since everything succeeded
 			return dbs;
-
-		}).catch((err) => {
+		} catch(err) {
 			logger.fatal('Mongoose: Could not connect to admin db');
-			return Promise.reject(err);
-		});
+			throw err;
+		}
 	}
 };
 
