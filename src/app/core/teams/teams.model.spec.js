@@ -89,27 +89,26 @@ describe('Team Model:', () => {
 	describe('User team role', () => {
 		const user1 = new TeamMember(spec.user1);
 
-		it('should begin with no users', (done) => {
-			TeamMember.find({}).exec().then((users) => {
+		it('should begin with no users', () => {
+			return TeamMember.find({}).exec().then((users) => {
 				users.should.have.length(0);
-				done();
-			}, done);
+			});
 		});
 
-		it('should create teams without problems', (done) => {
-			team1.save((err) => {
+		it('should create teams without problems', async () => {
+			await team1.save((err) => {
 				should.not.exist(err);
 				should.exist(team1._id);
 			});
-			team2.save((err) => {
+			await team2.save((err) => {
 				should.not.exist(err);
 				should.exist(team2._id);
 			});
-			team3.save((err) => {
+			await team3.save((err) => {
 				should.not.exist(err);
 				should.exist(team3._id);
 			});
-			team4.save((err) => {
+			await team4.save((err) => {
 				should.not.exist(err);
 				should.exist(team4._id);
 			});
@@ -119,8 +118,6 @@ describe('Team Model:', () => {
 			user1.teams.push({ _id: team1.id, role: 'member' });
 			user1.teams.push({ _id: team2.id, role: 'editor' });
 			user1.teams.push({ _id: team3.id, role: 'admin' });
-
-			done();
 		});
 	});
 });

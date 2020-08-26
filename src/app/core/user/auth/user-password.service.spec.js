@@ -133,7 +133,8 @@ describe('User Password Service:', () => {
 		});
 
 		it('should create mailOptions properly', async() => {
-			const expectedEmailContent = `<p>Hey there ${testUser.name},</p>
+			const expectedEmailContent = `HEADER
+<p>Hey there ${testUser.name},</p>
 <br>
 <p>It looks like you've asked us to reset your ${config.app.title} account password.</p>
 <p>If that sounds right, you can go to this url to complete the process:</p>
@@ -143,7 +144,7 @@ describe('User Password Service:', () => {
 <br>
 <p>Thanks,</p>
 <p>The ${config.app.title} Support Team</p>
-`;
+FOOTER`;
 
 			sandbox.stub(deps.emailService, 'sendMail').resolves();
 
@@ -169,13 +170,14 @@ describe('User Password Service:', () => {
 		});
 
 		it('should create mailOptions properly', async() => {
-			const expectedEmailContent = `<p>Dear ${testUser.name},</p>
+			const expectedEmailContent = `HEADER
+<p>Dear ${testUser.name},</p>
 <p></p>
 <p>This is a confirmation that the password for your account has just been changed</p>
 <br>
 <br>
 <p>The ${config.app.title} Support Team</p>
-`;
+FOOTER`;
 
 			sandbox.stub(deps.emailService, 'sendMail').resolves();
 
