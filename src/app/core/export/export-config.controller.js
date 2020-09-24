@@ -44,13 +44,17 @@ exports.requestExport = (req, res) => {
 			});
 };
 
+/**
+ * Export a CSV file with rows derived from an array of objects
+ * 
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {string} filename 
+ * @param {*} columns 
+ * @param {any[]} data an array of objects containing data for rows
+ */
 exports.exportCSV = (req, res, filename, columns, data) => {
 	if (null !== data) {
-		// Set up streaming res
-		res.set('Content-Type', 'text/csv;charset=utf-8');
-		res.set('Content-Disposition', `attachment;filename="${filename}"`);
-		res.set('Transfer-Encoding', 'chunked');
-
 		// Put into stream the data object
 		const s = new stream.Readable({objectMode:true});
 		s._read = () => {
@@ -60,29 +64,46 @@ exports.exportCSV = (req, res, filename, columns, data) => {
 			s.push(null);
 		};
 
-		const sc = s.pipe(csvStream(columns));
-
-		// Pipe each row to the response
-		sc.pipe(res);
-
-		// If an error occurs, close the stream
-		s.on('error', (err) => {
-			logger.error(err, 'CSV export error occurred');
-
-			// End the download
-			res.end();
-		});
-
-		// If the client drops the connection, stop processing the stream
-		req.on('close', () => {
-			logger.info('CSV export aborted because client dropped the connection');
-			if (s != null) {
-				s.destroy();
-			}
-			// End the download.
-			res.end();
-		});
+		this.exportCSVFromStream(req, res, filename, columns, s);
 	}
+};
+
+/**
+ * Export a CSV file with rows derived from a readable stream
+ * 
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {string} filename 
+ * @param {*} columns 
+ * @param {ReadableStream} stream a readable stream containing data for rows 
+ */
+exports.exportCSVFromStream = (req, res, filename, columns, stream) => {
+	res.set('Content-Type', 'text/csv;charset=utf-8');
+	res.set('Content-Disposition', `attachment;filename="${filename}"`);
+	res.set('Transfer-Encoding', 'chunked');
+
+	const sc = stream.pipe(csvStream(columns));
+
+	// Pipe each row to the response
+	sc.pipe(res);
+
+	// If an error occurs, close the stream
+	stream.on('error', (err) => {
+		logger.error(err, 'CSV export error occurred');
+
+		// End the download
+		res.end();
+	});
+
+	// If the client drops the connection, stop processing the stream
+	req.on('close', () => {
+		logger.info('CSV export aborted because client dropped the connection');
+		if (stream != null) {
+			stream.destroy();
+		}
+		// End the download.
+		res.end();
+	});
 };
 
 exports.exportPlaintext = (req, res, filename, text) => {
