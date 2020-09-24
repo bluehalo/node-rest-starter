@@ -46,11 +46,11 @@ exports.requestExport = (req, res) => {
 
 /**
  * Export a CSV file with rows derived from an array of objects
- * 
- * @param {Request} req 
- * @param {Response} res 
- * @param {string} filename 
- * @param {*} columns 
+ *
+ * @param {Request} req
+ * @param {Response} res
+ * @param {string} filename
+ * @param {*} columns
  * @param {any[]} data an array of objects containing data for rows
  */
 exports.exportCSV = (req, res, filename, columns, data) => {
@@ -70,12 +70,12 @@ exports.exportCSV = (req, res, filename, columns, data) => {
 
 /**
  * Export a CSV file with rows derived from a readable stream
- * 
- * @param {Request} req 
- * @param {Response} res 
- * @param {string} filename 
- * @param {*} columns 
- * @param {ReadableStream} stream a readable stream containing data for rows 
+ *
+ * @param {Request} req
+ * @param {Response} res
+ * @param {string} filename
+ * @param {*} columns
+ * @param {ReadableStream} stream a readable stream containing data for rows
  */
 exports.exportCSVFromStream = (req, res, filename, columns, stream) => {
 	res.set('Content-Type', 'text/csv;charset=utf-8');
