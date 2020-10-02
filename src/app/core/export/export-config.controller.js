@@ -59,7 +59,7 @@ exports.exportCSV = (req, res, filename, columns, data) => {
 			req,
 			res,
 			filename,
-			'csv',
+			'text/csv',
 			buildExportStream(
 				data,
 				(stream) => () => {
@@ -87,7 +87,7 @@ exports.exportPlaintext = (req, res, filename, text) => {
 			req,
 			res,
 			filename,
-			'plain',
+			'text/plain',
 			buildExportStream(text, (stream) => () => {
 				text.split(os.EOL).forEach((row) => {
 					stream.push(row);
@@ -160,11 +160,11 @@ const buildExportStream = (data, getRead, transforms) => {
  * @param {*} req
  * @param {*} res
  * @param {string} fileName
- * @param {'csv' | 'plain'} fileType
+ * @param {string} contentType
  * @param {streams.Readable} stream
  */
-const exportStream = (req, res, fileName, fileType, stream) => {
-	res.set('Content-Type', `text/${fileType};charset=utf-8`);
+const exportStream = (req, res, fileName, contentType, stream) => {
+	res.set('Content-Type', `${contentType};charset=utf-8`);
 	res.set('Content-Disposition', `attachment;filename="${fileName}"`);
 	res.set('Transfer-Encoding', 'chunked');
 
@@ -175,7 +175,7 @@ const exportStream = (req, res, fileName, fileType, stream) => {
 	stream.on('error', (err) => {
 		logger.error(
 			err,
-			`${fileType === 'csv' ? 'CSV' : 'PlainText'} export error occurred`
+			`${contentType} export error occurred`
 		);
 
 		stream.destroy();
@@ -192,9 +192,7 @@ const exportStream = (req, res, fileName, fileType, stream) => {
 	req.on('close', () => {
 		if (!stream.destroyed) {
 			logger.info(
-				`${
-					fileType === 'csv' ? 'CSV' : 'PlainText'
-				} export aborted because client dropped the connection`
+				`${contentType} export aborted because client dropped the connection`
 			);
 
 			stream.destroy();
