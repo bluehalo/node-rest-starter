@@ -12,25 +12,6 @@ const pagingSearchPlugin = rewire('../../common/mongoose/paging-search.plugin');
  */
 describe('Paging Search Plugin:', () => {
 
-	describe('escapeRegex:', () => {
-		const tests = [{
-			input: 'abcdef',
-			expected: 'abcdef',
-			description: 'Nothing to escape'
-		}, {
-			input: '.?*+^$[]\\(){}|-',
-			expected: '\\.\\?\\*\\+\\^\\$\\[\\]\\\\\\(\\)\\{\\}\\|\\-',
-			description: 'All of the characters to escape'
-		}];
-
-		tests.forEach((test) => {
-			it(test.description, () => {
-				const result = pagingSearchPlugin.__get__('escapeRegex')(test.input);
-				should(result).equal(test.expected);
-			});
-		});
-	});
-
 	describe('generateSort:', () => {
 		const tests = [{
 			input: null,

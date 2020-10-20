@@ -377,3 +377,11 @@ module.exports.removeStringsEndingWithWildcard = (stringArray) => {
 		return _.endsWith(value, '*');
 	});
 };
+
+/**
+ * Escapes regex-specific characters in a given string
+ * @param {string} str
+ */
+module.exports.escapeRegex = (str) => {
+	return `${str}`.replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&');
+};

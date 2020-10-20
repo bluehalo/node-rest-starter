@@ -508,4 +508,25 @@ describe('Utils:', () => {
 			});
 		});
 	});
+
+	
+	describe('escapeRegex:', () => {
+		const tests = [{
+			input: 'abcdef',
+			expected: 'abcdef',
+			description: 'Nothing to escape'
+		}, {
+			input: '.?*+^$[]\\(){}|-',
+			expected: '\\.\\?\\*\\+\\^\\$\\[\\]\\\\\\(\\)\\{\\}\\|\\-',
+			description: 'All of the characters to escape'
+		}];
+
+		tests.forEach((test) => {
+			it(test.description, () => {
+				const result = util.escapeRegex(test.input);
+				should(result).equal(test.expected);
+			});
+		});
+	});
+
 });
