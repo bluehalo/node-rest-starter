@@ -509,7 +509,7 @@ describe('Utils:', () => {
 		});
 	});
 
-	
+
 	describe('escapeRegex:', () => {
 		const tests = [{
 			input: 'abcdef',
