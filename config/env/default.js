@@ -52,13 +52,21 @@ module.exports = {
 		// defaultRoles: { user: true },
 		// requiredRoles: ['ROLE'],
 
+		roles: ['user', 'editor', 'auditor', 'admin'],
 		roleStrategy: 'local', // 'local' || 'external' || 'hybrid'
 
-		externalRoleMap: {
-			user: 'USER',
-			admin: 'ADMIN',
-			auditor: 'AUDITOR',
-			editor: 'EDITOR'
+		externalRoles: {
+			provider: {
+				file: 'src/app/core/user/auth/external-role-map.provider.js',
+				config: {
+					externalRoleMap: {
+						user: 'USER',
+						admin: 'ADMIN',
+						auditor: 'AUDITOR',
+						editor: 'EDITOR'
+					}
+				}
+			}
 		},
 
 		/**
