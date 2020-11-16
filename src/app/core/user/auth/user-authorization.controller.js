@@ -5,11 +5,10 @@ const
 
 	deps = require('../../../../dependencies'),
 	config = deps.config,
-	dbs = deps.dbs,
 
 	userService = require('../user.service'),
 	userAuthService = require('./user-authentication.service'),
-	User = dbs.admin.model('User');
+	userAuthorizationService = require('./user-authorization.service');
 
 /**
  * Exposed API
@@ -49,16 +48,9 @@ module.exports.requiresRoles = (roles, rejectStatus) => {
 	rejectStatus = rejectStatus || { status: 403, type: 'missing-roles', message: 'User is missing required roles' };
 
 	return (req) => {
-		const strategy = _.get(config, 'auth.roleStrategy', 'local');
-		if ((strategy === 'local' || strategy === 'hybrid') && User.hasRoles(req.user, roles)) {
+		if (userAuthorizationService.hasRoles(req.user, roles)) {
 			return Promise.resolve();
 		}
-
-		if (strategy === 'external' || strategy === 'hybrid') {
-			const requiredRoles = roles.map((role) => config.auth.externalRoleMap[role]);
-			return module.exports.requiresExternalRoles(req, requiredRoles);
-		}
-
 		return Promise.reject(rejectStatus);
 	};
 };
@@ -117,7 +109,7 @@ module.exports.requiresOrganizationLevels = (req) => {
 		return Promise.resolve();
 	}
 
-	if (User.hasRoles(req.user, ['admin'])) {
+	if (userAuthorizationService.hasRoles(req.user, ['admin'])) {
 		// Admins can bypass this requirement
 		return Promise.resolve();
 	}

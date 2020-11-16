@@ -10,7 +10,6 @@ const
 	config = deps.config,
 	util = deps.utilService,
 	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
-	userAuthorizationService = require('./auth/user-authorization.service'),
 	GetterSchema = deps.schemaService.GetterSchema;
 
 /**
@@ -29,6 +28,17 @@ const validatePassword = function(password) {
 	return toReturn;
 };
 const passwordMessage = 'Password must be at least 6 characters long';
+
+/**
+ * User Roles
+ */
+const roles = _.get(config, 'auth.roles', ['user', 'editor', 'auditor', 'admin']);
+const roleSchemaDef = {
+	type: roles.reduce((obj, role) => {
+		obj[role] = { type: Boolean, default: false };
+		return obj;
+	}, {})
+};
 
 /**
  * User Schema
@@ -154,26 +164,7 @@ const UserSchema = new GetterSchema({
 	},
 	providerData: {},
 	additionalProvidersData: {},
-	roles: {
-		type: {
-			user: {
-				type: Boolean,
-				default: false
-			},
-			editor: {
-				type: Boolean,
-				default: false
-			},
-			auditor: {
-				type: Boolean,
-				default: false
-			},
-			admin: {
-				type: Boolean,
-				default: false
-			}
-		}
-	},
+	roles: roleSchemaDef,
 	canProxy: {
 		type: Boolean,
 		default: false
@@ -404,7 +395,6 @@ UserSchema.statics.auditCopy = function(user, userIP) {
 
 	toReturn.roles = _.cloneDeep(user.roles);
 	toReturn.bypassAccessCheck = user.bypassAccessCheck;
-	toReturn.externalRoleAccess = userAuthorizationService.checkExternalRoles(user, config.auth);
 	if (null != user.providerData && null != user.providerData.dn) {
 		toReturn.dn = user.providerData.dn;
 	}
@@ -415,6 +405,8 @@ UserSchema.statics.auditCopy = function(user, userIP) {
 
 	return toReturn;
 };
+
+UserSchema.statics.roles = roles;
 
 /**
  * Model Registration

@@ -118,27 +118,8 @@ exports.adminDeleteUser = async (req, res) => {
 
 // Admin Search for Users
 exports.adminSearchUsers = async (req, res) => {
-	// Update role filters based on roleStrategy
-	const strategy = _.get(config, 'auth.roleStrategy', 'local');
-	const isExternal = strategy === 'external';
-	if ((isExternal || strategy === 'hybrid') && req.body.q && req.body.q.$or) {
-		const externalRoleMap = _.get(config, 'auth.externalRoleMap', {});
-		const updateRoleFilters = (role) => {
-			if (req.body.q.$or.some((filter) => filter[`roles.${role}`])) {
-				req.body.q.$or.push({ externalRoles: externalRoleMap[role] });
-				if (isExternal) {
-					_.remove(req.body.q.$or, (filter) => filter[`roles.${role}`]);
-				}
-			}
-		};
-
-		for (const role of _.keys(externalRoleMap)) {
-			updateRoleFilters(role);
-		}
-	}
-
 	// Handle the query/search/page
-	const query = req.body.q;
+	const query = userAuthorizationService.updateUserFilter(req.body.q);
 	const search = req.body.s;
 
 	try {
