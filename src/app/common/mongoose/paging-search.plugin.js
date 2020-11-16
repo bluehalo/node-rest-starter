@@ -1,12 +1,9 @@
 const
 	deps = require('../../../dependencies'),
-	config = deps.config;
+	config = deps.config,
+	{ escapeRegex } = deps.utilService;
 
 const MONGO_TIMEOUT_ERROR_CODE = 50;
-
-function escapeRegex(str) {
-	return (`${str}`).replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&');
-}
 
 function generateFilter(query) {
 	return Object.assign({}, query);
