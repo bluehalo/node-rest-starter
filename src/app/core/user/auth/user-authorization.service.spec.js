@@ -6,8 +6,21 @@ const
 	mongoose = require('mongoose'),
 
 	deps = require('../../../../dependencies'),
+	dbs = deps.dbs,
+	User = dbs.admin.model('User'),
 
 	userAuthorizationService = require('./user-authorization.service');
+
+function userSpec(key) {
+	return {
+		name: `${key} Name`,
+		organization: `${key} Organization`,
+		email: `${key}@mail.com`,
+		username: `${key}_username`,
+		password: 'password',
+		provider: 'local'
+	};
+}
 
 describe('User authorization service:', () => {
 
@@ -21,50 +34,95 @@ describe('User authorization service:', () => {
 		sandbox.restore();
 	});
 
-	describe('validateAccessToPersonalResource', () => {
-		const id1 = mongoose.Types.ObjectId();
-		const id2 = mongoose.Types.ObjectId();
+	/**
+	 * Unit tests
+	 */
+	describe('getProvider', () => {
+		it('should throw error is no provider is configured', () => {
+			sandbox.stub(deps.config.auth, 'roleStrategy').value('external');
+			sandbox.stub(deps.config.auth, 'externalRoles').value({});
 
-		it('test user (not admin) access own resource', () => {
-			const user = {roles: {admin: false}, _id: id1};
-			const resource = {creator: id1};
-
-			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.fulfilled();
+			should(() => {
+				userAuthorizationService.hasRole({}, '');
+			}).throw('No externalRoles provider configuration found.');
 		});
 
-		it('test user (not admin) access another user resource', () => {
-			const user = {roles: {admin: false}, _id: id1};
-			const resource = {creator: id2};
+		it('should throw error is not provider is configured2', () => {
+			sandbox.stub(deps.config.auth, 'roleStrategy').value('external');
+			sandbox.stub(deps.config.auth, 'externalRoles').value({
+				provider: {
+					file: './does-not-exist.js'
+				}
+			});
 
-			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.rejected();
+			should(() => {
+				userAuthorizationService.hasRole({}, '');
+			}).throw(/Cannot find module/);
+		});
+	});
+
+	describe('hasRole', () => {
+		it('should properly determine hasRole for roleStrategy = external', () => {
+			sandbox.stub(deps.config.auth, 'roleStrategy').value('external');
+
+			const user = new User(userSpec('external'));
+			user.externalRoles = ['USER', 'ADMIN'];
+			should(userAuthorizationService.hasRole(user, 'user')).be.true();
+			should(userAuthorizationService.hasRole(user, 'editor')).be.false();
+			should(userAuthorizationService.hasRole(user, 'auditor')).be.false();
+			should(userAuthorizationService.hasRole(user, 'admin')).be.true();
 		});
 
-		it('test user with no roles access own resource', () => {
-			const user = { _id: id1};
-			const resource = {creator: id1};
+		it('should properly determine hasRole for roleStrategy = hybrid', () => {
+			sandbox.stub(deps.config.auth, 'roleStrategy').value('hybrid');
 
-			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.fulfilled();
+			const user = new User(userSpec('hybrid'));
+			user.externalRoles = ['USER'];
+			user.roles = { admin: true };
+			should(userAuthorizationService.hasRole(user, 'user')).be.true();
+			should(userAuthorizationService.hasRole(user, 'editor')).be.false();
+			should(userAuthorizationService.hasRole(user, 'auditor')).be.false();
+			should(userAuthorizationService.hasRole(user, 'admin')).be.true();
 		});
 
-		it('test user with no roles access another user resource', () => {
-			const user = {_id: id1};
-			const resource = {creator: id2};
-
-			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.rejected();
+		it('should properly determine hasRole for roleStrategy = local', () => {
+			const user = new User(userSpec('local'));
+			user.roles = { user: true, editor: false, auditor: false, admin: true };
+			should(userAuthorizationService.hasRole(user, 'user')).be.true();
+			should(userAuthorizationService.hasRole(user, 'editor')).be.false();
+			should(userAuthorizationService.hasRole(user, 'auditor')).be.false();
+			should(userAuthorizationService.hasRole(user, 'admin')).be.true();
 		});
+	});
 
-		it('test admin access own resource', () => {
-			const user = {roles: {admin: true}, _id: id1};
-			const resource = {creator: id1};
-
-			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.fulfilled();
+	describe('hasRoles', () => {
+		it('should properly determine hasRoles', () => {
+			const user = new User(userSpec('local'));
+			user.roles = { user: true, editor: false, auditor: false, admin: true };
+			should(userAuthorizationService.hasRoles(user)).be.true();
+			should(userAuthorizationService.hasRoles(user, [])).be.true();
+			should(userAuthorizationService.hasRoles(user, ['user'])).be.true();
+			should(userAuthorizationService.hasRoles(user, ['editor'])).be.false();
+			should(userAuthorizationService.hasRoles(user, ['auditor'])).be.false();
+			should(userAuthorizationService.hasRoles(user, ['admin'])).be.true();
+			should(userAuthorizationService.hasRoles(user, ['user', 'admin'])).be.true();
+			should(userAuthorizationService.hasRoles(user, ['user', 'editor'])).be.false();
 		});
+	});
 
-		it('test admin access another user resource', () => {
-			const user = {roles: {admin: true}, _id: id1};
-			const resource = {creator: id2};
-
-			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.fulfilled();
+	describe('hasAnyRole', () => {
+		it('should properly determine hasAnyRole', () => {
+			const user = new User(userSpec('local'));
+			user.roles = { user: true, editor: false, auditor: false, admin: true };
+			should(userAuthorizationService.hasAnyRole(user)).be.true();
+			should(userAuthorizationService.hasAnyRole(user, [])).be.true();
+			should(userAuthorizationService.hasAnyRole(user, ['user'])).be.true();
+			should(userAuthorizationService.hasAnyRole(user, ['editor'])).be.false();
+			should(userAuthorizationService.hasAnyRole(user, ['auditor'])).be.false();
+			should(userAuthorizationService.hasAnyRole(user, ['admin'])).be.true();
+			should(userAuthorizationService.hasAnyRole(user, ['user', 'admin'])).be.true();
+			should(userAuthorizationService.hasAnyRole(user, ['user', 'editor'])).be.true();
+			should(userAuthorizationService.hasAnyRole(user, ['auditor', 'editor'])).be.false();
 		});
 	});
 
@@ -168,6 +226,53 @@ describe('User authorization service:', () => {
 			user.localRoles.user.should.be.true();
 			user.localRoles.elevatedRole1.should.be.true();
 			user.localRoles.elevatedRole2.should.be.false();
+		});
+	});
+
+	describe('validateAccessToPersonalResource', () => {
+		const id1 = mongoose.Types.ObjectId();
+		const id2 = mongoose.Types.ObjectId();
+
+		it('test user (not admin) access own resource', () => {
+			const user = {roles: {admin: false}, _id: id1};
+			const resource = {creator: id1};
+
+			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.fulfilled();
+		});
+
+		it('test user (not admin) access another user resource', () => {
+			const user = {roles: {admin: false}, _id: id1};
+			const resource = {creator: id2};
+
+			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.rejected();
+		});
+
+		it('test user with no roles access own resource', () => {
+			const user = { _id: id1};
+			const resource = {creator: id1};
+
+			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.fulfilled();
+		});
+
+		it('test user with no roles access another user resource', () => {
+			const user = {_id: id1};
+			const resource = {creator: id2};
+
+			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.rejected();
+		});
+
+		it('test admin access own resource', () => {
+			const user = {roles: {admin: true}, _id: id1};
+			const resource = {creator: id1};
+
+			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.fulfilled();
+		});
+
+		it('test admin access another user resource', () => {
+			const user = {roles: {admin: true}, _id: id1};
+			const resource = {creator: id2};
+
+			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.fulfilled();
 		});
 	});
 
