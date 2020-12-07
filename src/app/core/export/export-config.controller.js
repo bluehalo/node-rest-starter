@@ -135,7 +135,7 @@ const buildExportStream = (data, getRead, transforms) => {
 				newStream.destroy = () => {
 					// newStream had a `destroy()` function already defined, use it
 					if (originalDestroy) {
-						originalDestroy.apply(this);
+						originalDestroy.apply(newStream);
 					} else {
 						// the new stream did not have a defined `destroy()` function,
 						//  so we should mark it as `destroyed` at this point
