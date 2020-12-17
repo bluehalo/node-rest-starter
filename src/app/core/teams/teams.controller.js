@@ -7,7 +7,7 @@ const
 
 	TeamMember = dbs.admin.model('TeamUser'),
 	Team = dbs.admin.model('Team'),
-	teamsService = require('./teams.service')();
+	teamsService = require('./teams.service');
 
 
 /**

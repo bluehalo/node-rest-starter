@@ -3,11 +3,13 @@
 const
 	_ = require('lodash'),
 	should = require('should'),
-	proxyquire = require('proxyquire'),
+	sinon = require('sinon'),
 
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	dbs = deps.dbs,
+
+	teamsService = require('./teams.service'),
 
 	User = dbs.admin.model('User'),
 	Team = dbs.admin.model('Team'),
@@ -17,12 +19,6 @@ const
 /**
  * Helpers
  */
-function createSubjectUnderTest(dependencies) {
-	const stubs = {};
-	stubs['../../../dependencies'] = dependencies || {};
-	return proxyquire('./teams.service', stubs)();
-}
-
 function clearDatabase() {
 	return Promise.all([
 		Team.deleteMany({}).exec(),
@@ -106,7 +102,11 @@ describe('Team Service:', () => {
 	const user = {};
 	let team = {};
 
-	before(async () => {
+	let sandbox;
+
+	beforeEach(async () => {
+		sandbox = sinon.createSandbox();
+
 		await clearDatabase();
 
 		const teamDefers = [];
@@ -138,20 +138,16 @@ describe('Team Service:', () => {
 		return Promise.all(userDefers);
 	});
 
-	after(() => {
+	afterEach(() => {
+		sandbox.restore();
 		return clearDatabase();
 	});
 
 	// Test implicit team membership
 	describe('searchTeamMembers', () => {
-		const _config = _.merge({}, deps.config, {
-			teams: {
-				implicitMembers: {
-					strategy: 'teams'
-				}
-			}
+		beforeEach(() => {
+			sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'teams' });
 		});
-		const teamsService = createSubjectUnderTest(_.merge({}, deps, {config: _config}));
 
 		it('user implicitly added to a team via externalGroups', async () => {
 			const queryParams = { dir: 'ASC', page: '0', size: '5', sort: 'name' };
@@ -177,8 +173,6 @@ describe('Team Service:', () => {
 	});
 
 	describe('meetsRequiredExternalTeams', () => {
-		const teamsService = createSubjectUnderTest(deps);
-
 		it('meetsRequiredExternalTeams', () => {
 			let _user = { bypassAccessCheck: true };
 			let _team = {};
@@ -246,8 +240,6 @@ describe('Team Service:', () => {
 	});
 
 	describe('meetsRequiredExternalRoles', () => {
-		const teamsService = createSubjectUnderTest(deps);
-
 		it('meetsRequiredExternalRoles', () => {
 			let _user = {};
 			let _team = {};
@@ -308,16 +300,8 @@ describe('Team Service:', () => {
 	});
 
 	describe('isImplicitMember',  () => {
-
 		it('strategy = roles', () => {
-			const _config = _.merge({}, deps.config, {
-				teams: {
-					implicitMembers: {
-						strategy: 'roles'
-					}
-				}
-			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, { config: _config }));
+			sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'roles' });
 
 			it('should not match when user.externalRoles and team.requiresExternalRoles are undefined', () => {
 				const _user = {};
@@ -354,14 +338,9 @@ describe('Team Service:', () => {
 		});
 
 		describe('strategy = teams', () => {
-			const _config = _.merge({}, deps.config, {
-				teams: {
-					implicitMembers: {
-						strategy: 'teams'
-					}
-				}
+			before(() => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'teams' });
 			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, {config: _config}));
 
 			it('should not match when user.externalRoles and team.requiresExternalTeams are undefined', () => {
 				const _user = {};
@@ -398,14 +377,9 @@ describe('Team Service:', () => {
 		});
 
 		describe('strategy = undefined', () => {
-			const _config = _.merge({}, deps.config, {
-				teams: {
-					implicitMembers: {
-						strategy: null
-					}
-				}
+			before(() => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: null });
 			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, {config: _config}));
 
 			it('should not match any since disabled', () => {
 				let _user = {};
@@ -439,8 +413,6 @@ describe('Team Service:', () => {
 
 	// Test team creation
 	describe('createTeam', () => {
-		const teamsService = createSubjectUnderTest(deps);
-
 		it('explicit admin should be used', async () => {
 			const queryParams = { dir: 'ASC', page: '0', size: '5', sort: 'name' };
 			const creator = await User.findOne({ name: 'user1 Name' }).exec();
@@ -469,15 +441,9 @@ describe('Team Service:', () => {
 	describe('getImplicitTeamIds',  () => {
 
 		describe('strategy = roles', () => {
-			const _config = _.merge({}, deps.config, {
-				teams: {
-					implicitMembers: {
-						strategy: 'roles'
-					}
-				}
+			before(() => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'roles' });
 			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, { config: _config }));
-
 
 			it('should find implicit teams for user with matching external roles', async () => {
 				const _user = await User.findOne({username: 'implicit2_username'}).exec();
@@ -504,14 +470,9 @@ describe('Team Service:', () => {
 		});
 
 		describe('strategy = teams;', () => {
-			const _config = _.merge({}, deps.config, {
-				teams: {
-					implicitMembers: {
-						strategy: 'teams'
-					}
-				}
+			before(() => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'teams' });
 			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, {config: _config}));
 
 			it('should find implicit teams for user with matching external teams', async () => {
 				const _user = await User.findOne({username: 'implicit1_username'}).exec();
@@ -537,15 +498,9 @@ describe('Team Service:', () => {
 		});
 
 		describe('strategy = null;', () => {
-			const _config = _.merge({}, deps.config, {
-				teams: {
-					implicitMembers: {
-						strategy: null
-					}
-				}
+			before(() => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: null });
 			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, { config: _config }));
-
 
 			it('should not find implicit teams for users with matching external roles/teams if disabled', async () => {
 				const user1 = await User.findOne({username: 'user1_username'}).exec();
@@ -573,19 +528,7 @@ describe('Team Service:', () => {
 
 	describe('sendRequestEmail', () => {
 		it('should create mailOptions properly', async() => {
-			let mailOptions = null;
-
-			const teamsService = createSubjectUnderTest({
-				// config: config,
-				emailService: {
-					sendMail: (mo) => {
-						mailOptions = mo;
-					},
-					buildEmailContent: deps.emailService.buildEmailContent,
-					buildEmailSubject: deps.emailService.buildEmailSubject,
-					generateMailOptions: deps.emailService.generateMailOptions
-				}
-			});
+			const sendMailStub = sandbox.stub(deps.emailService, 'sendMail');
 
 			const _user = {
 				name: 'test',
@@ -607,6 +550,9 @@ describe('Team Service:', () => {
 
 			await teamsService.sendRequestEmail(toEmails, _user, _team, {});
 
+			sinon.assert.called(sendMailStub);
+			const [mailOptions] = sendMailStub.getCall(0).args;
+
 			should.exist(mailOptions, 'expected mailOptions to exist');
 
 			for (const key of ['bcc', 'from', 'replyTo', 'subject', 'html']) {
@@ -625,20 +571,6 @@ describe('Team Service:', () => {
 	});
 
 	describe('requestNewTeam', () => {
-		let mailOptions = null;
-
-		const teamsService = createSubjectUnderTest({
-			// config: config,
-			emailService: {
-				sendMail: (mo) => {
-					mailOptions = mo;
-				},
-				buildEmailContent: deps.emailService.buildEmailContent,
-				buildEmailSubject: deps.emailService.buildEmailSubject,
-				generateMailOptions: deps.emailService.generateMailOptions
-			}
-		});
-
 		const _user = new User({
 			name: 'test',
 			username: 'test',
@@ -693,6 +625,8 @@ describe('Team Service:', () => {
 		});
 
 		it('should create mailOptions properly', async() => {
+			const sendMailStub = sandbox.stub(deps.emailService, 'sendMail');
+
 			const expectedEmailContent = `<p>Hey there ${config.app.title} Admins,</p>
 <p>A user named <strong>${_user.name}</strong> with username <strong>${_user.username}</strong> has requested a new team:</p>
 <p>
@@ -704,6 +638,9 @@ describe('Team Service:', () => {
 `;
 
 			await teamsService.requestNewTeam('org', 'aoi', 'description', _user, { headers: {} });
+
+			sinon.assert.called(sendMailStub);
+			const [mailOptions] = sendMailStub.getCall(0).args;
 
 			should.exist(mailOptions, 'expected mailOptions to exist');
 
@@ -720,8 +657,6 @@ describe('Team Service:', () => {
 	});
 
 	describe('getTeamIds', () => {
-		const teamsService = createSubjectUnderTest();
-
 		const _user = {
 			teams: [{
 				_id: 1, role: 'member'
@@ -796,8 +731,6 @@ describe('Team Service:', () => {
 	});
 
 	describe('filterTeamIds', () => {
-		const teamsService = createSubjectUnderTest();
-
 		const _user = {
 			teams: [{
 				_id: 1, role: 'member'
