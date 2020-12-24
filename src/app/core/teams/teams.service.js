@@ -149,7 +149,7 @@ const meetsOrExceedsRole = (userRole, requestedRole) => {
  * @returns Returns a role, or null if the user is not a member of the team
  */
 const getActiveTeamRole = (user, team) => {
-	if (user.constructor.name === 'model') {
+	if (user && user.constructor.name === 'model') {
 		user = user.toObject();
 	}
 
@@ -236,6 +236,20 @@ const validateTeamRole = (role) => {
 	return Promise.reject({status: 400, type: 'bad-argument', message: 'Team role does not exist'});
 };
 
+const readTeam = (id, populate = []) => {
+	const query = {
+		_id: id
+	};
+	return Team.findOne(query).populate(populate).exec();
+};
+
+const readTeamMember = (id, populate = []) => {
+	const query = {
+		_id: id
+	};
+	return TeamMember.findOne(query).populate(populate).exec();
+};
+
 /**
  * Creates a new team with the requested metadata
  *
@@ -243,7 +257,7 @@ const validateTeamRole = (role) => {
  * @param creator The user requesting the create
  * @returns {Promise} Returns a promise that resolves if team is successfully created, and rejects otherwise
  */
-const createTeam = async (teamInfo, creator, firstAdmin, headers) => {
+const createTeam = async (teamInfo, creator, firstAdmin) => {
 	// Create the new team model
 	const newTeam = new Team();
 
@@ -258,26 +272,11 @@ const createTeam = async (teamInfo, creator, firstAdmin, headers) => {
 	let user = await User.findById(firstAdmin).exec();
 	user = User.filteredCopy(user);
 
-	// Audit the creation action
-	await auditService.audit('team created', 'team', 'create', TeamMember.auditCopy(creator), Team.auditCopy(newTeam), headers);
-
 	// Save the new team
 	await newTeam.save();
 
 	// Add first admin as first team member with admin role, or the creator if null
 	return addMemberToTeam(user || creator, newTeam, 'admin', creator);
-};
-
-const getTeams = async (queryParams) => {
-	const page = util.getPage(queryParams);
-	const limit = util.getLimit(queryParams, 1000);
-	const sortArr = util.getSort(queryParams, 'DESC', '_id');
-	const offset = page * limit;
-
-	// Query for Teams
-	const teams = await Team.textSearch({}, null, limit, offset, sortArr);
-
-	return util.getPagingResults(limit, page, teams.count, teams.results);
 };
 
 /**
@@ -289,20 +288,11 @@ const getTeams = async (queryParams) => {
  * @returns {Promise} Returns a promise that resolves if team is successfully updated, and rejects otherwise
  */
 const updateTeam = async (team, updatedTeam, user, headers) => {
-	// Make a copy of the original team for auditing purposes
-	const originalTeam = Team.auditCopy(team);
-
 	// Update the updated date
 	team.updated = Date.now();
 
 	// Copy in the fields that can be changed by the user
 	copyMutableFields(team, updatedTeam);
-
-	// Audit the update action
-	await auditService.audit('team updated', 'team', 'update', TeamMember.auditCopy(user), {
-		before: originalTeam,
-		after: Team.auditCopy(team)
-	}, headers);
 
 	// Save the updated team
 	return team.save();
@@ -318,20 +308,17 @@ const updateTeam = async (team, updatedTeam, user, headers) => {
 const deleteTeam = async (team, user, headers) => {
 	await verifyNoResourcesInTeam(team);
 
-	// Audit the team delete attempt
-	await auditService.audit('team deleted', 'team', 'delete', TeamMember.auditCopy(user), Team.auditCopy(team), headers);
-
 	// Delete the team and update all members in the team
 	return Promise.all([
-		team.deleteMany({}).exec(),
+		team.delete(),
 		TeamMember.updateOne(
-			{'teams._id': team._id},
-			{$pull: {teams: {_id: team._id}}}
+			{ 'teams._id': team._id },
+			{ $pull: { teams: { _id: team._id } } }
 		).exec()
 	]);
 };
 
-const searchTeams = async (search, query, queryParams, user) => {
+const searchTeams = async (queryParams, query, search, user) => {
 	const page = util.getPage(queryParams);
 	const limit = util.getLimit(queryParams, 1000);
 	const sortArr = util.getSort(queryParams, 'DESC', '_id');
@@ -345,12 +332,12 @@ const searchTeams = async (search, query, queryParams, user) => {
 
 		// If the query already has a filter by team, take the intersection
 		if (null != query._id && null != query._id.$in) {
-			teamIds = _.intersection(teamIds, query._id.$in);
+			teamIds = _.intersectionBy(teamIds, query._id.$in, (i) => i.toString());
 		}
 
 		// If no remaining teams, return no results
 		if (teamIds.length === 0) {
-			return Promise.resolve();
+			return Promise.resolve(util.getPagingResults(limit));
 		}
 
 		query._id = {
@@ -360,7 +347,7 @@ const searchTeams = async (search, query, queryParams, user) => {
 
 	const result = await Team.textSearch(query, search, limit, offset, sortArr);
 
-	return result == null ? util.getPagingResults(limit) : util.getPagingResults(limit, page, result.count, result.results);
+	return util.getPagingResults(limit, page, result.count, result.results);
 };
 
 const searchTeamMembers = async (search, query, queryParams, team) => {
@@ -414,13 +401,9 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
  * @param user The user to add to the team
  * @param team The team object
  * @param role The role of the user in this team
- * @param requester The user requesting the add
  * @returns {Promise} Returns a promise that resolves if the user is successfully added to the team, and rejects otherwise
  */
-const addMemberToTeam = async (user, team, role, requester, headers) => {
-	// Audit the member add request
-	await auditService.audit(`team ${role} added`, 'team-role', 'user add', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, role), headers);
-
+const addMemberToTeam = async (user, team, role) => {
 	return TeamMember.updateOne({_id: user._id}, {
 		$addToSet: {
 			teams: new TeamRole({
@@ -436,9 +419,9 @@ const addMembersToTeam = (users, team, requester, headers) => {
 	users = users.filter((user) => null != user._id);
 
 	return Promise.all(users.map(async (u) => {
-		const user = await TeamMember.findOne({_id: u._id});
+		const user = await TeamMember.findById(u._id);
 		if (null != user) {
-			return await addMemberToTeam(user, team, u.role, requester, headers);
+			return addMemberToTeam(user, team, u.role, requester, headers);
 		}
 	}));
 };
@@ -451,9 +434,6 @@ const updateMemberRole = async (user, team, role, requester, headers) => {
 	}
 
 	await validateTeamRole(role);
-
-	// Audit the member update request
-	await auditService.audit(`team role changed to ${role}`, 'team-role', 'user add', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, role), headers);
 
 	return TeamMember.findOneAndUpdate({
 		_id: user._id,
@@ -473,9 +453,6 @@ const updateMemberRole = async (user, team, role, requester, headers) => {
 const removeMemberFromTeam = async (user, team, requester, headers) => {
 	// Verify the user is not the last admin in the team
 	await verifyNotLastAdmin(user, team);
-
-	// Audit the user remove
-	await auditService.audit('team member removed', 'team-role', 'user remove', TeamMember.auditCopy(requester), Team.auditCopyTeamMember(team, user, ''), headers);
 
 	// Apply the update
 	return TeamMember.updateOne({_id: user._id}, {$pull: {teams: {_id: team._id}}}).exec();
@@ -509,10 +486,6 @@ const requestAccessToTeam = async (requester, team, req) => {
 		}
 	}).exec();
 
-	if (null == admins) {
-		return Promise.reject({status: 404, message: 'Error retrieving team admins'});
-	}
-
 	const adminEmails = admins.map((admin) => admin.email);
 
 	if (null == adminEmails || adminEmails.length === 0) {
@@ -540,12 +513,6 @@ const requestNewTeam = async (org, aoi, description, requester, req) => {
 	}
 
 	try {
-		await auditService.audit('new team requested', 'team', 'request', TeamMember.auditCopy(requester), {
-			org,
-			aoi,
-			description
-		}, req.headers);
-
 		const mailOptions = await emailService.generateMailOptions(requester, req, config.coreEmails.newTeamRequest, {
 			org: org,
 			aoi: aoi,
@@ -575,7 +542,7 @@ const getImplicitTeamIds = (user) => {
 	const strategy = _.get(config, 'teams.implicitMembers.strategy', null);
 
 	if (strategy == null) {
-		return [];
+		return Promise.resolve([]);
 	}
 
 	const query = {$and: [{implicitMembers: true}]};
@@ -597,7 +564,7 @@ const getImplicitTeamIds = (user) => {
 	}
 
 	if (query.$and.length === 1) {
-		return [];
+		return Promise.resolve([]);
 	}
 
 	return Team.distinct('_id', query).exec();
@@ -643,7 +610,6 @@ const filterTeamIds = async (user, teamIds) => {
 
 module.exports = {
 	createTeam,
-	getTeams,
 	updateTeam,
 	deleteTeam,
 	searchTeams,
@@ -666,5 +632,7 @@ module.exports = {
 	getMemberTeamIds,
 	getEditorTeamIds,
 	getAdminTeamIds,
-	getImplicitTeamIds
+	getImplicitTeamIds,
+	readTeam,
+	readTeamMember
 };

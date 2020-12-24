@@ -4,6 +4,7 @@ const
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	util = deps.utilService,
+	auditService = deps.auditService,
 
 	TeamMember = dbs.admin.model('TeamUser'),
 	Team = dbs.admin.model('Team'),
@@ -15,19 +16,11 @@ const
  */
 module.exports.create = async (req, res) => {
 	try {
-		const result = await teamsService.createTeam(req.body.team, req.user, req.body.firstAdmin, req.headers);
-		res.status(200).json(result);
-	} catch(err) {
-		util.handleErrorResponse(res, err);
-	}
-};
+		const result = await teamsService.createTeam(req.body.team, req.user, req.body.firstAdmin);
 
-/**
- * Get all the teams in the system
- */
-module.exports.get = async (req, res) => {
-	try {
-		const result = await teamsService.getTeams(req.query);
+		// Audit the creation action
+		await auditService.audit('team created', 'team', 'create', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), Team.auditCopy(result), req.headers);
+
 		res.status(200).json(result);
 	} catch(err) {
 		util.handleErrorResponse(res, err);
@@ -45,8 +38,21 @@ module.exports.read = (req, res) => {
  * Update the team metadata
  */
 module.exports.update = async (req, res) => {
+	if (null == req.team) {
+		return util.handleErrorResponse(res, { status: 400, type: 'error', message: 'Could not find team' });
+	}
+
 	try {
+		// Make a copy of the original team for auditing purposes
+		const originalTeam = Team.auditCopy(req.team);
+
 		const result = await teamsService.updateTeam(req.team, req.body, req.user, req.headers);
+
+		await auditService.audit('team updated', 'team', 'update', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), {
+			before: originalTeam,
+			after: Team.auditCopy(result)
+		}, req.headers);
+
 		res.status(200).json(result);
 	} catch(err) {
 		util.handleErrorResponse(res, err);
@@ -57,14 +63,21 @@ module.exports.update = async (req, res) => {
  * Delete the team
  */
 module.exports.delete = async (req, res) => {
+	if (null == req.team) {
+		return util.handleErrorResponse(res, { status: 400, type: 'error', message: 'Could not find team' });
+	}
+
 	try {
 		await teamsService.deleteTeam(req.team, req.user, req.headers);
+
+		// Audit the team delete attempt
+		await auditService.audit('team deleted', 'team', 'delete', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), Team.auditCopy(req.team), req.headers);
+
 		res.status(200).json(req.team);
 	} catch (err) {
 		util.handleErrorResponse(res, err);
 	}
 };
-
 
 /**
  * Search the teams, includes paging and sorting
@@ -76,7 +89,7 @@ module.exports.search = async (req, res) => {
 	query = util.toMongoose(query);
 
 	try {
-		const result = await teamsService.searchTeams(search, query, req.query, req.user);
+		const result = await teamsService.searchTeams(req.query, query, search, req.user);
 		res.status(200).json(result);
 	} catch (err) {
 		util.handleErrorResponse(res, err);
@@ -91,6 +104,13 @@ module.exports.requestNewTeam = async (req, res) => {
 
 	try {
 		await teamsService.requestNewTeam(org, aoi, description, user, req);
+
+		await auditService.audit('new team requested', 'team', 'request', TeamMember.auditCopy(req.user), {
+			org,
+			aoi,
+			description
+		}, req.headers);
+
 		res.status(204).end();
 	} catch (err) {
 		util.handleErrorResponse(res, err);
@@ -98,11 +118,12 @@ module.exports.requestNewTeam = async (req, res) => {
 };
 
 module.exports.requestAccess = async (req, res) => {
-	const user = req.user;
-	const team = req.team || null;
+	if (null == req.team) {
+		return util.handleErrorResponse(res, { status: 400, type: 'error', message: 'Could not find team' });
+	}
 
 	try {
-		await teamsService.requestAccessToTeam(user, team, req);
+		await teamsService.requestAccessToTeam(req.user, req.team, req);
 		res.status(204).end();
 	} catch (err) {
 		util.handleErrorResponse(res, err);
@@ -131,12 +152,19 @@ module.exports.searchMembers = async (req, res) => {
  * Add a member to a team, defaulting to read-only access
  */
 module.exports.addMember = async (req, res) => {
-	const user = req.userParam;
-	const team = req.team;
+	if (null == req.team) {
+		return util.handleErrorResponse(res, { status: 400, type: 'error', message: 'Could not find team' });
+	}
+
 	const role = req.body.role || 'member';
 
 	try {
-		await teamsService.addMemberToTeam(user, team, role, req.user, req.headers);
+		await teamsService.addMemberToTeam(req.userParam, req.team, role);
+
+		// Audit the member add request
+		await auditService.audit(`team ${role} added`, 'team-role', 'user add', TeamMember.auditCopy(req.user), Team.auditCopyTeamMember(req.team, req.userParam, role), req.headers);
+
+		res.status(204).end();
 	} catch(err) {
 		util.handleErrorResponse(res, err);
 	}
@@ -146,11 +174,28 @@ module.exports.addMember = async (req, res) => {
  * Add specified members with specified roles to a team
  */
 module.exports.addMembers = async (req, res) => {
-	const newMembers = req.body.newMembers || [];
-	const team = req.team;
+	if (null == req.team) {
+		return util.handleErrorResponse(res, { status: 400, type: 'error', message: 'Could not find team' });
+	}
+
+	if (null == req.body.newMembers || req.body.newMembers.length === 0) {
+		return util.handleErrorResponse(res, { status: 400, type: 'error', message: 'New team members not specified' });
+	}
 
 	try {
-		await teamsService.addMembersToTeam(newMembers, team, req.user, req.headers);
+		await Promise.all(req.body.newMembers.filter((member) => null != member._id).map(async(member) => {
+			const user = await teamsService.readTeamMember(member._id);
+			if (null != user) {
+				await teamsService.addMemberToTeam(user, req.team, member.role);
+				return auditService.audit(
+					`team ${member.role} added`,
+					'team-role',
+					'user add',
+					TeamMember.auditCopy(req.user),
+					Team.auditCopyTeamMember(req.team, req.userParam, member.role),
+					req.headers);
+			}
+		}));
 		res.status(204).end();
 	} catch (err) {
 		util.handleErrorResponse(res, err);
@@ -161,11 +206,17 @@ module.exports.addMembers = async (req, res) => {
  * Remove a member from a team
  */
 module.exports.removeMember = async (req, res) => {
-	const user = req.userParam;
-	const team = req.team;
+	if (null == req.team) {
+		return util.handleErrorResponse(res, { status: 400, type: 'error', message: 'Could not find team' });
+	}
 
 	try {
-		await teamsService.removeMemberFromTeam(user, team, req.user, req.headers);
+		await teamsService.removeMemberFromTeam(req.userParam, req.team, req.user, req.headers);
+
+		// Audit the user remove
+		await auditService.audit('team member removed', 'team-role', 'user remove',
+			TeamMember.auditCopy(req.user), Team.auditCopyTeamMember(req.team, req.userParam), req.headers);
+
 		res.status(204).end();
 	} catch(err) {
 		util.handleErrorResponse(res, err);
@@ -173,12 +224,19 @@ module.exports.removeMember = async (req, res) => {
 };
 
 module.exports.updateMemberRole = async (req, res) => {
-	const user = req.userParam;
-	const team = req.team;
+	if (null == req.team) {
+		return util.handleErrorResponse(res, { status: 400, type: 'error', message: 'Could not find team' });
+	}
+
 	const role = req.body.role || 'member';
 
 	try {
-		await teamsService.updateMemberRole(user, team, role, req.user, req.headers);
+		await teamsService.updateMemberRole(req.userParam, req.team, role, req.user, req.headers);
+
+		// Audit the member update request
+		await auditService.audit(`team role changed to ${role}`, 'team-role', 'user add',
+			TeamMember.auditCopy(req.user), Team.auditCopyTeamMember(req.team, req.userParam, role), req.headers);
+
 		res.status(204).end();
 	} catch(err) {
 		util.handleErrorResponse(res, err);
@@ -189,20 +247,20 @@ module.exports.updateMemberRole = async (req, res) => {
  * Team middleware
  */
 module.exports.teamById = async (req, res, next, id) => {
-	const team = await Team.findOne({ _id: id }).exec();
+	const team = await teamsService.readTeam(id);
 
 	if (null == team) {
-		return next(new Error(`Could not find team: ${id}`));
+		return next(new Error('Could not find team'));
 	}
 	req.team = team;
 	return next();
 };
 
-module.exports.teamUserById = async (req, res, next, id) => {
-	const user = await TeamMember.findOne({ _id: id }).exec();
+module.exports.teamMemberById = async (req, res, next, id) => {
+	const user = await teamsService.readTeamMember(id);
 
 	if (null == user) {
-		return next(new Error(`Failed to load team member ${id}`));
+		return next(new Error('Failed to load team member'));
 	}
 	req.userParam = user;
 	return next();
