@@ -36,31 +36,38 @@ const getRoles = () => _.get(deps.config, 'auth.roles', ['user', 'editor', 'audi
  * Public Methods
  * ==========================================================
  */
-
-module.exports.hasRoles = (user, roles) => {
+module.exports.hasRole = (user, role) => {
 	const strategy = getRoleStrategy();
 
-	let toReturn = true;
+	const localRoles = user.roles || {};
 
-	if (null != roles) {
-		const localRoles = user.roles || [];
-
-		toReturn = roles.every((role) => {
-			const hasLocalRole = localRoles[role];
-			if (strategy === 'local') {
-				return hasLocalRole;
-			}
-
-			const hasExternalRole = getProvider().hasRole(user, role);
-			if (strategy === 'external') {
-				return hasExternalRole;
-			}
-
-			return hasLocalRole || hasExternalRole;
-		});
+	const hasLocalRole = localRoles[role];
+	if (strategy === 'local') {
+		return hasLocalRole;
 	}
 
-	return toReturn;
+	const hasExternalRole = getProvider().hasRole(user, role);
+	if (strategy === 'external') {
+		return hasExternalRole;
+	}
+
+	return hasLocalRole || hasExternalRole;
+};
+
+module.exports.hasRoles = (user, roles) => {
+	if (null == roles || roles.length === 0) {
+		return true;
+	}
+
+	return roles.every((role) => module.exports.hasRole(user, role));
+};
+
+module.exports.hasAnyRole = (user, roles) => {
+	if (null == roles || roles.length === 0) {
+		return true;
+	}
+
+	return roles.some((role) => module.exports.hasRole(user, role));
 };
 
 module.exports.updateRoles = (user) => {
@@ -68,7 +75,7 @@ module.exports.updateRoles = (user) => {
 	const isHybrid = strategy === 'hybrid';
 
 	if (isHybrid) {
-		user.localRoles = user.roles || {};
+		user.localRoles = Object.assign({}, user.roles);
 	}
 	if (strategy === 'external' || isHybrid) {
 		const updatedRoles = {};
@@ -96,18 +103,6 @@ module.exports.updateUserFilter = (query) => {
 	}
 
 	return query;
-};
-
-module.exports.checkExternalRoles = (user, configAuth) => {
-	// If there are required roles, check for them
-	if (null != configAuth && _.isArray(configAuth.requiredRoles) && configAuth.requiredRoles.length > 0) {
-		// Get the user roles
-		const userRoles = (null != user && _.isArray(user.externalRoles)) ? user.externalRoles : [];
-		if(_.difference(configAuth.requiredRoles, userRoles).length > 0) {
-			return false;
-		}
-	}
-	return true;
 };
 
 module.exports.validateAccessToPersonalResource = (user, resource) => {
