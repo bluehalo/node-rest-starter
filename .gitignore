@@ -31,9 +31,6 @@
 nbactions.xml
 nb-configuration.xml
 
-# VS
-.vscode
-
 # Vi, etc
 *.swp
 *.tmp

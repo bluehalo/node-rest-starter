@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "name": "Debug Server",
+      "outputCapture": "std",
+      "program": "${workspaceFolder}/src/server.js",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node"
+    }
+  ]
+}
