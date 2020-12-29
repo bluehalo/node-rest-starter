@@ -84,14 +84,29 @@ module.exports.connect = async () => {
 				// Create the secondary connection
 				const conn = mongoose.createConnection(spec.connectionString, spec.options);
 				dbs[spec.name] = conn;
-				conn.on('connected', () => { resolve(); });
+				conn.on('connected', () => {
+					logger.debug(`Connected to ${spec.name}`);
+					resolve();
+				});
 				conn.on('error', () => { reject(); });
 			})));
 
 			mongoose.set('useCreateIndex', true);
 
+			logger.debug('Loading mongoose models...');
 			// Since all the db connections worked, we will load the mongoose models
 			loadModels();
+			logger.debug('Loaded all mongoose models!');
+
+			// Ensure that all mongoose models are initialized
+			// before responding with the connections(s)
+			await Promise.all(Object.entries(dbs).map(([key, conn]) => {
+				logger.debug(`Initializing all models for ${key}`);
+				return Promise.all(Object.entries(conn.models).map(([name, aModel]) => {
+					logger.debug(`Initializing model ${name}`);
+					return aModel.init();
+				}));
+			}));
 
 			// Return the dbs since everything succeeded
 			return dbs;
