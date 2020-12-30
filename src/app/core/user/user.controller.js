@@ -125,10 +125,10 @@ module.exports.requiresAny = (requirements) => {
 module.exports.hasAccess = (req, res, next) => {
 	module.exports.hasAll(
 			module.exports.requiresLogin,
-			module.exports.requiresEua,
 			module.exports.requiresOrganizationLevels,
 			module.exports.requiresUserRole,
-			module.exports.requiresExternalRoles
+			module.exports.requiresExternalRoles,
+			module.exports.requiresEua
 			)(req, res, next);
 };
 
@@ -140,11 +140,11 @@ module.exports.hasAccess = (req, res, next) => {
 module.exports.hasEditorAccess = (req, res, next) => {
 	module.exports.hasAll(
 			module.exports.requiresLogin,
-			module.exports.requiresEua,
 			module.exports.requiresOrganizationLevels,
 			module.exports.requiresUserRole,
 			module.exports.requiresExternalRoles,
-			module.exports.requiresEditorRole
+			module.exports.requiresEditorRole,
+			module.exports.requiresEua
 			)(req, res, next);
 };
 
@@ -156,11 +156,11 @@ module.exports.hasEditorAccess = (req, res, next) => {
 module.exports.hasAuditorAccess = (req, res, next) => {
 	module.exports.hasAll(
 			module.exports.requiresLogin,
-			module.exports.requiresEua,
 			module.exports.requiresOrganizationLevels,
 			module.exports.requiresUserRole,
 			module.exports.requiresExternalRoles,
-			module.exports.requiresAuditorRole
+			module.exports.requiresAuditorRole,
+			module.exports.requiresEua
 			)(req, res, next);
 };
 
