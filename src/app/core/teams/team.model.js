@@ -81,16 +81,6 @@ const TeamSchema = new GetterSchema({
 	},
 	requiresExternalTeams: {
 		type: [String]
-	},
-	parent: {
-		type: mongoose.Schema.ObjectId,
-		ref: 'Team'
-	},
-	ancestors: {
-		type: [{
-			type: mongoose.Schema.ObjectId,
-			ref: 'Team'
-		}]
 	}
 });
 
