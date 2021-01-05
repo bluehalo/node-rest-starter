@@ -1,24 +1,18 @@
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	should = require('should'),
-
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	dbs = deps.dbs,
-
 	CacheEntry = dbs.admin.model('CacheEntry'),
 	accessChecker = require('./access-checker.service');
-
 
 /**
  * Helpers
  */
 function clearDatabase() {
-	return Promise.all([
-		CacheEntry.deleteMany({}).exec()
-	]);
+	return CacheEntry.deleteMany({}).exec();
 }
 
 function cacheSpec(key) {
@@ -66,7 +60,6 @@ function validateCacheEntry(actual, expected) {
  * Unit tests
  */
 describe('Access Checker Service:', () => {
-
 	// Specs for tests
 	const spec = { cache: {} };
 	const provider = {};
@@ -77,12 +70,12 @@ describe('Access Checker Service:', () => {
 
 	// Cache and provider disagree, entry is expired
 	spec.cache.expired = cacheSpec('expired');
-	spec.cache.expired.ts = Date.now() - 1000*60*60*24*10;
+	spec.cache.expired.ts = Date.now() - 1000 * 60 * 60 * 24 * 10;
 	provider.expired = providerSpec('expirednew');
 
 	// Cache and provider disagree, entry id not expired
 	spec.cache.outdated = cacheSpec('outdated');
-	spec.cache.outdated.ts = Date.now() - 1000*60*60*24*10;
+	spec.cache.outdated.ts = Date.now() - 1000 * 60 * 60 * 24 * 10;
 	provider.outdated = providerSpec('outdatednew');
 
 	// Cache has entry that is now missing from provider
@@ -93,97 +86,116 @@ describe('Access Checker Service:', () => {
 
 	const cache = {};
 
-	before(() => {
-		return clearDatabase().then(() => {
-			let defers = [];
-
-			// Create the cache entries
-			defers = defers.concat(_.keys(spec.cache).map((k) => {
-				return (new CacheEntry(spec.cache[k])).save().then((e) => { cache[k] = e; });
-			}));
-
-			return Promise.all(defers);
-		});
+	before(async () => {
+		await clearDatabase();
+		await Promise.all(
+			_.keys(spec.cache).map((k) => {
+				return new CacheEntry(spec.cache[k]).save().then((value) => {
+					cache[k] = value;
+				});
+			})
+		);
 	});
 
-	after(() => {
-		return clearDatabase();
-	});
-
+	after(() => clearDatabase());
 
 	/**
 	 * Test functionality with the access checker provider fails
 	 */
 	describe('Broken Access Checker', () => {
-
+		let originalAuth;
 		before(() => {
+			originalAuth = config.auth;
 			// All of the data is loaded, so initialize proxy-pki
 			config.auth.accessChecker = {
 				provider: {
-					file: 'src/app/core/access-checker/providers/failure-provider.service.js',
+					file:
+						'src/app/core/access-checker/providers/failure-provider.service.js',
 					config: {}
 				}
 			};
 		});
 
+		after(() => {
+			config.auth = originalAuth;
+		});
+
 		// Provider fails on get
 		it('should not update the cache when the access checker provider fails', () => {
-			return accessChecker.get('provideronly').then((result) => {
-				should.fail('Fail provider should throw an error');
-			}).catch((err) => {
-				// Should have errored
-				should.exist(err);
+			return accessChecker
+				.get('provideronly')
+				.then((result) => {
+					should.fail('Fail provider should throw an error');
+				})
+				.catch((err) => {
+					// Should have errored
+					should.exist(err);
 
-				return CacheEntry.findOne({ key: 'provideronly' }).exec()
-					.then((result) => {
-						should.not.exist(result);
-					});
-			});
+					return CacheEntry.findOne({ key: 'provideronly' })
+						.exec()
+						.then((result) => {
+							should.not.exist(result);
+						});
+				});
 		});
 
 		// Provider fails on refresh attempt
 		it('should not update the cache on refresh when the access checker provider fails', () => {
-			return accessChecker.refreshEntry(spec.cache.outdated.key).then((result) => {
-				should.fail('Fail provider should throw an error');
-			}).catch((err) => {
-				// Should have errored
-				should.exist(err);
+			return accessChecker
+				.refreshEntry(spec.cache.outdated.key)
+				.then((result) => {
+					should.fail('Fail provider should throw an error');
+				})
+				.catch((err) => {
+					// Should have errored
+					should.exist(err);
 
-				// Query for the cache object and verify it hasn't been updated
-				return CacheEntry.findOne({ _id: cache.outdated._id }).exec()
-					.then((result) => {
-						validateCacheEntry(result.value, spec.cache.outdated.value);
-					});
-
-			});
+					// Query for the cache object and verify it hasn't been updated
+					return CacheEntry.findOne({ _id: cache.outdated._id })
+						.exec()
+						.then((result) => {
+							validateCacheEntry(
+								result.value,
+								spec.cache.outdated.value
+							);
+						});
+				});
 		});
-
 	});
-
 
 	/**
 	 * Test basic functionality of a working provider
 	 */
 	describe('Working Access Checker', () => {
-
+		let originalAuth;
 		before(() => {
+			originalAuth = config.auth;
+
 			// All of the data is loaded, so initialize proxy-pki
 			config.auth.accessChecker = {
 				provider: {
-					file: 'src/app/core/access-checker/providers/example-provider.service.js',
+					file:
+						'src/app/core/access-checker/providers/example-provider.service.js',
 					config: provider
 				}
 			};
 		});
 
+		after(() => {
+			config.auth = originalAuth;
+		});
+
 		// Pull from cache
 		it('should do nothing when the key is null', () => {
 			// should return the info from the cache
-			return accessChecker.get(null).then((info) => {
-				should.fail('Should error when key is null');
-			}).catch((err) => {
-				should.exist(err);
-			});
+			return accessChecker
+				.get(null)
+				.then((info) => {
+					should.fail('Should error when key is null');
+				})
+				.catch((err) => {
+					should.exist(err);
+				});
 		});
 
 		// Pull from cache
@@ -200,7 +212,8 @@ describe('Access Checker Service:', () => {
 			return accessChecker.get(spec.cache.expired.key).then((info) => {
 				validateCacheEntry(info, provider.expired);
 
-				return CacheEntry.findOne({ key: cache.expired.key }).exec()
+				return CacheEntry.findOne({ key: cache.expired.key })
+					.exec()
 					.then((result) => {
 						validateCacheEntry(result.value, provider.expired);
 					});
@@ -213,9 +226,13 @@ describe('Access Checker Service:', () => {
 			return accessChecker.get(spec.cache.cacheonly.key).then((info) => {
 				validateCacheEntry(info, spec.cache.cacheonly.value);
 
-				return CacheEntry.findOne({ key: cache.cacheonly.key }).exec()
+				return CacheEntry.findOne({ key: cache.cacheonly.key })
+					.exec()
 					.then((result) => {
-						validateCacheEntry(result.value, spec.cache.cacheonly.value);
+						validateCacheEntry(
+							result.value,
+							spec.cache.cacheonly.value
+						);
 					});
 			});
 		});
@@ -226,7 +243,8 @@ describe('Access Checker Service:', () => {
 			return accessChecker.get('provideronly').then((info) => {
 				validateCacheEntry(info, provider.provideronly);
 
-				return CacheEntry.findOne({ key: 'provideronly' }).exec()
+				return CacheEntry.findOne({ key: 'provideronly' })
+					.exec()
 					.then((result) => {
 						validateCacheEntry(result.value, provider.provideronly);
 					});
@@ -238,10 +256,11 @@ describe('Access Checker Service:', () => {
 			// should return the info from the cache
 			await accessChecker.refreshEntry('provideronly');
 
-			const result = await CacheEntry.findOne({ key: 'provideronly' }).exec();
+			const result = await CacheEntry.findOne({
+				key: 'provideronly'
+			}).exec();
 
 			validateCacheEntry(result.value, provider.provideronly);
 		});
 	});
-
 });
