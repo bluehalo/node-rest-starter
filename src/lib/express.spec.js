@@ -34,9 +34,12 @@ describe('Init Swagger API:', () => {
 		};
 
 		if (config.auth.strategy === 'local') {
-			swaggerOptions.swaggerDefinition.securityDefinitions = {
-				auth: {
-					type: 'basic'
+			swaggerOptions.swaggerDefinition.components = {
+				securitySchemes: {
+					basicAuth: {
+						type: 'http',
+						scheme: 'basic'
+					}
 				}
 			};
 		}

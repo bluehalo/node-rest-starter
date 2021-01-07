@@ -231,9 +231,11 @@ function initSwaggerAPI(app) {
 	};
 
 	if (config.auth.strategy === 'local') {
-		swaggerOptions.swaggerDefinition.securityDefinitions = {
-			auth: {
-				type: 'basic'
+		swaggerOptions.swaggerDefinition.components = swaggerOptions.swaggerDefinition.components || {};
+		swaggerOptions.swaggerDefinition.components.securitySchemes = {
+			basicAuth: {
+				type: 'http',
+				scheme: 'basic'
 			}
 		};
 	}
