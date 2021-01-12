@@ -9,7 +9,6 @@ const
 	config = deps.config,
 	dbs = deps.dbs,
 	logger = deps.logger,
-	auditService = deps.auditService,
 	emailService = deps.emailService,
 	util = deps.utilService,
 
@@ -284,10 +283,9 @@ const createTeam = async (teamInfo, creator, firstAdmin) => {
  *
  * @param team The team object to update
  * @param updatedTeam
- * @param user The user requesting the update
  * @returns {Promise} Returns a promise that resolves if team is successfully updated, and rejects otherwise
  */
-const updateTeam = async (team, updatedTeam, user, headers) => {
+const updateTeam = (team, updatedTeam) => {
 	// Update the updated date
 	team.updated = Date.now();
 
@@ -302,10 +300,9 @@ const updateTeam = async (team, updatedTeam, user, headers) => {
  * Deletes an existing team, after verifying that team contains no more resources.
  *
  * @param team The team object to delete
- * @param user The user requesting the delete
  * @returns {Promise} Returns a promise that resolves if team is successfully deleted, and rejects otherwise
  */
-const deleteTeam = async (team, user, headers) => {
+const deleteTeam = async (team) => {
 	await verifyNoResourcesInTeam(team);
 
 	// Delete the team and update all members in the team
@@ -403,7 +400,7 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
  * @param role The role of the user in this team
  * @returns {Promise} Returns a promise that resolves if the user is successfully added to the team, and rejects otherwise
  */
-const addMemberToTeam = async (user, team, role) => {
+const addMemberToTeam = (user, team, role) => {
 	return TeamMember.updateOne({_id: user._id}, {
 		$addToSet: {
 			teams: new TeamRole({
