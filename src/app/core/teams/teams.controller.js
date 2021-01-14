@@ -46,7 +46,7 @@ module.exports.update = async (req, res) => {
 		// Make a copy of the original team for auditing purposes
 		const originalTeam = Team.auditCopy(req.team);
 
-		const result = await teamsService.updateTeam(req.team, req.body, req.user, req.headers);
+		const result = await teamsService.updateTeam(req.team, req.body);
 
 		await auditService.audit('team updated', 'team', 'update', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), {
 			before: originalTeam,

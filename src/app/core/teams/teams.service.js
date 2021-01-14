@@ -275,7 +275,7 @@ const createTeam = async (teamInfo, creator, firstAdmin) => {
 	await newTeam.save();
 
 	// Add first admin as first team member with admin role, or the creator if null
-	return addMemberToTeam(user || creator, newTeam, 'admin', creator);
+	return addMemberToTeam(user || creator, newTeam, 'admin');
 };
 
 /**
@@ -411,18 +411,6 @@ const addMemberToTeam = (user, team, role) => {
 	}).exec();
 };
 
-const addMembersToTeam = (users, team, requester, headers) => {
-	users = users || [];
-	users = users.filter((user) => null != user._id);
-
-	return Promise.all(users.map(async (u) => {
-		const user = await TeamMember.findById(u._id);
-		if (null != user) {
-			return addMemberToTeam(user, team, u.role, requester, headers);
-		}
-	}));
-};
-
 const updateMemberRole = async (user, team, role, requester, headers) => {
 	const currentRole = getTeamRole(user, team);
 
@@ -490,7 +478,7 @@ const requestAccessToTeam = async (requester, team, req) => {
 	}
 
 	// Add requester role to user for this team
-	await addMemberToTeam(requester, team, 'requester', requester, req.headers);
+	await addMemberToTeam(requester, team, 'requester');
 
 	return sendRequestEmail(adminEmails, requester, team, req);
 };
@@ -620,7 +608,6 @@ module.exports = {
 	requestNewTeam,
 	requestAccessToTeam,
 	addMemberToTeam,
-	addMembersToTeam,
 	updateMemberRole,
 	removeMemberFromTeam,
 	sendRequestEmail,

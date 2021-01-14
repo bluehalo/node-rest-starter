@@ -267,7 +267,7 @@ describe('Team Service:', () => {
 			const creator = await User.findOne({ name: 'user1 Name' }).exec();
 			const admin = await User.findOne({ name: 'user2 Name' }).exec();
 
-			await teamsService.createTeam(teamSpec('test-create-2'), creator, admin, {});
+			await teamsService.createTeam(teamSpec('test-create-2'), creator, admin);
 			team = await Team.findOne({ name: 'test-create-2' }).exec();
 			const members = await teamsService.searchTeamMembers(null, {}, queryParams, team);
 			(members.elements).should.have.length(1);
@@ -279,7 +279,7 @@ describe('Team Service:', () => {
 			const creator = await User.findOne({name: 'user1 Name'}).exec();
 
 			// null admin should default to creator
-			await teamsService.createTeam(teamSpec('test-create'), creator, null, {});
+			await teamsService.createTeam(teamSpec('test-create'), creator, null);
 			const _team = await Team.findOne({name: 'test-create'}).exec();
 			const members = await teamsService.searchTeamMembers(null, {}, queryParams, _team);
 			(members.elements).should.have.length(1);
@@ -293,7 +293,7 @@ describe('Team Service:', () => {
 				name: `${team.teamWithNoExternalTeam.name}_updated`
 			};
 
-			const updatedTeam = await teamsService.updateTeam(team.teamWithNoExternalTeam, updates, user.user1).should.be.fulfilled();
+			const updatedTeam = await teamsService.updateTeam(team.teamWithNoExternalTeam, updates).should.be.fulfilled();
 
 			// Verify updates were applied on returned object
 			updatedTeam.name.should.equal(updates.name);
@@ -453,39 +453,12 @@ describe('Team Service:', () => {
 
 	describe('addMemberToTeam', () => {
 		it('adds user to team', async () => {
-			await teamsService.addMemberToTeam(user.user1, team.teamWithNoExternalTeam, 'member', user.user1);
+			await teamsService.addMemberToTeam(user.user1, team.teamWithNoExternalTeam, 'member');
 
 			const uResult = await TeamMember.findById(user.user1);
 			const userTeam = uResult.teams.find((t) => t._id.equals(team.teamWithNoExternalTeam._id));
 			should.exist(userTeam);
 			userTeam.role.should.equal('member');
-		});
-	});
-
-	describe('addMembersToTeam', () => {
-		it('adds users to team', async () => {
-			const usersToAdd = [{
-				_id: user.user1._id,
-				role: 'member'
-			}, {
-				_id: user.user2._id,
-				role: 'member'
-			}, {
-				_id: mongoose.Types.ObjectId()
-			}];
-
-			await teamsService.addMembersToTeam(usersToAdd, team.teamWithNoExternalTeam, user.user1);
-
-			for (const u of [user.user1, user.user2]) {
-				const uResult = await TeamMember.findById(u);
-				const userTeam = uResult.teams.find((t) => t._id.equals(team.teamWithNoExternalTeam._id));
-				should.exist(userTeam);
-				userTeam.role.should.equal('member');
-			}
-		});
-
-		it('should resolve without error when no users specified', async () => {
-			await teamsService.addMembersToTeam(null, team.teamWithNoExternalTeam, user.user1).should.be.fulfilled();
 		});
 	});
 
@@ -500,7 +473,7 @@ describe('Team Service:', () => {
 		});
 
 		it('downgrade admin role; succeed if team has other admins', async () => {
-			await teamsService.addMemberToTeam(user.user2, team.teamWithNoExternalTeam, 'admin', user.user2);
+			await teamsService.addMemberToTeam(user.user2, team.teamWithNoExternalTeam, 'admin');
 
 			await teamsService.updateMemberRole(user.user3, team.teamWithNoExternalTeam, 'member', user.admin)
 				.should.be.fulfilled();
@@ -527,7 +500,7 @@ describe('Team Service:', () => {
 
 	describe('removeMemberFromTeam', () => {
 		it('remove admin user; succeed if team has other admins', async () => {
-			await teamsService.addMemberToTeam(user.user2, team.teamWithNoExternalTeam, 'admin', user.user2);
+			await teamsService.addMemberToTeam(user.user2, team.teamWithNoExternalTeam, 'admin');
 
 			await teamsService.removeMemberFromTeam(user.user3, team.teamWithNoExternalTeam, user.admin)
 				.should.be.fulfilled();
