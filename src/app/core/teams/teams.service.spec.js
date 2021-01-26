@@ -155,27 +155,27 @@ describe('Team Service:', () => {
 	});
 
 	describe('getActiveTeamRole', () => {
-		it('return existing explicit team role for user (model object)', async () => {
+		it('return existing explicit team role for user (model object)', () => {
 			const role = teamsService.getActiveTeamRole(user.explicit, team.teamWithNoExternalTeam);
 
 			should.exist(role);
 			role.should.equal('member');
 		});
 
-		it('return existing explicit team role for user (plain object)', async () => {
+		it('return existing explicit team role for user (plain object)', () => {
 			const role = teamsService.getActiveTeamRole(user.explicit.toObject(), team.teamWithNoExternalTeam);
 
 			should.exist(role);
 			role.should.equal('member');
 		});
 
-		it('return null role for user not in team', async () => {
+		it('return null role for user not in team', () => {
 			const role = teamsService.getActiveTeamRole(user.implicit1, team.teamWithExternalTeam);
 
 			should.not.exist(role);
 		});
 
-		it('return implicit team role for user', async () => {
+		it('return implicit team role for user', () => {
 			sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'teams' });
 
 			const role = teamsService.getActiveTeamRole(user.implicit1, team.teamWithExternalTeam);
@@ -184,7 +184,7 @@ describe('Team Service:', () => {
 			role.should.equal('member');
 		});
 
-		it('return null role for user not implicitly in team', async () => {
+		it('return null role for user not implicitly in team', () => {
 			sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'roles' });
 
 			const role = teamsService.getActiveTeamRole(user.implicit1, team.teamWithExternalTeam);
@@ -192,7 +192,7 @@ describe('Team Service:', () => {
 			should.not.exist(role);
 		});
 
-		it('return implicit team role for user', async () => {
+		it('return implicit team role for user', () => {
 			sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'roles' });
 
 			const role = teamsService.getActiveTeamRole(user.implicit2, team.teamWithExternalRoles);
@@ -201,7 +201,7 @@ describe('Team Service:', () => {
 			role.should.equal('member');
 		});
 
-		it('return null role for user implicitly in team, but implicit teams disabled', async () => {
+		it('return null role for user implicitly in team, but implicit teams disabled', () => {
 			sandbox.stub(deps.config.teams, 'implicitMembers').value(undefined);
 
 			const role = teamsService.getActiveTeamRole(user.implicit1, team.teamWithExternalTeam);
