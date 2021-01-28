@@ -17,7 +17,6 @@ router.route('/team')
 	.put(user.hasEditorAccess, teams.create);
 
 router.route('/teams')
-	.get(user.hasAccess, teams.get)
 	.post(user.hasAccess, teams.search);
 
 router.route('/team/:teamId')

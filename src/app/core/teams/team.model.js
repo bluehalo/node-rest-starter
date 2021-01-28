@@ -45,8 +45,7 @@ const TeamRoleSchema = new GetterSchema({
 
 UserSchema.add({
 	teams: {
-		type: [ TeamRoleSchema ],
-		default: []
+		type: [ TeamRoleSchema ]
 	}
 });
 
@@ -78,12 +77,10 @@ const TeamSchema = new GetterSchema({
 		default: false
 	},
 	requiresExternalRoles: {
-		type: [],
-		default: []
+		type: [String]
 	},
 	requiresExternalTeams: {
-		type: [],
-		default: []
+		type: [String]
 	}
 });
 
@@ -109,22 +106,9 @@ TeamSchema.index({ name: 'text', description: 'text' });
 /**
  * Static Methods
  */
-
-// Copy Team for creation
-TeamSchema.statics.createCopy = function(team) {
-	const toReturn = {};
-
-	toReturn.name = team.name;
-	toReturn.description = team.description;
-	toReturn.created = team.created;
-
-	return toReturn;
-};
-
 // Copy a team for audit logging
-TeamSchema.statics.auditCopy = function(team) {
+TeamSchema.statics.auditCopy = function(team = {}) {
 	const toReturn = {};
-	team = team || {};
 
 	toReturn._id = team._id;
 	toReturn.name = team.name;
@@ -134,10 +118,8 @@ TeamSchema.statics.auditCopy = function(team) {
 };
 
 // Copy a team role for audit logging
-TeamSchema.statics.auditCopyTeamMember = function(team, user, role) {
+TeamSchema.statics.auditCopyTeamMember = function(team = {}, user = {}, role = null) {
 	const toReturn = {};
-	user = user || {};
-	team = team || {};
 
 	toReturn.user = {
 		_id: user._id,
@@ -159,13 +141,14 @@ mongoose.model('Team', TeamSchema, 'teams');
 
 // Team Copy of a User ( has team roles for the team )
 const userAuditCopy = UserModel.auditCopy;
-UserSchema.statics.auditCopy = (user) => {
-
-	user = user || {};
+UserSchema.statics.auditCopy = (user = {}) => {
 	const toReturn = userAuditCopy(user);
-	const userObj = user.toObject();
 
-	const teams = userObj.teams || [];
+	if (user.constructor.name === 'model') {
+		user = user.toObject();
+	}
+
+	const teams = user.teams || [];
 
 	return Promise.all(teams.filter((team) => team.role !== 'requester').map((team) => dbs.admin.model('Team').findOne({_id: team._id}).exec().then((t) => _.get(t, 'name', null)))).then((teamNames) => {
 		toReturn.teams = teamNames.filter((name) => null != name);

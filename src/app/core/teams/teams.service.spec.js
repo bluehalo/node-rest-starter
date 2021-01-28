@@ -3,13 +3,17 @@
 const
 	_ = require('lodash'),
 	should = require('should'),
-	proxyquire = require('proxyquire'),
+	sinon = require('sinon'),
+	mongoose = require('mongoose'),
 
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	dbs = deps.dbs,
 
+	teamsService = require('./teams.service'),
+
 	User = dbs.admin.model('User'),
+	Resource = dbs.admin.model('Resource'),
 	Team = dbs.admin.model('Team'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	TeamRole = dbs.admin.model('TeamRole');
@@ -17,12 +21,6 @@ const
 /**
  * Helpers
  */
-function createSubjectUnderTest(dependencies) {
-	const stubs = {};
-	stubs['../../../dependencies'] = dependencies || {};
-	return proxyquire('./teams.service', stubs)();
-}
-
 function clearDatabase() {
 	return Promise.all([
 		Team.deleteMany({}).exec(),
@@ -33,7 +31,7 @@ function clearDatabase() {
 function userSpec(key) {
 	return {
 		name: `${key} Name`,
-		email: `${key}@mail.com`,
+		email: `${key}@email.domain`,
 		username: `${key}_username`,
 		organization: `${key} Organization`
 	};
@@ -68,7 +66,7 @@ function teamSpec(key) {
  */
 describe('Team Service:', () => {
 	// Specs for tests
-	const spec = { team: {}, user: {} };
+	const spec = { team: {}, user: {}, userTeams: {} };
 
 	// Teams for tests
 	spec.team.teamWithExternalTeam = teamSpec('external-team');
@@ -81,6 +79,9 @@ describe('Team Service:', () => {
 
 	spec.team.teamWithNoExternalTeam = teamSpec('no-external');
 	spec.team.teamWithNoExternalTeam.requiresExternalTeams = [];
+
+	spec.team.teamWithNoExternalTeam2 = teamSpec('no-external-2');
+	spec.team.teamWithNoExternalTeam2.requiresExternalTeams = [];
 
 	spec.team.teamWithNullRequiredExternalRoles = teamSpec('req-roles-null');
 	spec.team.teamWithNullRequiredExternalRoles.requiresExternalRoles = null;
@@ -95,72 +96,346 @@ describe('Team Service:', () => {
 
 	// User explicitly added to a group.  Group is added in before() block below
 	spec.user.explicit = proxyPkiUserSpec('explicit');
+	spec.userTeams.explicit = [{ team: 'teamWithNoExternalTeam', role: 'member'}];
 
 	// Generic test users
 	spec.user.user1 = localUserSpec('user1');
+	spec.userTeams.user1 = [
+		{ team: 'teamWithNoExternalTeam', role: 'member'},
+		{ team: 'teamWithNoExternalTeam2', role: 'member'}
+	];
 
 	spec.user.user2 = localUserSpec('user2');
 
 	spec.user.user3 = localUserSpec('user3');
+	spec.userTeams.user3 = [
+		{ team: 'teamWithNoExternalTeam', role: 'admin'}
+	];
 
-	const user = {};
+	spec.user.admin = localUserSpec('admin');
+	spec.user.admin.roles = { user: 1, admin: 1 };
+
+	let user = {};
 	let team = {};
 
-	before(async () => {
+	let sandbox;
+
+	beforeEach(async () => {
+		sandbox = sinon.createSandbox();
+		sandbox.stub(deps.auditService, 'audit').resolves();
+
 		await clearDatabase();
 
-		const teamDefers = [];
+		user = {};
+		team = {};
 
 		// Create the teams
-		_.keys(spec.team).forEach((k) => {
-			teamDefers.push((new Team(spec.team[k])).save().then((e) => {
-				team[k] = e;
-			}));
-		});
+		await Promise.all(_.keys(spec.team).map(async (key) => {
+			team[key] = await new Team(spec.team[key]).save();
+		}));
 
-		await Promise.all(teamDefers);
+		// Create the users
+		await Promise.all(_.keys(spec.user).map(async (key) => {
+			user[key] = await (new User(spec.user[key])).save();
+		}));
 
-		const userDefers = [];
-		_.keys(spec.user).forEach((k) => {
-			userDefers.push((new User(spec.user[k])).save().then((e) => {
-				user[k] = e;
-
-				// Do this here because of issues using extended mongo schema in tests
-				if (k === 'explicit') {
-					return TeamMember.updateOne(
-						{ _id: e._id },
-						{ $addToSet: { teams: new TeamRole({ _id: team.teamWithNoExternalTeam._id, role: 'member' }) } }
-					).exec();
+		// Add users to teams
+		await Promise.all(_.keys(spec.userTeams).map(async (k) => {
+			user[k] = await TeamMember.findOneAndUpdate({_id: user[k]._id}, {
+				$set: {
+					teams: spec.userTeams[k].map((ut) => new TeamRole({_id: team[ut.team], role: ut.role}))
 				}
-			}));
-		});
-
-		return Promise.all(userDefers);
+			}, { new: true }).exec();
+		}));
 	});
 
-	after(() => {
+	afterEach(() => {
+		sandbox.restore();
 		return clearDatabase();
 	});
 
-	// Test implicit team membership
-	describe('searchTeamMembers', () => {
-		const _config = _.merge({}, deps.config, {
-			teams: {
-				implicitMembers: {
-					strategy: 'teams'
-				}
-			}
+	describe('getActiveTeamRole', () => {
+		it('return existing explicit team role for user (model object)', () => {
+			const role = teamsService.getActiveTeamRole(user.explicit, team.teamWithNoExternalTeam);
+
+			should.exist(role);
+			role.should.equal('member');
 		});
-		const teamsService = createSubjectUnderTest(_.merge({}, deps, {config: _config}));
+
+		it('return existing explicit team role for user (plain object)', () => {
+			const role = teamsService.getActiveTeamRole(user.explicit.toObject(), team.teamWithNoExternalTeam);
+
+			should.exist(role);
+			role.should.equal('member');
+		});
+
+		it('return null role for user not in team', () => {
+			const role = teamsService.getActiveTeamRole(user.implicit1, team.teamWithExternalTeam);
+
+			should.not.exist(role);
+		});
+
+		it('return implicit team role for user', () => {
+			sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'teams' });
+
+			const role = teamsService.getActiveTeamRole(user.implicit1, team.teamWithExternalTeam);
+
+			should.exist(role);
+			role.should.equal('member');
+		});
+
+		it('return null role for user not implicitly in team', () => {
+			sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'roles' });
+
+			const role = teamsService.getActiveTeamRole(user.implicit1, team.teamWithExternalTeam);
+
+			should.not.exist(role);
+		});
+
+		it('return implicit team role for user', () => {
+			sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'roles' });
+
+			const role = teamsService.getActiveTeamRole(user.implicit2, team.teamWithExternalRoles);
+
+			should.exist(role);
+			role.should.equal('member');
+		});
+
+		it('return null role for user implicitly in team, but implicit teams disabled', () => {
+			sandbox.stub(deps.config.teams, 'implicitMembers').value(undefined);
+
+			const role = teamsService.getActiveTeamRole(user.implicit1, team.teamWithExternalTeam);
+
+			should.not.exist(role);
+		});
+	});
+
+	describe('meetsRoleRequirement', () => {
+		it('should not reject for user with specified role in team', async () => {
+			await teamsService.meetsRoleRequirement(user.explicit, team.teamWithNoExternalTeam, 'member')
+				.should.be.fulfilled();
+		});
+
+		it('should reject for user without specified role in team', async () => {
+			await teamsService.meetsRoleRequirement(user.explicit, team.teamWithNoExternalTeam, 'admin')
+				.should.be.rejectedWith({
+					status: 403,
+					type: 'missing-roles',
+					message: 'The user does not have the required roles for the team'
+				});
+		});
+
+		it('should reject for invalid role in team ', async () => {
+			await teamsService.meetsRoleRequirement(user.explicit, team.teamWithNoExternalTeam, 'invalid')
+				.should.be.rejectedWith({
+					status: 403,
+					type: 'missing-roles',
+					message: 'The user does not have the required roles for the team'
+				});
+		});
+	});
+
+	describe('readTeam', () => {
+		it('read finds team', async () => {
+			const t = await teamsService.readTeam(team.teamWithNoExternalTeam._id);
+			should.exist(t);
+			t.name.should.equal('no-external');
+		});
+
+		it('read returns null when no team found', async () => {
+			const t = await teamsService.readTeam(mongoose.Types.ObjectId('012345678912'));
+			should.not.exist(t);
+		});
+	});
+
+	describe('readTeamMember', () => {
+		it('read finds team', async () => {
+			const t = await teamsService.readTeamMember(user.admin._id);
+			should.exist(t);
+			t.name.should.equal('admin Name');
+		});
+
+		it('read returns null when no team found', async () => {
+			const t = await teamsService.readTeamMember(mongoose.Types.ObjectId('012345678912'));
+			should.not.exist(t);
+		});
+	});
+
+	describe('createTeam', () => {
+		it('explicit admin should be used', async () => {
+			const queryParams = { dir: 'ASC', page: '0', size: '5', sort: 'name' };
+			const creator = await User.findOne({ name: 'user1 Name' }).exec();
+			const admin = await User.findOne({ name: 'user2 Name' }).exec();
+
+			await teamsService.createTeam(teamSpec('test-create-2'), creator, admin);
+			team = await Team.findOne({ name: 'test-create-2' }).exec();
+			const members = await teamsService.searchTeamMembers(null, {}, queryParams, team);
+			(members.elements).should.have.length(1);
+			(members.elements[0]).name.should.equal(admin.name);
+		});
+
+		it('null admin should default admin to creator', async () => {
+			const queryParams = {dir: 'ASC', page: '0', size: '5', sort: 'name'};
+			const creator = await User.findOne({name: 'user1 Name'}).exec();
+
+			// null admin should default to creator
+			await teamsService.createTeam(teamSpec('test-create'), creator, null);
+			const _team = await Team.findOne({name: 'test-create'}).exec();
+			const members = await teamsService.searchTeamMembers(null, {}, queryParams, _team);
+			(members.elements).should.have.length(1);
+			(members.elements[0]).name.should.equal(creator.name);
+		});
+	});
+
+	describe('updateTeam', () => {
+		it('should update team', async() => {
+			const updates = {
+				name: `${team.teamWithNoExternalTeam.name}_updated`
+			};
+
+			const updatedTeam = await teamsService.updateTeam(team.teamWithNoExternalTeam, updates).should.be.fulfilled();
+
+			// Verify updates were applied on returned object
+			updatedTeam.name.should.equal(updates.name);
+
+			// Verify updates were applied by requerying
+			const t = await Team.findById(team.teamWithNoExternalTeam._id);
+			t.name.should.equal(updates.name);
+		});
+	});
+
+	describe('deleteTeam', () => {
+		it('should delete team, if team has no resources', async () => {
+			const beforeTeamCount = await Team.count({});
+
+			await teamsService.deleteTeam(team.teamWithNoExternalTeam, user.user1)
+				.should.be.fulfilled();
+
+			// Verify Team no longer exists
+			const tResult = await Team.findById(team.teamWithNoExternalTeam._id);
+			should.not.exist(tResult);
+
+			// Verify only one team was deleted
+			const afterTeamCount = await Team.count({});
+			afterTeamCount.should.equal(beforeTeamCount - 1);
+
+			// Verify team entry is removed from user
+			const uResult = await TeamMember.findById(user.explicit._id);
+			const userTeam = uResult.teams.find((t) => t._id.equals(team.teamWithNoExternalTeam._id));
+			should.not.exist(userTeam);
+		});
+
+		it('should reject if team has resources', async () => {
+			const resource = new Resource({
+				title: 'test resource',
+				description: 'this is a test resource',
+				owner: {
+					type: 'team',
+					_id: team.teamWithNoExternalTeam._id
+				}
+			});
+			await resource.save();
+
+			await teamsService.deleteTeam(team.teamWithNoExternalTeam, user.user1)
+				.should.be.rejectedWith({
+					status: 400,
+					type: 'bad-request',
+					message: 'There are still resources in this group.'
+				});
+
+			// Verify team still exists
+			const result = await Team.findById(team.teamWithNoExternalTeam._id);
+			should.exist(result);
+
+			// Verify team entry is not removed from user
+			const uResult = await TeamMember.findById(user.explicit._id);
+			const userTeam = uResult.teams.find((t) => t._id.equals(team.teamWithNoExternalTeam._id));
+			should.exist(userTeam);
+		});
+
+	});
+
+	describe('searchTeams', () => {
+		beforeEach(async () => {
+			const teams = [...Array(95).keys()].map((index) => {
+				return new Team({
+					name: `Name-${index}`,
+					description: `Description-${index}`
+				});
+			});
+
+			await Promise.all(teams.map((team) => team.save()));
+		});
+
+		it('empty search results page returned', async () => {
+			const queryParams = { size: 10 };
+			const query = {};
+			const search = '';
+			const result = await teamsService.searchTeams(queryParams, query, search, user.user2);
+
+			should.exist(result);
+			result.totalSize.should.equal(0);
+			result.pageSize.should.equal(queryParams.size);
+			result.pageNumber.should.equal(0);
+			result.totalPages.should.equal(0);
+			result.elements.should.be.an.Array();
+			result.elements.length.should.be.equal(0);
+		});
+
+		it('search results page returned', async () => {
+			const queryParams = { size: 10 };
+			const query = {};
+			const search = '';
+			const result = await teamsService.searchTeams(queryParams, query, search, user.admin);
+
+			should.exist(result);
+			result.totalSize.should.equal(100);
+			result.pageSize.should.equal(queryParams.size);
+			result.pageNumber.should.equal(0);
+			result.totalPages.should.equal(100 / queryParams.size);
+			result.elements.should.be.an.Array();
+			result.elements.length.should.be.equal(queryParams.size);
+		});
+
+		it('filtered search results page returned', async () => {
+			const queryParams = { size: 10 };
+			const query = { _id: { $in: [ team.teamWithNoExternalTeam._id ]} };
+			const search = '';
+			const result = await teamsService.searchTeams(queryParams, query, search, user.user1);
+
+			should.exist(result);
+			result.totalSize.should.equal(1);
+			result.pageSize.should.equal(queryParams.size);
+			result.pageNumber.should.equal(0);
+			result.totalPages.should.equal(1);
+			result.elements.should.be.an.Array();
+			result.elements.length.should.be.equal(1);
+		});
+	});
+
+	describe('searchTeamMembers', () => {
+		beforeEach(() => {
+			sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'teams' });
+		});
 
 		it('user implicitly added to a team via externalGroups', async () => {
 			const queryParams = { dir: 'ASC', page: '0', size: '5', sort: 'name' };
 
-			const _team = await Team.findOne({ name: 'external-team' }).exec();
-
-			const searchResults = await teamsService.searchTeamMembers(null, {}, queryParams, _team);
+			const searchResults = await teamsService.searchTeamMembers(null, null, queryParams, team.teamWithExternalTeam);
 			searchResults.elements.should.have.length(1);
 			searchResults.elements[0].name.should.equal('implicit1 Name');
+		});
+
+		it('user implicitly added to a team via externalRoles', async () => {
+			sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'roles' });
+
+			const queryParams = { dir: 'ASC', page: '0', size: '5', sort: 'name' };
+
+			// const _team = await Team.findOne({ name: 'external-team' }).exec();
+
+			const searchResults = await teamsService.searchTeamMembers(null, {}, queryParams, team.teamWithExternalRoles);
+			searchResults.elements.should.have.length(1);
+			searchResults.elements[0].name.should.equal('implicit2 Name');
 		});
 
 		// Test explicit team membership
@@ -171,14 +446,77 @@ describe('Team Service:', () => {
 
 			const searchResults = await teamsService.searchTeamMembers(null, {}, queryParams, _team);
 			searchResults.elements.should.be.an.Array();
-			searchResults.elements.should.have.length(1);
+			searchResults.elements.should.have.length(3);
 			searchResults.elements[0].name.should.equal('explicit Name');
 		});
 	});
 
-	describe('meetsRequiredExternalTeams', () => {
-		const teamsService = createSubjectUnderTest(deps);
+	describe('addMemberToTeam', () => {
+		it('adds user to team', async () => {
+			await teamsService.addMemberToTeam(user.user1, team.teamWithNoExternalTeam, 'member');
 
+			const uResult = await TeamMember.findById(user.user1);
+			const userTeam = uResult.teams.find((t) => t._id.equals(team.teamWithNoExternalTeam._id));
+			should.exist(userTeam);
+			userTeam.role.should.equal('member');
+		});
+	});
+
+	describe('updateMemberRole', () => {
+		it('update role', async () => {
+			await teamsService.updateMemberRole(user.explicit, team.teamWithNoExternalTeam, 'admin', user.admin);
+
+			const uResult = await TeamMember.findById(user.explicit._id);
+			const userTeam = uResult.teams.find((t) => t._id.equals(team.teamWithNoExternalTeam._id));
+			should.exist(userTeam);
+			userTeam.role.should.equal('admin');
+		});
+
+		it('downgrade admin role; succeed if team has other admins', async () => {
+			await teamsService.addMemberToTeam(user.user2, team.teamWithNoExternalTeam, 'admin');
+
+			await teamsService.updateMemberRole(user.user3, team.teamWithNoExternalTeam, 'member', user.admin)
+				.should.be.fulfilled();
+		});
+
+		it('downgrade admin role; reject if team has no other admins', async () => {
+			await teamsService.updateMemberRole(user.user3, team.teamWithNoExternalTeam, 'member', user.admin)
+				.should.be.rejectedWith({
+					status: 400,
+					type: 'bad-request',
+					message: 'Team must have at least one admin'
+				});
+		});
+
+		it('reject for invalid team role', async () => {
+			await teamsService.updateMemberRole(user.user1, team.teamWithNoExternalTeam, 'fake-role', user.admin)
+				.should.be.rejectedWith({
+					status: 400,
+					type: 'bad-argument',
+					message: 'Team role does not exist'
+				});
+		});
+	});
+
+	describe('removeMemberFromTeam', () => {
+		it('remove admin user; succeed if team has other admins', async () => {
+			await teamsService.addMemberToTeam(user.user2, team.teamWithNoExternalTeam, 'admin');
+
+			await teamsService.removeMemberFromTeam(user.user3, team.teamWithNoExternalTeam, user.admin)
+				.should.be.fulfilled();
+		});
+
+		it('remove admin user; reject if team has no other admins', async () => {
+			await teamsService.removeMemberFromTeam(user.user3, team.teamWithNoExternalTeam, user.admin)
+				.should.be.rejectedWith({
+					status: 400,
+					type: 'bad-request',
+					message: 'Team must have at least one admin'
+				});
+		});
+	});
+
+	describe('meetsRequiredExternalTeams', () => {
 		it('meetsRequiredExternalTeams', () => {
 			let _user = { bypassAccessCheck: true };
 			let _team = {};
@@ -246,8 +584,6 @@ describe('Team Service:', () => {
 	});
 
 	describe('meetsRequiredExternalRoles', () => {
-		const teamsService = createSubjectUnderTest(deps);
-
 		it('meetsRequiredExternalRoles', () => {
 			let _user = {};
 			let _team = {};
@@ -308,16 +644,8 @@ describe('Team Service:', () => {
 	});
 
 	describe('isImplicitMember',  () => {
-
 		it('strategy = roles', () => {
-			const _config = _.merge({}, deps.config, {
-				teams: {
-					implicitMembers: {
-						strategy: 'roles'
-					}
-				}
-			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, { config: _config }));
+			sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'roles' });
 
 			it('should not match when user.externalRoles and team.requiresExternalRoles are undefined', () => {
 				const _user = {};
@@ -354,14 +682,9 @@ describe('Team Service:', () => {
 		});
 
 		describe('strategy = teams', () => {
-			const _config = _.merge({}, deps.config, {
-				teams: {
-					implicitMembers: {
-						strategy: 'teams'
-					}
-				}
+			before(() => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'teams' });
 			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, {config: _config}));
 
 			it('should not match when user.externalRoles and team.requiresExternalTeams are undefined', () => {
 				const _user = {};
@@ -398,14 +721,9 @@ describe('Team Service:', () => {
 		});
 
 		describe('strategy = undefined', () => {
-			const _config = _.merge({}, deps.config, {
-				teams: {
-					implicitMembers: {
-						strategy: null
-					}
-				}
+			before(() => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: null });
 			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, {config: _config}));
 
 			it('should not match any since disabled', () => {
 				let _user = {};
@@ -437,155 +755,11 @@ describe('Team Service:', () => {
 
 	});
 
-	// Test team creation
-	describe('createTeam', () => {
-		const teamsService = createSubjectUnderTest(deps);
-
-		it('explicit admin should be used', async () => {
-			const queryParams = { dir: 'ASC', page: '0', size: '5', sort: 'name' };
-			const creator = await User.findOne({ name: 'user1 Name' }).exec();
-			const admin = await User.findOne({ name: 'user2 Name' }).exec();
-
-			await teamsService.createTeam(teamSpec('test-create-2'), creator, admin, {});
-			team = await Team.findOne({ name: 'test-create-2' }).exec();
-			const members = await teamsService.searchTeamMembers(null, {}, queryParams, team);
-			(members.elements).should.have.length(1);
-			(members.elements[0]).name.should.equal(admin.name);
-		});
-
-		it('null admin should default admin to creator', async () => {
-			const queryParams = {dir: 'ASC', page: '0', size: '5', sort: 'name'};
-			const creator = await User.findOne({name: 'user1 Name'}).exec();
-
-			// null admin should default to creator
-			await teamsService.createTeam(teamSpec('test-create'), creator, null, {});
-			const _team = await Team.findOne({name: 'test-create'}).exec();
-			const members = await teamsService.searchTeamMembers(null, {}, queryParams, _team);
-			(members.elements).should.have.length(1);
-			(members.elements[0]).name.should.equal(creator.name);
-		});
-	});
-
-	describe('getImplicitTeamIds',  () => {
-
-		describe('strategy = roles', () => {
-			const _config = _.merge({}, deps.config, {
-				teams: {
-					implicitMembers: {
-						strategy: 'roles'
-					}
-				}
-			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, { config: _config }));
-
-
-			it('should find implicit teams for user with matching external roles', async () => {
-				const _user = await User.findOne({username: 'implicit2_username'}).exec();
-				should.exist(_user, 'expected implicit2 to exist');
-				_user.username.should.equal('implicit2_username');
-
-				const teamIds = await teamsService.getImplicitTeamIds(_user);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.length.should.equal(1);
-			});
-
-			it('should not find implicit teams for user without matching external roles', async () => {
-				const _user = await User.findOne({username: 'implicit1_username'}).exec();
-				should.exist(_user, 'expected implicit1 to exist');
-				_user.username.should.equal('implicit1_username');
-
-				const teamIds = await teamsService.getImplicitTeamIds(_user);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.should.be.empty();
-			});
-
-		});
-
-		describe('strategy = teams;', () => {
-			const _config = _.merge({}, deps.config, {
-				teams: {
-					implicitMembers: {
-						strategy: 'teams'
-					}
-				}
-			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, {config: _config}));
-
-			it('should find implicit teams for user with matching external teams', async () => {
-				const _user = await User.findOne({username: 'implicit1_username'}).exec();
-				should.exist(_user, 'expected implicit1 to exist');
-				_user.username.should.equal('implicit1_username');
-
-				const teamIds = await teamsService.getImplicitTeamIds(_user);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.length.should.equal(1);
-			});
-
-			it('should not find implicit teams for user without matching external teams', async () => {
-				const _user = await User.findOne({username: 'implicit2_username'}).exec();
-				should.exist(_user, 'expected user2 to exist');
-				_user.username.should.equal('implicit2_username');
-
-				const teamIds = await teamsService.getImplicitTeamIds(_user);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.should.be.empty();
-			});
-		});
-
-		describe('strategy = null;', () => {
-			const _config = _.merge({}, deps.config, {
-				teams: {
-					implicitMembers: {
-						strategy: null
-					}
-				}
-			});
-			const teamsService = createSubjectUnderTest(_.merge({}, deps, { config: _config }));
-
-
-			it('should not find implicit teams for users with matching external roles/teams if disabled', async () => {
-				const user1 = await User.findOne({username: 'user1_username'}).exec();
-				should.exist(user1, 'expected user1 to exist');
-				user1.username.should.equal('user1_username');
-
-				const user2 = await User.findOne({username: 'user2_username'}).exec();
-				should.exist(user2, 'expected user2 to exist');
-				user2.username.should.equal('user2_username');
-
-				let teamIds = await teamsService.getImplicitTeamIds(user1);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.should.be.empty();
-
-				teamIds = await teamsService.getImplicitTeamIds(user2);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.should.be.empty();
-			});
-
-		});
-
-	});
-
 	describe('sendRequestEmail', () => {
-		it('should create mailOptions properly', async() => {
-			let mailOptions = null;
+		const toEmails = ['email1@server.com', 'email2@server.com'];
 
-			const teamsService = createSubjectUnderTest({
-				// config: config,
-				emailService: {
-					sendMail: (mo) => {
-						mailOptions = mo;
-					},
-					buildEmailContent: deps.emailService.buildEmailContent,
-					buildEmailSubject: deps.emailService.buildEmailSubject,
-					generateMailOptions: deps.emailService.generateMailOptions
-				}
-			});
+		it('should create mailOptions properly', async () => {
+			const sendMailStub = sandbox.stub(deps.emailService, 'sendMail');
 
 			const _user = {
 				name: 'test',
@@ -598,14 +772,15 @@ describe('Team Service:', () => {
 				name: 'test team'
 			};
 
-			const toEmails = ['email1@server.com', 'email2@server.com'];
-
 			const expectedEmailContent = `<p>Hey there <strong>${_team.name}</strong> Admin,</p>
 <p>A user named <strong>${_user.name}</strong> with username <strong>${_user.username}</strong> has requested access to the team.</p>
 <p>Click <a href="${config.app.clientUrl}/team/${_team._id}">here</a> to give them access!</p>
 `;
 
 			await teamsService.sendRequestEmail(toEmails, _user, _team, {});
+
+			sinon.assert.called(sendMailStub);
+			const [mailOptions] = sendMailStub.getCall(0).args;
 
 			should.exist(mailOptions, 'expected mailOptions to exist');
 
@@ -622,23 +797,53 @@ describe('Team Service:', () => {
 			mailOptions.subject.should.equal(`${config.app.title}: A user has requested access to Team ${_team.name}`);
 			mailOptions.html.should.equal(expectedEmailContent);
 		});
+
+		it('should fail silently and log error', async () => {
+			sandbox.stub(deps.emailService, 'sendMail').throws('error');
+			const logStub = sandbox.stub(deps.logger, 'error');
+
+			await teamsService.sendRequestEmail(toEmails, user.user1, team.teamWithNoExternalTeam, {});
+
+			sinon.assert.calledOnce(logStub);
+			const [logOptions] = logStub.getCall(0).args;
+
+			should.exist(logOptions.err);
+			logOptions.err.name.should.equal('error');
+		});
+	});
+
+	describe('requestAccessToTeam', () => {
+		it('should reject if no team admins are found', async () => {
+			await teamsService.requestAccessToTeam(user.admin, team.teamWithNoExternalTeam2, {})
+				.should.be.rejectedWith({ status: 404, message: 'Error retrieving team admins' });
+
+			const requesterCount = await TeamMember.count({
+				teams: {
+					$elemMatch: {
+						_id: mongoose.Types.ObjectId(team.teamWithNoExternalTeam2._id),
+						role: 'requester'
+					}
+				}
+			}).exec();
+			requesterCount.should.equal(0);
+		});
+
+		it('should work', async () => {
+			await teamsService.requestAccessToTeam(user.admin, team.teamWithNoExternalTeam, {}).should.be.fulfilled();
+
+			const requesterCount = await TeamMember.count({
+				teams: {
+					$elemMatch: {
+						_id: mongoose.Types.ObjectId(team.teamWithNoExternalTeam._id),
+						role: 'requester'
+					}
+				}
+			}).exec();
+			requesterCount.should.equal(1);
+		});
 	});
 
 	describe('requestNewTeam', () => {
-		let mailOptions = null;
-
-		const teamsService = createSubjectUnderTest({
-			// config: config,
-			emailService: {
-				sendMail: (mo) => {
-					mailOptions = mo;
-				},
-				buildEmailContent: deps.emailService.buildEmailContent,
-				buildEmailSubject: deps.emailService.buildEmailSubject,
-				generateMailOptions: deps.emailService.generateMailOptions
-			}
-		});
-
 		const _user = new User({
 			name: 'test',
 			username: 'test',
@@ -693,6 +898,8 @@ describe('Team Service:', () => {
 		});
 
 		it('should create mailOptions properly', async() => {
+			const sendMailStub = sandbox.stub(deps.emailService, 'sendMail');
+
 			const expectedEmailContent = `<p>Hey there ${config.app.title} Admins,</p>
 <p>A user named <strong>${_user.name}</strong> with username <strong>${_user.username}</strong> has requested a new team:</p>
 <p>
@@ -704,6 +911,9 @@ describe('Team Service:', () => {
 `;
 
 			await teamsService.requestNewTeam('org', 'aoi', 'description', _user, { headers: {} });
+
+			sinon.assert.called(sendMailStub);
+			const [mailOptions] = sendMailStub.getCall(0).args;
 
 			should.exist(mailOptions, 'expected mailOptions to exist');
 
@@ -717,11 +927,120 @@ describe('Team Service:', () => {
 			mailOptions.subject.should.equal('New Team Requested');
 			mailOptions.html.should.equal(expectedEmailContent);
 		});
+
+		it('should fail silently and log error', async () => {
+			sandbox.stub(deps.emailService, 'sendMail').throws('error');
+			const logStub = sandbox.stub(deps.logger, 'error');
+
+			await teamsService.requestNewTeam('org', 'aoi', 'description', user.user1, { headers: {} });
+
+			sinon.assert.calledOnce(logStub);
+			const [logOptions] = logStub.getCall(0).args;
+
+			should.exist(logOptions.err);
+			logOptions.err.name.should.equal('error');
+		});
+	});
+
+	describe('getImplicitTeamIds',  () => {
+		describe('strategy = roles', () => {
+			before(() => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'roles' });
+			});
+
+			it('reject for non-existent user', async () => {
+				await teamsService.getImplicitTeamIds(null).should.be.rejectedWith({
+					status: 401,
+					type: 'bad-request',
+					message: 'User does not exist'
+				});
+			});
+
+			it('should find implicit teams for user with matching external roles (model object)', async () => {
+				const teamIds = await teamsService.getImplicitTeamIds(user.implicit2);
+				should.exist(teamIds);
+				teamIds.should.be.Array();
+				teamIds.length.should.equal(1);
+			});
+
+			it('should find implicit teams for user with matching external roles (plain object)', async () => {
+				const teamIds = await teamsService.getImplicitTeamIds(user.implicit2.toObject());
+				should.exist(teamIds);
+				teamIds.should.be.Array();
+				teamIds.length.should.equal(1);
+			});
+
+			it('should not find implicit teams for user without matching external roles', async () => {
+				const _user = await User.findOne({username: 'implicit1_username'}).exec();
+				should.exist(_user, 'expected implicit1 to exist');
+				_user.username.should.equal('implicit1_username');
+
+				const teamIds = await teamsService.getImplicitTeamIds(_user);
+				should.exist(teamIds);
+				teamIds.should.be.Array();
+				teamIds.should.be.empty();
+			});
+
+		});
+
+		describe('strategy = teams;', () => {
+			before(() => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'teams' });
+			});
+
+			it('should find implicit teams for user with matching external teams', async () => {
+				const _user = await User.findOne({username: 'implicit1_username'}).exec();
+				should.exist(_user, 'expected implicit1 to exist');
+				_user.username.should.equal('implicit1_username');
+
+				const teamIds = await teamsService.getImplicitTeamIds(_user);
+				should.exist(teamIds);
+				teamIds.should.be.Array();
+				teamIds.length.should.equal(1);
+			});
+
+			it('should not find implicit teams for user without matching external teams', async () => {
+				const _user = await User.findOne({username: 'implicit2_username'}).exec();
+				should.exist(_user, 'expected user2 to exist');
+				_user.username.should.equal('implicit2_username');
+
+				const teamIds = await teamsService.getImplicitTeamIds(_user);
+				should.exist(teamIds);
+				teamIds.should.be.Array();
+				teamIds.should.be.empty();
+			});
+		});
+
+		describe('strategy = null;', () => {
+			before(() => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: null });
+			});
+
+			it('should not find implicit teams for users with matching external roles/teams if disabled', async () => {
+				const user1 = await User.findOne({username: 'user1_username'}).exec();
+				should.exist(user1, 'expected user1 to exist');
+				user1.username.should.equal('user1_username');
+
+				const user2 = await User.findOne({username: 'user2_username'}).exec();
+				should.exist(user2, 'expected user2 to exist');
+				user2.username.should.equal('user2_username');
+
+				let teamIds = await teamsService.getImplicitTeamIds(user1);
+				should.exist(teamIds);
+				teamIds.should.be.Array();
+				teamIds.should.be.empty();
+
+				teamIds = await teamsService.getImplicitTeamIds(user2);
+				should.exist(teamIds);
+				teamIds.should.be.Array();
+				teamIds.should.be.empty();
+			});
+
+		});
+
 	});
 
 	describe('getTeamIds', () => {
-		const teamsService = createSubjectUnderTest();
-
 		const _user = {
 			teams: [{
 				_id: 1, role: 'member'
@@ -735,6 +1054,31 @@ describe('Team Service:', () => {
 				_id: 5, role: 'editor'
 			}]
 		};
+
+		it('should reject for non-existent user', async () => {
+			await teamsService.getTeamIds(null).should.be.rejectedWith({
+				status: 401,
+				type: 'bad-request',
+				message: 'User does not exist'
+			});
+		});
+
+
+		it('should return no teams for user with empty teams array', async () => {
+			const teamIds = await teamsService.getTeamIds({ teams: [] });
+
+			should.exist(teamIds, 'expected teamIds to exist');
+			teamIds.length.should.equal(0);
+
+		});
+
+		it('should return no teams for user with no teams array', async () => {
+			const teamIds = await teamsService.getTeamIds({ });
+
+			should.exist(teamIds, 'expected teamIds to exist');
+			teamIds.length.should.equal(0);
+
+		});
 
 		it('should return all team ids when roles is not specified', async () => {
 			const teamIds = await teamsService.getTeamIds(_user);
@@ -796,8 +1140,6 @@ describe('Team Service:', () => {
 	});
 
 	describe('filterTeamIds', () => {
-		const teamsService = createSubjectUnderTest();
-
 		const _user = {
 			teams: [{
 				_id: 1, role: 'member'
@@ -844,4 +1186,5 @@ describe('Team Service:', () => {
 			should(teamIds[4]).equal('5');
 		});
 	});
+
 });
