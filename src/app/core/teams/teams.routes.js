@@ -47,6 +47,6 @@ router.route('/team/:teamId/member/:memberId/role')
 
 // Finish by binding the team middleware
 router.param('teamId', teams.teamById);
-router.param('memberId', teams.teamUserById);
+router.param('memberId', teams.teamMemberById);
 
 module.exports = router;
