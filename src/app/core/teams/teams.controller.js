@@ -247,7 +247,15 @@ module.exports.updateMemberRole = async (req, res) => {
  * Team middleware
  */
 module.exports.teamById = async (req, res, next, id) => {
-	const team = await teamsService.readTeam(id);
+	const populate = [{
+		path: 'parent',
+		select: ['name']
+	}, {
+		path: 'ancestors',
+		select: ['name']
+	}];
+
+	const team = await teamsService.readTeam(id, populate);
 
 	if (null == team) {
 		return next(new Error('Could not find team'));
