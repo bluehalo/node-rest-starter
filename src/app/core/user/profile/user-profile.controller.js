@@ -14,14 +14,15 @@ const
 
 	userAuthorizationService = require('../auth/user-authorization.service'),
 	userService = require('../user.service'),
-	userProfileService = require('./user-profile.service');
+	userProfileService = require('./user-profile.service'),
+	teamService = require('../../teams/teams.service');
 
 /**
  * Standard User Operations
  */
 
 // Get Current User
-exports.getCurrentUser = (req, res) => {
+exports.getCurrentUser = async (req, res) => {
 
 	// The user that is a parameter of the request is stored in 'userParam'
 	const user = req.user;
@@ -36,6 +37,8 @@ exports.getCurrentUser = (req, res) => {
 	const userCopy = User.fullCopy(user);
 
 	userAuthorizationService.updateRoles(userCopy, config.auth);
+
+	await teamService.updateTeams(userCopy);
 
 	res.status(200).json(userCopy);
 };

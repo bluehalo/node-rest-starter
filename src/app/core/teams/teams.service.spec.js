@@ -1056,7 +1056,7 @@ describe('Team Service:', () => {
 
 	});
 
-	describe('getNestedTeamIds', () => {
+	describe('Nested Teams', () => {
 		beforeEach(async() => {
 			spec.nestedTeam.nestedTeam1 = teamSpec('nested-team-1');
 			spec.nestedTeam.nestedTeam2 = teamSpec('nested-team-2');
@@ -1109,54 +1109,127 @@ describe('Team Service:', () => {
 			team['nestedTeam2_1'] = await t.save();
 		});
 
-		it('return empty array if nestedTeams is disabled in config', async () => {
-			sandbox.stub(deps.config.teams, 'nestedTeams').value(false);
+		describe('getNestedTeamIds', () => {
+			it('return empty array if nestedTeams is disabled in config', async () => {
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(false);
 
-			const nestedTeamIds = await teamsService.getNestedTeamIds([team.teamWithNoExternalTeam._id]);
+				const nestedTeamIds = await teamsService.getNestedTeamIds([team.teamWithNoExternalTeam._id]);
 
-			should.exist(nestedTeamIds);
-			nestedTeamIds.should.be.Array();
-			nestedTeamIds.length.should.equal(0);
+				should.exist(nestedTeamIds);
+				nestedTeamIds.should.be.Array();
+				nestedTeamIds.length.should.equal(0);
+			});
+
+			it('undefined parent teams', async () => {
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+
+				const nestedTeamIds = await teamsService.getNestedTeamIds();
+
+				should.exist(nestedTeamIds);
+				nestedTeamIds.should.be.Array();
+				nestedTeamIds.length.should.equal(0);
+			});
+
+			it('empty parent teams array', async () => {
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+
+				const nestedTeamIds = await teamsService.getNestedTeamIds([]);
+
+				should.exist(nestedTeamIds);
+				nestedTeamIds.should.be.Array();
+				nestedTeamIds.length.should.equal(0);
+			});
+
+			it('default/all roles', async () => {
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+
+				const nestedTeamIds = await teamsService.getNestedTeamIds([team.teamWithNoExternalTeam._id]);
+
+				should.exist(nestedTeamIds);
+				nestedTeamIds.should.be.Array();
+				nestedTeamIds.length.should.equal(6);
+			});
+
+			it('explicitly pass "member" role', async () => {
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+
+				const nestedTeamIds = await teamsService.getNestedTeamIds([team.nestedTeam1._id]);
+
+				should.exist(nestedTeamIds);
+				nestedTeamIds.should.be.Array();
+				nestedTeamIds.length.should.equal(2);
+			});
+
 		});
 
-		it('undefined parent teams', async () => {
-			sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+		describe('updateTeams', () => {
+			it('implicit members disabled; nested teams disabled', async () => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({});
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(false);
 
-			const nestedTeamIds = await teamsService.getNestedTeamIds();
+				const user = {
+					teams: [
+						{ role: 'member', _id: team.teamWithNoExternalTeam._id },
+						{ role: 'editor', _id: team.nestedTeam1._id },
+						{ role: 'admin', _id: team.nestedTeam2._id }
+					],
+					externalRoles: ['external-role']
+				};
+				await teamsService.updateTeams(user);
 
-			should.exist(nestedTeamIds);
-			nestedTeamIds.should.be.Array();
-			nestedTeamIds.length.should.equal(0);
-		});
+				user.teams.length.should.equal(3);
+			});
 
-		it('empty parent teams array', async () => {
-			sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+			it('implicit members enabled; nested teams disabled', async () => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'roles'});
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(false);
 
-			const nestedTeamIds = await teamsService.getNestedTeamIds([]);
+				const user = {
+					teams: [
+						{ role: 'member', _id: team.teamWithNoExternalTeam._id },
+						{ role: 'editor', _id: team.nestedTeam1._id },
+						{ role: 'admin', _id: team.nestedTeam2._id }
+					],
+					externalRoles: ['external-role']
+				};
+				await teamsService.updateTeams(user);
 
-			should.exist(nestedTeamIds);
-			nestedTeamIds.should.be.Array();
-			nestedTeamIds.length.should.equal(0);
-		});
+				user.teams.length.should.equal(4);
+			});
 
-		it('default/all roles', async () => {
-			sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+			it('implicit members disabled; nested teams enabled', async () => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({});
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
 
-			const nestedTeamIds = await teamsService.getNestedTeamIds([team.teamWithNoExternalTeam._id]);
+				const user = {
+					teams: [
+						{ role: 'member', _id: team.teamWithNoExternalTeam._id },
+						{ role: 'editor', _id: team.nestedTeam1._id },
+						{ role: 'admin', _id: team.nestedTeam2._id }
+					],
+					externalRoles: ['external-role']
+				};
+				await teamsService.updateTeams(user);
 
-			should.exist(nestedTeamIds);
-			nestedTeamIds.should.be.Array();
-			nestedTeamIds.length.should.equal(6);
-		});
+				user.teams.length.should.equal(12);
+			});
 
-		it('explicitly pass "member" role', async () => {
-			sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+			it('implicit members enabled; nested teams enabled', async () => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'roles' });
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
 
-			const nestedTeamIds = await teamsService.getNestedTeamIds([team.nestedTeam1._id]);
+				const user = {
+					teams: [
+						{ role: 'member', _id: team.teamWithNoExternalTeam._id },
+						{ role: 'editor', _id: team.nestedTeam1._id },
+						{ role: 'admin', _id: team.nestedTeam2._id }
+					],
+					externalRoles: ['external-role']
+				};
+				await teamsService.updateTeams(user);
 
-			should.exist(nestedTeamIds);
-			nestedTeamIds.should.be.Array();
-			nestedTeamIds.length.should.equal(2);
+				user.teams.length.should.equal(13);
+			});
 		});
 	});
 
@@ -1306,5 +1379,4 @@ describe('Team Service:', () => {
 			should(teamIds[4]).equal('000000000000000000000005');
 		});
 	});
-
 });

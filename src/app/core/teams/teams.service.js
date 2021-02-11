@@ -617,6 +617,30 @@ const filterTeamIds = async (user, teamIds) => {
 	return _.intersection(memberTeamIds, teamIds);
 };
 
+const updateTeams = async (user) => {
+
+	const strategy = _.get(config, 'teams.implicitMembers.strategy', 'disabled');
+	const nestedTeamsEnabled = _.get(config, 'teams.nestedTeams', false);
+
+	if (strategy === 'disabled' && !nestedTeamsEnabled) {
+		return;
+	}
+
+	const [adminTeamIds, editorTeamIds, memberTeamIds] = await Promise.all([
+		getTeamIds(user, 'admin'), getTeamIds(user, 'editor'), getTeamIds(user, 'member')]);
+
+	const filteredEditorTeamIds = _.difference(editorTeamIds, adminTeamIds);
+	const filteredMemberTeamIds = _.difference(memberTeamIds, editorTeamIds);
+
+	const updatedTeams = [
+		...adminTeamIds.map((id) => ({ role: 'admin', _id: id })),
+		...filteredEditorTeamIds.map((id) => ({ role: 'editor', _id: id })),
+		...filteredMemberTeamIds.map((id) => ({ role: 'member', _id: id }))
+	];
+
+	user.teams = updatedTeams;
+};
+
 module.exports = {
 	createTeam,
 	updateTeam,
@@ -644,5 +668,6 @@ module.exports = {
 	getAdminTeamIds,
 	filterTeamIds,
 	readTeam,
-	readTeamMember
+	readTeamMember,
+	updateTeams
 };
