@@ -66,7 +66,7 @@ function teamSpec(key) {
  */
 describe('Team Service:', () => {
 	// Specs for tests
-	const spec = { team: {}, user: {}, userTeams: {} };
+	const spec = { team: {}, nestedTeam: {}, user: {}, userTeams: {} };
 
 	// Teams for tests
 	spec.team.teamWithExternalTeam = teamSpec('external-team');
@@ -276,7 +276,8 @@ describe('Team Service:', () => {
 
 		it('null admin should default admin to creator', async () => {
 			const queryParams = {dir: 'ASC', page: '0', size: '5', sort: 'name'};
-			const creator = await User.findOne({name: 'user1 Name'}).exec();
+			// const creator = await User.findOne({name: 'user1 Name'}).exec();
+			const creator = user.user1;
 
 			// null admin should default to creator
 			await teamsService.createTeam(teamSpec('test-create'), creator, null);
@@ -284,6 +285,21 @@ describe('Team Service:', () => {
 			const members = await teamsService.searchTeamMembers(null, {}, queryParams, _team);
 			(members.elements).should.have.length(1);
 			(members.elements[0]).name.should.equal(creator.name);
+		});
+
+		it('nested team created', async () => {
+			const creator = user.user1;
+
+			let _team = teamSpec('nested-team');
+			_team.parent = team.teamWithNoExternalTeam._id;
+
+			await teamsService.createTeam(_team, creator, null);
+			_team = await Team.findOne({name: 'nested-team'}).exec();
+
+			should.exist(_team);
+			_team.should.be.Object();
+			_team.parent.toString().should.equal(team.teamWithNoExternalTeam._id.toString());
+			_team.ancestors.length.should.equal(1);
 		});
 	});
 
@@ -1040,23 +1056,200 @@ describe('Team Service:', () => {
 
 	});
 
+	describe('Nested Teams', () => {
+		beforeEach(async() => {
+			spec.nestedTeam.nestedTeam1 = teamSpec('nested-team-1');
+			spec.nestedTeam.nestedTeam2 = teamSpec('nested-team-2');
+			spec.nestedTeam.nestedTeam3 = teamSpec('nested-team-3');
+			spec.nestedTeam.nestedTeam1_1 = teamSpec('nested-team-1-1');
+			spec.nestedTeam.nestedTeam1_2 = teamSpec('nested-team-1-2');
+			spec.nestedTeam.nestedTeam2_1 = teamSpec('nested-team-2-1');
+
+			// Create nested teams
+			let t = new Team({
+				...spec.nestedTeam.nestedTeam1,
+				parent: team.teamWithNoExternalTeam._id,
+				ancestors: [ team.teamWithNoExternalTeam._id ]
+			});
+			team.nestedTeam1 = await t.save();
+
+			t = new Team({
+				...spec.nestedTeam.nestedTeam2,
+				parent: team.teamWithNoExternalTeam._id,
+				ancestors: [ team.teamWithNoExternalTeam._id ]
+			});
+			team.nestedTeam2 = await t.save();
+
+			t = new Team({
+				...spec.nestedTeam.nestedTeam3,
+				parent: team.teamWithNoExternalTeam._id,
+				ancestors: [ team.teamWithNoExternalTeam._id ]
+			});
+			team.nestedTeam3 = await t.save();
+
+			t = new Team({
+				...spec.nestedTeam.nestedTeam1_1,
+				parent: team.nestedTeam1._id,
+				ancestors: [ team.teamWithNoExternalTeam._id, team.nestedTeam1._id ]
+			});
+			team.nestedTeam1_1 = await t.save();
+
+			t = new Team({
+				...spec.nestedTeam.nestedTeam1_2,
+				parent: team.nestedTeam1._id,
+				ancestors: [ team.teamWithNoExternalTeam._id, team.nestedTeam1._id ]
+			});
+			team.nestedTeam1_2 = await t.save();
+
+			t = new Team({
+				...spec.nestedTeam.nestedTeam2_1,
+				parent: team.nestedTeam2._id,
+				ancestors: [ team.teamWithNoExternalTeam._id, team.nestedTeam2._id ]
+			});
+			team['nestedTeam2_1'] = await t.save();
+		});
+
+		describe('getNestedTeamIds', () => {
+			it('return empty array if nestedTeams is disabled in config', async () => {
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(false);
+
+				const nestedTeamIds = await teamsService.getNestedTeamIds([team.teamWithNoExternalTeam._id]);
+
+				should.exist(nestedTeamIds);
+				nestedTeamIds.should.be.Array();
+				nestedTeamIds.length.should.equal(0);
+			});
+
+			it('undefined parent teams', async () => {
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+
+				const nestedTeamIds = await teamsService.getNestedTeamIds();
+
+				should.exist(nestedTeamIds);
+				nestedTeamIds.should.be.Array();
+				nestedTeamIds.length.should.equal(0);
+			});
+
+			it('empty parent teams array', async () => {
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+
+				const nestedTeamIds = await teamsService.getNestedTeamIds([]);
+
+				should.exist(nestedTeamIds);
+				nestedTeamIds.should.be.Array();
+				nestedTeamIds.length.should.equal(0);
+			});
+
+			it('default/all roles', async () => {
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+
+				const nestedTeamIds = await teamsService.getNestedTeamIds([team.teamWithNoExternalTeam._id]);
+
+				should.exist(nestedTeamIds);
+				nestedTeamIds.should.be.Array();
+				nestedTeamIds.length.should.equal(6);
+			});
+
+			it('explicitly pass "member" role', async () => {
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+
+				const nestedTeamIds = await teamsService.getNestedTeamIds([team.nestedTeam1._id]);
+
+				should.exist(nestedTeamIds);
+				nestedTeamIds.should.be.Array();
+				nestedTeamIds.length.should.equal(2);
+			});
+
+		});
+
+		describe('updateTeams', () => {
+			it('implicit members disabled; nested teams disabled', async () => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({});
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(false);
+
+				const user = {
+					teams: [
+						{ role: 'member', _id: team.teamWithNoExternalTeam._id },
+						{ role: 'editor', _id: team.nestedTeam1._id },
+						{ role: 'admin', _id: team.nestedTeam2._id }
+					],
+					externalRoles: ['external-role']
+				};
+				await teamsService.updateTeams(user);
+
+				user.teams.length.should.equal(3);
+			});
+
+			it('implicit members enabled; nested teams disabled', async () => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'roles'});
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(false);
+
+				const user = {
+					teams: [
+						{ role: 'member', _id: team.teamWithNoExternalTeam._id },
+						{ role: 'editor', _id: team.nestedTeam1._id },
+						{ role: 'admin', _id: team.nestedTeam2._id }
+					],
+					externalRoles: ['external-role']
+				};
+				await teamsService.updateTeams(user);
+
+				user.teams.length.should.equal(4);
+			});
+
+			it('implicit members disabled; nested teams enabled', async () => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({});
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+
+				const user = {
+					teams: [
+						{ role: 'member', _id: team.teamWithNoExternalTeam._id },
+						{ role: 'editor', _id: team.nestedTeam1._id },
+						{ role: 'admin', _id: team.nestedTeam2._id }
+					],
+					externalRoles: ['external-role']
+				};
+				await teamsService.updateTeams(user);
+
+				user.teams.length.should.equal(12);
+			});
+
+			it('implicit members enabled; nested teams enabled', async () => {
+				sandbox.stub(deps.config.teams, 'implicitMembers').value({ strategy: 'roles' });
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
+
+				const user = {
+					teams: [
+						{ role: 'member', _id: team.teamWithNoExternalTeam._id },
+						{ role: 'editor', _id: team.nestedTeam1._id },
+						{ role: 'admin', _id: team.nestedTeam2._id }
+					],
+					externalRoles: ['external-role']
+				};
+				await teamsService.updateTeams(user);
+
+				user.teams.length.should.equal(13);
+			});
+		});
+	});
+
 	describe('getTeamIds', () => {
 		const _user = {
 			teams: [{
-				_id: 1, role: 'member'
+				_id: '000000000000000000000001', role: 'member'
 			}, {
-				_id: 2, role: 'member'
+				_id: '000000000000000000000002', role: 'member'
 			}, {
-				_id: 3, role: 'editor'
+				_id: '000000000000000000000003', role: 'editor'
 			}, {
-				_id: 4, role: 'admin'
+				_id: '000000000000000000000004', role: 'admin'
 			}, {
-				_id: 5, role: 'editor'
+				_id: '000000000000000000000005', role: 'editor'
 			}]
 		};
 
 		it('should reject for non-existent user', async () => {
-			await teamsService.getTeamIds(null).should.be.rejectedWith({
+			await teamsService.getExplicitTeamIds(null).should.be.rejectedWith({
 				status: 401,
 				type: 'bad-request',
 				message: 'User does not exist'
@@ -1065,7 +1258,7 @@ describe('Team Service:', () => {
 
 
 		it('should return no teams for user with empty teams array', async () => {
-			const teamIds = await teamsService.getTeamIds({ teams: [] });
+			const teamIds = await teamsService.getExplicitTeamIds({ teams: [] });
 
 			should.exist(teamIds, 'expected teamIds to exist');
 			teamIds.length.should.equal(0);
@@ -1073,7 +1266,7 @@ describe('Team Service:', () => {
 		});
 
 		it('should return no teams for user with no teams array', async () => {
-			const teamIds = await teamsService.getTeamIds({ });
+			const teamIds = await teamsService.getExplicitTeamIds({ });
 
 			should.exist(teamIds, 'expected teamIds to exist');
 			teamIds.length.should.equal(0);
@@ -1081,7 +1274,7 @@ describe('Team Service:', () => {
 		});
 
 		it('should return all team ids when roles is not specified', async () => {
-			const teamIds = await teamsService.getTeamIds(_user);
+			const teamIds = await teamsService.getExplicitTeamIds(_user);
 
 			should.exist(teamIds, 'expected teamIds to exist');
 			teamIds.length.should.equal(5);
@@ -1092,32 +1285,32 @@ describe('Team Service:', () => {
 		});
 
 		it('should return only team ids where user is a member', async () => {
-			const teamIds = await teamsService.getTeamIds(_user, 'member');
+			const teamIds = await teamsService.getExplicitTeamIds(_user, 'member');
 
 			should.exist(teamIds, 'expected teamIds to exist');
 			teamIds.length.should.equal(2);
 
-			teamIds[0].should.equal('1');
-			teamIds[1].should.equal('2');
+			teamIds[0].should.equal('000000000000000000000001');
+			teamIds[1].should.equal('000000000000000000000002');
 		});
 
 		it('should return only team ids where user is an editor', async () => {
-			const teamIds = await teamsService.getTeamIds(_user, 'editor');
+			const teamIds = await teamsService.getExplicitTeamIds(_user, 'editor');
 
 			should.exist(teamIds, 'expected teamIds to exist');
 			teamIds.length.should.equal(2);
 
-			teamIds[0].should.equal('3');
-			teamIds[1].should.equal('5');
+			teamIds[0].should.equal('000000000000000000000003');
+			teamIds[1].should.equal('000000000000000000000005');
 		});
 
 		it('should return only team ids where user is an admin', async () => {
-			const teamIds = await teamsService.getTeamIds(_user, 'admin');
+			const teamIds = await teamsService.getExplicitTeamIds(_user, 'admin');
 
 			should.exist(teamIds, 'expected teamIds to exist');
 			teamIds.length.should.equal(1);
 
-			teamIds[0].should.equal('4');
+			teamIds[0].should.equal('000000000000000000000004');
 		});
 
 		it('should find all team members', async () => {
@@ -1142,35 +1335,35 @@ describe('Team Service:', () => {
 	describe('filterTeamIds', () => {
 		const _user = {
 			teams: [{
-				_id: 1, role: 'member'
+				_id: '000000000000000000000001', role: 'member'
 			}, {
-				_id: 2, role: 'member'
+				_id: '000000000000000000000002', role: 'member'
 			}, {
-				_id: 3, role: 'editor'
+				_id: '000000000000000000000003', role: 'editor'
 			}, {
-				_id: 4, role: 'admin'
+				_id: '000000000000000000000004', role: 'admin'
 			}, {
-				_id: 5, role: 'editor'
+				_id: '000000000000000000000005', role: 'editor'
 			}]
 		};
 
 		it ('should filter teamIds for membership (basic)', async () => {
-			const teamIds = await teamsService.filterTeamIds(_user, ['1']);
+			const teamIds = await teamsService.filterTeamIds(_user, ['000000000000000000000001']);
 			should.exist(teamIds);
 			teamIds.should.have.length(1);
-			should(teamIds[0]).equal('1');
+			should(teamIds[0]).equal('000000000000000000000001');
 		});
 
 		it ('should filter teamIds for membership (advanced)', async () => {
-			const teamIds = await teamsService.filterTeamIds(_user, [ '1', '2']);
+			const teamIds = await teamsService.filterTeamIds(_user, [ '000000000000000000000001', '000000000000000000000002']);
 			should.exist(teamIds);
 			teamIds.should.have.length(2);
-			should(teamIds[0]).equal('1');
-			should(teamIds[1]).equal('2');
+			should(teamIds[0]).equal('000000000000000000000001');
+			should(teamIds[1]).equal('000000000000000000000002');
 		});
 
 		it ('should filter teamIds for membership when no access', async () => {
-			const teamIds = await teamsService.filterTeamIds(_user, [ '6' ]);
+			const teamIds = await teamsService.filterTeamIds(_user, [ '000000000000000000000006' ]);
 			should.exist(teamIds);
 			teamIds.should.have.length(0);
 		});
@@ -1179,12 +1372,11 @@ describe('Team Service:', () => {
 			const teamIds = await teamsService.filterTeamIds(_user);
 			should.exist(teamIds);
 			teamIds.should.have.length(5);
-			should(teamIds[0]).equal('1');
-			should(teamIds[1]).equal('2');
-			should(teamIds[2]).equal('3');
-			should(teamIds[3]).equal('4');
-			should(teamIds[4]).equal('5');
+			should(teamIds[0]).equal('000000000000000000000001');
+			should(teamIds[1]).equal('000000000000000000000002');
+			should(teamIds[2]).equal('000000000000000000000003');
+			should(teamIds[3]).equal('000000000000000000000004');
+			should(teamIds[4]).equal('000000000000000000000005');
 		});
 	});
-
 });

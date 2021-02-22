@@ -11,7 +11,7 @@ const
 	Team = dbs.admin.model('Team'),
 	User = dbs.admin.model('User'),
 
-	teamsController = require('../teams/teams.controller');
+	teamsService = require('../teams/teams.service');
 
 function populateOwnerAndCreatorInfo(search) {
 	search = search.toObject();
@@ -82,7 +82,7 @@ function searchResources(query, queryParams, user) {
 	let searchPromise;
 	// If user is not an admin, constrain the results to the user's teams
 	if (null == user.roles || !user.roles.admin) {
-		searchPromise = teamsController.filterTeamIds(user).then((teamIds) => {
+		searchPromise = teamsService.getMemberTeamIds(user).then((teamIds) => {
 			teamIds = teamIds.map((teamId) => _.isString(teamId) ? mongoose.Types.ObjectId(teamId) : teamId);
 
 			query.$or = [
@@ -124,7 +124,7 @@ function constrainTagResults(teamId, user, aggregation = true) {
 	}
 	else if (null == user.roles || !user.roles.admin) {
 		// If user is not admin, constrain results to user's teams
-		return teamsController.filterTeamIds(user).then((teamIds) => {
+		return teamsService.getMemberTeamIds(user).then((teamIds) => {
 			teamIds = teamIds.map((_teamId) => _.isString(_teamId) ? mongoose.Types.ObjectId(_teamId): _teamId);
 
 			const query = { $or: [
@@ -217,7 +217,7 @@ function filterResourcesByAccess(ids, user) {
 	}
 	else if (null == user.roles || user.roles.admin !== true) {
 		// If user is not admin, perform the filtering
-		return teamsController.filterTeamIds(user).then((teamIds) => {
+		return teamsService.getMemberTeamIds(user).then((teamIds) => {
 			// Get teams user has belongs to
 			teamIds = teamIds.map((teamId) => _.isString(teamId) ? mongoose.Types.ObjectId(teamId): teamId);
 

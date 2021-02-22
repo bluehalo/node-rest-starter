@@ -345,7 +345,8 @@ module.exports = {
 			 * membership in team.  User mush have one of the specified roles to be granted access to team.
 			 */
 			// strategy: 'teams'
-		}
+		},
+		nestedTeams: false
 	},
 
 	/**

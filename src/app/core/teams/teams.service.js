@@ -268,6 +268,13 @@ const createTeam = async (teamInfo, creator, firstAdmin) => {
 	newTeam.updated = Date.now();
 	newTeam.creatorName = creator.name;
 
+	// Nested teams
+	if (teamInfo.parent) {
+		const parentTeam = await Team.findById(teamInfo.parent);
+		newTeam.parent = parentTeam._id;
+		newTeam.ancestors = [...parentTeam.ancestors, parentTeam._id];
+	}
+
 	let user = await User.findById(firstAdmin).exec();
 	user = User.filteredCopy(user);
 
@@ -323,9 +330,7 @@ const searchTeams = async (queryParams, query, search, user) => {
 
 	// If user is not an admin, constrain the results to the user's teams
 	if (!userAuthService.hasRoles(user, ['admin'], config.auth)) {
-		const [userTeams, implicitTeams] = await Promise.all([getMemberTeamIds(user), getImplicitTeamIds(user)]);
-
-		let teamIds = [...userTeams, ...implicitTeams];
+		let teamIds = await getMemberTeamIds(user);
 
 		// If the query already has a filter by team, take the intersection
 		if (null != query._id && null != query._id.$in) {
@@ -511,10 +516,7 @@ const requestNewTeam = async (org, aoi, description, requester, req) => {
 	}
 };
 
-/**
- * Team authorization Middleware
- */
-const getImplicitTeamIds = (user) => {
+const getExplicitTeamIds = (user, ...roles) => {
 	// Validate the user input
 	if (null == user) {
 		return Promise.reject({status: 401, type: 'bad-request', message: 'User does not exist'});
@@ -524,10 +526,33 @@ const getImplicitTeamIds = (user) => {
 		user = user.toObject();
 	}
 
+	let userTeams = (_.isArray(user.teams)) ? user.teams : [];
+	if (roles && roles.length > 0) {
+		userTeams = userTeams.filter((t) => null != t.role && roles.includes(t.role));
+	}
+
+	const userTeamIds = userTeams.map((t) => t._id.toString());
+
+	return Promise.resolve(userTeamIds);
+};
+
+/**
+ * Team authorization Middleware
+ */
+const getImplicitTeamIds = (user, ...roles) => {
+	// Validate the user input
+	if (null == user) {
+		return Promise.reject({status: 401, type: 'bad-request', message: 'User does not exist'});
+	}
+
 	const strategy = _.get(config, 'teams.implicitMembers.strategy', null);
 
-	if (strategy == null) {
+	if (strategy == null || (roles.length > 0 && !roles.includes('member'))) {
 		return Promise.resolve([]);
+	}
+
+	if (user.constructor.name === 'model') {
+		user = user.toObject();
 	}
 
 	const query = {$and: [{implicitMembers: true}]};
@@ -555,24 +580,23 @@ const getImplicitTeamIds = (user) => {
 	return Team.distinct('_id', query).exec();
 };
 
-const getTeamIds = (user, ...roles) => {
-	// Validate the user input
-	if (null == user) {
-		return Promise.reject({status: 401, type: 'bad-request', message: 'User does not exist'});
+const getNestedTeamIds = async (teamIds = []) => {
+	const nestedTeamsEnabled = _.get(config, 'teams.nestedTeams', false);
+	if (!nestedTeamsEnabled || teamIds.length === 0) {
+		return Promise.resolve([]);
 	}
 
-	if (user.constructor.name === 'model') {
-		user = user.toObject();
-	}
+	const mappedTeamIds = teamIds.map((teamId) => _.isString(teamId) ? mongoose.Types.ObjectId(teamId) : teamId);
 
-	let userTeams = (_.isArray(user.teams)) ? user.teams : [];
-	if (roles && roles.length > 0) {
-		userTeams = userTeams.filter((t) => null != t.role && roles.includes(t.role));
-	}
+	return await Team.distinct('_id', { _id: { $nin: mappedTeamIds }, ancestors: { $in: mappedTeamIds } }).exec();
+};
 
-	const filteredTeamIds = userTeams.map((t) => t._id.toString());
+const getTeamIds = async (user, ...roles) => {
+	const explicitTeamIds = await getExplicitTeamIds(user, ...roles);
+	const implicitTeamIds = await getImplicitTeamIds(user, ...roles);
+	const nestedTeamIds = await getNestedTeamIds([...explicitTeamIds, ...implicitTeamIds]);
 
-	return Promise.resolve(filteredTeamIds);
+	return [...explicitTeamIds, ...implicitTeamIds, ...nestedTeamIds];
 };
 
 const getMemberTeamIds = (user) => getTeamIds(user, 'member', 'editor', 'admin');
@@ -593,6 +617,30 @@ const filterTeamIds = async (user, teamIds) => {
 	return _.intersection(memberTeamIds, teamIds);
 };
 
+const updateTeams = async (user) => {
+
+	const strategy = _.get(config, 'teams.implicitMembers.strategy', 'disabled');
+	const nestedTeamsEnabled = _.get(config, 'teams.nestedTeams', false);
+
+	if (strategy === 'disabled' && !nestedTeamsEnabled) {
+		return;
+	}
+
+	const [adminTeamIds, editorTeamIds, memberTeamIds] = await Promise.all([
+		getTeamIds(user, 'admin'), getTeamIds(user, 'editor'), getTeamIds(user, 'member')]);
+
+	const filteredEditorTeamIds = _.difference(editorTeamIds, adminTeamIds);
+	const filteredMemberTeamIds = _.difference(memberTeamIds, editorTeamIds);
+
+	const updatedTeams = [
+		...adminTeamIds.map((id) => ({ role: 'admin', _id: id })),
+		...filteredEditorTeamIds.map((id) => ({ role: 'editor', _id: id })),
+		...filteredMemberTeamIds.map((id) => ({ role: 'member', _id: id }))
+	];
+
+	user.teams = updatedTeams;
+};
+
 module.exports = {
 	createTeam,
 	updateTeam,
@@ -611,12 +659,15 @@ module.exports = {
 	updateMemberRole,
 	removeMemberFromTeam,
 	sendRequestEmail,
+	getExplicitTeamIds,
+	getImplicitTeamIds,
+	getNestedTeamIds,
 	getTeamIds,
-	filterTeamIds,
 	getMemberTeamIds,
 	getEditorTeamIds,
 	getAdminTeamIds,
-	getImplicitTeamIds,
+	filterTeamIds,
 	readTeam,
-	readTeamMember
+	readTeamMember,
+	updateTeams
 };
