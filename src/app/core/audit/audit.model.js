@@ -45,13 +45,20 @@ AuditSchema.plugin(pagingSearchPlugin);
 AuditSchema.index({ 'created': -1 }, { expireAfterSeconds: 15552000 });
 
 // Audit Type index
-AuditSchema.index({ 'audit.auditType': 'text' });
+AuditSchema.index({ 'audit.auditType': 1 });
+
+// Audit Action index
+AuditSchema.index({ 'audit.action': 1 });
 
 // User index
-AuditSchema.index({ 'audit.actor': 'text' });
+AuditSchema.index({ 'audit.actor': 1 });
 
-// Text-search index
-AuditSchema.index({ 'message': 'text', 'audit.auditType': 'text', 'audit.action': 'text', 'audit.object': 'text' });
+// Audit object index
+AuditSchema.index({ 'audit.object': 1 });
+
+// Audit message index
+AuditSchema.index({ 'message': 1 });
+
 
 /*****************
  * Lifecycle hooks

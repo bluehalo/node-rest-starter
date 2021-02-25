@@ -27,7 +27,7 @@ exports.getDistinctValues = function(req, res) {
 	});
 };
 
-exports.search = function(req, res) {
+exports.search = async function(req, res) {
 	const search = req.body.s || null;
 	let query = req.body.q || {};
 	query = util.toMongoose(query);
@@ -37,7 +37,10 @@ exports.search = function(req, res) {
 	const sortArr = util.getSort(req.query, 'DESC', '_id');
 	const offset = page * limit;
 
-	Audit.textSearch(query, search, limit, offset, sortArr).then((result) => {
+	try {
+		const result = await Audit.containsSearch(
+			query, ['message', 'audit.auditType', 'audit.action', 'audit.object'], search, limit, offset, sortArr);
+
 		// If any audit objects are strings, try to parse them as json. we may have stringified objects because mongo
 		// can't support keys with dots
 		const results = result.results.map((doc) => {
@@ -58,9 +61,9 @@ exports.search = function(req, res) {
 
 		// Serialize the response
 		res.status(200).json(toReturn);
-	}).catch((err) => {
+	} catch(err) {
 		// failure
 		logger.error({err: err, req: req}, 'Error searching for audit entries');
 		return util.handleErrorResponse(res, err);
-	});
+	}
 };
