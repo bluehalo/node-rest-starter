@@ -315,7 +315,7 @@ const deleteTeam = async (team) => {
 	// Delete the team and update all members in the team
 	return Promise.all([
 		team.delete(),
-		TeamMember.updateOne(
+		TeamMember.updateMany(
 			{ 'teams._id': team._id },
 			{ $pull: { teams: { _id: team._id } } }
 		).exec()
@@ -416,7 +416,7 @@ const addMemberToTeam = (user, team, role) => {
 	}).exec();
 };
 
-const updateMemberRole = async (user, team, role, requester, headers) => {
+const updateMemberRole = async (user, team, role) => {
 	const currentRole = getTeamRole(user, team);
 
 	if (null != currentRole && currentRole === 'admin') {
@@ -437,10 +437,9 @@ const updateMemberRole = async (user, team, role, requester, headers) => {
  *
  * @param user The user to remove
  * @param team The team object
- * @param requester The user requesting the removal
  * @returns {Promise} Returns a promise that resolves if the user is successfully removed from the team, and rejects otherwise
  */
-const removeMemberFromTeam = async (user, team, requester, headers) => {
+const removeMemberFromTeam = async (user, team) => {
 	// Verify the user is not the last admin in the team
 	await verifyNotLastAdmin(user, team);
 

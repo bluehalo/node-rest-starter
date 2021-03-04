@@ -68,7 +68,7 @@ module.exports.delete = async (req, res) => {
 	}
 
 	try {
-		await teamsService.deleteTeam(req.team, req.user, req.headers);
+		await teamsService.deleteTeam(req.team);
 
 		// Audit the team delete attempt
 		await auditService.audit('team deleted', 'team', 'delete', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), Team.auditCopy(req.team), req.headers);
@@ -211,7 +211,7 @@ module.exports.removeMember = async (req, res) => {
 	}
 
 	try {
-		await teamsService.removeMemberFromTeam(req.userParam, req.team, req.user, req.headers);
+		await teamsService.removeMemberFromTeam(req.userParam, req.team);
 
 		// Audit the user remove
 		await auditService.audit('team member removed', 'team-role', 'user remove',
@@ -231,7 +231,7 @@ module.exports.updateMemberRole = async (req, res) => {
 	const role = req.body.role || 'member';
 
 	try {
-		await teamsService.updateMemberRole(req.userParam, req.team, role, req.user, req.headers);
+		await teamsService.updateMemberRole(req.userParam, req.team, role);
 
 		// Audit the member update request
 		await auditService.audit(`team role changed to ${role}`, 'team-role', 'user add',
