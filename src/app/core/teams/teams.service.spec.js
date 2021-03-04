@@ -324,7 +324,7 @@ describe('Team Service:', () => {
 		it('should delete team, if team has no resources', async () => {
 			const beforeTeamCount = await Team.count({});
 
-			await teamsService.deleteTeam(team.teamWithNoExternalTeam, user.user1)
+			await teamsService.deleteTeam(team.teamWithNoExternalTeam)
 				.should.be.fulfilled();
 
 			// Verify Team no longer exists
@@ -351,7 +351,7 @@ describe('Team Service:', () => {
 			});
 			await resource.save();
 
-			await teamsService.deleteTeam(team.teamWithNoExternalTeam, user.user1)
+			await teamsService.deleteTeam(team.teamWithNoExternalTeam)
 				.should.be.rejectedWith({
 					status: 400,
 					type: 'bad-request',
@@ -479,7 +479,7 @@ describe('Team Service:', () => {
 
 	describe('updateMemberRole', () => {
 		it('update role', async () => {
-			await teamsService.updateMemberRole(user.explicit, team.teamWithNoExternalTeam, 'admin', user.admin);
+			await teamsService.updateMemberRole(user.explicit, team.teamWithNoExternalTeam, 'admin');
 
 			const uResult = await TeamMember.findById(user.explicit._id);
 			const userTeam = uResult.teams.find((t) => t._id.equals(team.teamWithNoExternalTeam._id));
@@ -490,12 +490,12 @@ describe('Team Service:', () => {
 		it('downgrade admin role; succeed if team has other admins', async () => {
 			await teamsService.addMemberToTeam(user.user2, team.teamWithNoExternalTeam, 'admin');
 
-			await teamsService.updateMemberRole(user.user3, team.teamWithNoExternalTeam, 'member', user.admin)
+			await teamsService.updateMemberRole(user.user3, team.teamWithNoExternalTeam, 'member')
 				.should.be.fulfilled();
 		});
 
 		it('downgrade admin role; reject if team has no other admins', async () => {
-			await teamsService.updateMemberRole(user.user3, team.teamWithNoExternalTeam, 'member', user.admin)
+			await teamsService.updateMemberRole(user.user3, team.teamWithNoExternalTeam, 'member')
 				.should.be.rejectedWith({
 					status: 400,
 					type: 'bad-request',
@@ -504,7 +504,7 @@ describe('Team Service:', () => {
 		});
 
 		it('reject for invalid team role', async () => {
-			await teamsService.updateMemberRole(user.user1, team.teamWithNoExternalTeam, 'fake-role', user.admin)
+			await teamsService.updateMemberRole(user.user1, team.teamWithNoExternalTeam, 'fake-role')
 				.should.be.rejectedWith({
 					status: 400,
 					type: 'bad-argument',
@@ -517,12 +517,12 @@ describe('Team Service:', () => {
 		it('remove admin user; succeed if team has other admins', async () => {
 			await teamsService.addMemberToTeam(user.user2, team.teamWithNoExternalTeam, 'admin');
 
-			await teamsService.removeMemberFromTeam(user.user3, team.teamWithNoExternalTeam, user.admin)
+			await teamsService.removeMemberFromTeam(user.user3, team.teamWithNoExternalTeam)
 				.should.be.fulfilled();
 		});
 
 		it('remove admin user; reject if team has no other admins', async () => {
-			await teamsService.removeMemberFromTeam(user.user3, team.teamWithNoExternalTeam, user.admin)
+			await teamsService.removeMemberFromTeam(user.user3, team.teamWithNoExternalTeam)
 				.should.be.rejectedWith({
 					status: 400,
 					type: 'bad-request',
