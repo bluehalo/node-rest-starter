@@ -336,9 +336,8 @@ describe('Team Service:', () => {
 			afterTeamCount.should.equal(beforeTeamCount - 1);
 
 			// Verify team entry is removed from user
-			const uResult = await TeamMember.findById(user.explicit._id);
-			const userTeam = uResult.teams.find((t) => t._id.equals(team.teamWithNoExternalTeam._id));
-			should.not.exist(userTeam);
+			const count = await TeamMember.count({ 'teams._id': team.teamWithNoExternalTeam._id });
+			count.should.equal(0);
 		});
 
 		it('should reject if team has resources', async () => {
