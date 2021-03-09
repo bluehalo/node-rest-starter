@@ -6,9 +6,9 @@ const _ = require('lodash'),
 	deps = require('../../../dependencies'),
 	utilService = deps.utilService,
 
-	GetterSchema = deps.schemaService.GetterSchema;
+	getterPlugin = require('../../common/mongoose/getter.plugin');
 
-const ExportConfigSchema = new GetterSchema({
+const ExportConfigSchema = new mongoose.Schema({
 	type: {
 		type: String,
 		trim: true,
@@ -29,6 +29,7 @@ const ExportConfigSchema = new GetterSchema({
 		required: 'Created date is required'
 	}
 });
+ExportConfigSchema.plugin(getterPlugin);
 
 ExportConfigSchema.statics.auditCopy = (exportConfig) => {
 	const toReturn = {};

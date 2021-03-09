@@ -4,19 +4,18 @@ const
 	_ = require('lodash'),
 	mongoose = require('mongoose'),
 
+	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
-	util = deps.utilService,
-
-	GetterSchema = deps.schemaService.GetterSchema;
+	util = deps.utilService;
 
 /**
  * Message Schema
  */
 
-const MessageSchema = new GetterSchema({
+const MessageSchema = new mongoose.Schema({
 	title: {
 		type: String,
 		trim: true,
@@ -50,10 +49,10 @@ const MessageSchema = new GetterSchema({
 		ref: 'User'
 	}
 });
-
+MessageSchema.plugin(getterPlugin);
 MessageSchema.plugin(pagingSearchPlugin);
 
-const DismissedMessageSchema = new GetterSchema({
+const DismissedMessageSchema = new mongoose.Schema({
 	messageId: {
 		type: mongoose.Schema.ObjectId,
 		ref: 'Message'
@@ -68,6 +67,7 @@ const DismissedMessageSchema = new GetterSchema({
 		get: util.dateParse
 	}
 });
+DismissedMessageSchema.plugin(getterPlugin);
 
 /**
  * Index declarations

@@ -1,6 +1,7 @@
 'use strict';
 
 const
+	streams = require('stream'),
 	through2 = require('through2'),
 	stringify = require('csv-stringify'),
 	jsonpath = require('JSONPath'),
@@ -14,14 +15,13 @@ const
  * Creates a stream that accepts objects as input and returns a serialized CSV file.
  * The objects in the stream can come directly from Mongo.
  *
- * @param {Array{Object}} columns An array defining the columns to output in the CSV, in order.
+ * @param {Array.<Object>} columns An array defining the columns to output in the CSV, in order.
  *   Each object must contain:
  *     - key: A JSONPath selector to get the value for this column from the object
  *     - title: The title to use in the CSV header for the column
  *     - callback: Optionally, a function to do further processing of the value.  It must accept a value
  *         and return a value.
- *
- * @returns {Stream} A stream that can be piped to the HTTP response.
+ * @returns {streams.Transform} A stream that can be piped to the HTTP response.
  */
 module.exports = (columns) => {
 

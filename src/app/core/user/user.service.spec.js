@@ -6,7 +6,6 @@ const
 	userService = require('./user.service'),
 	deps = require('../../../dependencies'),
 	User = deps.dbs.admin.model('User');
-
 /**
  * Helpers
  */

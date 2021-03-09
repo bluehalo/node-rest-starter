@@ -9,8 +9,8 @@ const
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	util = deps.utilService,
-	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
-	GetterSchema = deps.schemaService.GetterSchema;
+	getterPlugin = require('../../common/mongoose/getter.plugin'),
+	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin');
 
 /**
  * Validation
@@ -117,7 +117,7 @@ const roleSchemaDef = {
  *         preferences:
  *           type: object
  */
-const UserSchema = new GetterSchema({
+const UserSchema = new mongoose.Schema({
 	name: {
 		type: String,
 		trim: true,
@@ -227,6 +227,7 @@ const UserSchema = new GetterSchema({
 		type: {}
 	}
 });
+UserSchema.plugin(getterPlugin);
 UserSchema.plugin(uniqueValidator);
 UserSchema.plugin(pagingSearchPlugin);
 
@@ -244,6 +245,9 @@ UserSchema.index({ name: 'text', email: 'text', username: 'text' });
 
 // Process the password
 UserSchema.pre('save', function(next) {
+	/**
+	 * @type {(mongoose.Schema.methods|mongoose.Model)}
+	 */
 	const user = this;
 
 	// If the password is modified and it is valid, then re- salt/hash it
@@ -253,7 +257,7 @@ UserSchema.pre('save', function(next) {
 	}
 
 	// Remember whether the document was new, for the post-save hook
-	this.wasNew = this.isNew;
+	this.wasNew = user.isNew;
 
 	next();
 });
@@ -301,6 +305,9 @@ UserSchema.statics.hasRoles = function(user, roles){
 
 // Filtered Copy of a User (public)
 UserSchema.statics.filteredCopy = function(user) {
+	/**
+	 * @type {Object.<string, any>}
+	 */
 	let toReturn = null;
 
 	if(null != user){

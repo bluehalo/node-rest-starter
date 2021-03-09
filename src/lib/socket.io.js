@@ -60,14 +60,15 @@ module.exports = (app, db) => {
 				socket.request.session = session;
 
 				// Use Passport to populate the user details
+				// @ts-ignore
 				passport.initialize()(socket.request, {}, () => {
 					passport.session()(socket.request, {}, () => {
 						if (socket.request.user) {
 							logger.debug('SocketIO: New authenticated user: %s', socket.request.user.username);
-							return next(null, true);
+							return next(null);
 						}
 						logger.info('SocketIO: Unauthenticated user attempting to connect.');
-						return next(new Error('User is not authenticated'), false);
+						return next(new Error('User is not authenticated'));
 					});
 				});
 			});
@@ -77,7 +78,7 @@ module.exports = (app, db) => {
 	// Add an event listener to the 'connection' event
 	io.on('connection', onConnect);
 
-	return server;
+	return app;
 };
 
 /*

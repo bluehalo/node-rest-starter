@@ -17,9 +17,10 @@ describe('EUA Controller:', () => {
 	beforeEach(() => {
 		sandbox = sinon.createSandbox();
 		res = {
-			json: sinon.spy()
+			json: sinon.spy(),
+			status: sinon.stub()
 		};
-		res.status = sinon.stub().returns(res);
+		res.status.returns(res);
 	});
 
 	afterEach(() => {

@@ -51,7 +51,7 @@ exports.requestExport = (req, res) => {
  * @param {*} res
  * @param {string} filename the name of the exported file
  * @param {{ key: string, title: string, callback?: Function }[]} columns the columns to include in the exported CSV file
- * @param {[] | streams.Readable} data an array of objects containing data for rows, or an instance of readable
+ * @param {Array.<any>} data an array of objects containing data for rows, or an instance of readable
  */
 exports.exportCSV = (req, res, filename, columns, data) => {
 	if (null !== data) {
@@ -79,7 +79,7 @@ exports.exportCSV = (req, res, filename, columns, data) => {
  * @param {*} req
  * @param {*} res
  * @param {string} filename the name of the exported file
- * @param {streams.Readable | string} text the text or readable stream to export
+ * @param {string} text the text or readable stream to export
  */
 exports.exportPlaintext = (req, res, filename, text) => {
 	if (null !== text) {

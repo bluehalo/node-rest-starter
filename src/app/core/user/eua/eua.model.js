@@ -2,15 +2,15 @@
 
 const
 	mongoose = require('mongoose'),
+	getterPlugin = require('../../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../../dependencies'),
-	util = deps.utilService,
-	GetterSchema = deps.schemaService.GetterSchema;
+	util = deps.utilService;
 
 /**
  * User Schema
  */
-const UserAgreementSchema = new GetterSchema({
+const UserAgreementSchema = new mongoose.Schema({
 	title: {
 		type: String,
 		trim: true,
@@ -37,7 +37,7 @@ const UserAgreementSchema = new GetterSchema({
 		get: util.dateParse
 	}
 });
-
+UserAgreementSchema.plugin(getterPlugin);
 UserAgreementSchema.plugin(pagingSearchPlugin);
 
 

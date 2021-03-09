@@ -7,13 +7,13 @@ const
 
 	deps = require('../../../dependencies'),
 	util = deps.utilService,
-	GetterSchema = deps.schemaService.GetterSchema;
+	getterPlugin = require('../../common/mongoose/getter.plugin');
 
 /**
  * Owner Schema
  */
 
-const OwnerSchema = new GetterSchema({
+const OwnerSchema = new mongoose.Schema({
 	type: {
 		type: String,
 		default: 'team',
@@ -29,6 +29,8 @@ const OwnerSchema = new GetterSchema({
 		trim: true
 	}
 });
+
+OwnerSchema.plugin(getterPlugin);
 
 OwnerSchema.index({ name: 1 });
 
@@ -93,9 +95,13 @@ ResourceSchema.index({ title_lowercase: 'text', description: 'text' });
 /**
  * Lifecycle hooks
  */
-
 ResourceSchema.pre('save', function(next){
-	this.title_lowercase = this.title;
+	/**
+	 * @type {(mongoose.Schema.methods|mongoose.Model)}
+	 */
+	const user = this;
+
+	user.title_lowercase = user.title;
 	next();
 });
 
@@ -110,6 +116,9 @@ ResourceSchema.pre('save', function(next){
 
 // Create a filtered copy for auditing
 ResourceSchema.statics.auditCopy = function(src) {
+	/**
+	 * @type {Object.<string, any>}
+	 */
 	const toReturn = {};
 	src = src || {};
 
@@ -124,6 +133,9 @@ ResourceSchema.statics.auditCopy = function(src) {
 };
 
 ResourceSchema.statics.auditUpdateCopy = function(src) {
+	/**
+	 * @type {Object.<string, any>}
+	 */
 	const toReturn = {};
 	src = src || {};
 

@@ -12,7 +12,6 @@ const
 
 /**
  * Query for multiple documents by ID and get results as a map from id -> result.
- * @param schema
  * @param ids
  * @param fieldsToReturn Optional array of fields to include in results. If empty will include all fields.
  * @param lean If true, will return as plain javascript objects instead of mongoose docs

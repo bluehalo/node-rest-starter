@@ -18,9 +18,10 @@ describe('Teams Controller:', () => {
 		sandbox = sinon.createSandbox();
 		res = {
 			json: sinon.spy(),
-			end: sinon.spy()
+			end: sinon.spy(),
+			status: sinon.stub()
 		};
-		res.status = sinon.stub().returns(res);
+		res.status.returns(res);
 	});
 
 	afterEach(() => {

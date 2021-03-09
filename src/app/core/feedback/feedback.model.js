@@ -2,16 +2,15 @@
 
 const
 	mongoose = require('mongoose'),
+	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
-	util = deps.utilService,
-
-	GetterSchema = deps.schemaService.GetterSchema;
+	util = deps.utilService;
 
 /**
  * Schema Declaration
  */
-const FeedbackSchema = new GetterSchema({
+const FeedbackSchema = new mongoose.Schema({
 	created: {
 		type: Date,
 		default: Date.now,
@@ -28,7 +27,7 @@ const FeedbackSchema = new GetterSchema({
 	browser: { type: String },
 	classification: { type: String }
 });
-
+FeedbackSchema.plugin(getterPlugin);
 FeedbackSchema.plugin(pagingSearchPlugin);
 
 /**

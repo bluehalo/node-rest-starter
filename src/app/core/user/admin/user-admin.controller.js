@@ -126,7 +126,7 @@ exports.adminSearchUsers = async (req, res) => {
 		const results = await userService.searchUsers(req.query, query, search);
 		results.elements = results.elements.map((user) => {
 			const userCopy = User.fullCopy(user);
-			userAuthorizationService.updateRoles(userCopy, config.auth);
+			userAuthorizationService.updateRoles(userCopy);
 			return userCopy;
 		});
 		res.status(200).json(results);

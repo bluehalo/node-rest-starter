@@ -329,7 +329,7 @@ const searchTeams = async (queryParams, query, search, user) => {
 	const offset = page * limit;
 
 	// If user is not an admin, constrain the results to the user's teams
-	if (!userAuthService.hasRoles(user, ['admin'], config.auth)) {
+	if (!userAuthService.hasRoles(user, ['admin'])) {
 		let teamIds = await getMemberTeamIds(user);
 
 		// If the query already has a filter by team, take the intersection
@@ -554,6 +554,9 @@ const getImplicitTeamIds = (user, ...roles) => {
 		user = user.toObject();
 	}
 
+	/**
+	 * @type {any}
+	 */
 	const query = {$and: [{implicitMembers: true}]};
 	if (strategy === 'roles' && user.externalRoles && user.externalRoles.length > 0) {
 		query.$and.push({

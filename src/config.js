@@ -3,7 +3,7 @@
 
 const
 	_ = require('lodash'),
-	chalk = require('chalk'),
+	chalk = require('chalk').default,
 	glob = require('glob'),
 	path = require('path');
 

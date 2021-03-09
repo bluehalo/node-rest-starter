@@ -10,6 +10,10 @@
 		"sourceType": "module"
 	},
 
+  	"plugins": [
+	  	"jsdoc"
+	],
+
 	"extends": "eslint:recommended",
 	"rules": {
 		"arrow-parens": ["error", "always"],
@@ -42,7 +46,8 @@
 		"prefer-template": ["error"],
 		"template-curly-spacing": ["error"],
 		"rest-spread-spacing": ["error"],
-		"prefer-arrow-callback": ["error"]
+		"prefer-arrow-callback": ["error"],
+	  	"jsdoc/no-undefined-types": 1
 
 		//		"arrow-body-style": ["warn", "as-needed"],
 		//		"handle-callback-err": ["warn"],
@@ -51,6 +56,7 @@
 		//		"no-throw-literal": ["warn"],
 		//		"guard-for-in": ["warn"],
 		//		"no-shadow": ["warn"]
+
 	},
 
 	"globals": {

@@ -2,15 +2,15 @@
 
 const
 	mongoose = require('mongoose'),
+	getterPlugin = require('../../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../../dependencies'),
-	util = deps.utilService,
-	GetterSchema = deps.schemaService.GetterSchema;
+	util = deps.utilService;
 
 /**
  * Schema Declaration
  */
-const CacheEntrySchema = new GetterSchema({
+const CacheEntrySchema = new mongoose.Schema({
 	// The external id of this entry
 	key: {
 		type: String,
@@ -33,6 +33,7 @@ const CacheEntrySchema = new GetterSchema({
 	}
 });
 
+CacheEntrySchema.plugin(getterPlugin);
 CacheEntrySchema.plugin(pagingSearchPlugin);
 
 
@@ -54,6 +55,9 @@ CacheEntrySchema.index({ key: 1 });
  */
 
 CacheEntrySchema.statics.fullCopy = function(entry) {
+	/**
+	 * @type {Object.<string, any>}
+	 */
 	let toReturn = null;
 
 	if(null != entry){
