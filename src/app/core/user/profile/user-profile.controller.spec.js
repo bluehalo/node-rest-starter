@@ -24,9 +24,10 @@ describe('User Profile Controller:', () => {
 	beforeEach(() => {
 		sandbox = sinon.createSandbox();
 		res = {
-			json: sinon.spy()
+			json: sinon.spy(),
+			status: sinon.stub()
 		};
-		res.status = sinon.stub().returns(res);
+		res.status.returns(res);
 	});
 
 	afterEach(() => {
@@ -451,7 +452,7 @@ describe('User Profile Controller:', () => {
 
 			let error;
 			try {
-				await userProfileController.hasEdit(req, res);
+				await userProfileController.hasEdit(req);
 			} catch (err) {
 				error = err;
 			}
@@ -471,7 +472,7 @@ describe('User Profile Controller:', () => {
 
 			let error;
 			try {
-				await userProfileController.hasEdit(req, res);
+				await userProfileController.hasEdit(req);
 			} catch (err) {
 				error = err;
 			}

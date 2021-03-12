@@ -137,7 +137,7 @@ module.exports.toLowerCase = function (v){
  * Parse an input as a date. Handles various types
  * of inputs, such as Strings, Date objects, and Numbers.
  *
- * @param {date} The input representing a date / timestamp
+ * @param {(string | number | Date | Array | Function | Object)} date The input representing a date / timestamp
  * @returns The timestamp in milliseconds since the Unix epoch
  */
 module.exports.dateParse = function (date) {

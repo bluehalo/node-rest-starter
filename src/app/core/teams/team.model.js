@@ -4,11 +4,11 @@ const
 	_ = require('lodash'),
 	mongoose = require('mongoose'),
 
+	getterPlugin  = require('../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	util = deps.utilService,
-	GetterSchema = deps.schemaService.GetterSchema,
 
 	UserModel = require('../user/user.model'),
 	UserSchema = UserModel.schema;
@@ -30,7 +30,7 @@ const
  *         role:
  *           type: string
  */
-const TeamRoleSchema = new GetterSchema({
+const TeamRoleSchema = new mongoose.Schema({
 	_id: {
 		type: mongoose.Schema.ObjectId,
 		ref: 'Team'
@@ -42,6 +42,7 @@ const TeamRoleSchema = new GetterSchema({
 		enum: [ 'admin', 'editor', 'member', 'requester' ]
 	}
 });
+TeamRoleSchema.plugin(getterPlugin);
 
 UserSchema.add({
 	teams: {
@@ -49,7 +50,7 @@ UserSchema.add({
 	}
 });
 
-const TeamSchema = new GetterSchema({
+const TeamSchema = new mongoose.Schema({
 	name: {
 		type: String,
 		trim: true,
@@ -93,7 +94,7 @@ const TeamSchema = new GetterSchema({
 		}]
 	}
 });
-
+TeamSchema.plugin(getterPlugin);
 TeamSchema.plugin(pagingSearchPlugin);
 
 

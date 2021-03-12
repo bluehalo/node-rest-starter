@@ -2,16 +2,15 @@
 
 const
 	mongoose = require('mongoose'),
+	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
-	util = deps.utilService,
-
-	GetterSchema = deps.schemaService.GetterSchema;
+	util = deps.utilService;
 
 /**
  * Schema Declaration
  */
-const AuditSchema = new GetterSchema({
+const AuditSchema = new mongoose.Schema({
 	created: {
 		type: Date,
 		default: Date.now,
@@ -35,6 +34,7 @@ const AuditSchema = new GetterSchema({
 	}
 });
 
+AuditSchema.plugin(getterPlugin);
 AuditSchema.plugin(pagingSearchPlugin);
 
 /**

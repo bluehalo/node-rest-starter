@@ -1,7 +1,5 @@
 'use strict';
 
-const logstash = require('bunyan-logstash');
-
 module.exports = {
 
 	/**
@@ -47,16 +45,16 @@ module.exports = {
 				path: '/var/log/mean2/application.log',
 				period: '1d',
 				count: 1
-			},
-			// Logstash logger
-			{
-				type: 'raw',
-				level: 'info',
-				stream: logstash.createStream({
-					host: 'localhost',
-					port: 4561
-				})
 			}
+			// Logstash logger
+			// {
+			// 	type: 'raw',
+			// 	level: 'info',
+			// 	stream: logstash.createStream({
+			// 		host: 'localhost',
+			// 		port: 4561
+			// 	})
+			// }
 		],
 		audit: [
 			// Console logger (audit logger must be 'info' level)

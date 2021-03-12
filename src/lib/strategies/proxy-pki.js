@@ -4,7 +4,6 @@ const
 	_ = require('lodash'),
 	mongoose = require('mongoose'),
 	passport = require('passport'),
-	util = require('util'),
 
 	deps = require('../../dependencies'),
 	dbs = deps.dbs,
@@ -17,26 +16,24 @@ const
 	TeamMember = dbs.admin.model('TeamUser'),
 	User = mongoose.model('User');
 
-function ProxyPkiStrategy(options, verify) {
-	if (typeof options === 'function') {
-		verify = options;
-		options = {};
+class ProxyPkiStrategy extends passport.Strategy {
+	constructor(options, verify) {
+		if (typeof options === 'function') {
+			verify = options;
+			options = {};
+		}
+
+		if (!verify) throw new Error('Proxy Pki Strategy requires a verify function');
+
+		super();
+		passport.Strategy.call(this);
+
+		this.name = 'proxy-pki';
+		this._verify = verify;
+		this._primaryUserHeader = options.primaryUserHeader || 'x-ssl-client-s-dn';
+		this._proxiedUserHeader = options.proxiedUserHeader || 'x-proxied-user-dn';
 	}
-
-	if (!verify) throw new Error('Proxy Pki Strategy requires a verify function');
-
-	passport.Strategy.call(this);
-
-	this.name = 'proxy-pki';
-	this._verify = verify;
-	this._primaryUserHeader = options.primaryUserHeader || 'x-ssl-client-s-dn';
-	this._proxiedUserHeader = options.proxiedUserHeader || 'x-proxied-user-dn';
 }
-
-/**
- * Inherit from `passport.Strategy`.
- */
-util.inherits(ProxyPkiStrategy, passport.Strategy);
 
 /**
  * Authenticate request based on the contents of the dn header value.

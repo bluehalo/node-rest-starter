@@ -86,7 +86,7 @@ module.exports.run = function(serviceConfig) {
 
 	return Promise.all([deactivatePromise, inactivityPromise]).then((data) => {
 		logger.debug('Both promises have resolved', data);
-	}).fail((err) => {
+	}).catch((err) => {
 		logger.error(`Failed scheduled run to deactivate inactive users. Error=${JSON.stringify(err)}`);
 		return Promise.reject(err);
 	});

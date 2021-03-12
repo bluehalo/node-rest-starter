@@ -11,8 +11,11 @@ const
 let config = {};
 
 const generateOptions = () => {
+	/**
+	 * @type {https.AgentOptions & { headers: Object<string, string|number>, method?: string, agent?: https.Agent }}
+	 */
 	const options = {
-		hostname: config.hostname,
+		host: config.hostname,
 		port: config.port,
 		ca: config.ca,
 		cert: config.cert,

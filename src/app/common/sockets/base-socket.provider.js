@@ -86,7 +86,7 @@ BaseSocket.prototype.getRequest = function() {
  * @param {Function} next A callback for the async handler.  It will be called with an error if the middleware
  *   callback function passes any message to the UI.
  *
- * @returns {{status: status, send: send}}
+ * @returns {{status: Function, send: Function, json: Function}}
  */
 BaseSocket.prototype.getResponse = function(next) {
 	function send(data) {
@@ -118,8 +118,8 @@ BaseSocket.prototype.getResponse = function(next) {
  * Applies a set of callbacks in series.  Each function should accept a request and response object and
  * a callback function, in the same format as the Express.js middleware.
  *
- * @param {Array{Function}} callbacks An array of middleware callbacks to execute.
- * @param {Function=} done Optionally, a function that will be called when all middleware has processed, either
+ * @param {Array.<Function>} callbacks - An array of middleware callbacks to execute.
+ * @param {Function} [done] - Optionally, a function that will be called when all middleware has processed, either
  *   with an error or without.
  *
  * @returns {Promise} A promise that will be resolved when all the middleware has run.  You can either

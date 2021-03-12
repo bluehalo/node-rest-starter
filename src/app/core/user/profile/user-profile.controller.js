@@ -36,7 +36,7 @@ exports.getCurrentUser = async (req, res) => {
 
 	const userCopy = User.fullCopy(user);
 
-	userAuthorizationService.updateRoles(userCopy, config.auth);
+	userAuthorizationService.updateRoles(userCopy);
 
 	await teamService.updateTeams(userCopy);
 

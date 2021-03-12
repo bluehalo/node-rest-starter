@@ -23,7 +23,7 @@ const deps = require('../../../../dependencies'),
 async function login(user, req, res) {
 	try {
 		const result = await userAuthService.login(user, req);
-		userAuthorizationService.updateRoles(result, config.auth);
+		userAuthorizationService.updateRoles(result);
 		res.status(200).json(result);
 	} catch(err) {
 		util.handleErrorResponse(res, err);
@@ -34,7 +34,7 @@ async function login(user, req, res) {
 async function authenticateAndLogin(req, res, next) {
 	try {
 		const result = await userAuthService.authenticateAndLogin(req, res, next);
-		userAuthorizationService.updateRoles(result, config.auth);
+		userAuthorizationService.updateRoles(result);
 		res.status(200).json(result);
 	} catch (err) {
 		util.handleErrorResponse(res, err);

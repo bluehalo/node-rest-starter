@@ -116,28 +116,35 @@ function doSearchTags(countAggregation, resultAggregation, page, limit) {
 	});
 }
 
-function constrainTagResults(teamId, user, aggregation = true) {
+async function constrainTagResults(teamId, user) {
 	if (null != teamId) {
 		const teamQuery = { 'owner._id': mongoose.Types.ObjectId(teamId) };
 		// Constrain to specific team
-		return Promise.resolve((aggregation) ? [{ $match: teamQuery }] : teamQuery);
+		return teamQuery;
 	}
-	else if (null == user.roles || !user.roles.admin) {
+	if (null == user.roles || !user.roles.admin) {
 		// If user is not admin, constrain results to user's teams
-		return teamsService.getMemberTeamIds(user).then((teamIds) => {
-			teamIds = teamIds.map((_teamId) => _.isString(_teamId) ? mongoose.Types.ObjectId(_teamId): _teamId);
+		let teamIds = await teamsService.getMemberTeamIds(user);
+		teamIds = teamIds.map((_teamId) => _.isString(_teamId) ? mongoose.Types.ObjectId(_teamId): _teamId);
 
-			const query = { $or: [
-				{ 'owner.type': 'team', 'owner._id': { $in: teamIds }},
+		return {
+			$or: [
+				{ 'owner.type': 'team', 'owner._id': { $in: teamIds } },
 				{ 'owner.type': 'user', 'owner._id': user._id }
-			]};
+			]
+		};
+	}
+	return Promise.resolve( {});
+}
 
-			return Promise.resolve((aggregation) ? [{ $match: query }] : query);
-		});
+async function constrainTagResultsAggregation(teamId, user) {
+	const query = await constrainTagResults(teamId, user);
+
+	if (_.isEmpty(query)) {
+		return [];
 	}
-	else {
-		return Promise.resolve((aggregation) ? [] : {});
-	}
+
+	return [{ $match: query }];
 }
 
 function searchTagsInResources(teamId, search, queryParams, user) {
@@ -151,7 +158,7 @@ function searchTagsInResources(teamId, search, queryParams, user) {
 	const aggregationPipeline = [];
 
 	// Constrain results
-	return constrainTagResults(teamId, user).then((constrainPipeline) => {
+	return constrainTagResultsAggregation(teamId, user).then((constrainPipeline) => {
 		aggregationPipeline.push(...aggregationPipeline, ...constrainPipeline);
 
 		aggregationPipeline.push(
@@ -188,7 +195,7 @@ function updateTagInResources(teamId, tagName, newTagName, user) {
 	}
 
 	let finalQuery;
-	return constrainTagResults(teamId, user, false).then((query) => {
+	return constrainTagResults(teamId, user).then((query) => {
 		finalQuery = {
 			$and: [
 				query,
@@ -206,7 +213,7 @@ function deleteTagFromResources(teamId, tagName, user) {
 		return Promise.reject({status: 404, message: 'Invalid tag name'});
 	}
 
-	return constrainTagResults(teamId, user, false).then((query) => {
+	return constrainTagResults(teamId, user).then((query) => {
 		return Resource.updateMany(query, { $pull: { tags: tagName } }).exec();
 	});
 }
