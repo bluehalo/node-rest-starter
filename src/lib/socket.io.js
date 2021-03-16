@@ -78,7 +78,7 @@ module.exports = (app, db) => {
 	// Add an event listener to the 'connection' event
 	io.on('connection', onConnect);
 
-	return app;
+	return server;
 };
 
 /*

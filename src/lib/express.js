@@ -269,6 +269,10 @@ module.exports.init = function (db) {
 
 	// Initialize express app
 	logger.info('Initializing Express');
+
+	/**
+	 * @type {*|express}
+	 */
 	let app = express();
 
 	// Initialize local variables
