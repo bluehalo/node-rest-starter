@@ -161,17 +161,6 @@ function initModulesServerRoutes(app) {
 }
 
 /**
- * Configure the modules sockets by simply including the files.
- * Do not instantiate the modules.
- */
-function initModulesServerSockets(app) {
-	// Globbing socket files
-	config.files.sockets.forEach((socketPath) => {
-		require(path.posix.resolve(socketPath));
-	});
-}
-
-/**
  * Configure final error handlers
  */
 function initErrorRoutes(app) {
@@ -255,21 +244,19 @@ function initSwaggerAPI(app) {
 }
 
 /**
- * Configure Socket.io
- */
-function configureSocketIO(app, db) {
-	// Load the Socket.io configuration
-	return require('./socket.io')(app, db);
-}
-
-/**
  * Initialize the Express application
+ *
+ * @returns {express.Express}
  */
 module.exports.init = function (db) {
 
 	// Initialize express app
 	logger.info('Initializing Express');
-	let app = express();
+
+	/**
+	 * @type {express.Express}
+	 */
+	const app = express();
 
 	// Initialize local variables
 	initLocalVariables(app);
@@ -295,17 +282,11 @@ module.exports.init = function (db) {
 	// Initialize modules server routes
 	initModulesServerRoutes(app);
 
-	// Initialize modules sockets
-	initModulesServerSockets(app);
-
 	// Initialize Swagger API
 	initSwaggerAPI(app);
 
 	// Initialize error routes
 	initErrorRoutes(app);
-
-	// Configure Socket.io
-	app = configureSocketIO(app, db);
 
 	return app;
 };

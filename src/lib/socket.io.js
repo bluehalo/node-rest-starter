@@ -1,8 +1,8 @@
 'use strict';
 
 const
+	path = require('path'),
 	cookieParser = require('cookie-parser'),
-	http = require('http'),
 	passport = require('passport'),
 	socketio = require('socket.io'),
 	expressSession = require('express-session'),
@@ -30,12 +30,26 @@ function onConnect(socket) {
 	});
 }
 
-// Define the Socket.io configuration method
-module.exports = (app, db) => {
+/**
+ * Configure the modules sockets by simply including the files.
+ * Do not instantiate the modules.
+ */
+function initModulesServerSockets() {
+	// Globbing socket files
+	config.files.sockets.forEach((socketPath) => {
+		require(path.posix.resolve(socketPath));
+	});
+}
 
-	// Create a new HTTP server
-	logger.info('Creating HTTP Server');
-	const server = http.createServer(app);
+/**
+ * Define the Socket.io configuration method
+ *
+ * @param {import('http').Server} server
+ * @param db
+ */
+module.exports.init = (server, db) => {
+	// Initialize modules sockets
+	initModulesServerSockets();
 
 	// Create a new Socket.io server
 	logger.info('Creating SocketIO Server');
@@ -77,8 +91,6 @@ module.exports = (app, db) => {
 
 	// Add an event listener to the 'connection' event
 	io.on('connection', onConnect);
-
-	return app;
 };
 
 /*
