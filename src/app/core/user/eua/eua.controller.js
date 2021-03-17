@@ -68,7 +68,7 @@ module.exports.acceptEua = async (req, res) => {
 // Create a new User Agreement
 module.exports.createEua = async (req, res) => {
 	try {
-		const result = euaService.create(req.body);
+		const result = await euaService.create(req.body);
 
 		// Audit eua create
 		await auditService.audit('eua create', 'eua', 'create', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), UserAgreement.auditCopy(result), req.headers);
