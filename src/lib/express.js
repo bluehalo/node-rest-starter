@@ -273,7 +273,7 @@ module.exports.init = function (db) {
 	/**
 	 * @type {*|express}
 	 */
-	let app = express();
+	const app = express();
 
 	// Initialize local variables
 	initLocalVariables(app);
@@ -309,7 +309,7 @@ module.exports.init = function (db) {
 	initErrorRoutes(app);
 
 	// Configure Socket.io
-	app = configureSocketIO(app, db);
+	const server = configureSocketIO(app, db);
 
-	return app;
+	return { app, db, server };
 };

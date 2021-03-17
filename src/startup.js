@@ -14,7 +14,7 @@ module.exports = function () {
 				logger.info('Mongoose connected, proceeding with application configuration');
 
 				// Initialize express
-				const app = express.init(db.admin);
+				const { server } = express.init(db.admin);
 
 				// Init task scheduler
 				const scheduler = require('./scheduler');
@@ -24,7 +24,7 @@ module.exports = function () {
 				const dispatcher = require('./dispatcher');
 				dispatcher.start();
 
-				return app;
+				return server;
 
 			} catch (err) {
 				logger.fatal('Express initialization failed.');
