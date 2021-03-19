@@ -1,6 +1,7 @@
 'use strict';
 
-const deps = require('../../../dependencies'),
+const
+	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
 	emailService = deps.emailService,
@@ -86,7 +87,7 @@ const search = async (reqUser, queryParams, query) => {
 };
 
 const getFeedbackById = async (feedbackId) => {
-	return await Feedback.findOne({
+	return Feedback.findOne({
 		_id: mongoose.Types.ObjectId(feedbackId)
 	}).populate({
 		path: 'creator',

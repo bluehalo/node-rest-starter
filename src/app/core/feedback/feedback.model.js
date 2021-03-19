@@ -1,15 +1,16 @@
 'use strict';
 
-const mongoose = require('mongoose'),
+const
+	mongoose = require('mongoose'),
+	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
-	util = deps.utilService,
-	GetterSchema = deps.schemaService.GetterSchema;
+	util = deps.utilService;
 
 /**
  * Schema Declaration
  */
-const FeedbackSchema = new GetterSchema({
+const FeedbackSchema = new mongoose.Schema({
 	created: {
 		type: Date,
 		default: Date.now,
@@ -35,6 +36,7 @@ const FeedbackSchema = new GetterSchema({
 	}
 });
 
+FeedbackSchema.plugin(getterPlugin);
 FeedbackSchema.plugin(pagingSearchPlugin);
 
 /**
@@ -49,6 +51,8 @@ FeedbackSchema.index({ creator: 1 });
 FeedbackSchema.index({ url: 1 });
 FeedbackSchema.index({ os: 1 });
 FeedbackSchema.index({ browser: 1 });
+FeedbackSchema.index({ status: 1 });
+FeedbackSchema.index({ assignee: 1 });
 
 // Text-search index
 FeedbackSchema.index({ body: 'text' });
