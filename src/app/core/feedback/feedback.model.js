@@ -1,16 +1,15 @@
 'use strict';
 
-const
-	mongoose = require('mongoose'),
-	getterPlugin = require('../../common/mongoose/getter.plugin'),
+const mongoose = require('mongoose'),
 	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
-	util = deps.utilService;
+	util = deps.utilService,
+	GetterSchema = deps.schemaService.GetterSchema;
 
 /**
  * Schema Declaration
  */
-const FeedbackSchema = new mongoose.Schema({
+const FeedbackSchema = new GetterSchema({
 	created: {
 		type: Date,
 		default: Date.now,
@@ -25,9 +24,17 @@ const FeedbackSchema = new mongoose.Schema({
 	url: { type: String },
 	os: { type: String },
 	browser: { type: String },
-	classification: { type: String }
+	classification: { type: String },
+	status: { type: String, default: 'New', required: true },
+	assignee: { type: String },
+	updated: {
+		type: Date,
+		default: Date.now,
+		get: util.dateParse,
+		required: true
+	}
 });
-FeedbackSchema.plugin(getterPlugin);
+
 FeedbackSchema.plugin(pagingSearchPlugin);
 
 /**
@@ -35,21 +42,20 @@ FeedbackSchema.plugin(pagingSearchPlugin);
  */
 
 // Created datetime index, expires after 180 days
-FeedbackSchema.index({ 'created': -1 }, { expireAfterSeconds: 15552000 });
+FeedbackSchema.index({ created: -1 }, { expireAfterSeconds: 15552000 });
 
-FeedbackSchema.index({ 'type': 1 });
-FeedbackSchema.index({ 'creator': 1 });
-FeedbackSchema.index({ 'url': 1 });
-FeedbackSchema.index({ 'os': 1 });
-FeedbackSchema.index({ 'browser': 1 });
+FeedbackSchema.index({ type: 1 });
+FeedbackSchema.index({ creator: 1 });
+FeedbackSchema.index({ url: 1 });
+FeedbackSchema.index({ os: 1 });
+FeedbackSchema.index({ browser: 1 });
 
 // Text-search index
-FeedbackSchema.index({ 'body': 'text' });
+FeedbackSchema.index({ body: 'text' });
 
 /*****************
  * Lifecycle hooks
  *****************/
-
 
 /*****************
  * Static Methods

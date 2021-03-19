@@ -1,10 +1,8 @@
 'use strict';
 
 const express = require('express'),
-
 	feedback = require('./feedback.controller'),
 	user = require('../user/user.controller');
-
 
 const router = express.Router();
 
@@ -68,13 +66,22 @@ const router = express.Router();
  *                 type: 'no-login'
  *                 message: 'User is not logged in'
  */
-router.route('/feedback')
+router
+	.route('/feedback')
 	.post(user.has(user.requiresLogin), feedback.submitFeedback);
 
-router.route('/admin/feedback')
-	.post(user.hasAdminAccess, feedback.search);
+router.route('/admin/feedback').post(user.hasAdminAccess, feedback.search);
 
-router.route('/admin/feedback/csv/:exportId')
+router
+	.route('/admin/feedback/:feedbackId/status')
+	.patch(user.hasAdminAccess, feedback.updateFeedbackStatus);
+
+router
+	.route('/admin/feedback/:feedbackId/assignee')
+	.patch(user.hasAdminAccess, feedback.updateFeedbackAssignee);
+
+router
+	.route('/admin/feedback/csv/:exportId')
 	.get(user.hasAdminAccess, feedback.adminGetFeedbackCSV);
 
 module.exports = router;
