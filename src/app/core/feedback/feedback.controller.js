@@ -35,6 +35,10 @@ module.exports.submitFeedback = async function(req, res) {
 
 		res.status(200).json(feedback);
 	} catch (err) {
+		logger.error(
+			{ err: err, req: req },
+			'Error submitting feedback'
+		);
 		utilService.handleErrorResponse(res, err);
 	}
 };
