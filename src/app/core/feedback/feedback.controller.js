@@ -224,7 +224,6 @@ module.exports.feedbackById = async (req, res, next, id) => {
 		req.feedback = await feedbackService.readFeedback(id, populate);
 		return next();
 	} catch (err) {
-		logger.error({ err: err, req: req }, 'Error getting feedback');
 		utilService.handleErrorResponse(res, err);
 	}
 };

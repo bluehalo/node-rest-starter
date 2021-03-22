@@ -72,10 +72,164 @@ router
 
 router.route('/admin/feedback').post(user.hasAdminAccess, feedback.search);
 
+/**
+ * @swagger
+ * /admin/feedback/{feedbackId}/status:
+ *   patch:
+ *     tags: [Feedback]
+ *     description: >
+ *       Updates the status of the feedback with the supplied ID
+ *     requestBody:
+ *       description: >
+ *             The value to update the Feedback status to
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *     responses:
+ *       '200':
+ *         description: Feedback status was updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Feedback'
+ *       '400':
+ *         description: User attempted to update feedback with invalid ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: number
+ *                 type:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 status: 400
+ *                 type: 'validation'
+ *                 message: 'Invalid feedback ID'
+ *       '401':
+ *         description: Anonymous user attempted to update feedback status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: number
+ *                 type:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 status: 401
+ *                 type: 'no-login'
+ *                 message: 'User is not logged in'
+ *       '404':
+ *         description: Unable to find feedback with the supplied ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: number
+ *                 type:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 status: 404
+ *                 type: 'not-found'
+ *                 message: 'Could not find feedback'
+ */
 router
 	.route('/admin/feedback/:feedbackId/status')
 	.patch(user.hasAdminAccess, feedback.updateFeedbackStatus);
 
+/**
+ * @swagger
+ * /admin/feedback/{feedbackId}/assignee:
+ *   patch:
+ *     tags: [Feedback]
+ *     description: >
+ *       Updates the assignee of the feedback with the supplied ID
+ *     requestBody:
+ *       description: >
+ *             The username to update the Feedback assignee to
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               assignee:
+ *                 type: string
+ *     responses:
+ *       '200':
+ *         description: Feedback assignee was updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Feedback'
+ *       '400':
+ *         description: User attempted to update feedback with invalid ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: number
+ *                 type:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 status: 400
+ *                 type: 'validation'
+ *                 message: 'Invalid feedback ID'
+ *       '401':
+ *         description: Anonymous user attempted to update feedback assignee
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: number
+ *                 type:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 status: 401
+ *                 type: 'no-login'
+ *                 message: 'User is not logged in'
+ *       '404':
+ *         description: Unable to find feedback with the supplied ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: number
+ *                 type:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 status: 404
+ *                 type: 'not-found'
+ *                 message: 'Could not find feedback'
+ */
 router
 	.route('/admin/feedback/:feedbackId/assignee')
 	.patch(user.hasAdminAccess, feedback.updateFeedbackAssignee);

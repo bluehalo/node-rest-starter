@@ -88,7 +88,7 @@ const search = async (reqUser, queryParams, query) => {
 
 const readFeedback = async (feedbackId, populate = []) => {
 	if (!mongoose.Types.ObjectId.isValid(feedbackId)) {
-		throw { status: 400, message: 'Invalid feedback ID' };
+		throw { status: 400, type: 'validation', message: 'Invalid feedback ID' };
 	}
 	const feedback = await Feedback.findOne({
 		_id: feedbackId
@@ -96,7 +96,7 @@ const readFeedback = async (feedbackId, populate = []) => {
 		.populate(populate)
 		.exec();
 	if (null == feedback) {
-		throw { status: 404, message: 'Could not find feedback' };
+		throw { status: 404, type: 'not-found', message: 'Could not find feedback' };
 	}
 	return feedback;
 };
