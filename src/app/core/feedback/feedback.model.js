@@ -26,7 +26,7 @@ const FeedbackSchema = new mongoose.Schema({
 	os: { type: String },
 	browser: { type: String },
 	classification: { type: String },
-	status: { type: String, default: 'New', required: true },
+	status: { type: String, default: 'New', enum: ['New', 'Open', 'Closed'], required: true },
 	assignee: { type: String },
 	updated: {
 		type: Date,

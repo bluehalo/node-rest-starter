@@ -168,13 +168,11 @@ module.exports.updateFeedbackAssignee = async (req, res) => {
 		);
 
 		const updateFeedbackAssigneePromise = feedbackService.updateFeedbackAssignee(
-			req.params.feedbackId,
+			req.feedback,
 			req.body.assignee
 		);
 
-		res.status(200).json(
-			await updateFeedbackAssigneePromise
-		);
+		res.status(200).json(await updateFeedbackAssigneePromise);
 	} catch (err) {
 		logger.error(
 			{ err: err, req: req },
@@ -200,15 +198,33 @@ module.exports.updateFeedbackStatus = async (req, res) => {
 		);
 
 		const updateFeedbackStatusPromise = feedbackService.updateFeedbackStatus(
-			req.params.feedbackId,
+			req.feedback,
 			req.body.status
 		);
 
-		res.status(200).json(
-			await updateFeedbackStatusPromise
-		);
+		res.status(200).json(await updateFeedbackStatusPromise);
 	} catch (err) {
 		logger.error({ err: err, req: req }, 'Error updating feedback status');
+		utilService.handleErrorResponse(res, err);
+	}
+};
+
+/**
+ * Feedback middleware
+ */
+module.exports.feedbackById = async (req, res, next, id) => {
+	const populate = [
+		{
+			path: 'creator',
+			select: ['username', 'organization', 'name', 'email']
+		}
+	];
+
+	try {
+		req.feedback = await feedbackService.readFeedback(id, populate);
+		return next();
+	} catch (err) {
+		logger.error({ err: err, req: req }, 'Error getting feedback');
 		utilService.handleErrorResponse(res, err);
 	}
 };

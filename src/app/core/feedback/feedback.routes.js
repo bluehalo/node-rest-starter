@@ -84,4 +84,6 @@ router
 	.route('/admin/feedback/csv/:exportId')
 	.get(user.hasAdminAccess, feedback.adminGetFeedbackCSV);
 
+router.param('feedbackId', feedback.feedbackById);
+
 module.exports = router;

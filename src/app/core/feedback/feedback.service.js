@@ -86,35 +86,38 @@ const search = async (reqUser, queryParams, query) => {
 	return util.getPagingResults(limit, page, feedback.count, feedback.results);
 };
 
-const getFeedbackById = async (feedbackId) => {
-	return Feedback.findOne({
-		_id: mongoose.Types.ObjectId(feedbackId)
-	}).populate({
-		path: 'creator',
-		select: ['username', 'organization', 'name', 'email']
-	});
+const readFeedback = async (feedbackId, populate = []) => {
+	if (!mongoose.Types.ObjectId.isValid(feedbackId)) {
+		throw { status: 400, message: 'Invalid feedback ID' };
+	}
+	const feedback = await Feedback.findOne({
+		_id: feedbackId
+	})
+		.populate(populate)
+		.exec();
+	if (null == feedback) {
+		throw { status: 404, message: 'Could not find feedback' };
+	}
+	return feedback;
 };
 
-const updateFeedbackAssignee = async (feedbackId, assignee) => {
-	const feedback = await getFeedbackById(feedbackId);
+const updateFeedbackAssignee = async (feedback, assignee) => {
 	feedback.assignee = assignee;
 	feedback.updated = Date.now();
-	await feedback.save();
-	return feedback;
+	return await feedback.save();
 };
 
-const updateFeedbackStatus = async (feedbackId, status) => {
-	const feedback = await getFeedbackById(feedbackId);
+const updateFeedbackStatus = async (feedback, status) => {
 	feedback.status = status;
 	feedback.updated = Date.now();
-	await feedback.save();
-	return feedback;
+	return await feedback.save();
 };
 
 module.exports = {
 	create,
 	search,
 	sendFeedback,
+	readFeedback,
 	updateFeedbackAssignee,
 	updateFeedbackStatus
 };

@@ -118,18 +118,13 @@ describe('Feedback Controller', () => {
 	describe('POST /admin/feedback', () => {
 		let savedFeedback;
 
-		before(() => {
-			return Feedback.deleteMany({})
-				.exec()
-				.then(() => {
-					return new Feedback({
-						body: 'testing',
-						url: 'http://localhost:3000/home',
-						type: 'Question'
-					})
-						.save()
-						.then((result) => (savedFeedback = result));
-				});
+		before(async () => {
+			await Feedback.deleteMany({}).exec();
+			savedFeedback = await new Feedback({
+				body: 'testing',
+				url: 'http://localhost:3000/home',
+				type: 'Question'
+			}).save();
 		});
 
 		[
@@ -170,18 +165,13 @@ describe('Feedback Controller', () => {
 	describe('PATCH /admin/feedback/:feedbackId/status', () => {
 		let savedFeedback;
 
-		before(() => {
-			return Feedback.deleteMany({})
-				.exec()
-				.then(() => {
-					return new Feedback({
-						body: 'testing',
-						url: 'http://localhost:3000/home',
-						type: 'Question'
-					})
-						.save()
-						.then((result) => (savedFeedback = result));
-				});
+		before(async () => {
+			await Feedback.deleteMany({}).exec();
+			savedFeedback = await new Feedback({
+				body: 'testing',
+				url: 'http://localhost:3000/home',
+				type: 'Question'
+			}).save();
 		});
 
 		[
@@ -225,18 +215,13 @@ describe('Feedback Controller', () => {
 	describe('PATCH /admin/feedback/:feedbackId/assignee', () => {
 		let savedFeedback;
 
-		before(() => {
-			return Feedback.deleteMany({})
-				.exec()
-				.then(() => {
-					return new Feedback({
-						body: 'testing',
-						url: 'http://localhost:3000/home',
-						type: 'Question'
-					})
-						.save()
-						.then((result) => (savedFeedback = result));
-				});
+		before(async () => {
+			await Feedback.deleteMany({}).exec();
+			savedFeedback = await new Feedback({
+				body: 'testing',
+				url: 'http://localhost:3000/home',
+				type: 'Question'
+			}).save();
 		});
 
 		[
