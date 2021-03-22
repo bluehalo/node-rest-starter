@@ -167,11 +167,13 @@ module.exports.updateFeedbackAssignee = async (req, res) => {
 			req.headers
 		);
 
+		const updateFeedbackAssigneePromise = feedbackService.updateFeedbackAssignee(
+			req.params.feedbackId,
+			req.body.assignee
+		);
+
 		res.status(200).json(
-			await feedbackService.updateFeedbackAssignee(
-				req.params.feedbackId,
-				req.body.assignee
-			)
+			await updateFeedbackAssigneePromise
 		);
 	} catch (err) {
 		logger.error(
@@ -197,11 +199,13 @@ module.exports.updateFeedbackStatus = async (req, res) => {
 			req.headers
 		);
 
+		const updateFeedbackStatusPromise = feedbackService.updateFeedbackStatus(
+			req.params.feedbackId,
+			req.body.status
+		);
+
 		res.status(200).json(
-			await feedbackService.updateFeedbackStatus(
-				req.params.feedbackId,
-				req.body.status
-			)
+			await updateFeedbackStatusPromise
 		);
 	} catch (err) {
 		logger.error({ err: err, req: req }, 'Error updating feedback status');
