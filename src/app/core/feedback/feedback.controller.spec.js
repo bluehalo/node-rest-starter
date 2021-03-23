@@ -210,6 +210,40 @@ describe('Feedback Controller', () => {
 					.end(done);
 			});
 		});
+
+		it('should throw a 400 error if supplied with an invalid feedback ID', (done) => {
+			setAdmin(true);
+			request(app)
+				.patch('/admin/feedback/invalid/status')
+				.send({ status: 'Closed' })
+				.expect('Content-Type', /json/)
+				.expect(400)
+				.expect((res) => {
+					should(res.body).eql({
+						message: 'Invalid feedback ID',
+						status: 400,
+						type: 'validation'
+					});
+				})
+				.end(done);
+		});
+
+		it('should throw a 404 error if supplied with a feedback ID that does not exist', (done) => {
+			setAdmin(true);
+			request(app)
+				.patch('/admin/feedback/123412341234/status')
+				.send({ status: 'Closed' })
+				.expect('Content-Type', /json/)
+				.expect(404)
+				.expect((res) => {
+					should(res.body).eql({
+						message: 'Could not find feedback',
+						status: 404,
+						type: 'not-found'
+					});
+				})
+				.end(done);
+		});
 	});
 
 	describe('PATCH /admin/feedback/:feedbackId/assignee', () => {
@@ -260,6 +294,40 @@ describe('Feedback Controller', () => {
 					})
 					.end(done);
 			});
+		});
+
+		it('should throw a 400 error if supplied with an invalid feedback ID', (done) => {
+			setAdmin(true);
+			request(app)
+				.patch('/admin/feedback/invalid/assignee')
+				.send({ status: 'Closed' })
+				.expect('Content-Type', /json/)
+				.expect(400)
+				.expect((res) => {
+					should(res.body).eql({
+						message: 'Invalid feedback ID',
+						status: 400,
+						type: 'validation'
+					});
+				})
+				.end(done);
+		});
+
+		it('should throw a 404 error if supplied with a feedback ID that does not exist', (done) => {
+			setAdmin(true);
+			request(app)
+				.patch('/admin/feedback/123412341234/assignee')
+				.send({ status: 'Closed' })
+				.expect('Content-Type', /json/)
+				.expect(404)
+				.expect((res) => {
+					should(res.body).eql({
+						message: 'Could not find feedback',
+						status: 404,
+						type: 'not-found'
+					});
+				})
+				.end(done);
 		});
 	});
 });
