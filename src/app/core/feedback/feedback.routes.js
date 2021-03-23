@@ -9,6 +9,14 @@ const router = express.Router();
 /**
  * @swagger
  * components:
+ *   parameters:
+ *     feedbackIdParam:
+ *       in: path
+ *       name: feedbackId
+ *       required: true
+ *       schema:
+ *         type: string
+ *       description: the unique id of the feedback
  *   schemas:
  *     Feedback:
  *       type: object
@@ -79,6 +87,8 @@ router.route('/admin/feedback').post(user.hasAdminAccess, feedback.search);
  *     tags: [Feedback]
  *     description: >
  *       Updates the status of the feedback with the supplied ID
+ *     parameters:
+ *       - $ref: '#/components/parameters/feedbackIdParam'
  *     requestBody:
  *       description: >
  *             The value to update the Feedback status to
@@ -160,6 +170,8 @@ router
  *     tags: [Feedback]
  *     description: >
  *       Updates the assignee of the feedback with the supplied ID
+ *     parameters:
+ *       - $ref: '#/components/parameters/feedbackIdParam'
  *     requestBody:
  *       description: >
  *             The username to update the Feedback assignee to
