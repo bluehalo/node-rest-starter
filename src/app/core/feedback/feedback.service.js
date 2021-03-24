@@ -95,9 +95,6 @@ const readFeedback = async (feedbackId, populate = []) => {
 	})
 		.populate(populate)
 		.exec();
-	if (null == feedback) {
-		throw { status: 404, type: 'not-found', message: 'Could not find feedback' };
-	}
 	return feedback;
 };
 

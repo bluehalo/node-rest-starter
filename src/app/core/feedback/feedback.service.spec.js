@@ -109,17 +109,9 @@ FOOTER
 			error.type.should.equal('validation');
 		});
 
-		it('should throw a 404 errorResult if a nonexistent feedback ID is supplied', async () => {
-			let error = null;
-			try {
-				await feedbackService.readFeedback('123412341234');
-			} catch(e) {
-				error = e;
-			}
-			should.exist(error);
-			error.status.should.equal(404);
-			error.message.should.equal('Could not find feedback');
-			error.type.should.equal('not-found');
+		it('should return null if a nonexistent feedback ID is supplied', async () => {
+			const feedback = await feedbackService.readFeedback('123412341234');
+			should.not.exist(feedback);
 		});
 	});
 });

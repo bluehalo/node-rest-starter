@@ -141,8 +141,8 @@ module.exports.search = async (req, res) => {
 			req.query,
 			query
 		);
-
-		res.status(200).json(await searchPromise);
+		const results = await searchPromise;
+		res.status(200).json(results);
 	} catch (err) {
 		logger.error(
 			{ err: err, req: req },
@@ -171,8 +171,8 @@ module.exports.updateFeedbackAssignee = async (req, res) => {
 			req.feedback,
 			req.body.assignee
 		);
-
-		res.status(200).json(await updateFeedbackAssigneePromise);
+		const updatedFeedback = await updateFeedbackAssigneePromise;
+		res.status(200).json(updatedFeedback);
 	} catch (err) {
 		logger.error(
 			{ err: err, req: req },
@@ -201,8 +201,8 @@ module.exports.updateFeedbackStatus = async (req, res) => {
 			req.feedback,
 			req.body.status
 		);
-
-		res.status(200).json(await updateFeedbackStatusPromise);
+		const updatedFeedback = await updateFeedbackStatusPromise;
+		res.status(200).json(updatedFeedback);
 	} catch (err) {
 		logger.error({ err: err, req: req }, 'Error updating feedback status');
 		utilService.handleErrorResponse(res, err);
@@ -222,6 +222,9 @@ module.exports.feedbackById = async (req, res, next, id) => {
 
 	try {
 		req.feedback = await feedbackService.readFeedback(id, populate);
+		if (null == req.feedback) {
+			return utilService.handleErrorResponse(res, { status: 404, type: 'not-found', message: 'Could not find feedback' });
+		}
 		return next();
 	} catch (err) {
 		utilService.handleErrorResponse(res, err);
