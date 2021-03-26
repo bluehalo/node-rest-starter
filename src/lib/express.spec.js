@@ -1,10 +1,8 @@
 'use strict';
 
-const
-	path = require('path'),
+const path = require('path'),
 	swaggerJsDoc = require('swagger-jsdoc'),
 	swaggerParser = require('swagger-parser'),
-
 	deps = require('../dependencies'),
 	config = deps.config;
 
@@ -12,7 +10,6 @@ const
  * Unit tests
  */
 describe('Init Swagger API:', () => {
-
 	it('Generated Swagger API should be valid', async () => {
 		const swaggerOptions = {
 			swaggerDefinition: {
@@ -22,9 +19,11 @@ describe('Init Swagger API:', () => {
 					description: config.app.description,
 					version: 'test'
 				},
-				servers: [{
-					url: 'https://api.example.com/api'
-				}]
+				servers: [
+					{
+						url: 'https://api.example.com/api'
+					}
+				]
 				// basePath: '/api'
 			},
 			apis: [

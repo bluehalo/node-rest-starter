@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	mongoose = require('mongoose'),
+const mongoose = require('mongoose'),
 	should = require('should'),
 	userService = require('./user.service'),
 	deps = require('../../../dependencies'),
@@ -45,7 +44,9 @@ describe('User Profile Service:', () => {
 		});
 
 		it('read returns null for invalid id', async () => {
-			const user = await userService.read(mongoose.Types.ObjectId('5cc9db5f738d4a7198466bc0'));
+			const user = await userService.read(
+				mongoose.Types.ObjectId('5cc9db5f738d4a7198466bc0')
+			);
 			should.not.exist(user);
 		});
 	});
@@ -92,13 +93,15 @@ describe('User Profile Service:', () => {
 
 	describe('searchUsers', () => {
 		beforeEach(async () => {
-			const users = [...Array(100).keys()].map((index) => userSpec(`user${index}`));
+			const users = [...Array(100).keys()].map((index) =>
+				userSpec(`user${index}`)
+			);
 
 			await User.insertMany(users);
 		});
 
 		it('search results page returned', async () => {
-			const queryParams = {size: 10};
+			const queryParams = { size: 10 };
 			const query = null;
 			const search = '';
 
@@ -114,11 +117,13 @@ describe('User Profile Service:', () => {
 		});
 
 		it('search (w/ searchFields) results page returned', async () => {
-			const queryParams = {size: 10};
+			const queryParams = { size: 10 };
 			const query = null;
 			const search = '';
 
-			const result = await userService.searchUsers(queryParams, query, search, ['field1']);
+			const result = await userService.searchUsers(queryParams, query, search, [
+				'field1'
+			]);
 
 			should.exist(result);
 			result.totalSize.should.equal(100);

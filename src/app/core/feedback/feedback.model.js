@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	mongoose = require('mongoose'),
+const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
@@ -35,21 +34,20 @@ FeedbackSchema.plugin(pagingSearchPlugin);
  */
 
 // Created datetime index, expires after 180 days
-FeedbackSchema.index({ 'created': -1 }, { expireAfterSeconds: 15552000 });
+FeedbackSchema.index({ created: -1 }, { expireAfterSeconds: 15552000 });
 
-FeedbackSchema.index({ 'type': 1 });
-FeedbackSchema.index({ 'creator': 1 });
-FeedbackSchema.index({ 'url': 1 });
-FeedbackSchema.index({ 'os': 1 });
-FeedbackSchema.index({ 'browser': 1 });
+FeedbackSchema.index({ type: 1 });
+FeedbackSchema.index({ creator: 1 });
+FeedbackSchema.index({ url: 1 });
+FeedbackSchema.index({ os: 1 });
+FeedbackSchema.index({ browser: 1 });
 
 // Text-search index
-FeedbackSchema.index({ 'body': 'text' });
+FeedbackSchema.index({ body: 'text' });
 
 /*****************
  * Lifecycle hooks
  *****************/
-
 
 /*****************
  * Static Methods

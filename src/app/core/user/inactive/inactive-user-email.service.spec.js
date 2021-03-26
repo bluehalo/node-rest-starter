@@ -1,10 +1,8 @@
 'use strict';
 
-const
-	should = require('should'),
+const should = require('should'),
 	moment = require('moment'),
 	proxyquire = require('proxyquire'),
-
 	deps = require('../../../../dependencies'),
 	config = deps.config;
 
@@ -22,7 +20,6 @@ function createSubjectUnderTest(dependencies) {
  * Unit tests
  */
 describe('User Email Service:', () => {
-
 	const daysAgo = 90;
 
 	const user = {
@@ -47,7 +44,7 @@ describe('User Email Service:', () => {
 			}
 		});
 
-		it('should create mailOptions properly for deactivate template', async() => {
+		it('should create mailOptions properly for deactivate template', async () => {
 			const expectedEmailContent = `HEADER
 <p>Hello ${user.name},</p>
 <br>
@@ -60,7 +57,10 @@ describe('User Email Service:', () => {
 <p>The ${config.app.title} Support Team</p>
 FOOTER`;
 
-			await inactiveUserEmailService.sendEmail(user, config.coreEmails.userDeactivate);
+			await inactiveUserEmailService.sendEmail(
+				user,
+				config.coreEmails.userDeactivate
+			);
 
 			should.exist(mailOptions, 'expected mailOptions to exist');
 
@@ -71,11 +71,13 @@ FOOTER`;
 			mailOptions.to.should.equal(user.email);
 			mailOptions.from.should.equal(config.coreEmails.default.from);
 			mailOptions.replyTo.should.equal(config.coreEmails.default.replyTo);
-			mailOptions.subject.should.equal(`${config.app.title}: Account Deactivation`);
+			mailOptions.subject.should.equal(
+				`${config.app.title}: Account Deactivation`
+			);
 			mailOptions.html.should.equal(expectedEmailContent);
 		});
 
-		it('should create mailOptions properly for inactivity template', async() => {
+		it('should create mailOptions properly for inactivity template', async () => {
 			const expectedEmailContent = `HEADER
 <p>Hello ${user.name},</p>
 <br>
@@ -90,7 +92,10 @@ FOOTER`;
 <p>The ${config.app.title} Support Team</p>
 FOOTER`;
 
-			await inactiveUserEmailService.sendEmail(user, config.coreEmails.userInactivity);
+			await inactiveUserEmailService.sendEmail(
+				user,
+				config.coreEmails.userInactivity
+			);
 
 			should.exist(mailOptions, 'expected mailOptions to exist');
 
@@ -101,7 +106,9 @@ FOOTER`;
 			mailOptions.to.should.equal(user.email);
 			mailOptions.from.should.equal(config.coreEmails.default.from);
 			mailOptions.replyTo.should.equal(config.coreEmails.default.replyTo);
-			mailOptions.subject.should.equal(`${config.app.title}: Inactivity Notice`);
+			mailOptions.subject.should.equal(
+				`${config.app.title}: Inactivity Notice`
+			);
 			mailOptions.html.should.equal(expectedEmailContent);
 		});
 	});

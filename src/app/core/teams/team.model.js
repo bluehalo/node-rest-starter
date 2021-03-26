@@ -1,18 +1,14 @@
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	mongoose = require('mongoose'),
-
-	getterPlugin  = require('../../common/mongoose/getter.plugin'),
+	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	util = deps.utilService,
-
 	UserModel = require('../user/user.model'),
 	UserSchema = UserModel.schema;
-
 
 /**
  * Team Schema
@@ -39,14 +35,14 @@ const TeamRoleSchema = new mongoose.Schema({
 		type: String,
 		trim: true,
 		default: 'member',
-		enum: [ 'admin', 'editor', 'member', 'requester' ]
+		enum: ['admin', 'editor', 'member', 'requester']
 	}
 });
 TeamRoleSchema.plugin(getterPlugin);
 
 UserSchema.add({
 	teams: {
-		type: [ TeamRoleSchema ]
+		type: [TeamRoleSchema]
 	}
 });
 
@@ -55,7 +51,7 @@ const TeamSchema = new mongoose.Schema({
 		type: String,
 		trim: true,
 		default: '',
-		validate: [ util.validateNonEmpty, 'Please provide a team name' ]
+		validate: [util.validateNonEmpty, 'Please provide a team name']
 	},
 	description: {
 		type: String,
@@ -88,15 +84,16 @@ const TeamSchema = new mongoose.Schema({
 		ref: 'Team'
 	},
 	ancestors: {
-		type: [{
-			type: mongoose.Schema.ObjectId,
-			ref: 'Team'
-		}]
+		type: [
+			{
+				type: mongoose.Schema.ObjectId,
+				ref: 'Team'
+			}
+		]
 	}
 });
 TeamSchema.plugin(getterPlugin);
 TeamSchema.plugin(pagingSearchPlugin);
-
 
 /**
  * Index declarations
@@ -113,12 +110,11 @@ TeamSchema.index({ name: 'text', description: 'text' });
  * Instance Methods
  */
 
-
 /**
  * Static Methods
  */
 // Copy a team for audit logging
-TeamSchema.statics.auditCopy = function(team = {}) {
+TeamSchema.statics.auditCopy = function (team = {}) {
 	const toReturn = {};
 
 	toReturn._id = team._id;
@@ -129,7 +125,11 @@ TeamSchema.statics.auditCopy = function(team = {}) {
 };
 
 // Copy a team role for audit logging
-TeamSchema.statics.auditCopyTeamMember = function(team = {}, user = {}, role = null) {
+TeamSchema.statics.auditCopyTeamMember = function (
+	team = {},
+	user = {},
+	role = null
+) {
 	const toReturn = {};
 
 	toReturn.user = {
@@ -161,19 +161,32 @@ UserSchema.statics.auditCopy = (user = {}) => {
 
 	const teams = user.teams || [];
 
-	return Promise.all(teams.filter((team) => team.role !== 'requester').map((team) => dbs.admin.model('Team').findOne({_id: team._id}).exec().then((t) => _.get(t, 'name', null)))).then((teamNames) => {
-		toReturn.teams = teamNames.filter((name) => null != name);
-		return toReturn;
-	}, () => {
-		return toReturn;
-	});
+	return Promise.all(
+		teams
+			.filter((team) => team.role !== 'requester')
+			.map((team) =>
+				dbs.admin
+					.model('Team')
+					.findOne({ _id: team._id })
+					.exec()
+					.then((t) => _.get(t, 'name', null))
+			)
+	).then(
+		(teamNames) => {
+			toReturn.teams = teamNames.filter((name) => null != name);
+			return toReturn;
+		},
+		() => {
+			return toReturn;
+		}
+	);
 };
 
 // Team Copy of a User (has team roles for the team )
-UserSchema.statics.teamCopy = function(user, teamId) {
+UserSchema.statics.teamCopy = function (user, teamId) {
 	let toReturn = null;
 
-	if(null != user){
+	if (null != user) {
 		toReturn = user.toObject();
 
 		toReturn.teams = user.teams;

@@ -1,17 +1,13 @@
 'use strict';
 
-const
-	crypto = require('crypto'),
+const crypto = require('crypto'),
 	moment = require('moment'),
-
 	deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
 	logger = deps.logger,
 	emailService = deps.emailService,
-
 	userService = require('../user.service'),
-
 	User = dbs.admin.model('User');
 
 module.exports.findUserForActiveToken = (token) => {
@@ -37,13 +33,15 @@ module.exports.setResetTokenForUser = async (username, token) => {
 	// Try to find the user
 	let user;
 	try {
-		user = await User.findOne({	username: username }, '-salt -password').exec();
+		user = await User.findOne({ username: username }, '-salt -password').exec();
 	} catch {
 		// ignore error
 	}
 
 	if (!user) {
-		return Promise.reject({ message: 'No account with that username has been found.' });
+		return Promise.reject({
+			message: 'No account with that username has been found.'
+		});
 	}
 
 	// Generate the token and the expire date/time
@@ -63,7 +61,9 @@ module.exports.resetPasswordForToken = async (token, password) => {
 	}
 
 	if (!user) {
-		return Promise.reject({ message: 'Password reset token is invalid or has expired.' });
+		return Promise.reject({
+			message: 'Password reset token is invalid or has expired.'
+		});
 	}
 
 	user.password = password;
@@ -76,29 +76,43 @@ module.exports.resetPasswordForToken = async (token, password) => {
 // Send email to user with instructions on resetting password
 module.exports.sendResetPasswordEmail = async (user, token, req) => {
 	try {
-		const mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.resetPassword, {
-			token: token
-		}, {}, {
-			to: user.email
-		});
+		const mailOptions = await emailService.generateMailOptions(
+			user,
+			req,
+			config.coreEmails.resetPassword,
+			{
+				token: token
+			},
+			{},
+			{
+				to: user.email
+			}
+		);
 		await emailService.sendMail(mailOptions);
 		logger.debug(`Sent reset password email to user (${user.username})`);
 	} catch (error) {
 		// Log the error but this shouldn't block
-		logger.error({err: error, req: req}, 'Failure sending email.');
+		logger.error({ err: error, req: req }, 'Failure sending email.');
 	}
 };
 
 // Send email to user confirming password was reset
 module.exports.sendPasswordResetConfirmEmail = async (user, req) => {
 	try {
-		const mailOptions = await emailService.generateMailOptions(user, req, config.coreEmails.resetPasswordConfirm, {}, {}, {
-			to: user.email
-		});
+		const mailOptions = await emailService.generateMailOptions(
+			user,
+			req,
+			config.coreEmails.resetPasswordConfirm,
+			{},
+			{},
+			{
+				to: user.email
+			}
+		);
 		await emailService.sendMail(mailOptions);
 		logger.debug(`Sent reset password email to user (${user.username})`);
 	} catch (error) {
 		// Log the error but this shouldn't block
-		logger.error({err: error, req: req}, 'Failure sending email.');
+		logger.error({ err: error, req: req }, 'Failure sending email.');
 	}
 };

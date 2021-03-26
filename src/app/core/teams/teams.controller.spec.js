@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	should = require('should'),
+const should = require('should'),
 	sinon = require('sinon'),
 	teamsController = require('./teams.controller'),
 	teamsService = require('./teams.service'),
@@ -29,11 +28,13 @@ describe('Teams Controller:', () => {
 	});
 
 	describe('create', () => {
-		it ('create successful', async () => {
+		it('create successful', async () => {
 			const req = {
 				body: {},
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				}
 			};
 			sandbox.stub(deps.auditService, 'audit').resolves();
@@ -48,11 +49,13 @@ describe('Teams Controller:', () => {
 			sinon.assert.called(res.json);
 		});
 
-		it ('error thrown on create', async () => {
+		it('error thrown on create', async () => {
 			const req = {
 				body: {},
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				}
 			};
 
@@ -64,18 +67,23 @@ describe('Teams Controller:', () => {
 			sinon.assert.calledOnce(teamsService.createTeam);
 
 			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 500, type: 'server-error' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({ status: 500, type: 'server-error' })
+			);
 		});
 	});
 
 	describe('read', () => {
-		it ('persona found', async () => {
+		it('persona found', async () => {
 			const req = {
 				team: {
 					_id: '12345'
 				},
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				}
 			};
 
@@ -87,19 +95,28 @@ describe('Teams Controller:', () => {
 	});
 
 	describe('update', () => {
-		it ('team not found', async () => {
+		it('team not found', async () => {
 			const req = {};
 			await teamsController.update(req, res);
 
 			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 400, type: 'error', message: 'Could not find team' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({
+					status: 400,
+					type: 'error',
+					message: 'Could not find team'
+				})
+			);
 		});
 
-		it ('team found', async () => {
+		it('team found', async () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				}
 			};
 
@@ -115,11 +132,13 @@ describe('Teams Controller:', () => {
 			sinon.assert.called(res.json);
 		});
 
-		it ('team found, error thrown on update', async () => {
+		it('team found, error thrown on update', async () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: {
 					title: 'text eua title',
@@ -137,24 +156,36 @@ describe('Teams Controller:', () => {
 			sinon.assert.notCalled(deps.auditService.audit);
 
 			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 500, type: 'server-error' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({ status: 500, type: 'server-error' })
+			);
 		});
 	});
 
 	describe('delete', () => {
-		it ('team not found', async () => {
+		it('team not found', async () => {
 			const req = {};
 			await teamsController.delete(req, res);
 
 			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 400, type: 'error', message: 'Could not find team' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({
+					status: 400,
+					type: 'error',
+					message: 'Could not find team'
+				})
+			);
 		});
 
-		it ('team found', async () => {
+		it('team found', async () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				}
 			};
 
@@ -171,11 +202,13 @@ describe('Teams Controller:', () => {
 			sinon.assert.called(res.json);
 		});
 
-		it ('team found, error thrown on remove', async () => {
+		it('team found, error thrown on remove', async () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				}
 			};
 
@@ -189,12 +222,15 @@ describe('Teams Controller:', () => {
 			sinon.assert.notCalled(deps.auditService.audit);
 
 			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 500, type: 'server-error' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({ status: 500, type: 'server-error' })
+			);
 		});
 	});
 
 	describe('search', () => {
-		it ('search returns teams', async () => {
+		it('search returns teams', async () => {
 			const req = {
 				body: {}
 			};
@@ -209,7 +245,7 @@ describe('Teams Controller:', () => {
 			sinon.assert.called(res.json);
 		});
 
-		it ('search throws error', async () => {
+		it('search throws error', async () => {
 			const req = {
 				body: {}
 			};
@@ -222,7 +258,10 @@ describe('Teams Controller:', () => {
 			sinon.assert.calledOnce(teamsService.searchTeams);
 
 			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 500, type: 'server-error' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({ status: 500, type: 'server-error' })
+			);
 		});
 	});
 
@@ -231,7 +270,9 @@ describe('Teams Controller:', () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: {}
 			};
@@ -254,7 +295,9 @@ describe('Teams Controller:', () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: {}
 			};
@@ -269,25 +312,36 @@ describe('Teams Controller:', () => {
 			sinon.assert.notCalled(deps.auditService.audit);
 
 			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 500, type: 'server-error' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({ status: 500, type: 'server-error' })
+			);
 		});
-
 	});
 
 	describe('requestAccess', () => {
-		it ('team not found', async () => {
+		it('team not found', async () => {
 			const req = {};
 			await teamsController.requestAccess(req, res);
 
 			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 400, type: 'error', message: 'Could not find team' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({
+					status: 400,
+					type: 'error',
+					message: 'Could not find team'
+				})
+			);
 		});
 
 		it('request handled', async () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: {}
 			};
@@ -308,7 +362,9 @@ describe('Teams Controller:', () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: {}
 			};
@@ -321,13 +377,15 @@ describe('Teams Controller:', () => {
 			sinon.assert.calledOnce(teamsService.requestAccessToTeam);
 
 			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 500, type: 'server-error' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({ status: 500, type: 'server-error' })
+			);
 		});
-
 	});
 
 	describe('searchMembers', () => {
-		it ('search returns team members', async () => {
+		it('search returns team members', async () => {
 			const req = {
 				body: {}
 			};
@@ -342,7 +400,7 @@ describe('Teams Controller:', () => {
 			sinon.assert.called(res.json);
 		});
 
-		it ('search throws error', async () => {
+		it('search throws error', async () => {
 			const req = {
 				body: {}
 			};
@@ -355,24 +413,36 @@ describe('Teams Controller:', () => {
 			sinon.assert.calledOnce(teamsService.searchTeamMembers);
 
 			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 500, type: 'server-error' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({ status: 500, type: 'server-error' })
+			);
 		});
 	});
 
 	describe('addMember', () => {
-		it ('team not found', async () => {
+		it('team not found', async () => {
 			const req = {};
 			await teamsController.addMember(req, res);
 
 			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 400, type: 'error', message: 'Could not find team' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({
+					status: 400,
+					type: 'error',
+					message: 'Could not find team'
+				})
+			);
 		});
 
 		it('request handled', async () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: {}
 			};
@@ -395,7 +465,9 @@ describe('Teams Controller:', () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: {}
 			};
@@ -410,36 +482,54 @@ describe('Teams Controller:', () => {
 			sinon.assert.calledOnce(teamsService.addMemberToTeam);
 
 			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 500, type: 'server-error' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({ status: 500, type: 'server-error' })
+			);
 		});
-
 	});
 
 	describe('addMembers', () => {
-		it ('team not found', async () => {
+		it('team not found', async () => {
 			const req = {};
 			await teamsController.addMembers(req, res);
 
 			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 400, type: 'error', message: 'Could not find team' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({
+					status: 400,
+					type: 'error',
+					message: 'Could not find team'
+				})
+			);
 		});
 
-		it ('team members not found', async () => {
+		it('team members not found', async () => {
 			const req = {
-				team: { _id: '12345'},
+				team: { _id: '12345' },
 				body: {}
 			};
 			await teamsController.addMembers(req, res);
 
 			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 400, type: 'error', message: 'New team members not specified' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({
+					status: 400,
+					type: 'error',
+					message: 'New team members not specified'
+				})
+			);
 		});
 
 		it('team members empty array', async () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: { newMembers: [] }
 			};
@@ -447,23 +537,35 @@ describe('Teams Controller:', () => {
 			await teamsController.addMembers(req, res);
 
 			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 400, type: 'error', message: 'New team members not specified' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({
+					status: 400,
+					type: 'error',
+					message: 'New team members not specified'
+				})
+			);
 		});
 
 		it('request handled', async () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: {
-					newMembers: [{
-						_id: '12345',
-						role: 'admin'
-					}, {
-						_id: '11111',
-						role: 'admin'
-					}]
+					newMembers: [
+						{
+							_id: '12345',
+							role: 'admin'
+						},
+						{
+							_id: '11111',
+							role: 'admin'
+						}
+					]
 				}
 			};
 
@@ -488,13 +590,17 @@ describe('Teams Controller:', () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: {
-					newMembers: [{
-						_id: '12345',
-						role: 'admin'
-					}]
+					newMembers: [
+						{
+							_id: '12345',
+							role: 'admin'
+						}
+					]
 				}
 			};
 
@@ -509,25 +615,36 @@ describe('Teams Controller:', () => {
 			sinon.assert.calledOnce(teamsService.addMemberToTeam);
 
 			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 500, type: 'server-error' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({ status: 500, type: 'server-error' })
+			);
 		});
-
 	});
 
 	describe('removeMember', () => {
-		it ('team not found', async () => {
+		it('team not found', async () => {
 			const req = {};
 			await teamsController.removeMember(req, res);
 
 			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 400, type: 'error', message: 'Could not find team' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({
+					status: 400,
+					type: 'error',
+					message: 'Could not find team'
+				})
+			);
 		});
 
 		it('request handled', async () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: {}
 			};
@@ -550,7 +667,9 @@ describe('Teams Controller:', () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: {}
 			};
@@ -565,25 +684,36 @@ describe('Teams Controller:', () => {
 			sinon.assert.calledOnce(teamsService.removeMemberFromTeam);
 
 			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 500, type: 'server-error' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({ status: 500, type: 'server-error' })
+			);
 		});
-
 	});
 
 	describe('updateMemberRole', () => {
-		it ('team not found', async () => {
+		it('team not found', async () => {
 			const req = {};
 			await teamsController.updateMemberRole(req, res);
 
 			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 400, type: 'error', message: 'Could not find team' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({
+					status: 400,
+					type: 'error',
+					message: 'Could not find team'
+				})
+			);
 		});
 
 		it('request handled', async () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: {}
 			};
@@ -606,7 +736,9 @@ describe('Teams Controller:', () => {
 			const req = {
 				team: { _id: '12345' },
 				user: {
-					toObject: () => { return {}; }
+					toObject: () => {
+						return {};
+					}
 				},
 				body: {}
 			};
@@ -621,9 +753,11 @@ describe('Teams Controller:', () => {
 			sinon.assert.calledOnce(teamsService.updateMemberRole);
 
 			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(res.json, sinon.match({ status: 500, type: 'server-error' }));
+			sinon.assert.calledWith(
+				res.json,
+				sinon.match({ status: 500, type: 'server-error' })
+			);
 		});
-
 	});
 
 	describe('teamById', () => {
@@ -655,7 +789,12 @@ describe('Teams Controller:', () => {
 			await teamsController.teamById(req, {}, nextFn, 'id');
 
 			should.not.exist(req.team);
-			sinon.assert.calledWith(nextFn, sinon.match.instanceOf(Error).and(sinon.match.has('message', 'Could not find team')));
+			sinon.assert.calledWith(
+				nextFn,
+				sinon.match
+					.instanceOf(Error)
+					.and(sinon.match.has('message', 'Could not find team'))
+			);
 		});
 	});
 
@@ -688,7 +827,12 @@ describe('Teams Controller:', () => {
 			await teamsController.teamMemberById(req, {}, nextFn, 'id');
 
 			should.not.exist(req.userParam);
-			sinon.assert.calledWith(nextFn, sinon.match.instanceOf(Error).and(sinon.match.has('message', 'Failed to load team member')));
+			sinon.assert.calledWith(
+				nextFn,
+				sinon.match
+					.instanceOf(Error)
+					.and(sinon.match.has('message', 'Failed to load team member'))
+			);
 		});
 	});
 
@@ -700,8 +844,10 @@ describe('Teams Controller:', () => {
 
 					const req = {};
 
-					await teamsController[method](req)
-						.should.be.rejectedWith({ status: 400, message: 'No user for request' });
+					await teamsController[method](req).should.be.rejectedWith({
+						status: 400,
+						message: 'No user for request'
+					});
 
 					sinon.assert.notCalled(teamsService.meetsRoleRequirement);
 				});
@@ -711,8 +857,10 @@ describe('Teams Controller:', () => {
 
 					const req = { user: {} };
 
-					await teamsController[method](req)
-						.should.be.rejectedWith({ status: 400, message: 'No team for request' });
+					await teamsController[method](req).should.be.rejectedWith({
+						status: 400,
+						message: 'No team for request'
+					});
 
 					sinon.assert.notCalled(teamsService.meetsRoleRequirement);
 				});
@@ -729,5 +877,4 @@ describe('Teams Controller:', () => {
 			});
 		});
 	});
-
 });

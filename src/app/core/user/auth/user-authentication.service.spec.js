@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	should = require('should'),
 	proxyquire = require('proxyquire');
 
@@ -36,7 +35,6 @@ function validateDefaultRoles(updatedUser) {
 	});
 
 	return Promise.resolve(updatedUser);
-
 }
 
 function createSubjectUnderTest(dependencies) {
@@ -49,7 +47,6 @@ function createSubjectUnderTest(dependencies) {
  * Unit tests
  */
 describe('User Authentication Service:', () => {
-
 	describe('initializeNewUser', () => {
 		const userAuthenticationService = createSubjectUnderTest({
 			config: {
@@ -61,31 +58,40 @@ describe('User Authentication Service:', () => {
 
 		it('should set default roles when none are initially set', (done) => {
 			const user = userSpec('Basic');
-			userAuthenticationService.initializeNewUser(user)
+			userAuthenticationService
+				.initializeNewUser(user)
 				.then(validateDefaultRoles)
-				.then(() => { done(); })
+				.then(() => {
+					done();
+				})
 				.catch(done);
 		});
 
 		it('should set default roles when set to an empty object', (done) => {
 			const user = userSpec('Basic');
 			user.roles = {};
-			userAuthenticationService.initializeNewUser(user)
+			userAuthenticationService
+				.initializeNewUser(user)
 				.then(validateDefaultRoles)
-				.then(() => { done(); })
+				.then(() => {
+					done();
+				})
 				.catch(done);
 		});
 
 		it('should set default roles in addition to existing', (done) => {
 			const user = userSpec('Basic');
 			user.roles = { admin: false, editor: true };
-			userAuthenticationService.initializeNewUser(user)
+			userAuthenticationService
+				.initializeNewUser(user)
 				.then(validateDefaultRoles)
 				.then((updatedUser) => {
 					should(updatedUser.roles.admin).equal(false);
 					should(updatedUser.roles.editor).equal(true);
 				})
-				.then(() => { done(); })
+				.then(() => {
+					done();
+				})
 				.catch(done);
 		});
 
@@ -100,7 +106,8 @@ describe('User Authentication Service:', () => {
 			user.roles.admin = false;
 			user.roles.editor = true;
 
-			userAuthenticationService.initializeNewUser(user)
+			userAuthenticationService
+				.initializeNewUser(user)
 				.then((updatedUser) => {
 					_.forEach(_.keys(testDefaultRoles), (key) => {
 						should(user.roles[key]).equal(!testDefaultRoles[key]);
@@ -108,10 +115,10 @@ describe('User Authentication Service:', () => {
 					should(updatedUser.roles.admin).equal(false);
 					should(updatedUser.roles.editor).equal(true);
 				})
-				.then(() => { done(); })
+				.then(() => {
+					done();
+				})
 				.catch(done);
 		});
-
 	});
-
 });

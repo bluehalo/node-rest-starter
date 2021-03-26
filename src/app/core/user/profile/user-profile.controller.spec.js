@@ -1,17 +1,12 @@
 'use strict';
 
-const
-	should = require('should'),
+const should = require('should'),
 	sinon = require('sinon'),
-
 	deps = require('../../../../dependencies'),
-
 	userService = require('../user.service'),
 	userAuthorizationService = require('../auth/user-authorization.service'),
 	userProfileService = require('./user-profile.service'),
-
 	User = deps.dbs.admin.model('User'),
-
 	userProfileController = require('./user-profile.controller');
 
 /**
@@ -63,7 +58,9 @@ describe('User Profile Controller:', () => {
 			sinon.assert.notCalled(userAuthorizationService.updateRoles);
 
 			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWithMatch(res.json, { message: 'User is not logged in' });
+			sinon.assert.calledWithMatch(res.json, {
+				message: 'User is not logged in'
+			});
 		});
 	});
 
@@ -74,7 +71,9 @@ describe('User Profile Controller:', () => {
 			const req = {
 				body: {},
 				user: user,
-				login: (u, callback) => { callback(); }
+				login: (u, callback) => {
+					callback();
+				}
 			};
 
 			sandbox.stub(User, 'findById').returns({
@@ -103,7 +102,9 @@ describe('User Profile Controller:', () => {
 					password: 'newPassword'
 				},
 				user: user,
-				login: (u, callback) => { callback(); }
+				login: (u, callback) => {
+					callback();
+				}
 			};
 
 			sandbox.stub(User, 'findById').returns({
@@ -138,7 +139,10 @@ describe('User Profile Controller:', () => {
 
 			await userProfileController.updateCurrentUser(req, res);
 
-			sinon.assert.calledWithMatch(deps.auditService.audit, 'user update authentication failed');
+			sinon.assert.calledWithMatch(
+				deps.auditService.audit,
+				'user update authentication failed'
+			);
 		});
 
 		it('user is logged in; save returns error', async () => {
@@ -151,7 +155,9 @@ describe('User Profile Controller:', () => {
 					password: 'newPassword'
 				},
 				user: user,
-				login: (u, callback) => { callback('error'); }
+				login: (u, callback) => {
+					callback('error');
+				}
 			};
 
 			sandbox.stub(User, 'findById').returns({
@@ -179,7 +185,9 @@ describe('User Profile Controller:', () => {
 					password: 'newPassword'
 				},
 				user: user,
-				login: (u, callback) => { callback('error'); }
+				login: (u, callback) => {
+					callback('error');
+				}
 			};
 
 			sandbox.stub(User, 'findById').returns({
@@ -206,7 +214,9 @@ describe('User Profile Controller:', () => {
 			await userProfileController.updateCurrentUser(req, res);
 
 			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWithMatch(res.json, { message: 'User is not logged in' });
+			sinon.assert.calledWithMatch(res.json, {
+				message: 'User is not logged in'
+			});
 		});
 	});
 
@@ -402,9 +412,8 @@ describe('User Profile Controller:', () => {
 	});
 
 	describe('canEditProfile', () => {
-
 		it('local auth and undef bypass should be able to edit', () => {
-			const _user = { };
+			const _user = {};
 			const result = userProfileController.canEditProfile('local', _user);
 			result.should.equal(true);
 		});
@@ -422,7 +431,7 @@ describe('User Profile Controller:', () => {
 		});
 
 		it('proxy-pki auth and undef bypass should not be able to edit', () => {
-			const _user = { };
+			const _user = {};
 			const result = userProfileController.canEditProfile('proxy-pki', _user);
 			result.should.equal(false);
 		});
@@ -438,7 +447,6 @@ describe('User Profile Controller:', () => {
 			const result = userProfileController.canEditProfile('proxy-pki', _user);
 			result.should.equal(true);
 		});
-
 	});
 
 	describe('hasEdit', () => {

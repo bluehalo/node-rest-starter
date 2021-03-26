@@ -5,23 +5,24 @@ const bodyParser = require('body-parser'),
 	mock = require('mock-require'),
 	request = require('supertest'),
 	should = require('should'),
-	{ dbs: { admin } } = require('../../../../dependencies'),
+	{
+		dbs: { admin }
+	} = require('../../../../dependencies'),
 	User = admin.model('User'),
 	UserAgreement = admin.model('UserAgreement');
 
 const matchesAnyString = (val) => {
-    return typeof val === 'string';
+	return typeof val === 'string';
 };
 
 const matchesAnyNumber = (val) => {
-    return typeof val === 'number';
+	return typeof val === 'number';
 };
 
 /**
  * Integration tests for the Express Routes and Mongoose Models
  */
 describe('EUA Routes:', () => {
-
 	const fakeUser = new User({
 		username: 'test-user',
 		email: 'test@user.com',
@@ -40,7 +41,6 @@ describe('EUA Routes:', () => {
 	let originalRequiresLogin;
 
 	before(() => {
-
 		app = express();
 		app.use(bodyParser.json());
 
@@ -109,7 +109,7 @@ describe('EUA Routes:', () => {
 	};
 
 	describe('searchEuas', () => {
-		it ('search returns euas', async () => {
+		it('search returns euas', async () => {
 			await request(app)
 				.post('/euas?page=0&size=10')
 				.send({})
@@ -120,31 +120,31 @@ describe('EUA Routes:', () => {
 						pageSize: 10,
 						totalPages: 1,
 						totalSize: 1,
-						elements: [{
-							__v: matchesAnyNumber,
-							_id: matchesAnyString,
-							id: matchesAnyString,
-							published: null,
-							updated: null,
-							created: matchesAnyNumber,
-							title: 'test title',
-							text: 'some text'
-						}]
+						elements: [
+							{
+								__v: matchesAnyNumber,
+								_id: matchesAnyString,
+								id: matchesAnyString,
+								published: null,
+								updated: null,
+								created: matchesAnyNumber,
+								title: 'test title',
+								text: 'some text'
+							}
+						]
 					});
 				});
 		});
-
 	});
 
 	describe('publishEua', () => {
-		it ('should publish the EUA', async () => {
+		it('should publish the EUA', async () => {
 			await publishSavedEua();
 		});
-
 	});
 
 	describe('createEua', () => {
-		it ('should create the EUA', async () => {
+		it('should create the EUA', async () => {
 			await request(app)
 				.post('/eua')
 				.send({
@@ -165,11 +165,10 @@ describe('EUA Routes:', () => {
 					});
 				});
 		});
-
 	});
 
 	describe('getCurrentEua', () => {
-		it ('should get the current EUA', async () => {
+		it('should get the current EUA', async () => {
 			await request(app)
 				.get('/eua')
 				.expect(200)
@@ -191,11 +190,10 @@ describe('EUA Routes:', () => {
 					});
 				});
 		});
-
 	});
 
 	describe('updateEua', () => {
-		it ('should update the EUA', async () => {
+		it('should update the EUA', async () => {
 			await request(app)
 				.post(`/eua/${savedEua._id.toString()}`)
 				.send({
@@ -213,7 +211,7 @@ describe('EUA Routes:', () => {
 	});
 
 	describe('deleteEua', () => {
-		it ('should delete the EUA', async () => {
+		it('should delete the EUA', async () => {
 			await request(app)
 				.delete(`/eua/${savedEua._id.toString()}`)
 				.send({
@@ -226,5 +224,4 @@ describe('EUA Routes:', () => {
 				});
 		});
 	});
-
 });

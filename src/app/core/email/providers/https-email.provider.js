@@ -1,10 +1,8 @@
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	fs = require('fs'),
 	https = require('https'),
-
 	deps = require('../../../../dependencies'),
 	logger = deps.logger;
 
@@ -65,7 +63,6 @@ const transformMailOptions = (mailOptions) => {
  * One of 'text' or 'html' is expected</p>
  */
 const sendMail = (mailOptions) => {
-
 	return new Promise((resolve, reject) => {
 		const postData = JSON.stringify(transformMailOptions(mailOptions));
 		const options = generateOptions();
@@ -81,13 +78,11 @@ const sendMail = (mailOptions) => {
 				data += chunk;
 			});
 			res.on('end', () => {
-				if(res.statusCode === 404) {
+				if (res.statusCode === 404) {
 					reject('Email service not found');
-				}
-				else if(res.statusCode !== 200) {
+				} else if (res.statusCode !== 200) {
 					reject(data); // send back the error
-				}
-				else {
+				} else {
 					// 200 response
 					const result = JSON.parse(data);
 					resolve(result);
@@ -102,19 +97,23 @@ const sendMail = (mailOptions) => {
 		req.write(postData);
 		req.end();
 	});
-
 };
 
 // https-email provider requires configuration to be passed in
-module.exports = function(inputConfig) {
-
+module.exports = function (inputConfig) {
 	config = inputConfig;
 
 	logger.debug('Using HTTPS-based Email service');
 
-	if(_.isString(config.ca)) { config.ca = fs.readFileSync(config.ca); }
-	if(_.isString(config.cert)) { config.cert = fs.readFileSync(config.cert); }
-	if(_.isString(config.key)) { config.key = fs.readFileSync(config.key); }
+	if (_.isString(config.ca)) {
+		config.ca = fs.readFileSync(config.ca);
+	}
+	if (_.isString(config.cert)) {
+		config.cert = fs.readFileSync(config.cert);
+	}
+	if (_.isString(config.key)) {
+		config.key = fs.readFileSync(config.key);
+	}
 
 	return {
 		sendMail

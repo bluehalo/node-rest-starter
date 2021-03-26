@@ -1,18 +1,14 @@
 'use strict';
 
-const
-	_ = require('lodash'),
-
+const _ = require('lodash'),
 	deps = require('../../../../dependencies'),
 	config = deps.config,
 	dbs = deps.dbs,
 	util = deps.utilService,
 	logger = deps.logger,
 	auditService = deps.auditService,
-
 	TeamMember = dbs.admin.model('TeamUser'),
 	User = dbs.admin.model('User'),
-
 	resourcesService = require('../../resources/resources.service'),
 	userAuthorizationService = require('../auth/user-authorization.service'),
 	userService = require('../user.service'),
@@ -32,7 +28,7 @@ exports.adminGetUser = (req, res) => {
 exports.adminGetAll = async (req, res) => {
 	// The field that the admin is requesting is a query parameter
 	const field = req.body.field;
-	if ( null == field || field.length === 0 ) {
+	if (null == field || field.length === 0) {
 		return res.status(500).json({
 			message: 'Query field must be provided'
 		});
@@ -47,9 +43,11 @@ exports.adminGetAll = async (req, res) => {
 	try {
 		const results = await User.find(util.toMongoose(query), proj).exec();
 
-		res.status(200).json(results.map((r) => {
-			return r[field];
-		}));
+		res.status(200).json(
+			results.map((r) => {
+				return r[field];
+			})
+		);
 	} catch (error) {
 		return util.handleErrorResponse(res, error);
 	}
@@ -81,10 +79,20 @@ exports.adminUpdateUser = async (req, res) => {
 		await userService.update(user);
 
 		// Audit user update
-		auditService.audit('admin user updated', 'user', 'admin update', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), {
-			before: originalUser,
-			after: User.auditCopy(user)
-		}, req.headers);
+		auditService.audit(
+			'admin user updated',
+			'user',
+			'admin update',
+			TeamMember.auditCopy(
+				req.user,
+				util.getHeaderField(req.headers, 'x-real-ip')
+			),
+			{
+				before: originalUser,
+				after: User.auditCopy(user)
+			},
+			req.headers
+		);
 
 		if (_.get(config, 'coreEmails.approvedUserEmail.enabled', false)) {
 			const originalUserRole = _.get(originalUser, 'roles.user', null);
@@ -107,11 +115,21 @@ exports.adminDeleteUser = async (req, res) => {
 	const user = req.userParam;
 
 	try {
-		await auditService.audit('admin user deleted', 'user', 'admin delete', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), User.auditCopy(user), req.headers);
+		await auditService.audit(
+			'admin user deleted',
+			'user',
+			'admin delete',
+			TeamMember.auditCopy(
+				req.user,
+				util.getHeaderField(req.headers, 'x-real-ip')
+			),
+			User.auditCopy(user),
+			req.headers
+		);
 		await resourcesService.deleteResourcesWithOwner(user._id, 'user');
 		await userService.remove(user);
 		res.status(200).json(User.fullCopy(user));
-	} catch(err) {
+	} catch (err) {
 		util.handleErrorResponse(res, err);
 	}
 };
@@ -130,7 +148,7 @@ exports.adminSearchUsers = async (req, res) => {
 			return userCopy;
 		});
 		res.status(200).json(results);
-	} catch(error) {
+	} catch (error) {
 		return util.handleErrorResponse(res, error);
 	}
 };

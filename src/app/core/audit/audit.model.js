@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	mongoose = require('mongoose'),
+const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
@@ -22,12 +21,12 @@ const AuditSchema = new mongoose.Schema({
 			auditType: { type: String },
 			action: { type: String },
 			actor: { type: String },
-			interfaceUrl: {type: String},
+			interfaceUrl: { type: String },
 			object: { type: String },
 			userSpec: {
 				type: {
-					browser: {type: String},
-					os: {type: String}
+					browser: { type: String },
+					os: { type: String }
 				}
 			}
 		}
@@ -42,7 +41,7 @@ AuditSchema.plugin(pagingSearchPlugin);
  */
 
 // Created datetime index, expires after 180 days
-AuditSchema.index({ 'created': -1 }, { expireAfterSeconds: 15552000 });
+AuditSchema.index({ created: -1 }, { expireAfterSeconds: 15552000 });
 
 // Audit Type index
 AuditSchema.index({ 'audit.auditType': 1 });
@@ -57,13 +56,11 @@ AuditSchema.index({ 'audit.actor': 1 });
 AuditSchema.index({ 'audit.object': 1 });
 
 // Audit message index
-AuditSchema.index({ 'message': 1 });
-
+AuditSchema.index({ message: 1 });
 
 /*****************
  * Lifecycle hooks
  *****************/
-
 
 /*****************
  * Static Methods

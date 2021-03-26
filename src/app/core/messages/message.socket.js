@@ -1,16 +1,12 @@
 'use strict';
 
-const
-	path = require('path'),
-
+const path = require('path'),
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	logger = deps.logger,
 	socketIO = deps.socketIO,
-
 	socketProvider = require(path.posix.resolve(config.socketProvider)),
 	users = require('../user/user.controller'),
-
 	emitName = 'message';
 
 /**
@@ -64,29 +60,40 @@ class MessageSocket extends socketProvider {
 	handleSubscribe(payload) {
 		const self = this;
 
-		if(logger.debug()) {
-			logger.debug(`MessageSocket: ${emitName}:subscribe event with payload: ${JSON.stringify(payload)}`);
+		if (logger.debug()) {
+			logger.debug(
+				`MessageSocket: ${emitName}:subscribe event with payload: ${JSON.stringify(
+					payload
+				)}`
+			);
 		}
 
 		// Check that the user account has access
-		self.applyMiddleware([
-			users.hasAccess
-		]).then(() => {
-			// Subscribe to the user's message topic
-			const topic = self.getTopic();
-			self.subscribe(topic);
-			self._subscriptionCount++;
-		}).catch((err) => {
-			logger.warn(`Unauthorized access to notifications by inactive user ${self.getUserId()}: ${err}`);
-		});
+		self
+			.applyMiddleware([users.hasAccess])
+			.then(() => {
+				// Subscribe to the user's message topic
+				const topic = self.getTopic();
+				self.subscribe(topic);
+				self._subscriptionCount++;
+			})
+			.catch((err) => {
+				logger.warn(
+					`Unauthorized access to notifications by inactive user ${self.getUserId()}: ${err}`
+				);
+			});
 	}
 
 	/**
 	 *
 	 */
 	handleUnsubscribe(payload) {
-		if(logger.debug()) {
-			logger.debug(`MessageSocket: ${emitName}:unsubscribe event with payload: ${JSON.stringify(payload)}`);
+		if (logger.debug()) {
+			logger.debug(
+				`MessageSocket: ${emitName}:unsubscribe event with payload: ${JSON.stringify(
+					payload
+				)}`
+			);
 		}
 
 		const topic = this.getTopic();
@@ -105,7 +112,7 @@ class MessageSocket extends socketProvider {
 	addListeners() {
 		const s = this.getSocket();
 
-		if(typeof s.on === 'function') {
+		if (typeof s.on === 'function') {
 			// Set up Subscribe events
 			s.on(`${emitName}:subscribe`, this.handleSubscribe.bind(this));
 

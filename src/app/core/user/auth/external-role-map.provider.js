@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function(config) {
+module.exports = function (config) {
 	return {
 		hasRole: (user, role) => {
 			const externalRoles = user.externalRoles || [];

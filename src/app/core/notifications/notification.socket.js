@@ -1,17 +1,13 @@
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	path = require('path'),
-
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	logger = deps.logger,
 	socketIO = deps.socketIO,
-
 	socketProvider = require(path.posix.resolve(config.socketProvider)),
 	users = require('../user/user.controller'),
-
 	emitName = 'alert';
 
 /**
@@ -22,7 +18,9 @@ class NotificationSocket extends socketProvider {
 	constructor(...args) {
 		super(...args);
 		this._emitType = `${emitName}:data`;
-		this._topicName = config.dispatcher ? config.dispatcher.notificationTopic : '';
+		this._topicName = config.dispatcher
+			? config.dispatcher.notificationTopic
+			: '';
 		this._subscriptionCount = 0;
 	}
 
@@ -43,7 +41,11 @@ class NotificationSocket extends socketProvider {
 
 	ignorePayload(json) {
 		// Ignore any payloads that do not match the current user.
-		return !json || !json.user || json.user.toString() !== this.getUserId().toString();
+		return (
+			!json ||
+			!json.user ||
+			json.user.toString() !== this.getUserId().toString()
+		);
 	}
 
 	/**
@@ -77,29 +79,40 @@ class NotificationSocket extends socketProvider {
 	handleSubscribe(payload) {
 		const self = this;
 
-		if(logger.debug()) {
-			logger.debug(`NotificationSocket: ${emitName}:subscribe event with payload: ${JSON.stringify(payload)}`);
+		if (logger.debug()) {
+			logger.debug(
+				`NotificationSocket: ${emitName}:subscribe event with payload: ${JSON.stringify(
+					payload
+				)}`
+			);
 		}
 
 		// Check that the user account has access
-		self.applyMiddleware([
-			users.hasAccess
-		]).then(() => {
-			// Subscribe to the user's notification topic
-			const topic = self.getTopic();
-			self.subscribe(topic);
-			self._subscriptionCount++;
-		}).catch((err) => {
-			logger.warn(`Unauthorized access to notifications by inactive user ${self.getUserId()}: ${err}`);
-		});
+		self
+			.applyMiddleware([users.hasAccess])
+			.then(() => {
+				// Subscribe to the user's notification topic
+				const topic = self.getTopic();
+				self.subscribe(topic);
+				self._subscriptionCount++;
+			})
+			.catch((err) => {
+				logger.warn(
+					`Unauthorized access to notifications by inactive user ${self.getUserId()}: ${err}`
+				);
+			});
 	}
 
 	/**
 	 *
 	 */
 	handleUnsubscribe(payload) {
-		if(logger.debug()) {
-			logger.debug(`NotificationSocket: ${emitName}:unsubscribe event with payload: ${JSON.stringify(payload)}`);
+		if (logger.debug()) {
+			logger.debug(
+				`NotificationSocket: ${emitName}:unsubscribe event with payload: ${JSON.stringify(
+					payload
+				)}`
+			);
 		}
 
 		const topic = this.getTopic();
@@ -118,7 +131,7 @@ class NotificationSocket extends socketProvider {
 	addListeners() {
 		const s = this.getSocket();
 
-		if(typeof s.on === 'function') {
+		if (typeof s.on === 'function') {
 			// Set up Subscribe events
 			s.on(`${emitName}:subscribe`, this.handleSubscribe.bind(this));
 
@@ -128,7 +141,10 @@ class NotificationSocket extends socketProvider {
 	}
 }
 
-if (config.dispatcher && (!_.has(config.dispatcher, 'enabled') || config.dispatcher.enabled)) {
+if (
+	config.dispatcher &&
+	(!_.has(config.dispatcher, 'enabled') || config.dispatcher.enabled)
+) {
 	socketIO.registerSocketListener(NotificationSocket);
 }
 

@@ -1,34 +1,34 @@
 'use strict';
 
-const
-	mongoose = require('mongoose'),
-
+const mongoose = require('mongoose'),
 	deps = require('../../../../dependencies'),
 	util = deps.utilService;
 
 /**
  * Preference Schema
  */
-module.exports.preferenceOptions = {discriminatorKey: 'preferenceType'};
+module.exports.preferenceOptions = { discriminatorKey: 'preferenceType' };
 
-const PreferenceSchema = new mongoose.Schema({
-	user: {
-		type: mongoose.Schema.ObjectId,
-		ref: 'User',
-		required: 'User is required'
+const PreferenceSchema = new mongoose.Schema(
+	{
+		user: {
+			type: mongoose.Schema.ObjectId,
+			ref: 'User',
+			required: 'User is required'
+		},
+		created: {
+			type: Date,
+			default: Date.now,
+			get: util.dateParse
+		},
+		updated: {
+			type: Date,
+			default: Date.now,
+			get: util.dateParse
+		}
 	},
-	created: {
-		type: Date,
-		default: Date.now,
-		get: util.dateParse
-	},
-	updated: {
-		type: Date,
-		default: Date.now,
-		get: util.dateParse
-	}
-}, module.exports.preferenceOptions);
-
+	module.exports.preferenceOptions
+);
 
 /**
  * Index declarations
@@ -42,7 +42,7 @@ PreferenceSchema.index({ user: 1, preferenceType: 1, updated: -1 });
  */
 
 // Create a filtered copy for auditing
-PreferenceSchema.statics.auditCopy = function(src) {
+PreferenceSchema.statics.auditCopy = function (src) {
 	const toReturn = {};
 	src = src || {};
 

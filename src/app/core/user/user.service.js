@@ -30,12 +30,19 @@ const searchUsers = async (queryParams, query, search, searchFields = []) => {
 	query = query || {};
 	const page = util.getPage(queryParams);
 	const limit = util.getLimit(queryParams);
-	const sortArr = util.getSort(queryParams,'DESC');
+	const sortArr = util.getSort(queryParams, 'DESC');
 	const offset = page * limit;
 
 	let result;
 	if (searchFields.length > 0) {
-		result = await User.containsSearch(query, searchFields, search, limit, offset, sortArr);
+		result = await User.containsSearch(
+			query,
+			searchFields,
+			search,
+			limit,
+			offset,
+			sortArr
+		);
 	} else {
 		result = await User.textSearch(query, search, limit, offset, sortArr);
 	}

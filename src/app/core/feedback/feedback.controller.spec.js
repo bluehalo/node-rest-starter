@@ -6,12 +6,10 @@ const request = require('supertest'),
 	bodyParser = require('body-parser'),
 	mock = require('mock-require'),
 	deps = require('../../../dependencies'),
-
 	Feedback = deps.dbs.admin.model('Feedback'),
 	User = deps.dbs.admin.model('User');
 
 describe('Feedback Controller', () => {
-
 	let app;
 	const router = express.Router();
 
@@ -62,8 +60,7 @@ describe('Feedback Controller', () => {
 	const setAdmin = (isAdmin) => {
 		if (isAdmin) {
 			fakeUser.roles = { user: true, admin: true };
-		}
-		else {
+		} else {
 			fakeUser.roles = { user: true };
 		}
 	};
@@ -74,7 +71,6 @@ describe('Feedback Controller', () => {
 			{ name: 'admin', isAdmin: true }
 		].forEach((testConfig) => {
 			it(`should submit feedback successfully as ${testConfig.name}`, (done) => {
-
 				setAdmin(testConfig.isAdmin);
 
 				const spec = {
@@ -98,7 +94,6 @@ describe('Feedback Controller', () => {
 		});
 
 		it('should get an error submitting invalid feedback', (done) => {
-
 			const spec = {
 				// missing body
 				type: 'Bug',
@@ -121,7 +116,6 @@ describe('Feedback Controller', () => {
 	});
 
 	describe('POST /admin/feedback', () => {
-
 		let savedFeedback;
 
 		before(() => {
@@ -133,8 +127,8 @@ describe('Feedback Controller', () => {
 						url: 'http://localhost:3000/home',
 						type: 'Question'
 					})
-					.save()
-					.then((result) => savedFeedback = result);
+						.save()
+						.then((result) => (savedFeedback = result));
 				});
 		});
 
@@ -143,7 +137,6 @@ describe('Feedback Controller', () => {
 			{ name: 'should get feedback as admin', isAdmin: true }
 		].forEach((testConfig) => {
 			it(testConfig.name, (done) => {
-
 				setAdmin(testConfig.isAdmin);
 
 				request(app)
@@ -152,20 +145,18 @@ describe('Feedback Controller', () => {
 					.expect('Content-Type', /json/)
 					.expect(testConfig.isAdmin ? 200 : 403)
 					.expect((res) => {
-
 						if (testConfig.isAdmin) {
 							const expected = savedFeedback.toJSON();
 							expected._id = expected._id.toString();
 
 							should(res.body).eql({
-								elements: [ expected ],
+								elements: [expected],
 								pageNumber: 0,
 								pageSize: 20,
 								totalPages: 1,
 								totalSize: 1
 							});
-						}
-						else {
+						} else {
 							should(res.body).eql({
 								message: 'This is a fake error message'
 							});
@@ -175,5 +166,4 @@ describe('Feedback Controller', () => {
 			});
 		});
 	});
-
 });

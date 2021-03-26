@@ -1,11 +1,8 @@
 'use strict';
 
-const
-	mongoose = require('mongoose'),
-
+const mongoose = require('mongoose'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
-
 	Owner = dbs.admin.model('Owner'),
 	Resource = dbs.admin.model('Resource');
 
@@ -49,9 +46,11 @@ describe('Resource Model:', () => {
 
 	describe('Method Save', () => {
 		it('should begin with no resources', () => {
-			return Resource.find({}).exec().then((resources) => {
-				resources.should.have.length(0);
-			});
+			return Resource.find({})
+				.exec()
+				.then((resources) => {
+					resources.should.have.length(0);
+				});
 		});
 
 		it('should be able to save resource without problems', () => {
@@ -60,9 +59,11 @@ describe('Resource Model:', () => {
 		});
 
 		it('should have one resource', () => {
-			return Resource.find({}).exec().then((resources) => {
-				resources.should.have.length(1);
-			});
+			return Resource.find({})
+				.exec()
+				.then((resources) => {
+					resources.should.have.length(1);
+				});
 		});
 
 		it('should fail when trying to save without a title', () => {
@@ -76,7 +77,5 @@ describe('Resource Model:', () => {
 			resource1.owner = null;
 			return resource1.save().should.be.rejected();
 		});
-
 	});
-
 });

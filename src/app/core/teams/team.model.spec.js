@@ -1,11 +1,8 @@
 'use strict';
 
-const
-	should = require('should'),
-
+const should = require('should'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
-
 	Audit = dbs.admin.model('Audit'),
 	Team = dbs.admin.model('Team'),
 	TeamMember = dbs.admin.model('TeamUser');
@@ -80,7 +77,7 @@ describe('Team Model:', () => {
 			team.name = '';
 			try {
 				return await team.save();
-			} catch(err) {
+			} catch (err) {
 				should.exist(err);
 			}
 		});
@@ -90,9 +87,11 @@ describe('Team Model:', () => {
 		const user1 = new TeamMember(spec.user1);
 
 		it('should begin with no users', () => {
-			return TeamMember.find({}).exec().then((users) => {
-				users.should.have.length(0);
-			});
+			return TeamMember.find({})
+				.exec()
+				.then((users) => {
+					users.should.have.length(0);
+				});
 		});
 
 		it('should create teams without problems', async () => {

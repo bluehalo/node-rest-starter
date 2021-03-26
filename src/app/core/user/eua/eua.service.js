@@ -1,5 +1,4 @@
-const
-	deps = require('../../../../dependencies'),
+const deps = require('../../../../dependencies'),
 	util = deps.utilService,
 	dbs = deps.dbs,
 	User = dbs.admin.model('User'),
@@ -36,10 +35,17 @@ const search = async (queryParams, query, _search) => {
 	query = query || {};
 	const page = util.getPage(queryParams);
 	const limit = util.getLimit(queryParams);
-	const sortArr = util.getSort(queryParams,'DESC');
+	const sortArr = util.getSort(queryParams, 'DESC');
 	const offset = page * limit;
 
-	const euas = await UserAgreement.textSearch(query, _search, limit, offset, sortArr, true);
+	const euas = await UserAgreement.textSearch(
+		query,
+		_search,
+		limit,
+		offset,
+		sortArr,
+		true
+	);
 
 	return util.getPagingResults(limit, page, euas.count, euas.results);
 };
@@ -51,15 +57,17 @@ const publishEua = (eua) => {
 };
 
 const getCurrentEua = () => {
-	return UserAgreement.findOne({ 'published': { '$ne': null, '$exists': true } })
-		.sort({ 'published': -1 }).exec();
+	return UserAgreement.findOne({ published: { $ne: null, $exists: true } })
+		.sort({ published: -1 })
+		.exec();
 };
 
 const acceptEua = (user) => {
 	return User.findOneAndUpdate(
 		{ _id: user._id },
 		{ acceptedEua: Date.now() },
-		{ new: true, upsert: false }).exec();
+		{ new: true, upsert: false }
+	).exec();
 };
 
 module.exports = {

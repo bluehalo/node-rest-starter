@@ -1,8 +1,6 @@
 'use strict';
 
-const
-	mongoose = require('mongoose'),
-
+const mongoose = require('mongoose'),
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	util = deps.utilService;
@@ -12,20 +10,22 @@ const
  */
 module.exports.notificationOptions = { discriminatorKey: 'notificationType' };
 
-const NotificationSchema = new mongoose.Schema({
-	user: {
-		type: mongoose.Schema.ObjectId,
-		ref: 'User',
-		required: 'User is required'
+const NotificationSchema = new mongoose.Schema(
+	{
+		user: {
+			type: mongoose.Schema.ObjectId,
+			ref: 'User',
+			required: 'User is required'
+		},
+		created: {
+			type: Date,
+			default: Date.now,
+			get: util.dateParse,
+			expires: config.notificationExpires
+		}
 	},
-	created: {
-		type: Date,
-		default: Date.now,
-		get: util.dateParse,
-		expires: config.notificationExpires
-	}
-}, module.exports.notificationOptions);
-
+	module.exports.notificationOptions
+);
 
 /**
  * Index declarations
@@ -38,7 +38,7 @@ NotificationSchema.index({ user: 1, created: -1 });
  */
 
 // Create a filtered copy for auditing
-NotificationSchema.statics.auditCopy = function(src) {
+NotificationSchema.statics.auditCopy = function (src) {
 	const toReturn = {};
 	src = src || {};
 

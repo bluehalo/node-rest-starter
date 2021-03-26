@@ -1,11 +1,8 @@
 'use strict';
 
-const
-	_ = require('lodash'),
-
+const _ = require('lodash'),
 	deps = require('../../../../dependencies'),
 	config = deps.config,
-
 	userService = require('../user.service'),
 	userAuthService = require('./user-authentication.service'),
 	userAuthorizationService = require('./user-authorization.service');
@@ -24,7 +21,6 @@ module.exports.userById = async (req, res, next, id) => {
 	return next();
 };
 
-
 /**
  * Require an authenticated user
  */
@@ -38,14 +34,22 @@ module.exports.requiresLogin = (req) => {
 		return userAuthService.authenticateAndLogin(req);
 	}
 	// Otherwise don't
-	return Promise.reject({ status: 401, type: 'no-login', message: 'User is not logged in' });
+	return Promise.reject({
+		status: 401,
+		type: 'no-login',
+		message: 'User is not logged in'
+	});
 };
 
 /**
  * Require the passed roles
  */
 module.exports.requiresRoles = (roles, rejectStatus) => {
-	rejectStatus = rejectStatus || { status: 403, type: 'missing-roles', message: 'User is missing required roles' };
+	rejectStatus = rejectStatus || {
+		status: 403,
+		type: 'missing-roles',
+		message: 'User is missing required roles'
+	};
 
 	return (req) => {
 		if (userAuthorizationService.hasRoles(req.user, roles)) {
@@ -57,10 +61,11 @@ module.exports.requiresRoles = (roles, rejectStatus) => {
 
 //Detects if the user has the user role
 module.exports.requiresUserRole = (req) => {
-	return module.exports.requiresRoles(
-			['user'],
-			{ status: 403, type: 'inactive', message: 'User account is inactive'}
-		)(req);
+	return module.exports.requiresRoles(['user'], {
+		status: 403,
+		type: 'inactive',
+		message: 'User account is inactive'
+	})(req);
 };
 
 //Detects if the user has the editor role
@@ -83,13 +88,25 @@ module.exports.requiresExternalRoles = (req, requiredRoles) => {
 	requiredRoles = requiredRoles || config.auth.requiredRoles;
 
 	// If there are required roles, check for them
-	if(req.user.bypassAccessCheck === false && null != config.auth && _.isArray(requiredRoles) && requiredRoles.length > 0) {
+	if (
+		req.user.bypassAccessCheck === false &&
+		null != config.auth &&
+		_.isArray(requiredRoles) &&
+		requiredRoles.length > 0
+	) {
 		// Get the user roles
-		const userRoles = (null != req.user && _.isArray(req.user.externalRoles))? req.user.externalRoles : [];
+		const userRoles =
+			null != req.user && _.isArray(req.user.externalRoles)
+				? req.user.externalRoles
+				: [];
 
 		// Reject if the user is missing required roles
 		if (_.difference(requiredRoles, userRoles).length > 0) {
-			return Promise.reject({ status: 403, type: 'noaccess', message: 'User is missing required roles' });
+			return Promise.reject({
+				status: 403,
+				type: 'noaccess',
+				message: 'User is missing required roles'
+			});
 		}
 		// Resolve if they had all the roles
 		return Promise.resolve();
@@ -114,5 +131,11 @@ module.exports.requiresOrganizationLevels = (req) => {
 		return Promise.resolve();
 	}
 
-	return (!_.isEmpty(req.user.organizationLevels)) ? Promise.resolve() : Promise.reject({ status: 403, type: 'requiredOrg', message: 'User must select organization levels.'});
+	return !_.isEmpty(req.user.organizationLevels)
+		? Promise.resolve()
+		: Promise.reject({
+				status: 403,
+				type: 'requiredOrg',
+				message: 'User must select organization levels.'
+		  });
 };

@@ -1,9 +1,7 @@
 'use strict';
 
-const
-	should = require('should'),
+const should = require('should'),
 	proxyquire = require('proxyquire'),
-
 	deps = require('../../../dependencies'),
 	config = deps.config;
 
@@ -42,11 +40,11 @@ describe('Feedback Service:', () => {
 	};
 
 	describe('sendFeedback', () => {
-		it('should reject invalid feedback', async() => {
+		it('should reject invalid feedback', async () => {
 			let error = null;
 			try {
 				await feedbackService.sendFeedback(user, {});
-			} catch(e) {
+			} catch (e) {
 				error = e;
 			}
 			should.exist(error);
@@ -54,7 +52,7 @@ describe('Feedback Service:', () => {
 			error.message.should.equal('Invalid submission.');
 		});
 
-		it('should create mailOptions properly', async() => {
+		it('should create mailOptions properly', async () => {
 			const feedback = {
 				body: 'feedback body',
 				type: 'type',
@@ -80,9 +78,10 @@ FOOTER
 			mailOptions.bcc.should.equal(config.coreEmails.feedbackEmail.bcc);
 			mailOptions.from.should.equal(config.coreEmails.default.from);
 			mailOptions.replyTo.should.equal(config.coreEmails.default.replyTo);
-			mailOptions.subject.should.equal(`${config.app.title}: Feedback Submitted`);
+			mailOptions.subject.should.equal(
+				`${config.app.title}: Feedback Submitted`
+			);
 			mailOptions.html.should.equal(expectedEmailContent);
 		});
 	});
-
 });

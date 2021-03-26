@@ -1,38 +1,41 @@
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	moment = require('moment'),
-
 	deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
 	emailService = deps.emailService,
 	auditService = deps.auditService,
 	logger = deps.logger,
-
 	User = dbs.admin.model('User');
 
 async function sendEmail(user, emailConfig) {
 	const numOfDays = moment().diff(user.lastLogin, 'days');
 	try {
-		const mailOptions = await emailService.generateMailOptions(user, null, emailConfig, {
-			daysAgo: numOfDays
-		}, {}, {
-			to: user.email
-		});
+		const mailOptions = await emailService.generateMailOptions(
+			user,
+			null,
+			emailConfig,
+			{
+				daysAgo: numOfDays
+			},
+			{},
+			{
+				to: user.email
+			}
+		);
 		await emailService.sendMail(mailOptions);
 		logger.debug('Sent team request email');
 	} catch (error) {
 		// Log the error but this shouldn't block
-		logger.error({err: error}, 'Failure sending email.');
+		logger.error({ err: error }, 'Failure sending email.');
 	}
 }
 
 async function deactivationAlert(dQuery) {
 	const deactivatedUsers = await User.find(dQuery).exec();
 	if (_.isArray(deactivatedUsers)) {
-
 		const promises = deactivatedUsers.map((user) => {
 			const originalUser = User.auditCopy(user);
 
@@ -41,7 +44,14 @@ async function deactivationAlert(dQuery) {
 
 			return user.save().then(() => {
 				const emailPromise = sendEmail(user, config.coreEmails.userDeactivate);
-				const auditPromise = auditService.audit('deactivation due to inactivity','user','deactivation', null, {before: originalUser, after: User.auditCopy(user)}, null);
+				const auditPromise = auditService.audit(
+					'deactivation due to inactivity',
+					'user',
+					'deactivation',
+					null,
+					{ before: originalUser, after: User.auditCopy(user) },
+					null
+				);
 				return Promise.all([emailPromise, auditPromise]);
 			});
 		});
@@ -49,7 +59,6 @@ async function deactivationAlert(dQuery) {
 		return Promise.all(promises);
 	}
 }
-
 
 async function inactivityAlert(dQuery) {
 	const inactiveUsers = await User.find(dQuery).exec();
@@ -64,11 +73,10 @@ async function inactivityAlert(dQuery) {
 /**
  * alert users whose accounts have been inactive for 30-89 days. Remove accounts that have been inactive for 90+ days
  */
-module.exports.run = function(serviceConfig) {
-
+module.exports.run = function (serviceConfig) {
 	const alertQueries = serviceConfig.alertInterval.map((interval) => ({
 		lastLogin: {
-			$lte:  new Date(Date.now() - interval).toISOString(),
+			$lte: new Date(Date.now() - interval).toISOString(),
 			$gt: new Date(Date.now() - interval - 86400000).toISOString()
 		},
 		'roles.user': true
@@ -84,12 +92,18 @@ module.exports.run = function(serviceConfig) {
 	const deactivatePromise = deactivationAlert(deactivateQuery);
 	const inactivityPromise = inactivityAlert(alertQueries);
 
-	return Promise.all([deactivatePromise, inactivityPromise]).then((data) => {
-		logger.debug('Both promises have resolved', data);
-	}).catch((err) => {
-		logger.error(`Failed scheduled run to deactivate inactive users. Error=${JSON.stringify(err)}`);
-		return Promise.reject(err);
-	});
+	return Promise.all([deactivatePromise, inactivityPromise])
+		.then((data) => {
+			logger.debug('Both promises have resolved', data);
+		})
+		.catch((err) => {
+			logger.error(
+				`Failed scheduled run to deactivate inactive users. Error=${JSON.stringify(
+					err
+				)}`
+			);
+			return Promise.reject(err);
+		});
 };
 
 module.exports.sendEmail = sendEmail;

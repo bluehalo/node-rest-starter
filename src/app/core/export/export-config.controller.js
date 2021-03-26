@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	os = require('os'),
+const os = require('os'),
 	streams = require('stream'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
@@ -9,7 +8,6 @@ const
 	logger = deps.logger,
 	auditService = deps.auditService,
 	csvStream = deps.csvStream,
-
 	exportConfigService = require('./export-config.service'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	ExportConfig = dbs.admin.model('ExportConfig');
@@ -25,24 +23,41 @@ exports.requestExport = (req, res) => {
 		req.body.config.q = JSON.stringify(req.body.config.q);
 	}
 	if (null == req.body.type) {
-		return utilService.handleErrorResponse(res, { status: 400, type: 'missing export type', message: 'Missing export type.'});
+		return utilService.handleErrorResponse(res, {
+			status: 400,
+			type: 'missing export type',
+			message: 'Missing export type.'
+		});
 	}
 
-	exportConfigService.generateConfig(req)
-	.then((generatedConfig) => {
-			return auditService.audit(`${req.body.type} config created`, 'export', 'create', TeamMember.auditCopy(req.user, utilService.getHeaderField(req.headers, 'x-real-ip')), ExportConfig.auditCopy(generatedConfig), req.headers)
+	exportConfigService
+		.generateConfig(req)
+		.then((generatedConfig) => {
+			return auditService
+				.audit(
+					`${req.body.type} config created`,
+					'export',
+					'create',
+					TeamMember.auditCopy(
+						req.user,
+						utilService.getHeaderField(req.headers, 'x-real-ip')
+					),
+					ExportConfig.auditCopy(generatedConfig),
+					req.headers
+				)
 				.then(() => {
 					return Promise.resolve(generatedConfig);
 				});
-		}).then(
+		})
+		.then(
 			(result) => {
-				res.status(200).json({ _id: result._id});
+				res.status(200).json({ _id: result._id });
 			},
 			(err) => {
 				utilService.handleErrorResponse(res, err);
-			});
+			}
+		);
 };
-
 
 /**
  * Export a CSV file with rows derived from an array of objects or a readable stream
@@ -173,10 +188,7 @@ const exportStream = (req, res, fileName, contentType, stream) => {
 
 	// If an error occurs, close the stream
 	stream.on('error', (err) => {
-		logger.error(
-			err,
-			`${contentType} export error occurred`
-		);
+		logger.error(err, `${contentType} export error occurred`);
 
 		stream.destroy();
 
@@ -202,4 +214,3 @@ const exportStream = (req, res, fileName, contentType, stream) => {
 		res.end();
 	});
 };
-

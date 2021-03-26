@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	mongoose = require('mongoose'),
+const mongoose = require('mongoose'),
 	getterPlugin = require('../../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../../dependencies'),
@@ -36,7 +35,6 @@ const CacheEntrySchema = new mongoose.Schema({
 CacheEntrySchema.plugin(getterPlugin);
 CacheEntrySchema.plugin(pagingSearchPlugin);
 
-
 /**
  * Index declarations
  */
@@ -44,23 +42,21 @@ CacheEntrySchema.plugin(pagingSearchPlugin);
 CacheEntrySchema.index({ ts: -1 });
 CacheEntrySchema.index({ key: 1 });
 
-
 /**
  * Lifecycle hooks
  */
-
 
 /**
  * Static Methods
  */
 
-CacheEntrySchema.statics.fullCopy = function(entry) {
+CacheEntrySchema.statics.fullCopy = function (entry) {
 	/**
 	 * @type {Object.<string, any>}
 	 */
 	let toReturn = null;
 
-	if(null != entry){
+	if (null != entry) {
 		toReturn = {};
 
 		toReturn._id = entry._id;

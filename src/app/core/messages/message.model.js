@@ -1,9 +1,7 @@
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	mongoose = require('mongoose'),
-
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
@@ -75,8 +73,11 @@ DismissedMessageSchema.plugin(getterPlugin);
 
 // MessageSchema.index({created: -1});
 const expireAfterSeconds = _.get(config, 'messages.expireSeconds', 2592000); // default to 30 days
-DismissedMessageSchema.index({ created: -1 }, { expireAfterSeconds: expireAfterSeconds });
-DismissedMessageSchema.index({ userId: 1});
+DismissedMessageSchema.index(
+	{ created: -1 },
+	{ expireAfterSeconds: expireAfterSeconds }
+);
+DismissedMessageSchema.index({ userId: 1 });
 
 // Text-search index
 MessageSchema.index({ title: 'text', body: 'text', type: 'text' });
@@ -92,7 +93,7 @@ MessageSchema.index({ title: 'text', body: 'text', type: 'text' });
 /**
  * Static Methods
  */
-MessageSchema.statics.auditCopy = function(src) {
+MessageSchema.statics.auditCopy = function (src) {
 	const newMessage = {};
 	src = src || {};
 
@@ -101,13 +102,13 @@ MessageSchema.statics.auditCopy = function(src) {
 	newMessage.body = src.body;
 	newMessage.ackRequired = src.ackRequired;
 	newMessage.created = src.created;
-	newMessage.updated  = src.updated;
+	newMessage.updated = src.updated;
 	newMessage._id = src._id;
 
 	return newMessage;
 };
 
-MessageSchema.statics.fullCopy = function(src) {
+MessageSchema.statics.fullCopy = function (src) {
 	const newMessage = {};
 	src = src || {};
 
@@ -116,13 +117,13 @@ MessageSchema.statics.fullCopy = function(src) {
 	newMessage.body = src.body;
 	newMessage.ackRequired = src.ackRequired;
 	newMessage.created = src.created;
-	newMessage.updated  = src.updated;
+	newMessage.updated = src.updated;
 	newMessage._id = src._id;
 
 	return newMessage;
 };
 
-DismissedMessageSchema.statics.auditCopy = function(src) {
+DismissedMessageSchema.statics.auditCopy = function (src) {
 	const dismissedMessage = {};
 	src = src || {};
 
@@ -138,4 +139,8 @@ DismissedMessageSchema.statics.auditCopy = function(src) {
  * Model Registration
  */
 dbs.admin.model('Message', MessageSchema, 'messages');
-dbs.admin.model('DismissedMessage', DismissedMessageSchema, 'messages.dismissed');
+dbs.admin.model(
+	'DismissedMessage',
+	DismissedMessageSchema,
+	'messages.dismissed'
+);

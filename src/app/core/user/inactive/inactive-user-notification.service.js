@@ -10,16 +10,21 @@ const services = [
 	}
 ];
 
-module.exports.run = function(config) {
-
-	const notifyInactiveUsers = services.map((service) => service.path.run(config).then(() => {
-		logger.debug(`Ran service=${service.name} to email inactive users`);
-	}).catch((err) => {
-		logger.error(`Error running service=${service.name}. Error=${JSON.stringify(err)}`);
-		// Ignore any errors notifying inactive users by returning a resolved promise
-		return Promise.resolve();
-	}));
+module.exports.run = function (config) {
+	const notifyInactiveUsers = services.map((service) =>
+		service.path
+			.run(config)
+			.then(() => {
+				logger.debug(`Ran service=${service.name} to email inactive users`);
+			})
+			.catch((err) => {
+				logger.error(
+					`Error running service=${service.name}. Error=${JSON.stringify(err)}`
+				);
+				// Ignore any errors notifying inactive users by returning a resolved promise
+				return Promise.resolve();
+			})
+	);
 
 	return Promise.all(notifyInactiveUsers);
 };
-

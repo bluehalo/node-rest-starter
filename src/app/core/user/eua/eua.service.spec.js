@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	mongoose = require('mongoose'),
+const mongoose = require('mongoose'),
 	should = require('should'),
 	euaService = require('./eua.service'),
 	deps = require('../../../../dependencies'),
@@ -12,13 +11,18 @@ const
  * Unit tests
  */
 describe('EUA Service:', () => {
-
 	beforeEach(async () => {
-		await Promise.all([User.deleteMany().exec(), UserAgreement.deleteMany().exec()]);
+		await Promise.all([
+			User.deleteMany().exec(),
+			UserAgreement.deleteMany().exec()
+		]);
 	});
 
 	afterEach(async () => {
-		await Promise.all([User.deleteMany().exec(), UserAgreement.deleteMany().exec()]);
+		await Promise.all([
+			User.deleteMany().exec(),
+			UserAgreement.deleteMany().exec()
+		]);
 	});
 
 	describe('create', () => {
@@ -36,7 +40,9 @@ describe('EUA Service:', () => {
 			eua.text.should.equal('Text');
 			should.exist(eua.created);
 			should.exist(eua.updated);
-			(eua.created === eua.updated).should.be.true('expected eua.created} to be equal to eua.updated');
+			(eua.created === eua.updated).should.be.true(
+				'expected eua.created} to be equal to eua.updated'
+			);
 
 			// Re-query created eua and verify properties
 			eua = await UserAgreement.findById(eua._id);
@@ -45,7 +51,9 @@ describe('EUA Service:', () => {
 			eua.text.should.equal('Text');
 			should.exist(eua.created);
 			should.exist(eua.updated);
-			(eua.created === eua.updated).should.be.true('expected eua.created} to be equal to eua.updated');
+			(eua.created === eua.updated).should.be.true(
+				'expected eua.created} to be equal to eua.updated'
+			);
 		});
 	});
 
@@ -67,7 +75,9 @@ describe('EUA Service:', () => {
 
 		it('read returns null for invalid id', async () => {
 			// Read eua
-			const eua = await euaService.read(mongoose.Types.ObjectId('012345678912'));
+			const eua = await euaService.read(
+				mongoose.Types.ObjectId('012345678912')
+			);
 			should.not.exist(eua);
 		});
 	});
@@ -254,6 +264,5 @@ describe('EUA Service:', () => {
 			should.exist(user.acceptedEua);
 			user.acceptedEua.should.be.greaterThan(now);
 		});
-
 	});
 });

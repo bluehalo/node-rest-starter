@@ -1,16 +1,13 @@
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	mongoose = require('mongoose'),
-
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	util = deps.utilService,
 	Resource = dbs.admin.model('Resource'),
 	Team = dbs.admin.model('Team'),
 	User = dbs.admin.model('User'),
-
 	teamsService = require('../teams/teams.service');
 
 function populateOwnerAndCreatorInfo(search) {
@@ -20,36 +17,44 @@ function populateOwnerAndCreatorInfo(search) {
 
 	if (null == search.owner || search.owner.type !== 'team') {
 		ownerPromise = Promise.resolve(search);
-	}
-	else {
-		const ownerId = _.isString(search.owner.id) ? mongoose.Types.ObjectId(search.owner.id) : search.owner.id;
-		ownerPromise = Team.findOne({ _id: ownerId }).exec().then((ownerObj) => {
-			if (null != ownerObj) {
-				search.owner.name = ownerObj.name;
-			}
-			return search;
-		});
+	} else {
+		const ownerId = _.isString(search.owner.id)
+			? mongoose.Types.ObjectId(search.owner.id)
+			: search.owner.id;
+		ownerPromise = Team.findOne({ _id: ownerId })
+			.exec()
+			.then((ownerObj) => {
+				if (null != ownerObj) {
+					search.owner.name = ownerObj.name;
+				}
+				return search;
+			});
 	}
 
 	return ownerPromise.then((s) => {
 		if (null == s.creator) {
 			return Promise.resolve(s);
-		}
-		else {
-			const creatorId = _.isString(s.creator) ? mongoose.Types.ObjectId(s.creator) : s.creator;
-			return User.findOne({ _id: creatorId }).exec().then((creatorObj) => {
-				if (null != creatorObj) {
-					s.creatorName = creatorObj.name;
-					s.creatorId = creatorId;
-				}
-				return s;
-			});
+		} else {
+			const creatorId = _.isString(s.creator)
+				? mongoose.Types.ObjectId(s.creator)
+				: s.creator;
+			return User.findOne({ _id: creatorId })
+				.exec()
+				.then((creatorObj) => {
+					if (null != creatorObj) {
+						s.creatorName = creatorObj.name;
+						s.creatorId = creatorId;
+					}
+					return s;
+				});
 		}
 	});
 }
 
 function populateMultiOwnerAndCreatorInfo(searches) {
-	return Promise.all(searches.map((search) => populateOwnerAndCreatorInfo(search)));
+	return Promise.all(
+		searches.map((search) => populateOwnerAndCreatorInfo(search))
+	);
 }
 
 function doSearch(query, sortParams, page, limit) {
@@ -57,7 +62,12 @@ function doSearch(query, sortParams, page, limit) {
 
 	return Promise.all([
 		Resource.find(query).countDocuments().exec(),
-		Resource.find(query).sort(sortParams).collation({caseLevel: true, locale: 'en'}).skip(offset).limit(limit).exec()
+		Resource.find(query)
+			.sort(sortParams)
+			.collation({ caseLevel: true, locale: 'en' })
+			.skip(offset)
+			.limit(limit)
+			.exec()
 	]).then(([countResult, searchResult]) => {
 		return util.getPagingResults(limit, page, countResult, searchResult);
 	});
@@ -71,7 +81,9 @@ function searchResources(query, queryParams, user) {
 	let dir = queryParams.dir;
 
 	// Sort can be null, but if it's non-null, dir defaults to DESC
-	if (null != sort && dir == null) { dir = 'ASC'; }
+	if (null != sort && dir == null) {
+		dir = 'ASC';
+	}
 
 	let sortParams;
 	if (null != sort) {
@@ -83,25 +95,28 @@ function searchResources(query, queryParams, user) {
 	// If user is not an admin, constrain the results to the user's teams
 	if (null == user.roles || !user.roles.admin) {
 		searchPromise = teamsService.getMemberTeamIds(user).then((teamIds) => {
-			teamIds = teamIds.map((teamId) => _.isString(teamId) ? mongoose.Types.ObjectId(teamId) : teamId);
+			teamIds = teamIds.map((teamId) =>
+				_.isString(teamId) ? mongoose.Types.ObjectId(teamId) : teamId
+			);
 
 			query.$or = [
-				{ 'owner.type': 'team', 'owner._id': { $in: teamIds }},
+				{ 'owner.type': 'team', 'owner._id': { $in: teamIds } },
 				{ 'owner.type': 'user', 'owner._id': user._id }
 			];
 
 			return doSearch(query, sortParams, page, limit);
 		});
-	}
-	else {
+	} else {
 		searchPromise = doSearch(query, sortParams, page, limit);
 	}
 
 	return searchPromise.then((results) => {
-		return populateMultiOwnerAndCreatorInfo(results.elements).then((populated) => {
-			results.elements = populated;
-			return results;
-		});
+		return populateMultiOwnerAndCreatorInfo(results.elements).then(
+			(populated) => {
+				results.elements = populated;
+				return results;
+			}
+		);
 	});
 }
 
@@ -125,7 +140,9 @@ async function constrainTagResults(teamId, user) {
 	if (null == user.roles || !user.roles.admin) {
 		// If user is not admin, constrain results to user's teams
 		let teamIds = await teamsService.getMemberTeamIds(user);
-		teamIds = teamIds.map((_teamId) => _.isString(_teamId) ? mongoose.Types.ObjectId(_teamId): _teamId);
+		teamIds = teamIds.map((_teamId) =>
+			_.isString(_teamId) ? mongoose.Types.ObjectId(_teamId) : _teamId
+		);
 
 		return {
 			$or: [
@@ -134,7 +151,7 @@ async function constrainTagResults(teamId, user) {
 			]
 		};
 	}
-	return Promise.resolve( {});
+	return Promise.resolve({});
 }
 
 async function constrainTagResultsAggregation(teamId, user) {
@@ -158,59 +175,67 @@ function searchTagsInResources(teamId, search, queryParams, user) {
 	const aggregationPipeline = [];
 
 	// Constrain results
-	return constrainTagResultsAggregation(teamId, user).then((constrainPipeline) => {
-		aggregationPipeline.push(...aggregationPipeline, ...constrainPipeline);
+	return constrainTagResultsAggregation(teamId, user).then(
+		(constrainPipeline) => {
+			aggregationPipeline.push(...aggregationPipeline, ...constrainPipeline);
 
-		aggregationPipeline.push(
-			...aggregationPipeline,
-			{ $unwind: '$tags' },
-			{ $group: { _id: '$tags' } }
-		);
+			aggregationPipeline.push(
+				...aggregationPipeline,
+				{ $unwind: '$tags' },
+				{ $group: { _id: '$tags' } }
+			);
 
-		if (null != search) {
-			aggregationPipeline.push({ $match: { _id: new RegExp(search, 'i') } });
+			if (null != search) {
+				aggregationPipeline.push({ $match: { _id: new RegExp(search, 'i') } });
+			}
+
+			const countAggregation = aggregationPipeline.concat([
+				{ $group: { _id: null, total: { $sum: 1 } } }
+			]);
+
+			const resultAggregation = aggregationPipeline.concat([
+				{ $sort: { _id: sortDir === 'ASC' ? 1 : -1 } },
+				{ $skip: offset },
+				{ $limit: limit }
+			]);
+
+			return doSearchTags(countAggregation, resultAggregation, page, limit);
 		}
-
-		const countAggregation = aggregationPipeline.concat([
-			{$group: {_id: null, total: { $sum: 1} } }
-		]);
-
-		const resultAggregation = aggregationPipeline.concat([
-			{ $sort: { _id: sortDir === 'ASC' ? 1 : -1 } },
-			{ $skip: offset },
-			{ $limit: limit }
-		]);
-
-		return doSearchTags(countAggregation, resultAggregation, page, limit);
-	});
+	);
 }
 
 function updateTagInResources(teamId, tagName, newTagName, user) {
 	if (null == tagName) {
-		return Promise.reject({status: 404, message: 'Invalid tag name'});
+		return Promise.reject({ status: 404, message: 'Invalid tag name' });
 	}
 
 	if (null == newTagName) {
-		return Promise.reject({status: 404, message: 'Cannot set tag name to null'});
+		return Promise.reject({
+			status: 404,
+			message: 'Cannot set tag name to null'
+		});
 	}
 
 	let finalQuery;
-	return constrainTagResults(teamId, user).then((query) => {
-		finalQuery = {
-			$and: [
-				query,
-				{ tags: { $in: [ tagName ] } }
-			]
-		};
-		return Resource.updateMany(finalQuery, { $addToSet: { tags: newTagName } }).exec();
-	}).then(() => {
-		return Resource.updateMany(finalQuery, { $pull: { tags: tagName } }).exec();
-	});
+	return constrainTagResults(teamId, user)
+		.then((query) => {
+			finalQuery = {
+				$and: [query, { tags: { $in: [tagName] } }]
+			};
+			return Resource.updateMany(finalQuery, {
+				$addToSet: { tags: newTagName }
+			}).exec();
+		})
+		.then(() => {
+			return Resource.updateMany(finalQuery, {
+				$pull: { tags: tagName }
+			}).exec();
+		});
 }
 
 function deleteTagFromResources(teamId, tagName, user) {
 	if (null == tagName) {
-		return Promise.reject({status: 404, message: 'Invalid tag name'});
+		return Promise.reject({ status: 404, message: 'Invalid tag name' });
 	}
 
 	return constrainTagResults(teamId, user).then((query) => {
@@ -221,29 +246,36 @@ function deleteTagFromResources(teamId, tagName, user) {
 function filterResourcesByAccess(ids, user) {
 	if (!_.isArray(ids)) {
 		return Promise.resolve([]);
-	}
-	else if (null == user.roles || user.roles.admin !== true) {
+	} else if (null == user.roles || user.roles.admin !== true) {
 		// If user is not admin, perform the filtering
-		return teamsService.getMemberTeamIds(user).then((teamIds) => {
-			// Get teams user has belongs to
-			teamIds = teamIds.map((teamId) => _.isString(teamId) ? mongoose.Types.ObjectId(teamId): teamId);
+		return teamsService
+			.getMemberTeamIds(user)
+			.then((teamIds) => {
+				// Get teams user has belongs to
+				teamIds = teamIds.map((teamId) =>
+					_.isString(teamId) ? mongoose.Types.ObjectId(teamId) : teamId
+				);
 
-			const query = {
-				$and: [
-					{ _id: { $in: ids } },
-					{ $or: [
-						{'owner.type': 'team', 'owner._id': {$in: teamIds}},
-						{'owner.type': 'user', 'owner._id': user._id}
-					]}
-				]
-			};
+				const query = {
+					$and: [
+						{ _id: { $in: ids } },
+						{
+							$or: [
+								{ 'owner.type': 'team', 'owner._id': { $in: teamIds } },
+								{ 'owner.type': 'user', 'owner._id': user._id }
+							]
+						}
+					]
+				};
 
-			return Resource.find(query).exec();
-		}).then((resources) => {
-			return (null != resources) ? Promise.resolve(resources.map((resource) => resource._id)) : Promise.resolve([]);
-		});
-	}
-	else {
+				return Resource.find(query).exec();
+			})
+			.then((resources) => {
+				return null != resources
+					? Promise.resolve(resources.map((resource) => resource._id))
+					: Promise.resolve([]);
+			});
+	} else {
 		return Promise.resolve(ids);
 	}
 }
@@ -261,7 +293,10 @@ function find(filter, projection, lean) {
 }
 
 const deleteResourcesWithOwner = (ownerId, ownerType) => {
-	return Resource.deleteMany({ 'owner.type': ownerType, 'owner._id': ownerId }).exec();
+	return Resource.deleteMany({
+		'owner.type': ownerType,
+		'owner._id': ownerId
+	}).exec();
 };
 
 module.exports = {

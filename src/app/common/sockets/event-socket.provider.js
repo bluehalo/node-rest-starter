@@ -1,12 +1,9 @@
 'use strict';
 
-const
-	_ = require('lodash'),
-
+const _ = require('lodash'),
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	logger = deps.logger,
-
 	// Default event handler
 	eventEmitter = require('../event/event-emitter.service'),
 	BaseSocket = require('./base-socket.provider');
@@ -18,7 +15,8 @@ class EventSocket extends BaseSocket {
 	constructor(socketConfig) {
 		super(socketConfig);
 		this._emitType = null;
-		this._emitRateMs = socketConfig.emitRateMs < 0 ? 0 : (+socketConfig.emitRateMs || 0);
+		this._emitRateMs =
+			socketConfig.emitRateMs < 0 ? 0 : +socketConfig.emitRateMs || 0;
 	}
 
 	/**
@@ -61,8 +59,13 @@ class EventSocket extends BaseSocket {
 			return time;
 		}
 
-		if (logger.debug()) { // is debug enabled?
-			logger.debug('%s: Unknown time for message: %s', this.name, JSON.stringify(json));
+		if (logger.debug()) {
+			// is debug enabled?
+			logger.debug(
+				'%s: Unknown time for message: %s',
+				this.name,
+				JSON.stringify(json)
+			);
 		}
 
 		return null;
@@ -81,8 +84,14 @@ class EventSocket extends BaseSocket {
 			const now = Date.now();
 			const messageTime = this.getMessageTime(json);
 			if (null != messageTime) {
-				if (messageTime + (ignoreOlderThan * 1000) < now) {
-					logger.debug('%s: Message is too old: %d is more than %d seconds older than %d', this.name, messageTime, ignoreOlderThan, now);
+				if (messageTime + ignoreOlderThan * 1000 < now) {
+					logger.debug(
+						'%s: Message is too old: %d is more than %d seconds older than %d',
+						this.name,
+						messageTime,
+						ignoreOlderThan,
+						now
+					);
 					return true;
 				}
 			}
@@ -115,7 +124,10 @@ class EventSocket extends BaseSocket {
 		// Simple throttling is done here, if enabled
 
 		if (this._emitRateMs > 0) {
-			this.emitterFunc = _.throttle(this.socketPayloadHandler, this._emitRateMs).bind(this, eventName);
+			this.emitterFunc = _.throttle(
+				this.socketPayloadHandler,
+				this._emitRateMs
+			).bind(this, eventName);
 		} else {
 			this.emitterFunc = this.socketPayloadHandler.bind(this, eventName);
 		}
@@ -129,7 +141,9 @@ class EventSocket extends BaseSocket {
 	 */
 	unsubscribe(eventName) {
 		if (typeof this.emitterFunc === 'function') {
-			eventEmitter.getEventEmitter().removeListener(eventName, this.emitterFunc);
+			eventEmitter
+				.getEventEmitter()
+				.removeListener(eventName, this.emitterFunc);
 		}
 	}
 
@@ -141,29 +155,42 @@ class EventSocket extends BaseSocket {
 		}
 
 		const self = this;
-		logger.debug('%s: Received Event Message for event %s', this.name, eventName);
+		logger.debug(
+			'%s: Received Event Message for event %s',
+			this.name,
+			eventName
+		);
 		try {
 			// Unwrap the payload
 			if (null != message) {
-
 				// Ignore any payloads that don't pass the filter check.
 				if (self.ignorePayload(message)) {
 					return;
 				}
 
 				// The message can be either an object or a promise for an object
-				Promise.all([message]).then(([msg]) => {
-					if (null != msg) {
-						self.emitMessage(self.getEmitType(), msg);
-					}
-				}).catch(function (err) {
-					if (logger.debug()) {
-						logger.debug('Ignoring payload for user %s: %s', this.getUserId(), err);
-					}
-				});
+				Promise.all([message])
+					.then(([msg]) => {
+						if (null != msg) {
+							self.emitMessage(self.getEmitType(), msg);
+						}
+					})
+					.catch(function (err) {
+						if (logger.debug()) {
+							logger.debug(
+								'Ignoring payload for user %s: %s',
+								this.getUserId(),
+								err
+							);
+						}
+					});
 			}
 		} catch (e) {
-			logger.error({err: e, msg: message.value}, '%s: Error parsing payload body.', this.name);
+			logger.error(
+				{ err: e, msg: message.value },
+				'%s: Error parsing payload body.',
+				this.name
+			);
 		}
 	}
 }

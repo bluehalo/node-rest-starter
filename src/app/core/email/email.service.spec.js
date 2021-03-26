@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	proxyquire = require('proxyquire'),
+const proxyquire = require('proxyquire'),
 	should = require('should'),
 	uuid = require('uuid'),
 	_ = require('lodash'),
@@ -17,9 +16,7 @@ const
  */
 
 function createSubjectUnderTest(emailServiceConfig) {
-	const stubConfig = _.merge({
-
-	}, emailServiceConfig);
+	const stubConfig = _.merge({}, emailServiceConfig);
 
 	const stubs = {};
 	stubs['../../../dependencies'] = { config: stubConfig };
@@ -27,9 +24,7 @@ function createSubjectUnderTest(emailServiceConfig) {
 }
 
 describe('Email Service:', () => {
-
 	describe('getMissingMailOptions:', () => {
-
 		it('should find required missing fields', () => {
 			const emailService = createSubjectUnderTest();
 
@@ -40,60 +35,76 @@ describe('Email Service:', () => {
 			missing[2].should.equal('"subject"');
 			missing[3].should.equal('("text" or "html")');
 
-			missing = emailService.getMissingMailOptions({to: null});
+			missing = emailService.getMissingMailOptions({ to: null });
 			missing.length.should.equal(4);
 			missing[0].should.equal('("to" or "cc" or "bcc")');
 			missing[1].should.equal('"from"');
 			missing[2].should.equal('"subject"');
 			missing[3].should.equal('("text" or "html")');
 
-			missing = emailService.getMissingMailOptions({to: undefined});
+			missing = emailService.getMissingMailOptions({ to: undefined });
 			missing.length.should.equal(4);
 			missing[0].should.equal('("to" or "cc" or "bcc")');
 			missing[1].should.equal('"from"');
 			missing[2].should.equal('"subject"');
 			missing[3].should.equal('("text" or "html")');
 
-			missing = emailService.getMissingMailOptions({to: ''});
+			missing = emailService.getMissingMailOptions({ to: '' });
 			missing.length.should.equal(4);
 			missing[0].should.equal('("to" or "cc" or "bcc")');
 			missing[1].should.equal('"from"');
 			missing[2].should.equal('"subject"');
 			missing[3].should.equal('("text" or "html")');
 
-			missing = emailService.getMissingMailOptions({to: null, from: '', html: null});
+			missing = emailService.getMissingMailOptions({
+				to: null,
+				from: '',
+				html: null
+			});
 			missing.length.should.equal(4);
 			missing[0].should.equal('("to" or "cc" or "bcc")');
 			missing[1].should.equal('"from"');
 			missing[2].should.equal('"subject"');
 			missing[3].should.equal('("text" or "html")');
 
-			missing = emailService.getMissingMailOptions({to: 'recipient', from: '', html: null});
+			missing = emailService.getMissingMailOptions({
+				to: 'recipient',
+				from: '',
+				html: null
+			});
 			missing.length.should.equal(3);
 			missing[0].should.equal('"from"');
 			missing[1].should.equal('"subject"');
 			missing[2].should.equal('("text" or "html")');
 
-			missing = emailService.getMissingMailOptions({to: 'recipient'});
+			missing = emailService.getMissingMailOptions({ to: 'recipient' });
 			missing.length.should.equal(3);
 			missing[0].should.equal('"from"');
 			missing[1].should.equal('"subject"');
 			missing[2].should.equal('("text" or "html")');
 
-			missing = emailService.getMissingMailOptions({from: 'sender'});
+			missing = emailService.getMissingMailOptions({ from: 'sender' });
 			missing.length.should.equal(3);
 			missing[0].should.equal('("to" or "cc" or "bcc")');
 			missing[1].should.equal('"subject"');
 			missing[2].should.equal('("text" or "html")');
 
-			missing = emailService.getMissingMailOptions({to: 'recipient', from: 'sender', html: '("text" or "html")'});
+			missing = emailService.getMissingMailOptions({
+				to: 'recipient',
+				from: 'sender',
+				html: '("text" or "html")'
+			});
 			missing.length.should.equal(1);
 			missing[0].should.equal('"subject"');
 
-			missing = emailService.getMissingMailOptions({to: 'recipient', from: 'sender', html: '("text" or "html")', subject: '"subject"'});
+			missing = emailService.getMissingMailOptions({
+				to: 'recipient',
+				from: 'sender',
+				html: '("text" or "html")',
+				subject: '"subject"'
+			});
 			missing.length.should.equal(0);
 		});
-
 	});
 
 	describe('sendMail:', () => {
@@ -115,7 +126,7 @@ describe('Email Service:', () => {
 		it('should fail for null mailOptions', async () => {
 			const emailService = createSubjectUnderTest({
 				mailer: {
-					provider:  './src/app/core/email/providers/log-email.provider.js'
+					provider: './src/app/core/email/providers/log-email.provider.js'
 				}
 			});
 
@@ -134,7 +145,7 @@ describe('Email Service:', () => {
 		it('should fail for incomplete mailOptions', async () => {
 			const emailService = createSubjectUnderTest({
 				mailer: {
-					provider:  './src/app/core/email/providers/log-email.provider.js'
+					provider: './src/app/core/email/providers/log-email.provider.js'
 				}
 			});
 
@@ -146,16 +157,23 @@ describe('Email Service:', () => {
 			}
 			error.should.not.be.null();
 			error.message.should.not.be.null();
-			error.message.should.equal('The following required values were not specified in mailOptions: "subject"');
+			error.message.should.equal(
+				'The following required values were not specified in mailOptions: "subject"'
+			);
 		});
 		it('should work', async () => {
 			const emailService = createSubjectUnderTest({
 				mailer: {
-					provider:  './src/app/core/email/providers/log-email.provider.js'
+					provider: './src/app/core/email/providers/log-email.provider.js'
 				}
 			});
 
-			await emailService.sendMail({ to: 'to', from: 'from', html: 'html', subject: 'test' });
+			await emailService.sendMail({
+				to: 'to',
+				from: 'from',
+				html: 'html',
+				subject: 'test'
+			});
 		});
 	});
 
@@ -187,16 +205,22 @@ describe('Email Service:', () => {
 <p>The ${config.app.title} Support Team</p><p></p>
 ${footer}`;
 
-			const subject = await emailService.buildEmailContent('src/app/core/user/templates/user-welcome-email.server.view.html', user);
+			const subject = await emailService.buildEmailContent(
+				'src/app/core/user/templates/user-welcome-email.server.view.html',
+				user
+			);
 			should.exist(subject);
 			subject.should.equal(expectedResult);
 		});
 
-		it('should throw error for invalid template path', async() => {
+		it('should throw error for invalid template path', async () => {
 			let error;
 			let subject;
 			try {
-				subject = await emailService.buildEmailContent('src/app/core/user/templates/file-that-doesnt-exist.view.html', user);
+				subject = await emailService.buildEmailContent(
+					'src/app/core/user/templates/file-that-doesnt-exist.view.html',
+					user
+				);
 			} catch (err) {
 				error = err;
 			}
@@ -215,11 +239,18 @@ ${footer}`;
 				}
 			});
 
-			const subject = emailService.buildEmailSubject('{{ subjectPrefix }} subject {{ otherVariable }}', {}, { otherVariable: '2'});
+			const subject = emailService.buildEmailSubject(
+				'{{ subjectPrefix }} subject {{ otherVariable }}',
+				{},
+				{ otherVariable: '2' }
+			);
 			should.exist(subject);
 			subject.should.equal('(pre) subject 2');
 
-			const subject2 = emailService.buildEmailSubject('{{ subjectPrefix }} subject {{ otherVariable }}', {});
+			const subject2 = emailService.buildEmailSubject(
+				'{{ subjectPrefix }} subject {{ otherVariable }}',
+				{}
+			);
 			should.exist(subject2);
 			subject2.should.equal('(pre) subject ');
 		});
@@ -242,13 +273,18 @@ ${footer}`;
 			name: 'test'
 		};
 
-		it('should return merged mail options', async() => {
+		it('should return merged mail options', async () => {
 			const emailConfig = {
 				subject: 'Test',
-				templatePath: 'src/app/core/user/templates/user-welcome-email.server.view.html'
+				templatePath:
+					'src/app/core/user/templates/user-welcome-email.server.view.html'
 			};
 
-			const options = await emailService.generateMailOptions(user, {}, emailConfig);
+			const options = await emailService.generateMailOptions(
+				user,
+				{},
+				emailConfig
+			);
 
 			should.exist(options);
 			options.header.should.equal(header);
@@ -256,10 +292,11 @@ ${footer}`;
 			options.subject.should.equal(emailConfig.subject);
 		});
 
-		it('should log and throw error', async() => {
+		it('should log and throw error', async () => {
 			const emailConfig = {
 				subject: 'Test',
-				templatePath: 'src/app/core/user/templates/file-that-doesnt-exist.view.html'
+				templatePath:
+					'src/app/core/user/templates/file-that-doesnt-exist.view.html'
 			};
 
 			let options;
@@ -273,7 +310,5 @@ ${footer}`;
 			should.not.exist(options);
 			should.exist(error);
 		});
-
 	});
-
 });
