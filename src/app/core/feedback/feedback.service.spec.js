@@ -3,6 +3,7 @@
 const should = require('should'),
 	proxyquire = require('proxyquire'),
 	deps = require('../../../dependencies'),
+	Feedback = deps.dbs.admin.model('Feedback'),
 	config = deps.config;
 
 /**
@@ -82,6 +83,36 @@ FOOTER
 				`${config.app.title}: Feedback Submitted`
 			);
 			mailOptions.html.should.equal(expectedEmailContent);
+		});
+	});
+
+	describe('readFeedback', () => {
+		it('should return feedback if a feedback ID is supplied', async () => {
+			const savedFeedback = await new Feedback({
+				body: 'testing',
+				url: 'http://localhost:3000/home',
+				type: 'Question'
+			}).save();
+			const feedback = await feedbackService.readFeedback(savedFeedback._id);
+			should.exist(feedback);
+		});
+
+		it('should throw a 400 errorResult if an invalid feedback ID is supplied', async () => {
+			let error = null;
+			try {
+				await feedbackService.readFeedback('1234');
+			} catch (e) {
+				error = e;
+			}
+			should.exist(error);
+			error.status.should.equal(400);
+			error.message.should.equal('Invalid feedback ID');
+			error.type.should.equal('validation');
+		});
+
+		it('should return null if a nonexistent feedback ID is supplied', async () => {
+			const feedback = await feedbackService.readFeedback('123412341234');
+			should.not.exist(feedback);
 		});
 	});
 });

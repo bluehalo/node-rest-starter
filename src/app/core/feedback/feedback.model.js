@@ -24,8 +24,22 @@ const FeedbackSchema = new mongoose.Schema({
 	url: { type: String },
 	os: { type: String },
 	browser: { type: String },
-	classification: { type: String }
+	classification: { type: String },
+	status: {
+		type: String,
+		default: 'New',
+		enum: ['New', 'Open', 'Closed'],
+		required: true
+	},
+	assignee: { type: String },
+	updated: {
+		type: Date,
+		default: Date.now,
+		get: util.dateParse,
+		required: true
+	}
 });
+
 FeedbackSchema.plugin(getterPlugin);
 FeedbackSchema.plugin(pagingSearchPlugin);
 
@@ -41,6 +55,8 @@ FeedbackSchema.index({ creator: 1 });
 FeedbackSchema.index({ url: 1 });
 FeedbackSchema.index({ os: 1 });
 FeedbackSchema.index({ browser: 1 });
+FeedbackSchema.index({ status: 1 });
+FeedbackSchema.index({ assignee: 1 });
 
 // Text-search index
 FeedbackSchema.index({ body: 'text' });

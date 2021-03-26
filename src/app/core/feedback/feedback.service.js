@@ -6,7 +6,8 @@ const deps = require('../../../dependencies'),
 	emailService = deps.emailService,
 	util = deps.utilService,
 	logger = deps.logger,
-	Feedback = dbs.admin.model('Feedback');
+	Feedback = dbs.admin.model('Feedback'),
+	mongoose = require('mongoose');
 
 const sendFeedback = async (user, feedback, req) => {
 	if (
@@ -77,15 +78,42 @@ const search = async (reqUser, queryParams, query) => {
 		true,
 		{
 			path: 'creator',
-			select: ['name', 'email']
+			select: ['username', 'organization', 'name', 'email']
 		}
 	);
 
 	return util.getPagingResults(limit, page, feedback.count, feedback.results);
 };
 
+const readFeedback = async (feedbackId, populate = []) => {
+	if (!mongoose.Types.ObjectId.isValid(feedbackId)) {
+		throw { status: 400, type: 'validation', message: 'Invalid feedback ID' };
+	}
+	const feedback = await Feedback.findOne({
+		_id: feedbackId
+	})
+		.populate(populate)
+		.exec();
+	return feedback;
+};
+
+const updateFeedbackAssignee = async (feedback, assignee) => {
+	feedback.assignee = assignee;
+	feedback.updated = Date.now();
+	return await feedback.save();
+};
+
+const updateFeedbackStatus = async (feedback, status) => {
+	feedback.status = status;
+	feedback.updated = Date.now();
+	return await feedback.save();
+};
+
 module.exports = {
 	create,
 	search,
-	sendFeedback
+	sendFeedback,
+	readFeedback,
+	updateFeedbackAssignee,
+	updateFeedbackStatus
 };

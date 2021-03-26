@@ -118,18 +118,13 @@ describe('Feedback Controller', () => {
 	describe('POST /admin/feedback', () => {
 		let savedFeedback;
 
-		before(() => {
-			return Feedback.deleteMany({})
-				.exec()
-				.then(() => {
-					return new Feedback({
-						body: 'testing',
-						url: 'http://localhost:3000/home',
-						type: 'Question'
-					})
-						.save()
-						.then((result) => (savedFeedback = result));
-				});
+		before(async () => {
+			await Feedback.deleteMany({}).exec();
+			savedFeedback = await new Feedback({
+				body: 'testing',
+				url: 'http://localhost:3000/home',
+				type: 'Question'
+			}).save();
 		});
 
 		[
@@ -164,6 +159,171 @@ describe('Feedback Controller', () => {
 					})
 					.end(done);
 			});
+		});
+	});
+
+	describe('PATCH /admin/feedback/:feedbackId/status', () => {
+		let savedFeedback;
+
+		before(async () => {
+			await Feedback.deleteMany({}).exec();
+			savedFeedback = await new Feedback({
+				body: 'testing',
+				url: 'http://localhost:3000/home',
+				type: 'Question'
+			}).save();
+		});
+
+		[
+			{
+				name: 'should not update feedback status as non-admin',
+				isAdmin: false
+			},
+			{ name: 'should update feedback status as admin', isAdmin: true }
+		].forEach((testConfig) => {
+			it(testConfig.name, (done) => {
+				const updatedStatus = 'Closed';
+				setAdmin(testConfig.isAdmin);
+				request(app)
+					.patch(`/admin/feedback/${savedFeedback._id}/status`)
+					.send({ status: updatedStatus })
+					.expect('Content-Type', /json/)
+					.expect(testConfig.isAdmin ? 200 : 403)
+					.expect((res) => {
+						if (testConfig.isAdmin) {
+							const expected = savedFeedback.toJSON();
+							expected._id = expected._id.toString();
+							expected.status = updatedStatus;
+							// Verify that the 'updated' field was updated
+							should(res.body.updated).greaterThan(expected.updated);
+							// Set the expected 'updated' value to be the received value so the match can be performed
+							expected.updated = res.body.updated;
+							should(res.body).match(expected);
+						} else {
+							should(res.body).eql({
+								message: 'This is a fake error message'
+							});
+						}
+					})
+					.end(done);
+			});
+		});
+
+		it('should throw a 400 error if supplied with an invalid feedback ID', (done) => {
+			setAdmin(true);
+			request(app)
+				.patch('/admin/feedback/invalid/status')
+				.send({ status: 'Closed' })
+				.expect('Content-Type', /json/)
+				.expect(400)
+				.expect((res) => {
+					should(res.body).eql({
+						message: 'Invalid feedback ID',
+						status: 400,
+						type: 'validation'
+					});
+				})
+				.end(done);
+		});
+
+		it('should throw a 404 error if supplied with a feedback ID that does not exist', (done) => {
+			setAdmin(true);
+			request(app)
+				.patch('/admin/feedback/123412341234/status')
+				.send({ status: 'Closed' })
+				.expect('Content-Type', /json/)
+				.expect(404)
+				.expect((res) => {
+					should(res.body).eql({
+						message: 'Could not find feedback',
+						status: 404,
+						type: 'not-found'
+					});
+				})
+				.end(done);
+		});
+	});
+
+	describe('PATCH /admin/feedback/:feedbackId/assignee', () => {
+		let savedFeedback;
+
+		before(async () => {
+			await Feedback.deleteMany({}).exec();
+			savedFeedback = await new Feedback({
+				body: 'testing',
+				url: 'http://localhost:3000/home',
+				type: 'Question'
+			}).save();
+		});
+
+		[
+			{
+				name: 'should not update feedback assignee as non-admin',
+				isAdmin: false
+			},
+			{ name: 'should update feedback assignee as admin', isAdmin: true }
+		].forEach((testConfig) => {
+			it(testConfig.name, (done) => {
+				const updatedAssignee = fakeUser.username;
+				setAdmin(testConfig.isAdmin);
+				request(app)
+					.patch(`/admin/feedback/${savedFeedback._id}/assignee`)
+					.send({ assignee: updatedAssignee })
+					.expect('Content-Type', /json/)
+					.expect(testConfig.isAdmin ? 200 : 403)
+					.expect((res) => {
+						if (testConfig.isAdmin) {
+							const expected = savedFeedback.toJSON();
+							expected._id = expected._id.toString();
+							expected.assignee = updatedAssignee;
+
+							// Verify that the 'updated' field was updated
+							should(res.body.updated).greaterThan(expected.updated);
+							// Set the expected 'updated' value to be the received value so the match can be performed
+							expected.updated = res.body.updated;
+							should(res.body).match(expected);
+						} else {
+							should(res.body).eql({
+								message: 'This is a fake error message'
+							});
+						}
+					})
+					.end(done);
+			});
+		});
+
+		it('should throw a 400 error if supplied with an invalid feedback ID', (done) => {
+			setAdmin(true);
+			request(app)
+				.patch('/admin/feedback/invalid/assignee')
+				.send({ status: 'Closed' })
+				.expect('Content-Type', /json/)
+				.expect(400)
+				.expect((res) => {
+					should(res.body).eql({
+						message: 'Invalid feedback ID',
+						status: 400,
+						type: 'validation'
+					});
+				})
+				.end(done);
+		});
+
+		it('should throw a 404 error if supplied with a feedback ID that does not exist', (done) => {
+			setAdmin(true);
+			request(app)
+				.patch('/admin/feedback/123412341234/assignee')
+				.send({ status: 'Closed' })
+				.expect('Content-Type', /json/)
+				.expect(404)
+				.expect((res) => {
+					should(res.body).eql({
+						message: 'Could not find feedback',
+						status: 404,
+						type: 'not-found'
+					});
+				})
+				.end(done);
 		});
 	});
 });

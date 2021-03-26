@@ -32,8 +32,10 @@ module.exports.submitFeedback = async function (req, res) {
 			audit.audit.userSpec
 		);
 		await feedbackService.sendFeedback(req.user, feedback, req);
+
 		res.status(200).json(feedback);
 	} catch (err) {
+		logger.error({ err: err, req: req }, 'Error submitting feedback');
 		utilService.handleErrorResponse(res, err);
 	}
 };
@@ -43,33 +45,6 @@ module.exports.adminGetFeedbackCSV = async function (req, res) {
 
 	const dateCallback = (value) => (value ? new Date(value).toISOString() : '');
 	const defaultCallback = (value) => (value ? value : '');
-
-	const exportColumns = [
-		{ key: 'url', title: 'Submitted From URL', callback: defaultCallback },
-		{ key: 'body', title: 'Feedback Body', callback: defaultCallback },
-		{ key: 'type', title: 'Feedback Type', callback: defaultCallback },
-		{
-			key: 'creator.name',
-			title: 'Submitted By Name',
-			callback: defaultCallback
-		},
-		{
-			key: 'creator.username',
-			title: 'Submitted By Username',
-			callback: defaultCallback
-		},
-		{
-			key: 'creator.email',
-			title: 'Submitted By Email',
-			callback: defaultCallback
-		},
-		{
-			key: 'creator.organization',
-			title: 'Submitted By Organization',
-			callback: defaultCallback
-		},
-		{ key: 'created', title: 'Submit Date', callback: dateCallback }
-	];
 
 	try {
 		const result = await exportConfigService.getConfigById(exportId);
@@ -96,6 +71,16 @@ module.exports.adminGetFeedbackCSV = async function (req, res) {
 			req.headers
 		);
 
+		const columns = result.config.cols;
+		// Based on which columns are requested, handle property-specific behavior (ex. callbacks for the
+		// CSV service to make booleans and dates more human-readable)
+		columns.forEach((col) => {
+			col.callback =
+				col.key === 'created' || col.key === 'updated'
+					? dateCallback
+					: defaultCallback;
+		});
+
 		const query = result.config.q ? JSON.parse(result.config.q) : null;
 		const sortArr = [
 			{ property: result.config.sort, direction: result.config.dir }
@@ -118,7 +103,7 @@ module.exports.adminGetFeedbackCSV = async function (req, res) {
 			req,
 			res,
 			exportFileName,
-			exportColumns,
+			columns,
 			feedbackResult.results
 		);
 	} catch (err) {
@@ -128,25 +113,108 @@ module.exports.adminGetFeedbackCSV = async function (req, res) {
 };
 
 module.exports.search = async (req, res) => {
-	let query = req.body.q || {};
-	query = { $and: [query] };
+	const filters = [];
+	if (req.body.q) {
+		filters.push(req.body.q);
+	}
 
 	const search = req.body.s || null;
 
 	if (search) {
-		query.$and.push({ $text: { $search: search } });
-		// query.$and.push({ name: new RegExp(search, 'i') });
+		filters.push({ $text: { $search: search } });
 	}
 
+	const query = filters.length > 0 ? { $and: filters } : undefined;
+
 	try {
-		res
-			.status(200)
-			.json(await feedbackService.search(req.user, req.query, query));
+		const searchPromise = feedbackService.search(req.user, req.query, query);
+		const results = await searchPromise;
+		res.status(200).json(results);
 	} catch (err) {
 		logger.error(
 			{ err: err, req: req },
 			'Error searching for feedback entries'
 		);
+		utilService.handleErrorResponse(res, err);
+	}
+};
+
+module.exports.updateFeedbackAssignee = async (req, res) => {
+	try {
+		// Audit feedback assignee update
+		await auditService.audit(
+			'Feedback assignee updated',
+			'feedback',
+			'update',
+			TeamMember.auditCopy(
+				req.user,
+				utilService.getHeaderField(req.headers, 'x-real-ip')
+			),
+			req.body,
+			req.headers
+		);
+
+		const updateFeedbackAssigneePromise = feedbackService.updateFeedbackAssignee(
+			req.feedback,
+			req.body.assignee
+		);
+		const updatedFeedback = await updateFeedbackAssigneePromise;
+		res.status(200).json(updatedFeedback);
+	} catch (err) {
+		logger.error({ err: err, req: req }, 'Error updating feedback assignee');
+		utilService.handleErrorResponse(res, err);
+	}
+};
+
+module.exports.updateFeedbackStatus = async (req, res) => {
+	try {
+		// Audit feedback status update
+		await auditService.audit(
+			'Feedback status updated',
+			'feedback',
+			'update',
+			TeamMember.auditCopy(
+				req.user,
+				utilService.getHeaderField(req.headers, 'x-real-ip')
+			),
+			req.body,
+			req.headers
+		);
+
+		const updateFeedbackStatusPromise = feedbackService.updateFeedbackStatus(
+			req.feedback,
+			req.body.status
+		);
+		const updatedFeedback = await updateFeedbackStatusPromise;
+		res.status(200).json(updatedFeedback);
+	} catch (err) {
+		logger.error({ err: err, req: req }, 'Error updating feedback status');
+		utilService.handleErrorResponse(res, err);
+	}
+};
+
+/**
+ * Feedback middleware
+ */
+module.exports.feedbackById = async (req, res, next, id) => {
+	const populate = [
+		{
+			path: 'creator',
+			select: ['username', 'organization', 'name', 'email']
+		}
+	];
+
+	try {
+		req.feedback = await feedbackService.readFeedback(id, populate);
+		if (null == req.feedback) {
+			return utilService.handleErrorResponse(res, {
+				status: 404,
+				type: 'not-found',
+				message: 'Could not find feedback'
+			});
+		}
+		return next();
+	} catch (err) {
 		utilService.handleErrorResponse(res, err);
 	}
 };
