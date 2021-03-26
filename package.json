@@ -24,6 +24,8 @@
     "lint:fix": "npm run lint:eslint:fix",
     "lint:eslint": "eslint \"./**/*.js\"",
     "lint:eslint:fix": "eslint \"./**/*.js\" --fix",
+    "prettier-check": "prettier --check \"**/*.js\"",
+    "prettier-fix": "prettier --write \"**/*.js\"",
     "tsc:check": "./node_modules/typescript/bin/tsc --project tsconfig.json --noEmit"
   },
   "nyc": {
