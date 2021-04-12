@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	config = require('./config'),
+const config = require('./config'),
 	startupPromise = require('./startup')(),
 	sticky = require('socketio-sticky-session'),
 	logger = require('./lib/bunyan').logger;
@@ -21,6 +20,7 @@ startupPromise
 		sticky(options, () => app).listen(config.port, () => {
 			logger.info(`server started on ${config.port} port`);
 		});
-	}).catch((error) => {
+	})
+	.catch((error) => {
 		logger.fatal(error, 'Startup initialization failed.');
 	});

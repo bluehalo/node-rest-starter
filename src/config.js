@@ -1,8 +1,7 @@
 /* eslint-disable no-console */
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	chalk = require('chalk').default,
 	glob = require('glob'),
 	path = require('path');
@@ -49,16 +48,17 @@ function getGlobbedPaths(globPatterns, excludes) {
 	return output;
 }
 
-
 /**
  * Validate NODE_ENV existence
  */
 function validateEnvironmentVariable() {
-	if(null == process.env.NODE_ENV) {
+	if (null == process.env.NODE_ENV) {
 		process.env.NODE_ENV = 'default';
 
 		// Using console.log because this stuff happens before the environment is configured yet
-		console.log('NODE_ENV not set, using default environment: "default" instead.');
+		console.log(
+			'NODE_ENV not set, using default environment: "default" instead.'
+		);
 	} else {
 		console.log(`NODE_ENV is set to: "${process.env.NODE_ENV}"`);
 	}
@@ -67,7 +67,11 @@ function validateEnvironmentVariable() {
 	const environmentFiles = glob.sync(`./config/env/${process.env.NODE_ENV}.js`);
 
 	if (!environmentFiles.length) {
-		console.log(chalk.red(`No configuration files found matching environment: "${process.env.NODE_ENV}"`));
+		console.log(
+			chalk.red(
+				`No configuration files found matching environment: "${process.env.NODE_ENV}"`
+			)
+		);
 		// Reset console color
 		console.log(chalk.white(''));
 	}
@@ -75,7 +79,12 @@ function validateEnvironmentVariable() {
 
 function validateConfiguration(config) {
 	const msg = `Configuration mode set to ${config.mode}`;
-	const chalkFn = (config.mode === 'development') ? chalk.green : (config.mode === 'production') ? chalk.blue : chalk.yellow;
+	const chalkFn =
+		config.mode === 'development'
+			? chalk.green
+			: config.mode === 'production'
+			? chalk.blue
+			: chalk.yellow;
 	console.log(chalkFn(msg));
 }
 
@@ -103,11 +112,15 @@ function initGlobalConfigFiles(config, assets) {
 
 	// Setting Globbed e2e test files
 	config.files.e2e = getGlobbedPaths(assets.e2e);
-
 }
 
 function initDerivedConfig(config) {
-	if (config.app && config.app.url && config.app.url.protocol && config.app.url.host) {
+	if (
+		config.app &&
+		config.app.url &&
+		config.app.url.protocol &&
+		config.app.url.host
+	) {
 		config.app.serverUrlWithoutPort = `${config.app.url.protocol}://${config.app.url.host}`;
 
 		if (config.app.url.port) {
@@ -115,7 +128,6 @@ function initDerivedConfig(config) {
 		} else {
 			config.app.serverUrl = config.app.serverUrlWithoutPort;
 		}
-
 	}
 }
 
@@ -123,7 +135,6 @@ function initDerivedConfig(config) {
  * Initialize global configuration
  */
 function initGlobalConfig() {
-
 	// Validate NODE_ENV existance
 	validateEnvironmentVariable();
 
@@ -131,7 +142,9 @@ function initGlobalConfig() {
 	const defaultConfig = require(path.join(process.cwd(), 'config/env/default'));
 
 	// Get the current config
-	const environmentConfig = require(path.join(process.cwd(), 'config/env/', process.env.NODE_ENV)) || {};
+	const environmentConfig =
+		require(path.join(process.cwd(), 'config/env/', process.env.NODE_ENV)) ||
+		{};
 
 	// Merge config files
 	const config = _.extend(defaultConfig, environmentConfig);

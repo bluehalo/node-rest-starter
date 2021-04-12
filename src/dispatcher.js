@@ -1,11 +1,8 @@
 'use strict';
 
-const
-	path = require('path'),
-
+const path = require('path'),
 	deps = require('./dependencies'),
 	config = deps.config;
-
 
 module.exports.start = () => {
 	// Only start if we're actually configured

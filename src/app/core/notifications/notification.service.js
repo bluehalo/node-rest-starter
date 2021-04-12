@@ -3,7 +3,6 @@
 const deps = require('../../../dependencies'),
 	util = deps.utilService,
 	dbs = deps.dbs,
-
 	Notification = dbs.admin.model('Notification');
 
 function doSearch(query, sortParams, page, limit) {
@@ -18,18 +17,18 @@ function doSearch(query, sortParams, page, limit) {
 		searchPromise = searchPromise.skip(page * limit).limit(limit);
 	}
 
-	return Promise.all([ countPromise.exec(), searchPromise.exec() ])
-		.then(([countResult, searchResult]) => {
+	return Promise.all([countPromise.exec(), searchPromise.exec()]).then(
+		([countResult, searchResult]) => {
 			return util.getPagingResults(limit, page, countResult, searchResult);
-		});
+		}
+	);
 }
 
-module.exports.searchAll = function(query) {
+module.exports.searchAll = function (query) {
 	return Notification.find(query).exec();
 };
 
-
-module.exports.search = function(query, queryParams, user) {
+module.exports.search = function (query, queryParams, user) {
 	if (!user || !user._id) {
 		return Promise.reject('Notification Service: user._id must be defined');
 	}
@@ -48,7 +47,9 @@ module.exports.search = function(query, queryParams, user) {
 	let dir = queryParams.dir;
 
 	// Sort can be null, but if it's non-null, dir defaults to DESC
-	if (sort && !dir) { dir = 'ASC'; }
+	if (sort && !dir) {
+		dir = 'ASC';
+	}
 
 	let sortParams;
 	if (sort) {

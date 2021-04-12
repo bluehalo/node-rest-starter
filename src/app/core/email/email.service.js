@@ -1,11 +1,9 @@
 'use strict';
 
-const
-	path = require('path'),
+const path = require('path'),
 	_ = require('lodash'),
 	fs = require('fs'),
 	handlebars = require('handlebars'),
-
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	logger = deps.logger;
@@ -19,8 +17,10 @@ let provider;
 function getProvider() {
 	const emailConfig = config.mailer || {};
 
-	if(null == provider && null != emailConfig.provider) {
-		provider = require(path.posix.resolve(emailConfig.provider))(emailConfig.options);
+	if (null == provider && null != emailConfig.provider) {
+		provider = require(path.posix.resolve(emailConfig.provider))(
+			emailConfig.options
+		);
 	}
 
 	return provider;
@@ -69,7 +69,11 @@ module.exports.sendMail = async (mailOptions) => {
 	// Make sure all the required mailOptions are defined
 	const missingOptions = getMissingMailOptions(mailOptions);
 	if (missingOptions.length > 0) {
-		return Promise.reject({ message: `The following required values were not specified in mailOptions: ${missingOptions.join(', ')}`});
+		return Promise.reject({
+			message: `The following required values were not specified in mailOptions: ${missingOptions.join(
+				', '
+			)}`
+		});
 	}
 
 	await mailProvider.sendMail(mailOptions);
@@ -77,7 +81,11 @@ module.exports.sendMail = async (mailOptions) => {
 	logger.debug(`Sent email to: ${mailOptions.to}`);
 };
 
-module.exports.buildEmailContent = async (templatePath, user, overrides = {}) => {
+module.exports.buildEmailContent = async (
+	templatePath,
+	user,
+	overrides = {}
+) => {
 	const templateString = await new Promise((resolve, reject) => {
 		fs.readFile(templatePath, 'utf-8', (err, source) => {
 			if (err) {
@@ -89,32 +97,57 @@ module.exports.buildEmailContent = async (templatePath, user, overrides = {}) =>
 	});
 
 	// Set email header/footer
-	const data = _.merge({}, config.coreEmails.default, {
-		app: config.app,
-		user: user
-	}, overrides);
+	const data = _.merge(
+		{},
+		config.coreEmails.default,
+		{
+			app: config.app,
+			user: user
+		},
+		overrides
+	);
 
 	return handlebars.compile(templateString)(data);
 };
 
 module.exports.buildEmailSubject = (template, user, overrides = {}) => {
-	const data = _.merge({}, config.coreEmails.default, {
-		app: config.app,
-		user: user
-	}, overrides);
+	const data = _.merge(
+		{},
+		config.coreEmails.default,
+		{
+			app: config.app,
+			user: user
+		},
+		overrides
+	);
 	return handlebars.compile(template)(data);
 };
 
-module.exports.generateMailOptions = async (user, req, emailConfig, emailContentData = {}, emailSubjectData = {}, mailOpts = {}) => {
+module.exports.generateMailOptions = async (
+	user,
+	req,
+	emailConfig,
+	emailContentData = {},
+	emailSubjectData = {},
+	mailOpts = {}
+) => {
 	if (user.toObject) {
 		user = user.toObject();
 	}
 	let emailContent, emailSubject;
 	try {
-		emailContent = await module.exports.buildEmailContent(path.posix.resolve(emailConfig.templatePath), user, emailContentData);
-		emailSubject = module.exports.buildEmailSubject(emailConfig.subject, user, emailSubjectData);
+		emailContent = await module.exports.buildEmailContent(
+			path.posix.resolve(emailConfig.templatePath),
+			user,
+			emailContentData
+		);
+		emailSubject = module.exports.buildEmailSubject(
+			emailConfig.subject,
+			user,
+			emailSubjectData
+		);
 	} catch (error) {
-		logger.error({err: error, req: req}, 'Failure rendering template.');
+		logger.error({ err: error, req: req }, 'Failure rendering template.');
 		return Promise.reject(error);
 	}
 

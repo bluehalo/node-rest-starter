@@ -1,18 +1,14 @@
 'use strict';
 
-const
-	sinon = require('sinon'),
-
+const sinon = require('sinon'),
 	deps = require('../../../dependencies'),
 	config = deps.config,
-
 	userEmailService = require('./user-email.service');
 
 /**
  * Unit tests
  */
 describe('User Email Service:', () => {
-
 	const user = {
 		name: 'test',
 		username: 'test',
@@ -75,7 +71,7 @@ FOOTER`;
 			sinon.assert.calledOnce(deps.logger.error);
 		});
 
-		it('should create mailOptions properly', async() => {
+		it('should create mailOptions properly', async () => {
 			const expectedEmailContent = `HEADER
 <p>Hey there ${config.app.title} Admins,</p>
 <p>A new user named <strong>${user.name}</strong> with username <strong>${user.username}</strong> has requested an account.</p>
@@ -106,7 +102,7 @@ FOOTER`;
 			sinon.assert.calledOnce(deps.logger.error);
 		});
 
-		it('should create mailOptions properly', async() => {
+		it('should create mailOptions properly', async () => {
 			const expectedEmailContent = `HEADER
 <p>Welcome to ${config.app.title}, ${user.name}!</p>
 <p>Thanks for requesting an account! We've alerted our admins and they will be reviewing your request shortly. </p>

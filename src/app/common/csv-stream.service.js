@@ -1,13 +1,11 @@
 'use strict';
 
-const
-	streams = require('stream'),
+const streams = require('stream'),
 	through2 = require('through2'),
 	stringify = require('csv-stringify'),
 	jsonpath = require('JSONPath'),
 	pipe = require('multipipe'),
 	_ = require('lodash'),
-
 	deps = require('../../dependencies'),
 	logger = deps.logger;
 
@@ -24,7 +22,6 @@ const
  * @returns {streams.Transform} A stream that can be piped to the HTTP response.
  */
 module.exports = (columns) => {
-
 	// Create a stream to turn Mongo records into CSV rows
 	const stream = through2.obj((chunk, enc, callback) => {
 		const row = [];
@@ -42,8 +39,7 @@ module.exports = (columns) => {
 				// Get the first returned value
 				if (value.length > 0) {
 					[value] = value;
-				}
-				else {
+				} else {
 					value = null;
 				}
 

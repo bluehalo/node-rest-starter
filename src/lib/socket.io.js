@@ -1,13 +1,11 @@
 'use strict';
 
-const
-	path = require('path'),
+const path = require('path'),
 	cookieParser = require('cookie-parser'),
 	passport = require('passport'),
 	socketio = require('socket.io'),
 	expressSession = require('express-session'),
 	MongoStore = require('connect-mongo')(expressSession),
-
 	config = require('../config'),
 	logger = require('./bunyan.js').logger;
 
@@ -78,10 +76,15 @@ module.exports.init = (server, db) => {
 				passport.initialize()(socket.request, {}, () => {
 					passport.session()(socket.request, {}, () => {
 						if (socket.request.user) {
-							logger.debug('SocketIO: New authenticated user: %s', socket.request.user.username);
+							logger.debug(
+								'SocketIO: New authenticated user: %s',
+								socket.request.user.username
+							);
 							return next(null);
 						}
-						logger.info('SocketIO: Unauthenticated user attempting to connect.');
+						logger.info(
+							'SocketIO: Unauthenticated user attempting to connect.'
+						);
 						return next(new Error('User is not authenticated'));
 					});
 				});

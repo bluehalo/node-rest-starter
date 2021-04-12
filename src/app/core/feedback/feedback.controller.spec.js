@@ -195,9 +195,7 @@ describe('Feedback Controller', () => {
 							expected._id = expected._id.toString();
 							expected.status = updatedStatus;
 							// Verify that the 'updated' field was updated
-							should(res.body.updated).greaterThan(
-								expected.updated
-							);
+							should(res.body.updated).greaterThan(expected.updated);
 							// Set the expected 'updated' value to be the received value so the match can be performed
 							expected.updated = res.body.updated;
 							should(res.body).match(expected);
@@ -280,9 +278,7 @@ describe('Feedback Controller', () => {
 							expected.assignee = updatedAssignee;
 
 							// Verify that the 'updated' field was updated
-							should(res.body.updated).greaterThan(
-								expected.updated
-							);
+							should(res.body.updated).greaterThan(expected.updated);
 							// Set the expected 'updated' value to be the received value so the match can be performed
 							expected.updated = res.body.updated;
 							should(res.body).match(expected);

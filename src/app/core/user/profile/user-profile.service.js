@@ -22,11 +22,14 @@ const updatePreferences = async (_id, pref) => {
 	const preferences = user.preferences || {};
 	Object.assign(preferences, pref);
 
-	return user.update({$set: { preferences: preferences } }).exec();
+	return user.update({ $set: { preferences: preferences } }).exec();
 };
 
 const updateRequiredOrgs = (_id, requiredOrgs) => {
-	return User.updateOne({ _id }, { $set: { organizationLevels: requiredOrgs } }).exec();
+	return User.updateOne(
+		{ _id },
+		{ $set: { organizationLevels: requiredOrgs } }
+	).exec();
 };
 
 module.exports = {

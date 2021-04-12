@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	mongoose = require('mongoose'),
+const mongoose = require('mongoose'),
 	getterPlugin = require('../../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../../dependencies'),
@@ -40,30 +39,25 @@ const UserAgreementSchema = new mongoose.Schema({
 UserAgreementSchema.plugin(getterPlugin);
 UserAgreementSchema.plugin(pagingSearchPlugin);
 
-
 /**
  * Index declarations
  */
 UserAgreementSchema.index({ title: 'text', text: 'text' });
 
-
 /**
  * Lifecycle Hooks
  */
 
-
-
 /**
  * Instance Methods
  */
-
 
 /**
  * Static Methods
  */
 
 //Copy a user for audit logging
-UserAgreementSchema.statics.auditCopy = function(eua) {
+UserAgreementSchema.statics.auditCopy = function (eua) {
 	const newEua = {};
 	eua = eua || {};
 

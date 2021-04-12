@@ -7,10 +7,14 @@ function getUniqueErrorMessage(err) {
 	let output;
 
 	try {
-		const fieldName = err.err.substring(err.err.lastIndexOf('.$') + 2, err.err.lastIndexOf('_1'));
-		output = `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} already exists`;
-
-	} catch(ex) {
+		const fieldName = err.err.substring(
+			err.err.lastIndexOf('.$') + 2,
+			err.err.lastIndexOf('_1')
+		);
+		output = `${
+			fieldName.charAt(0).toUpperCase() + fieldName.slice(1)
+		} already exists`;
+	} catch (ex) {
 		output = 'Unique field already exists';
 	}
 
@@ -20,7 +24,7 @@ function getUniqueErrorMessage(err) {
 /**
  * Get the error message from error object
  */
-module.exports.getErrorMessage = function(err) {
+module.exports.getErrorMessage = function (err) {
 	let message = '';
 
 	if (null == err || typeof err === 'string') {
@@ -34,7 +38,7 @@ module.exports.getErrorMessage = function(err) {
 			default:
 				message = 'Something went wrong';
 		}
-	} else if(err.errors) {
+	} else if (err.errors) {
 		const linebreak = '\n';
 
 		for (const errName in err.errors) {

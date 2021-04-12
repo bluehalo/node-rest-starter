@@ -7,7 +7,6 @@ const mock = require('mock-require'),
  * Unit tests
  */
 describe('User Controller:', () => {
-
 	const pass = (msg) => {
 		return () => {
 			return Promise.resolve(msg);
@@ -20,7 +19,6 @@ describe('User Controller:', () => {
 	};
 
 	describe('hasAccess', () => {
-
 		afterEach(() => {
 			mock.stopAll();
 		});
@@ -50,12 +48,22 @@ describe('User Controller:', () => {
 				requiresEua: fail('eua')
 			});
 			const ctrl = mock.reRequire('./user.controller');
-			ctrl.hasAccess({}, { status: () => { return {
-				json: (actual) => {
-					should(actual.message).eql('eua');
-					done();
+			ctrl.hasAccess(
+				{},
+				{
+					status: () => {
+						return {
+							json: (actual) => {
+								should(actual.message).eql('eua');
+								done();
+							}
+						};
+					}
+				},
+				() => {
+					done('should not get here');
 				}
-			}; } }, () => { done('should not get here'); });
+			);
 		});
 
 		it('should fail a user without user role access', (done) => {
@@ -69,12 +77,22 @@ describe('User Controller:', () => {
 				requiresEua: pass('eua')
 			});
 			const ctrl = mock.reRequire('./user.controller');
-			ctrl.hasAccess({}, { status: () => { return {
-				json: (actual) => {
-					should(actual.message).eql('user');
-					done();
+			ctrl.hasAccess(
+				{},
+				{
+					status: () => {
+						return {
+							json: (actual) => {
+								should(actual.message).eql('user');
+								done();
+							}
+						};
+					}
+				},
+				() => {
+					done('should not get here');
 				}
-			}; } }, () => { done('should not get here'); });
+			);
 		});
 
 		it('should fail first on user role even if eua is missing', (done) => {
@@ -88,14 +106,22 @@ describe('User Controller:', () => {
 				requiresEua: fail('eua')
 			});
 			const ctrl = mock.reRequire('./user.controller');
-			ctrl.hasAccess({}, { status: () => { return {
-				json: (actual) => {
-					should(actual.message).eql('user');
-					done();
+			ctrl.hasAccess(
+				{},
+				{
+					status: () => {
+						return {
+							json: (actual) => {
+								should(actual.message).eql('user');
+								done();
+							}
+						};
+					}
+				},
+				() => {
+					done('should not get here');
 				}
-			}; } }, () => { done('should not get here'); });
+			);
 		});
-
 	});
-
 });

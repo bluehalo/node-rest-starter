@@ -1,11 +1,9 @@
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	crypto = require('crypto'),
 	mongoose = require('mongoose'),
 	uniqueValidator = require('mongoose-unique-validator'),
-
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	util = deps.utilService,
@@ -17,12 +15,12 @@ const
  */
 
 // Validate the password
-const validatePassword = function(password) {
+const validatePassword = function (password) {
 	let toReturn = true;
 
 	// only care if it's local
-	if(this.provider === 'local') {
-		toReturn = (null != password) && password.length >= 6;
+	if (this.provider === 'local') {
+		toReturn = null != password && password.length >= 6;
 	}
 
 	return toReturn;
@@ -32,7 +30,12 @@ const passwordMessage = 'Password must be at least 6 characters long';
 /**
  * User Roles
  */
-const roles = _.get(config, 'auth.roles', ['user', 'editor', 'auditor', 'admin']);
+const roles = _.get(config, 'auth.roles', [
+	'user',
+	'editor',
+	'auditor',
+	'admin'
+]);
 const roleSchemaDef = {
 	type: roles.reduce((obj, role) => {
 		obj[role] = { type: Boolean, default: false };
@@ -141,7 +144,10 @@ const UserSchema = new mongoose.Schema({
 		type: String,
 		trim: true,
 		default: '',
-		match: [/.+@.+\..+/, 'A valid phone number and cellular provider is required'],
+		match: [
+			/.+@.+\..+/,
+			'A valid phone number and cellular provider is required'
+		],
 		required: false
 	},
 	username: {
@@ -238,21 +244,26 @@ UserSchema.plugin(pagingSearchPlugin);
 // Text-search index
 UserSchema.index({ name: 'text', email: 'text', username: 'text' });
 
-
 /**
  * Lifecycle Hooks
  */
 
 // Process the password
-UserSchema.pre('save', function(next) {
+UserSchema.pre('save', function (next) {
 	/**
 	 * @type {(mongoose.Schema.methods|mongoose.Model)}
 	 */
 	const user = this;
 
 	// If the password is modified and it is valid, then re- salt/hash it
-	if (user.isModified('password') && validatePassword.call(user, user.password)) {
-		user.salt = Buffer.from(crypto.randomBytes(16).toString('base64'), 'base64');
+	if (
+		user.isModified('password') &&
+		validatePassword.call(user, user.password)
+	) {
+		user.salt = Buffer.from(
+			crypto.randomBytes(16).toString('base64'),
+			'base64'
+		);
 		user.password = user.hashPassword(user.password);
 	}
 
@@ -267,18 +278,20 @@ UserSchema.pre('save', function(next) {
  */
 
 // Hash Password
-UserSchema.methods.hashPassword = function(password) {
+UserSchema.methods.hashPassword = function (password) {
 	const user = this;
 
 	if (user.salt && password) {
-		return crypto.pbkdf2Sync(password, user.salt, 10000, 64, 'SHA1').toString('base64');
+		return crypto
+			.pbkdf2Sync(password, user.salt, 10000, 64, 'SHA1')
+			.toString('base64');
 	} else {
 		return password;
 	}
 };
 
 // Authenticate a password against the user
-UserSchema.methods.authenticate = function(password) {
+UserSchema.methods.authenticate = function (password) {
 	return this.password === this.hashPassword(password);
 };
 
@@ -286,7 +299,7 @@ UserSchema.methods.authenticate = function(password) {
  * Static Methods
  */
 
-UserSchema.statics.hasRoles = function(user, roles){
+UserSchema.statics.hasRoles = function (user, roles) {
 	if (null == user.roles) {
 		return false;
 	}
@@ -304,13 +317,13 @@ UserSchema.statics.hasRoles = function(user, roles){
 };
 
 // Filtered Copy of a User (public)
-UserSchema.statics.filteredCopy = function(user) {
+UserSchema.statics.filteredCopy = function (user) {
 	/**
 	 * @type {Object.<string, any>}
 	 */
 	let toReturn = null;
 
-	if(null != user){
+	if (null != user) {
 		toReturn = {};
 
 		toReturn._id = user._id;
@@ -337,12 +350,11 @@ UserSchema.statics.filteredCopy = function(user) {
 	return toReturn;
 };
 
-
 // Full Copy of a User (admin)
-UserSchema.statics.fullCopy = function(user) {
+UserSchema.statics.fullCopy = function (user) {
 	let toReturn = null;
 
-	if(null != user){
+	if (null != user) {
 		toReturn = user.toObject();
 		if (_.has(toReturn, 'password')) {
 			delete toReturn.password;
@@ -350,14 +362,13 @@ UserSchema.statics.fullCopy = function(user) {
 		if (_.has(toReturn, 'salt')) {
 			delete toReturn.salt;
 		}
-
 	}
 
 	return toReturn;
 };
 
 // Copy User for creation
-UserSchema.statics.createCopy = function(user) {
+UserSchema.statics.createCopy = function (user) {
 	const toReturn = {};
 
 	toReturn.name = user.name;
@@ -381,7 +392,7 @@ UserSchema.statics.createCopy = function(user) {
 };
 
 // Copy a user for audit logging
-UserSchema.statics.auditCopy = function(user, userIP) {
+UserSchema.statics.auditCopy = function (user, userIP) {
 	const toReturn = {};
 	user = user || {};
 

@@ -1,23 +1,18 @@
 'use strict';
 
-const
-	crypto = require('crypto'),
+const crypto = require('crypto'),
 	should = require('should'),
 	sinon = require('sinon'),
-
 	deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
-
 	userPasswordService = require('./user-password.service'),
-
 	User = dbs.admin.model('User');
 
 /**
  * Unit tests
  */
 describe('User Password Service:', () => {
-
 	const testUser = {
 		name: 'Test User',
 		username: 'test',
@@ -56,7 +51,7 @@ describe('User Password Service:', () => {
 			token.should.be.length(40);
 		});
 
-		it('error generating token', async() => {
+		it('error generating token', async () => {
 			sandbox.stub(crypto, 'randomBytes').callsArgWith(1, new Error('error'));
 
 			let token;
@@ -74,11 +69,20 @@ describe('User Password Service:', () => {
 
 	describe('setResetTokenForUser', () => {
 		it('should store token for valid user', async () => {
-			const user = await userPasswordService.setResetTokenForUser(testUser.username, testToken);
+			const user = await userPasswordService.setResetTokenForUser(
+				testUser.username,
+				testToken
+			);
 
 			should.exist(user, 'expected user to exist');
-			should.exist(user.resetPasswordToken, 'expected user.resetPasswordToken to exist');
-			should.exist(user.resetPasswordExpires, 'expected user.resetPasswordExpires to exist');
+			should.exist(
+				user.resetPasswordToken,
+				'expected user.resetPasswordToken to exist'
+			);
+			should.exist(
+				user.resetPasswordExpires,
+				'expected user.resetPasswordExpires to exist'
+			);
 			user.resetPasswordToken.should.equal(testToken);
 			user.resetPasswordExpires.should.be.greaterThan(Date.now());
 		});
@@ -86,27 +90,40 @@ describe('User Password Service:', () => {
 		it('should throw error for invalid user', async () => {
 			let error;
 			try {
-				await userPasswordService.setResetTokenForUser('invalid-user', testToken);
+				await userPasswordService.setResetTokenForUser(
+					'invalid-user',
+					testToken
+				);
 			} catch (e) {
 				error = e;
 			}
 
 			should.exist(error);
 			should.exist(error.message);
-			error.message.should.equal('No account with that username has been found.');
+			error.message.should.equal(
+				'No account with that username has been found.'
+			);
 		});
 	});
 
 	describe('resetPasswordForToken', () => {
 		it('', async () => {
-			const user = await userPasswordService.resetPasswordForToken(testToken, 'password');
+			const user = await userPasswordService.resetPasswordForToken(
+				testToken,
+				'password'
+			);
 
 			should.exist(user, 'expected user to exist');
 			should.exist(user.password, 'expected user.password to exist');
 			user.password.should.not.equals(testUser.password);
-			should.not.exist(user.resetPasswordToken, 'expected user.resetPasswordToken to not exist');
-			should.not.exist(user.resetPasswordExpires, 'expected user.resetPasswordExpires to not exist');
-
+			should.not.exist(
+				user.resetPasswordToken,
+				'expected user.resetPasswordToken to not exist'
+			);
+			should.not.exist(
+				user.resetPasswordExpires,
+				'expected user.resetPasswordExpires to not exist'
+			);
 		});
 
 		it('should throw error for invalid token', async () => {
@@ -119,7 +136,9 @@ describe('User Password Service:', () => {
 
 			should.exist(error);
 			should.exist(error.message);
-			error.message.should.equal('Password reset token is invalid or has expired.');
+			error.message.should.equal(
+				'Password reset token is invalid or has expired.'
+			);
 		});
 	});
 
@@ -132,7 +151,7 @@ describe('User Password Service:', () => {
 			sinon.assert.calledOnce(deps.logger.error);
 		});
 
-		it('should create mailOptions properly', async() => {
+		it('should create mailOptions properly', async () => {
 			const expectedEmailContent = `HEADER
 <p>Hey there ${testUser.name},</p>
 <br>
@@ -169,7 +188,7 @@ FOOTER`;
 			sinon.assert.calledOnce(deps.logger.error);
 		});
 
-		it('should create mailOptions properly', async() => {
+		it('should create mailOptions properly', async () => {
 			const expectedEmailContent = `HEADER
 <p>Dear ${testUser.name},</p>
 <p></p>
@@ -192,5 +211,4 @@ FOOTER`;
 			});
 		});
 	});
-
 });

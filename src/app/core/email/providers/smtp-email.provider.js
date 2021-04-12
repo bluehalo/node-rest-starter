@@ -9,8 +9,7 @@ const sendMail = (mailOptions) => {
 		smtpTransport.sendMail(mailOptions, (error) => {
 			if (!error) {
 				resolve(mailOptions);
-			}
-			else {
+			} else {
 				reject(error);
 			}
 		});
@@ -18,7 +17,7 @@ const sendMail = (mailOptions) => {
 };
 
 // smtp-email provider requires configuration to be passed in
-module.exports = function(config) {
+module.exports = function (config) {
 	// initialize the smtp transport mailer
 	smtpTransport = nodemailer.createTransport(config);
 

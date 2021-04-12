@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	deps = require('../../../dependencies'),
 	util = deps.utilService;
 
@@ -27,33 +26,35 @@ module.exports = _.extend(
  * @param requirement The requirement function to invoke
  */
 module.exports.has = (requirement) => {
-
 	// Return a function that adapts the requirements to middleware
 	return (req, res, next) => {
-		Promise.resolve(requirement(req)).then((result) => {
-			next();
-		}).catch((errorResult) => {
-			util.handleErrorResponse(res, errorResult);
-		});
+		Promise.resolve(requirement(req))
+			.then((result) => {
+				next();
+			})
+			.catch((errorResult) => {
+				util.handleErrorResponse(res, errorResult);
+			});
 	};
 };
 
 /**
  * Apply the array of auth functions in order, using AND logic
  */
-module.exports.hasAll = function(...requirements) {
+module.exports.hasAll = function (...requirements) {
 	return (req, res, next) => {
-		Promise.resolve(module.exports.requiresAll(requirements)(req)).then((result) => {
-			next();
-		}).catch((errorResult) => {
-			util.handleErrorResponse(res, errorResult);
-		});
+		Promise.resolve(module.exports.requiresAll(requirements)(req))
+			.then((result) => {
+				next();
+			})
+			.catch((errorResult) => {
+				util.handleErrorResponse(res, errorResult);
+			});
 	};
 };
 
 module.exports.requiresAll = (requirements) => {
 	return (req) => {
-
 		// Apply the requirements
 		const applyRequirement = (i) => {
 			if (i < requirements.length) {
@@ -74,31 +75,34 @@ module.exports.requiresAll = (requirements) => {
 /**
  * Apply the array of auth functions in order, using OR logic
  */
-module.exports.hasAny = function(...requirements) {
+module.exports.hasAny = function (...requirements) {
 	return (req, res, next) => {
-		Promise.resolve(module.exports.requiresAny(requirements)(req)).then((result) => {
-			next();
-		}).catch((errorResult) => {
-			util.handleErrorResponse(res, errorResult);
-		});
+		Promise.resolve(module.exports.requiresAny(requirements)(req))
+			.then((result) => {
+				next();
+			})
+			.catch((errorResult) => {
+				util.handleErrorResponse(res, errorResult);
+			});
 	};
 };
 
 module.exports.requiresAny = (requirements) => {
 	return (req) => {
-
 		// Apply the requirements
 		let error;
 		const applyRequirement = (i) => {
 			if (i < requirements.length) {
-				return requirements[i](req).then((result) => {
-					// Success means we're done
-					return Promise.resolve();
-				}).catch((errorResult) => {
-					// Failure means keep going
-					error = errorResult;
-					return applyRequirement(++i);
-				});
+				return requirements[i](req)
+					.then((result) => {
+						// Success means we're done
+						return Promise.resolve();
+					})
+					.catch((errorResult) => {
+						// Failure means keep going
+						error = errorResult;
+						return applyRequirement(++i);
+					});
 			} else {
 				// If we run out of requirements, fail with the last error
 				return Promise.reject(error);
@@ -107,14 +111,12 @@ module.exports.requiresAny = (requirements) => {
 
 		if (requirements.length > 0) {
 			return applyRequirement(0);
-		}
-		else {
+		} else {
 			// Nothing to check passes
 			return Promise.resolve();
 		}
 	};
 };
-
 
 /**
  * Checks that the user has base access
@@ -124,12 +126,12 @@ module.exports.requiresAny = (requirements) => {
  */
 module.exports.hasAccess = (req, res, next) => {
 	module.exports.hasAll(
-			module.exports.requiresLogin,
-			module.exports.requiresOrganizationLevels,
-			module.exports.requiresUserRole,
-			module.exports.requiresExternalRoles,
-			module.exports.requiresEua
-			)(req, res, next);
+		module.exports.requiresLogin,
+		module.exports.requiresOrganizationLevels,
+		module.exports.requiresUserRole,
+		module.exports.requiresExternalRoles,
+		module.exports.requiresEua
+	)(req, res, next);
 };
 
 /**
@@ -139,13 +141,13 @@ module.exports.hasAccess = (req, res, next) => {
  */
 module.exports.hasEditorAccess = (req, res, next) => {
 	module.exports.hasAll(
-			module.exports.requiresLogin,
-			module.exports.requiresOrganizationLevels,
-			module.exports.requiresUserRole,
-			module.exports.requiresExternalRoles,
-			module.exports.requiresEditorRole,
-			module.exports.requiresEua
-			)(req, res, next);
+		module.exports.requiresLogin,
+		module.exports.requiresOrganizationLevels,
+		module.exports.requiresUserRole,
+		module.exports.requiresExternalRoles,
+		module.exports.requiresEditorRole,
+		module.exports.requiresEua
+	)(req, res, next);
 };
 
 /**
@@ -155,13 +157,13 @@ module.exports.hasEditorAccess = (req, res, next) => {
  */
 module.exports.hasAuditorAccess = (req, res, next) => {
 	module.exports.hasAll(
-			module.exports.requiresLogin,
-			module.exports.requiresOrganizationLevels,
-			module.exports.requiresUserRole,
-			module.exports.requiresExternalRoles,
-			module.exports.requiresAuditorRole,
-			module.exports.requiresEua
-			)(req, res, next);
+		module.exports.requiresLogin,
+		module.exports.requiresOrganizationLevels,
+		module.exports.requiresUserRole,
+		module.exports.requiresExternalRoles,
+		module.exports.requiresAuditorRole,
+		module.exports.requiresEua
+	)(req, res, next);
 };
 
 /**
@@ -171,8 +173,7 @@ module.exports.hasAuditorAccess = (req, res, next) => {
  */
 module.exports.hasAdminAccess = (req, res, next) => {
 	module.exports.hasAll(
-			module.exports.requiresLogin,
-			module.exports.requiresAdminRole
-			)(req, res, next);
+		module.exports.requiresLogin,
+		module.exports.requiresAdminRole
+	)(req, res, next);
 };
-

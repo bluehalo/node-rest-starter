@@ -5,7 +5,6 @@ const _ = require('lodash'),
 	https = require('https'),
 	mongoose = require('mongoose'),
 	platform = require('platform'),
-
 	deps = require('../../dependencies'),
 	config = deps.config,
 	errorService = deps.errorService,
@@ -14,10 +13,13 @@ const _ = require('lodash'),
 function getValidationErrors(err) {
 	const errors = [];
 
-	if(null != err.errors) {
+	if (null != err.errors) {
 		for (const field in err.errors) {
-			if(err.errors[field].path) {
-				const message = (err.errors[field].type === 'required')? `${field} is required` : err.errors[field].message;
+			if (err.errors[field].path) {
+				const message =
+					err.errors[field].type === 'required'
+						? `${field} is required`
+						: err.errors[field].message;
 				errors.push({ field: field, message: message });
 			}
 		}
@@ -26,18 +28,18 @@ function getValidationErrors(err) {
 	return errors;
 }
 
-module.exports.getErrorMessage = function(err) {
-	if(typeof err === 'string') {
+module.exports.getErrorMessage = function (err) {
+	if (typeof err === 'string') {
 		return err;
 	}
 
 	let msg = 'unknown error';
 	if (null !== err) {
-		if(null != err.message) {
+		if (null != err.message) {
 			msg = err.message;
 		}
 
-		if(null != err.stack) {
+		if (null != err.stack) {
 			msg = `[${msg}] ${err.stack}`;
 		}
 	}
@@ -45,35 +47,39 @@ module.exports.getErrorMessage = function(err) {
 	return msg;
 };
 
-module.exports.getClientErrorMessage = function(err) {
-	if(config.exposeServerErrors) {
+module.exports.getClientErrorMessage = function (err) {
+	if (config.exposeServerErrors) {
 		return module.exports.getErrorMessage(err);
 	} else {
 		return 'A server error has occurred.';
 	}
 };
 
-module.exports.handleErrorResponse = function(res, errorResult) {
+module.exports.handleErrorResponse = function (res, errorResult) {
 	// Return the error state to the client, defaulting to 500
 	errorResult = errorResult || {};
 
-	if(errorResult.name === 'ValidationError') {
+	if (errorResult.name === 'ValidationError') {
 		const errors = getValidationErrors(errorResult);
 		errorResult = {
 			status: 400,
 			type: 'validation',
-			message: errors.map((e) => { return e.message; }).join(', '),
+			message: errors
+				.map((e) => {
+					return e.message;
+				})
+				.join(', '),
 			errors: errors
 		};
 	}
 
 	// If the status is missing or invalid, default to 500
-	if(!(errorResult.status >= 400 && errorResult.status <= 600)) {
+	if (!(errorResult.status >= 400 && errorResult.status <= 600)) {
 		errorResult.status = 500;
 	}
 
 	// If it's a server error, get the client message
-	if(errorResult.status >= 500 && errorResult.status < 600) {
+	if (errorResult.status >= 500 && errorResult.status < 600) {
 		// Log the error because it's a server error
 		logger.error(errorResult);
 
@@ -89,7 +95,7 @@ module.exports.handleErrorResponse = function(res, errorResult) {
 	res.status(errorResult.status).json(errorResult);
 };
 
-module.exports.catchError = function(res, err, callback) {
+module.exports.catchError = function (res, err, callback) {
 	if (err) {
 		logger.error(err);
 		return this.send400Error(res, err);
@@ -111,26 +117,26 @@ module.exports.send403Error = function (res) {
 };
 
 module.exports.validateNumber = function (property) {
-	return (null != property && _.isNumber(property));
+	return null != property && _.isNumber(property);
 };
 
 module.exports.validatePositiveNumber = function (property) {
 	if (null != property && property !== 0) {
-		return (_.isNumber(property) && property > 0);
+		return _.isNumber(property) && property > 0;
 	}
 	return true;
 };
 
 module.exports.validateNonEmpty = function (property) {
-	return (null != property && property.length > 0);
+	return null != property && property.length > 0;
 };
 
 module.exports.validateArray = function (property) {
-	return (null != property && _.isArray(property) && property.length > 0);
+	return null != property && _.isArray(property) && property.length > 0;
 };
 
-module.exports.toLowerCase = function (v){
-	return (null != v)? v.toLowerCase(): undefined;
+module.exports.toLowerCase = function (v) {
+	return null != v ? v.toLowerCase() : undefined;
 };
 
 /**
@@ -141,7 +147,6 @@ module.exports.toLowerCase = function (v){
  * @returns The timestamp in milliseconds since the Unix epoch
  */
 module.exports.dateParse = function (date) {
-
 	// Handle nil values, arrays, and functions by simply returning null
 	if (_.isNil(date) || _.isArray(date) || _.isFunction(date)) {
 		return null;
@@ -207,7 +212,11 @@ module.exports.getPage = function (queryParams) {
  * @param defaultSort (optional)
  * @returns {Array}
  */
-module.exports.getSort = function (queryParams, defaultDir = 'ASC', defaultSort = undefined) {
+module.exports.getSort = function (
+	queryParams,
+	defaultDir = 'ASC',
+	defaultSort = undefined
+) {
 	const sort = _.get(queryParams, 'sort', defaultSort);
 	const dir = _.get(queryParams, 'dir', defaultDir);
 	if (!sort) {
@@ -220,13 +229,13 @@ module.exports.getSort = function (queryParams, defaultDir = 'ASC', defaultSort 
  * Extract given field from request header
  */
 module.exports.getHeaderField = function (header, fieldName) {
-	return (null == header || null == header[fieldName]) ? null : header[fieldName];
+	return null == header || null == header[fieldName] ? null : header[fieldName];
 };
 
 /**
  * Parses user agent information from request header
  */
-module.exports.getUserAgentFromHeader = function(header) {
+module.exports.getUserAgentFromHeader = function (header) {
 	const userAgent = this.getHeaderField(header, 'user-agent');
 
 	let data = {};
@@ -242,9 +251,17 @@ module.exports.getUserAgentFromHeader = function(header) {
 };
 
 function propToMongoose(prop, nonMongoFunction) {
-	if (typeof prop === 'object' && prop.$date != null && typeof prop.$date === 'string') {
+	if (
+		typeof prop === 'object' &&
+		prop.$date != null &&
+		typeof prop.$date === 'string'
+	) {
 		return new Date(prop.$date);
-	} else if (typeof prop === 'object' && prop.$obj != null && typeof prop.$obj === 'string') {
+	} else if (
+		typeof prop === 'object' &&
+		prop.$obj != null &&
+		typeof prop.$obj === 'string'
+	) {
 		return mongoose.Types.ObjectId(prop.$obj);
 	}
 
@@ -289,7 +306,7 @@ exports.toMongoose = toMongoose;
  * @param element
  * @returns {boolean} True if the array contains the given element, false otherwise.
  */
-module.exports.contains = function(arr, element) {
+module.exports.contains = function (arr, element) {
 	for (let i = 0; i < arr.length; i++) {
 		if (_.isEqual(element, arr[i])) {
 			return true;
@@ -298,7 +315,7 @@ module.exports.contains = function(arr, element) {
 	return false;
 };
 
-module.exports.toProvenance = function(user) {
+module.exports.toProvenance = function (user) {
 	const now = new Date();
 	return {
 		username: user.username,
@@ -316,17 +333,22 @@ module.exports.submitRequest = (httpOpts) => {
 
 		const httpClient = httpOpts.protocol === 'https:' ? https : http;
 
-		httpClient.request(httpOpts, (response) => {
-			response.on('data', (chunk) => responseBody += chunk);
-			response.on('end', () => {
-				if (response.statusCode !== 200) {
-					reject({ status: response.statusCode, message: response.statusMessage });
-				}
-				else {
-					resolve((_.isEmpty(responseBody)) ? {} : JSON.parse(responseBody));
-				}
-			});
-		}).on('error', (err) => reject(err)).end();
+		httpClient
+			.request(httpOpts, (response) => {
+				response.on('data', (chunk) => (responseBody += chunk));
+				response.on('end', () => {
+					if (response.statusCode !== 200) {
+						reject({
+							status: response.statusCode,
+							message: response.statusMessage
+						});
+					} else {
+						resolve(_.isEmpty(responseBody) ? {} : JSON.parse(responseBody));
+					}
+				});
+			})
+			.on('error', (err) => reject(err))
+			.end();
 	});
 };
 
@@ -337,13 +359,15 @@ module.exports.submitPostRequest = (httpOpts, postBody) => {
 		const httpClient = httpOpts.protocol === 'https:' ? https : http;
 
 		const postRequest = httpClient.request(httpOpts, (response) => {
-			response.on('data', (chunk) => responseBody += chunk);
+			response.on('data', (chunk) => (responseBody += chunk));
 			response.on('end', () => {
 				if (response.statusCode !== 200) {
-					reject({ status: response.statusCode, message: response.statusMessage });
-				}
-				else {
-					resolve((_.isEmpty(responseBody)) ? {} : JSON.parse(responseBody));
+					reject({
+						status: response.statusCode,
+						message: response.statusMessage
+					});
+				} else {
+					resolve(_.isEmpty(responseBody) ? {} : JSON.parse(responseBody));
 				}
 			});
 		});
@@ -354,7 +378,12 @@ module.exports.submitPostRequest = (httpOpts, postBody) => {
 	});
 };
 
-module.exports.getPagingResults = (pageSize = 20, pageNumber = 0, totalSize = 0, elements = []) => {
+module.exports.getPagingResults = (
+	pageSize = 20,
+	pageNumber = 0,
+	totalSize = 0,
+	elements = []
+) => {
 	if (totalSize === 0) {
 		pageNumber = 0;
 	}

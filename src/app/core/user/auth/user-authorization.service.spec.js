@@ -1,14 +1,11 @@
 'use strict';
 
-const
-	should = require('should'),
+const should = require('should'),
 	sinon = require('sinon'),
 	mongoose = require('mongoose'),
-
 	deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
 	User = dbs.admin.model('User'),
-
 	userAuthorizationService = require('./user-authorization.service');
 
 function userSpec(key) {
@@ -23,7 +20,6 @@ function userSpec(key) {
 }
 
 describe('User authorization service:', () => {
-
 	let sandbox;
 
 	beforeEach(() => {
@@ -105,8 +101,12 @@ describe('User authorization service:', () => {
 			should(userAuthorizationService.hasRoles(user, ['editor'])).be.false();
 			should(userAuthorizationService.hasRoles(user, ['auditor'])).be.false();
 			should(userAuthorizationService.hasRoles(user, ['admin'])).be.true();
-			should(userAuthorizationService.hasRoles(user, ['user', 'admin'])).be.true();
-			should(userAuthorizationService.hasRoles(user, ['user', 'editor'])).be.false();
+			should(
+				userAuthorizationService.hasRoles(user, ['user', 'admin'])
+			).be.true();
+			should(
+				userAuthorizationService.hasRoles(user, ['user', 'editor'])
+			).be.false();
 		});
 	});
 
@@ -120,16 +120,24 @@ describe('User authorization service:', () => {
 			should(userAuthorizationService.hasAnyRole(user, ['editor'])).be.false();
 			should(userAuthorizationService.hasAnyRole(user, ['auditor'])).be.false();
 			should(userAuthorizationService.hasAnyRole(user, ['admin'])).be.true();
-			should(userAuthorizationService.hasAnyRole(user, ['user', 'admin'])).be.true();
-			should(userAuthorizationService.hasAnyRole(user, ['user', 'editor'])).be.true();
-			should(userAuthorizationService.hasAnyRole(user, ['auditor', 'editor'])).be.false();
+			should(
+				userAuthorizationService.hasAnyRole(user, ['user', 'admin'])
+			).be.true();
+			should(
+				userAuthorizationService.hasAnyRole(user, ['user', 'editor'])
+			).be.true();
+			should(
+				userAuthorizationService.hasAnyRole(user, ['auditor', 'editor'])
+			).be.false();
 		});
 	});
 
 	describe('updateRoles', () => {
 		it('roleStrategy === local; should pass through roles as is', () => {
 			sandbox.stub(deps.config.auth, 'roleStrategy').value('local');
-			sandbox.stub(deps.config.auth, 'roles').value(['user', 'elevatedRole1', 'elevatedRole2']);
+			sandbox
+				.stub(deps.config.auth, 'roles')
+				.value(['user', 'elevatedRole1', 'elevatedRole2']);
 
 			const user = {
 				roles: {
@@ -152,7 +160,9 @@ describe('User authorization service:', () => {
 
 		it('roleStrategy === external; should pass through roles as is', () => {
 			sandbox.stub(deps.config.auth, 'roleStrategy').value('external');
-			sandbox.stub(deps.config.auth, 'roles').value(['user', 'elevatedRole1', 'elevatedRole2', 'admin']);
+			sandbox
+				.stub(deps.config.auth, 'roles')
+				.value(['user', 'elevatedRole1', 'elevatedRole2', 'admin']);
 			sandbox.stub(deps.config.auth, 'externalRoles').value({
 				provider: {
 					file: 'src/app/core/user/auth/external-role-map.provider.js',
@@ -189,7 +199,9 @@ describe('User authorization service:', () => {
 
 		it('roleStrategy === hybrid; should pass through roles as is', () => {
 			sandbox.stub(deps.config.auth, 'roleStrategy').value('hybrid');
-			sandbox.stub(deps.config.auth, 'roles').value(['user', 'elevatedRole1', 'elevatedRole2', 'admin']);
+			sandbox
+				.stub(deps.config.auth, 'roles')
+				.value(['user', 'elevatedRole1', 'elevatedRole2', 'admin']);
 			sandbox.stub(deps.config.auth, 'externalRoles').value({
 				provider: {
 					file: 'src/app/core/user/auth/external-role-map.provider.js',
@@ -234,46 +246,57 @@ describe('User authorization service:', () => {
 		const id2 = mongoose.Types.ObjectId();
 
 		it('test user (not admin) access own resource', () => {
-			const user = {roles: {admin: false}, _id: id1};
-			const resource = {creator: id1};
+			const user = { roles: { admin: false }, _id: id1 };
+			const resource = { creator: id1 };
 
-			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.fulfilled();
+			return userAuthorizationService
+				.validateAccessToPersonalResource(user, resource)
+				.should.be.fulfilled();
 		});
 
 		it('test user (not admin) access another user resource', () => {
-			const user = {roles: {admin: false}, _id: id1};
-			const resource = {creator: id2};
+			const user = { roles: { admin: false }, _id: id1 };
+			const resource = { creator: id2 };
 
-			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.rejected();
+			return userAuthorizationService
+				.validateAccessToPersonalResource(user, resource)
+				.should.be.rejected();
 		});
 
 		it('test user with no roles access own resource', () => {
-			const user = { _id: id1};
-			const resource = {creator: id1};
+			const user = { _id: id1 };
+			const resource = { creator: id1 };
 
-			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.fulfilled();
+			return userAuthorizationService
+				.validateAccessToPersonalResource(user, resource)
+				.should.be.fulfilled();
 		});
 
 		it('test user with no roles access another user resource', () => {
-			const user = {_id: id1};
-			const resource = {creator: id2};
+			const user = { _id: id1 };
+			const resource = { creator: id2 };
 
-			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.rejected();
+			return userAuthorizationService
+				.validateAccessToPersonalResource(user, resource)
+				.should.be.rejected();
 		});
 
 		it('test admin access own resource', () => {
-			const user = {roles: {admin: true}, _id: id1};
-			const resource = {creator: id1};
+			const user = { roles: { admin: true }, _id: id1 };
+			const resource = { creator: id1 };
 
-			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.fulfilled();
+			return userAuthorizationService
+				.validateAccessToPersonalResource(user, resource)
+				.should.be.fulfilled();
 		});
 
 		it('test admin access another user resource', () => {
-			const user = {roles: {admin: true}, _id: id1};
-			const resource = {creator: id2};
+			const user = { roles: { admin: true }, _id: id1 };
+			const resource = { creator: id2 };
 
-			return userAuthorizationService.validateAccessToPersonalResource(user, resource).should.be.fulfilled();
+			return userAuthorizationService
+				.validateAccessToPersonalResource(user, resource)
+				.should.be.fulfilled();
 		});
 	});
-
 });

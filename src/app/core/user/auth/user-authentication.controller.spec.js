@@ -1,22 +1,15 @@
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	should = require('should'),
-
 	deps = require('../../../../dependencies'),
 	config = deps.config,
 	dbs = deps.dbs,
-
 	User = dbs.admin.model('User'),
 	CacheEntry = dbs.admin.model('CacheEntry'),
-
 	local = require('../../../../lib/strategies/local'),
 	proxyPki = require('../../../../lib/strategies/proxy-pki'),
-
 	userAuthenticationController = require('./user-authentication.controller');
-
-
 
 /**
  * Helpers
@@ -70,7 +63,6 @@ function cacheSpec(key) {
  * Unit tests
  */
 describe('User Auth Controller:', () => {
-
 	before(() => {
 		return clearDatabase();
 	});
@@ -79,22 +71,20 @@ describe('User Auth Controller:', () => {
 		return clearDatabase();
 	});
 
-
-	describe('\'local\' Strategy', () => {
+	describe("'local' Strategy", () => {
 		const spec = { user: localUserSpec('user1') };
 		let user;
 
 		before(() => {
 			return clearDatabase().then(() => {
 				// Create the user
-				return (new User(spec.user)).save()
-					.then((result) =>{
-						user = result;
+				return new User(spec.user).save().then((result) => {
+					user = result;
 
-						//setup to use local passport
-						config.auth.strategy = 'local';
-						local();
-					});
+					//setup to use local passport
+					config.auth.strategy = 'local';
+					local();
+				});
 			});
 		});
 
@@ -105,9 +95,14 @@ describe('User Auth Controller:', () => {
 		describe('login', () => {
 			it('should succeed with correct credentials', (done) => {
 				const req = {};
-				req.body = { username: spec.user.username, password: spec.user.password };
+				req.body = {
+					username: spec.user.username,
+					password: spec.user.password
+				};
 				req.headers = {};
-				req.login = (u, cb) => { return cb && cb(); };
+				req.login = (u, cb) => {
+					return cb && cb();
+				};
 
 				const res = {};
 				res.status = (status) => {
@@ -135,7 +130,9 @@ describe('User Auth Controller:', () => {
 				const req = {};
 				req.body = { username: user.username, password: 'wrong' };
 				req.headers = {};
-				req.login = (u, cb) => { return cb && cb(); };
+				req.login = (u, cb) => {
+					return cb && cb();
+				};
 
 				const res = {};
 				res.status = (status) => {
@@ -158,7 +155,9 @@ describe('User Auth Controller:', () => {
 				const req = {};
 				req.body = { username: user.username, password: undefined };
 				req.headers = {};
-				req.login = (_user, cb) => { return cb && cb(); };
+				req.login = (_user, cb) => {
+					return cb && cb();
+				};
 
 				const res = {
 					status: (status) => {
@@ -182,7 +181,9 @@ describe('User Auth Controller:', () => {
 				const req = {};
 				req.body = { username: undefined, password: 'asdfasdf' };
 				req.headers = {};
-				req.login = (_user, cb) => { return cb && cb(); };
+				req.login = (_user, cb) => {
+					return cb && cb();
+				};
 
 				const res = {
 					status: (status) => {
@@ -206,7 +207,9 @@ describe('User Auth Controller:', () => {
 				const req = {};
 				req.body = { username: 'totally doesnt exist', password: 'asdfasdf' };
 				req.headers = {};
-				req.login = (_user, cb) => { return cb && cb(); };
+				req.login = (_user, cb) => {
+					return cb && cb();
+				};
 
 				const res = {
 					status: (status) => {
@@ -225,15 +228,10 @@ describe('User Auth Controller:', () => {
 
 				userAuthenticationController.signin(req, res, () => {});
 			});
-
 		}); // describe - login
-
 	});
 
-
-
 	describe('Proxy PKI Strategy', () => {
-
 		// Specs for tests
 		const spec = { cache: {}, user: {} };
 
@@ -268,7 +266,7 @@ describe('User Auth Controller:', () => {
 		// Expired in cache, no bypass
 		spec.user.expiredUser = proxyPkiUserSpec('expiredUser');
 		spec.cache.expiredUser = cacheSpec('expiredUser');
-		spec.cache.expiredUser.ts = Date.now() - 1000*60*60*48;
+		spec.cache.expiredUser.ts = Date.now() - 1000 * 60 * 60 * 48;
 		spec.user.expiredUser.externalRoles = ['role1', 'role2'];
 		spec.user.expiredUser.externalGroups = ['group1', 'group2'];
 
@@ -301,17 +299,21 @@ describe('User Auth Controller:', () => {
 			return clearDatabase().then(() => {
 				let defers = [];
 
-				defers = defers.concat(_.keys(spec.cache).map((k) => {
-					return (new CacheEntry(spec.cache[k])).save().then((e) => {
-						cache[k] = e;
-					});
-				}));
+				defers = defers.concat(
+					_.keys(spec.cache).map((k) => {
+						return new CacheEntry(spec.cache[k]).save().then((e) => {
+							cache[k] = e;
+						});
+					})
+				);
 
-				defers = defers.concat(_.keys(spec.user).map((k) => {
-					return (new User(spec.user[k])).save().then((e) => {
-						user[k] = e;
-					});
-				}));
+				defers = defers.concat(
+					_.keys(spec.user).map((k) => {
+						return new User(spec.user[k]).save().then((e) => {
+							user[k] = e;
+						});
+					})
+				);
 
 				return Promise.all(defers).then(() => {
 					const accessCheckerConfig = {
@@ -327,13 +329,13 @@ describe('User Auth Controller:', () => {
 					config.auth.strategy = 'proxy-pki';
 					config.auth.accessChecker = {
 						provider: {
-							file: 'src/app/core/access-checker/providers/example-provider.service.js',
+							file:
+								'src/app/core/access-checker/providers/example-provider.service.js',
 							config: accessCheckerConfig
 						}
 					};
 					proxyPki();
 				});
-
 			});
 		});
 
@@ -346,9 +348,10 @@ describe('User Auth Controller:', () => {
 		 * Granting access and denying access based on known/unknown dn
 		 */
 		describe('basic login', () => {
-
 			const req = {};
-			req.login = (_user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => {
+				return cb && cb();
+			};
 
 			it('should work when user is synced with access checker', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.synced.providerData.dn };
@@ -364,8 +367,12 @@ describe('User Auth Controller:', () => {
 								should(info.username).equal(spec.user.synced.username);
 
 								should(info.externalRoles).be.an.Array();
-								should(info.externalRoles).have.length(spec.user.synced.externalRoles.length);
-								should(info.externalRoles).containDeep(spec.user.synced.externalRoles);
+								should(info.externalRoles).have.length(
+									spec.user.synced.externalRoles.length
+								);
+								should(info.externalRoles).containDeep(
+									spec.user.synced.externalRoles
+								);
 
 								done();
 							}
@@ -375,7 +382,6 @@ describe('User Auth Controller:', () => {
 
 				userAuthenticationController.signin(req, res, () => {});
 			});
-
 
 			// No DN header
 			it('should fail when there is no dn', (done) => {
@@ -417,7 +423,6 @@ describe('User Auth Controller:', () => {
 
 				userAuthenticationController.signin(req, res, () => {});
 			});
-
 		});
 
 		/**
@@ -425,9 +430,10 @@ describe('User Auth Controller:', () => {
 		 * is not in sync with the user
 		 */
 		describe('syncing with access checker', () => {
-
 			const req = {};
-			req.login = (_user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => {
+				return cb && cb();
+			};
 
 			it('should update the user info from access checker on login', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.user.oldMd.providerData.dn };
@@ -438,7 +444,9 @@ describe('User Auth Controller:', () => {
 							json: (info) => {
 								should.exist(info);
 								should(info.name).equal(spec.cache.oldMd.value.name);
-								should(info.organization).equal(spec.cache.oldMd.value.organization);
+								should(info.organization).equal(
+									spec.cache.oldMd.value.organization
+								);
 								should(info.email).equal(spec.cache.oldMd.value.email);
 								should(info.username).equal(spec.cache.oldMd.value.username);
 
@@ -452,7 +460,9 @@ describe('User Auth Controller:', () => {
 			});
 
 			it('should sync roles and groups from access checker on login', (done) => {
-				req.headers = { 'x-ssl-client-s-dn': spec.user.differentRolesAndGroups.providerData.dn };
+				req.headers = {
+					'x-ssl-client-s-dn': spec.user.differentRolesAndGroups.providerData.dn
+				};
 				const res = {
 					status: (status) => {
 						should(status).equal(200);
@@ -461,12 +471,20 @@ describe('User Auth Controller:', () => {
 								should.exist(info);
 
 								should(info.externalRoles).be.an.Array();
-								should(info.externalRoles).have.length(spec.cache.differentRolesAndGroups.value.roles.length);
-								should(info.externalRoles).containDeep(spec.cache.differentRolesAndGroups.value.roles);
+								should(info.externalRoles).have.length(
+									spec.cache.differentRolesAndGroups.value.roles.length
+								);
+								should(info.externalRoles).containDeep(
+									spec.cache.differentRolesAndGroups.value.roles
+								);
 
 								should(info.externalGroups).be.an.Array();
-								should(info.externalGroups).have.length(spec.cache.differentRolesAndGroups.value.groups.length);
-								should(info.externalGroups).containDeep(spec.cache.differentRolesAndGroups.value.groups);
+								should(info.externalGroups).have.length(
+									spec.cache.differentRolesAndGroups.value.groups.length
+								);
+								should(info.externalGroups).containDeep(
+									spec.cache.differentRolesAndGroups.value.groups
+								);
 
 								done();
 							}
@@ -480,10 +498,14 @@ describe('User Auth Controller:', () => {
 
 		describe('missing or expired cache entries with no bypass', () => {
 			const req = {};
-			req.login = (_user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => {
+				return cb && cb();
+			};
 
 			it('should have external roles and groups removed on login when missing from cache', (done) => {
-				req.headers = { 'x-ssl-client-s-dn': spec.user.missingUser.providerData.dn };
+				req.headers = {
+					'x-ssl-client-s-dn': spec.user.missingUser.providerData.dn
+				};
 				const res = {
 					status: (status) => {
 						should(status).equal(200);
@@ -491,15 +513,17 @@ describe('User Auth Controller:', () => {
 							json: (info) => {
 								should.exist(info);
 								should(info.name).equal(spec.user.missingUser.name);
-								should(info.organization).equal(spec.user.missingUser.organization);
+								should(info.organization).equal(
+									spec.user.missingUser.organization
+								);
 								should(info.email).equal(spec.user.missingUser.email);
 								should(info.username).equal(spec.user.missingUser.username);
 
 								should(info.externalRoles).be.an.Array();
-								(info.externalRoles).should.have.length(0);
+								info.externalRoles.should.have.length(0);
 
 								should(info.externalGroups).be.an.Array();
-								(info.externalGroups).should.have.length(0);
+								info.externalGroups.should.have.length(0);
 
 								done();
 							}
@@ -510,9 +534,10 @@ describe('User Auth Controller:', () => {
 				userAuthenticationController.signin(req, res, () => {});
 			});
 
-
 			it('should have external roles and groups removed on login when cache expired', (done) => {
-				req.headers = { 'x-ssl-client-s-dn': spec.user.expiredUser.providerData.dn };
+				req.headers = {
+					'x-ssl-client-s-dn': spec.user.expiredUser.providerData.dn
+				};
 				const res = {
 					status: (status) => {
 						should(status).equal(200);
@@ -520,15 +545,17 @@ describe('User Auth Controller:', () => {
 							json: (info) => {
 								should.exist(info);
 								should(info.name).equal(spec.user.expiredUser.name);
-								should(info.organization).equal(spec.user.expiredUser.organization);
+								should(info.organization).equal(
+									spec.user.expiredUser.organization
+								);
 								should(info.email).equal(spec.user.expiredUser.email);
 								should(info.username).equal(spec.user.expiredUser.username);
 
 								should(info.externalRoles).be.an.Array();
-								(info.externalRoles).should.have.length(0);
+								info.externalRoles.should.have.length(0);
 
 								should(info.externalGroups).be.an.Array();
-								(info.externalGroups).should.have.length(0);
+								info.externalGroups.should.have.length(0);
 
 								done();
 							}
@@ -538,15 +565,18 @@ describe('User Auth Controller:', () => {
 
 				userAuthenticationController.signin(req, res, () => {});
 			});
-
 		});
 
 		describe('missing cache entries with bypass access checker enabled', () => {
 			const req = {};
-			req.login = (_user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => {
+				return cb && cb();
+			};
 
 			it('should preserve user info, roles and groups on login', (done) => {
-				req.headers = { 'x-ssl-client-s-dn': spec.user.missingUserBypassed.providerData.dn };
+				req.headers = {
+					'x-ssl-client-s-dn': spec.user.missingUserBypassed.providerData.dn
+				};
 				const res = {
 					status: (status) => {
 						should(status).equal(200);
@@ -554,17 +584,29 @@ describe('User Auth Controller:', () => {
 							json: (info) => {
 								should.exist(info);
 								should(info.name).equal(spec.user.missingUserBypassed.name);
-								should(info.organization).equal(spec.user.missingUserBypassed.organization);
+								should(info.organization).equal(
+									spec.user.missingUserBypassed.organization
+								);
 								should(info.email).equal(spec.user.missingUserBypassed.email);
-								should(info.username).equal(spec.user.missingUserBypassed.username);
+								should(info.username).equal(
+									spec.user.missingUserBypassed.username
+								);
 
 								should(info.externalRoles).be.an.Array();
-								should(info.externalRoles).have.length(spec.user.missingUserBypassed.externalRoles.length);
-								should(info.externalRoles).containDeep(spec.user.missingUserBypassed.externalRoles);
+								should(info.externalRoles).have.length(
+									spec.user.missingUserBypassed.externalRoles.length
+								);
+								should(info.externalRoles).containDeep(
+									spec.user.missingUserBypassed.externalRoles
+								);
 
 								should(info.externalGroups).be.an.Array();
-								should(info.externalGroups).have.length(spec.user.missingUserBypassed.externalGroups.length);
-								should(info.externalGroups).containDeep(spec.user.missingUserBypassed.externalGroups);
+								should(info.externalGroups).have.length(
+									spec.user.missingUserBypassed.externalGroups.length
+								);
+								should(info.externalGroups).containDeep(
+									spec.user.missingUserBypassed.externalGroups
+								);
 
 								done();
 							}
@@ -574,15 +616,18 @@ describe('User Auth Controller:', () => {
 
 				userAuthenticationController.signin(req, res, () => {});
 			});
-
 		});
 
 		describe('in cache, access checker enabled, but with fields modified locally', () => {
 			const req = {};
-			req.login = (_user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => {
+				return cb && cb();
+			};
 
 			it('should preserve user info, roles and groups on login', (done) => {
-				req.headers = { 'x-ssl-client-s-dn': spec.user.userBypassed.providerData.dn };
+				req.headers = {
+					'x-ssl-client-s-dn': spec.user.userBypassed.providerData.dn
+				};
 				const res = {
 					status: (status) => {
 						should(status).equal(200);
@@ -590,7 +635,9 @@ describe('User Auth Controller:', () => {
 							json: (info) => {
 								should.exist(info);
 								should(info.name).equal(spec.user.userBypassed.name);
-								should(info.organization).equal(spec.user.userBypassed.organization);
+								should(info.organization).equal(
+									spec.user.userBypassed.organization
+								);
 								should(info.email).equal(spec.user.userBypassed.email);
 								should(info.username).equal(spec.user.userBypassed.username);
 
@@ -608,12 +655,13 @@ describe('User Auth Controller:', () => {
 
 				userAuthenticationController.signin(req, res, () => {});
 			});
-
 		});
 
 		describe('auto create accounts', () => {
 			const req = {};
-			req.login = (_user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => {
+				return cb && cb();
+			};
 
 			it('should create a new account from access checker information', (done) => {
 				req.headers = { 'x-ssl-client-s-dn': spec.cache.cacheOnly.key };
@@ -624,17 +672,29 @@ describe('User Auth Controller:', () => {
 							json: (info) => {
 								should.exist(info);
 								should(info.name).equal(spec.cache.cacheOnly.value.name);
-								should(info.organization).equal(spec.cache.cacheOnly.value.organization);
+								should(info.organization).equal(
+									spec.cache.cacheOnly.value.organization
+								);
 								should(info.email).equal(spec.cache.cacheOnly.value.email);
-								should(info.username).equal(spec.cache.cacheOnly.value.username);
+								should(info.username).equal(
+									spec.cache.cacheOnly.value.username
+								);
 
 								should(info.externalRoles).be.an.Array();
-								should(info.externalRoles).have.length(spec.cache.cacheOnly.value.roles.length);
-								should(info.externalRoles).containDeep(spec.cache.cacheOnly.value.roles);
+								should(info.externalRoles).have.length(
+									spec.cache.cacheOnly.value.roles.length
+								);
+								should(info.externalRoles).containDeep(
+									spec.cache.cacheOnly.value.roles
+								);
 
 								should(info.externalGroups).be.an.Array();
-								should(info.externalGroups).have.length(spec.cache.cacheOnly.value.groups.length);
-								should(info.externalGroups).containDeep(spec.cache.cacheOnly.value.groups);
+								should(info.externalGroups).have.length(
+									spec.cache.cacheOnly.value.groups.length
+								);
+								should(info.externalGroups).containDeep(
+									spec.cache.cacheOnly.value.groups
+								);
 
 								done();
 							}
@@ -648,7 +708,9 @@ describe('User Auth Controller:', () => {
 
 		describe('proxy for other users', () => {
 			const req = {};
-			req.login = (_user, cb) => { return cb && cb(); };
+			req.login = (_user, cb) => {
+				return cb && cb();
+			};
 
 			it('should failed when not authorized to proxy users', (done) => {
 				req.headers = {
@@ -663,7 +725,8 @@ describe('User Auth Controller:', () => {
 								should.exist(info);
 								should(info).eql({
 									status: 403,
-									message: 'Not approved to proxy users. Please verify your credentials.',
+									message:
+										'Not approved to proxy users. Please verify your credentials.',
 									type: 'authentication-error'
 								});
 
@@ -689,7 +752,9 @@ describe('User Auth Controller:', () => {
 								// Verify that the user returned is the proxied user (not the primary user)
 								should.exist(info);
 								should(info.name).equal(spec.user.userBypassed.name);
-								should(info.organization).equal(spec.user.userBypassed.organization);
+								should(info.organization).equal(
+									spec.user.userBypassed.organization
+								);
 								should(info.email).equal(spec.user.userBypassed.email);
 								should(info.username).equal(spec.user.userBypassed.username);
 
@@ -708,6 +773,5 @@ describe('User Auth Controller:', () => {
 				userAuthenticationController.signin(req, res, () => {});
 			});
 		});
-
 	});
 });

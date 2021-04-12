@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	deps = require('../../../../dependencies'),
+const deps = require('../../../../dependencies'),
 	logger = deps.logger;
 
 /**
@@ -19,16 +18,14 @@ const
  * One of 'text' or 'html' is expected</p>
  */
 const sendMail = (mailOptions) => {
-
 	return new Promise((resolve, reject) => {
 		logger.info('Requested email sent with:', mailOptions);
 		resolve();
 	});
-
 };
 
 // log-email provider requires configuration to be passed in, but it isn't used
-module.exports = function(inputConfig) {
+module.exports = function (inputConfig) {
 	return {
 		sendMail
 	};

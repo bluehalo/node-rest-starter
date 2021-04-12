@@ -6,7 +6,15 @@ const deps = require('../../../dependencies'),
 	auditLogger = deps.auditLogger;
 
 // Creates an audit entry persisted to Mongo and the bunyan logger
-module.exports.audit = function(message, eventType, eventAction, eventActor, eventObject, eventMetadata, stringifyEventObject) {
+module.exports.audit = function (
+	message,
+	eventType,
+	eventAction,
+	eventActor,
+	eventObject,
+	eventMetadata,
+	stringifyEventObject
+) {
 	const Audit = dbs.admin.model('Audit');
 	const utilService = deps.utilService;
 
@@ -26,17 +34,27 @@ module.exports.audit = function(message, eventType, eventAction, eventActor, eve
 			}
 		});
 
-		newAudit.audit.object = stringifyEventObject ? JSON.stringify(eventObject) : eventObject;
+		newAudit.audit.object = stringifyEventObject
+			? JSON.stringify(eventObject)
+			: eventObject;
 
 		// Send to bunyan logger for logfile persistence
-		auditLogger.audit(message, eventType, eventAction, actor, eventObject, userAgentObj);
+		auditLogger.audit(
+			message,
+			eventType,
+			eventAction,
+			actor,
+			eventObject,
+			userAgentObj
+		);
 
-		return newAudit
-			.save()
-			.catch((err) => {
-				// Log and continue the error
-				logger.error({err: err, audit: newAudit}, 'Error trying to persist audit record to storage.');
-				return Promise.reject(err);
-			});
+		return newAudit.save().catch((err) => {
+			// Log and continue the error
+			logger.error(
+				{ err: err, audit: newAudit },
+				'Error trying to persist audit record to storage.'
+			);
+			return Promise.reject(err);
+		});
 	});
 };

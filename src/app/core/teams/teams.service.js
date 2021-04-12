@@ -1,9 +1,7 @@
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	mongoose = require('mongoose'),
-
 	userAuthService = require('../user/auth/user-authorization.service'),
 	deps = require('../../../dependencies'),
 	config = deps.config,
@@ -11,7 +9,6 @@ const
 	logger = deps.logger,
 	emailService = deps.emailService,
 	util = deps.utilService,
-
 	Resource = dbs.admin.model('Resource'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	Team = dbs.admin.model('Team'),
@@ -19,10 +16,10 @@ const
 	User = dbs.admin.model('User');
 
 const teamRolesMap = {
-	requester: {priority: 0},
-	member: {priority: 1},
-	editor: {priority: 5},
-	admin: {priority: 7}
+	requester: { priority: 0 },
+	member: { priority: 1 },
+	editor: { priority: 5 },
+	admin: { priority: 7 }
 };
 
 // Array of team role keys
@@ -93,7 +90,9 @@ const meetsRequiredExternalTeams = (user, team) => {
 		return true;
 	}
 	// Check the required external teams against the user's externalGroups
-	return _.intersection(team.requiresExternalTeams, user.externalGroups).length > 0;
+	return (
+		_.intersection(team.requiresExternalTeams, user.externalGroups).length > 0
+	);
 };
 
 /**
@@ -105,11 +104,17 @@ const meetsRequiredExternalTeams = (user, team) => {
  * @returns {boolean}
  */
 const meetsRequiredExternalRoles = (user, team) => {
-	if (team.requiresExternalRoles == null || team.requiresExternalRoles.length === 0) {
+	if (
+		team.requiresExternalRoles == null ||
+		team.requiresExternalRoles.length === 0
+	) {
 		return false;
 	}
 	// Check the required external roles against the user's externalRoles
-	return _.intersection(team.requiresExternalRoles, user.externalRoles).length === team.requiresExternalRoles.length;
+	return (
+		_.intersection(team.requiresExternalRoles, user.externalRoles).length ===
+		team.requiresExternalRoles.length
+	);
 };
 
 const meetsRoleRequirement = (user, team, role) => {
@@ -134,8 +139,15 @@ const meetsRoleRequirement = (user, team, role) => {
  * @returns {boolean}
  */
 const meetsOrExceedsRole = (userRole, requestedRole) => {
-	if (null != userRole && _.has(teamRolesMap, userRole) && null != requestedRole && _.has(teamRolesMap, requestedRole)) {
-		return (teamRolesMap[userRole].priority >= teamRolesMap[requestedRole].priority);
+	if (
+		null != userRole &&
+		_.has(teamRolesMap, userRole) &&
+		null != requestedRole &&
+		_.has(teamRolesMap, requestedRole)
+	) {
+		return (
+			teamRolesMap[userRole].priority >= teamRolesMap[requestedRole].priority
+		);
 	}
 	return false;
 };
@@ -160,7 +172,8 @@ const getActiveTeamRole = (user, team) => {
 		return teamRole;
 	}
 
-	const implicitMembersEnabled = _.get(config, 'teams.implicitMembers.strategy', null) !== null;
+	const implicitMembersEnabled =
+		_.get(config, 'teams.implicitMembers.strategy', null) !== null;
 
 	// implicit team members is not enabled, or the team does not have implicit members enabled
 	if (!implicitMembersEnabled || !team.implicitMembers) {
@@ -185,7 +198,10 @@ const getActiveTeamRole = (user, team) => {
  * @returns A promise that resolves if there are no more resources in the team, and rejects otherwise
  */
 const verifyNoResourcesInTeam = async (team) => {
-	const resources = await Resource.find({'owner.type': 'team', 'owner._id': team._id}).exec();
+	const resources = await Resource.find({
+		'owner.type': 'team',
+		'owner._id': team._id
+	}).exec();
 
 	if (null != resources && resources.length > 0) {
 		return Promise.reject({
@@ -208,20 +224,24 @@ const verifyNoResourcesInTeam = async (team) => {
 const verifyNotLastAdmin = async (user, team) => {
 	// Search for all users who have the admin role set to true
 	const results = await TeamMember.find({
-		_id: {$ne: user._id},
-		teams: {$elemMatch: {_id: team._id, role: 'admin'}}
+		_id: { $ne: user._id },
+		teams: { $elemMatch: { _id: team._id, role: 'admin' } }
 	}).exec();
 
 	// Just need to make sure we find one active admin who isn't this user
 	const adminFound = results.some((u) => {
 		const role = getActiveTeamRole(u, team);
-		return (null != role && role === 'admin');
+		return null != role && role === 'admin';
 	});
 
 	if (adminFound) {
 		return Promise.resolve();
 	}
-	return Promise.reject({status: 400, type: 'bad-request', message: 'Team must have at least one admin'});
+	return Promise.reject({
+		status: 400,
+		type: 'bad-request',
+		message: 'Team must have at least one admin'
+	});
 };
 
 /**
@@ -232,7 +252,11 @@ const validateTeamRole = (role) => {
 		return Promise.resolve();
 	}
 
-	return Promise.reject({status: 400, type: 'bad-argument', message: 'Team role does not exist'});
+	return Promise.reject({
+		status: 400,
+		type: 'bad-argument',
+		message: 'Team role does not exist'
+	});
 };
 
 const readTeam = (id, populate = []) => {
@@ -362,37 +386,64 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
 	// Finds members explicitly added to the team using the id OR
 	// members implicitly added by having the externalGroup required by requiresExternalTeam
 	query = query || {};
-	query.$or = [
-		{'teams._id': team._id}
-	];
+	query.$or = [{ 'teams._id': team._id }];
 
-	const implicitTeamStrategy = _.get(config, 'teams.implicitMembers.strategy', null);
+	const implicitTeamStrategy = _.get(
+		config,
+		'teams.implicitMembers.strategy',
+		null
+	);
 
-	if (implicitTeamStrategy === 'roles' && team.requiresExternalRoles && team.requiresExternalRoles.length > 0) {
+	if (
+		implicitTeamStrategy === 'roles' &&
+		team.requiresExternalRoles &&
+		team.requiresExternalRoles.length > 0
+	) {
 		query.$or.push({
-			$and: [{
-				externalRoles: {$exists: true}
-			}, {
-				externalRoles: {$ne: null}
-			}, {
-				externalRoles: {$ne: []}
-			}, {
-				externalRoles: {$not: {$elemMatch: {$nin: team.requiresExternalRoles}}}
-			}]
+			$and: [
+				{
+					externalRoles: { $exists: true }
+				},
+				{
+					externalRoles: { $ne: null }
+				},
+				{
+					externalRoles: { $ne: [] }
+				},
+				{
+					externalRoles: {
+						$not: { $elemMatch: { $nin: team.requiresExternalRoles } }
+					}
+				}
+			]
 		});
 	}
-	if (implicitTeamStrategy === 'teams' && team.requiresExternalTeams && team.requiresExternalTeams.length > 0) {
+	if (
+		implicitTeamStrategy === 'teams' &&
+		team.requiresExternalTeams &&
+		team.requiresExternalTeams.length > 0
+	) {
 		query.$or.push({
-			$and: [{
-				externalGroups: {$elemMatch: {$in: team.requiresExternalTeams}}
-			}]
+			$and: [
+				{
+					externalGroups: { $elemMatch: { $in: team.requiresExternalTeams } }
+				}
+			]
 		});
 	}
 
-	const results = await TeamMember.textSearch(query, search, limit, offset, sortArr);
+	const results = await TeamMember.textSearch(
+		query,
+		search,
+		limit,
+		offset,
+		sortArr
+	);
 
 	// Create the return copy of the users
-	const members = results.results.map((result) => TeamMember.teamCopy(result, team._id));
+	const members = results.results.map((result) =>
+		TeamMember.teamCopy(result, team._id)
+	);
 
 	return util.getPagingResults(limit, page, results.count, members);
 };
@@ -406,14 +457,17 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
  * @returns {Promise} Returns a promise that resolves if the user is successfully added to the team, and rejects otherwise
  */
 const addMemberToTeam = (user, team, role) => {
-	return TeamMember.updateOne({_id: user._id}, {
-		$addToSet: {
-			teams: new TeamRole({
-				_id: team._id,
-				role: role
-			})
+	return TeamMember.updateOne(
+		{ _id: user._id },
+		{
+			$addToSet: {
+				teams: new TeamRole({
+					_id: team._id,
+					role: role
+				})
+			}
 		}
-	}).exec();
+	).exec();
 };
 
 const updateMemberRole = async (user, team, role) => {
@@ -425,10 +479,13 @@ const updateMemberRole = async (user, team, role) => {
 
 	await validateTeamRole(role);
 
-	return TeamMember.findOneAndUpdate({
-		_id: user._id,
-		'teams._id': team._id
-	}, {$set: {'teams.$.role': role}}).exec();
+	return TeamMember.findOneAndUpdate(
+		{
+			_id: user._id,
+			'teams._id': team._id
+		},
+		{ $set: { 'teams.$.role': role } }
+	).exec();
 };
 
 /**
@@ -444,23 +501,33 @@ const removeMemberFromTeam = async (user, team) => {
 	await verifyNotLastAdmin(user, team);
 
 	// Apply the update
-	return TeamMember.updateOne({_id: user._id}, {$pull: {teams: {_id: team._id}}}).exec();
+	return TeamMember.updateOne(
+		{ _id: user._id },
+		{ $pull: { teams: { _id: team._id } } }
+	).exec();
 };
 
 const sendRequestEmail = async (toEmail, requester, team, req) => {
 	try {
-		const mailOptions = await emailService.generateMailOptions(requester, null, config.coreEmails.teamAccessRequestEmail, {
-			team: team
-		}, {
-			team: team
-		}, {
-			bcc: toEmail
-		});
+		const mailOptions = await emailService.generateMailOptions(
+			requester,
+			null,
+			config.coreEmails.teamAccessRequestEmail,
+			{
+				team: team
+			},
+			{
+				team: team
+			},
+			{
+				bcc: toEmail
+			}
+		);
 		await emailService.sendMail(mailOptions);
 		logger.debug(`Sent approved user (${requester.username}) alert email`);
 	} catch (error) {
 		// Log the error but this shouldn't block
-		logger.error({err: error, req: req}, 'Failure sending email.');
+		logger.error({ err: error, req: req }, 'Failure sending email.');
 	}
 };
 
@@ -478,7 +545,10 @@ const requestAccessToTeam = async (requester, team, req) => {
 	const adminEmails = admins.map((admin) => admin.email);
 
 	if (null == adminEmails || adminEmails.length === 0) {
-		return Promise.reject({status: 404, message: 'Error retrieving team admins'});
+		return Promise.reject({
+			status: 404,
+			message: 'Error retrieving team admins'
+		});
 	}
 
 	// Add requester role to user for this team
@@ -489,45 +559,62 @@ const requestAccessToTeam = async (requester, team, req) => {
 
 const requestNewTeam = async (org, aoi, description, requester, req) => {
 	if (null == org) {
-		return Promise.reject({status: 400, message: 'Organization cannot be empty'});
+		return Promise.reject({
+			status: 400,
+			message: 'Organization cannot be empty'
+		});
 	}
 	if (null == aoi) {
-		return Promise.reject({status: 400, message: 'AOI cannot be empty'});
+		return Promise.reject({ status: 400, message: 'AOI cannot be empty' });
 	}
 	if (null == description) {
-		return Promise.reject({status: 400, message: 'Description cannot be empty'});
+		return Promise.reject({
+			status: 400,
+			message: 'Description cannot be empty'
+		});
 	}
 	if (null == requester) {
-		return Promise.reject({status: 400, message: 'Invalid requester'});
+		return Promise.reject({ status: 400, message: 'Invalid requester' });
 	}
 
 	try {
-		const mailOptions = await emailService.generateMailOptions(requester, req, config.coreEmails.newTeamRequest, {
-			org: org,
-			aoi: aoi,
-			description: description
-		});
+		const mailOptions = await emailService.generateMailOptions(
+			requester,
+			req,
+			config.coreEmails.newTeamRequest,
+			{
+				org: org,
+				aoi: aoi,
+				description: description
+			}
+		);
 		await emailService.sendMail(mailOptions);
 		logger.debug('Sent team request email');
 	} catch (error) {
 		// Log the error but this shouldn't block
-		logger.error({err: error, req: req}, 'Failure sending email.');
+		logger.error({ err: error, req: req }, 'Failure sending email.');
 	}
 };
 
 const getExplicitTeamIds = (user, ...roles) => {
 	// Validate the user input
 	if (null == user) {
-		return Promise.reject({status: 401, type: 'bad-request', message: 'User does not exist'});
+		return Promise.reject({
+			status: 401,
+			type: 'bad-request',
+			message: 'User does not exist'
+		});
 	}
 
 	if (user.constructor.name === 'model') {
 		user = user.toObject();
 	}
 
-	let userTeams = (_.isArray(user.teams)) ? user.teams : [];
+	let userTeams = _.isArray(user.teams) ? user.teams : [];
 	if (roles && roles.length > 0) {
-		userTeams = userTeams.filter((t) => null != t.role && roles.includes(t.role));
+		userTeams = userTeams.filter(
+			(t) => null != t.role && roles.includes(t.role)
+		);
 	}
 
 	const userTeamIds = userTeams.map((t) => t._id.toString());
@@ -541,7 +628,11 @@ const getExplicitTeamIds = (user, ...roles) => {
 const getImplicitTeamIds = (user, ...roles) => {
 	// Validate the user input
 	if (null == user) {
-		return Promise.reject({status: 401, type: 'bad-request', message: 'User does not exist'});
+		return Promise.reject({
+			status: 401,
+			type: 'bad-request',
+			message: 'User does not exist'
+		});
 	}
 
 	const strategy = _.get(config, 'teams.implicitMembers.strategy', null);
@@ -557,21 +648,36 @@ const getImplicitTeamIds = (user, ...roles) => {
 	/**
 	 * @type {any}
 	 */
-	const query = {$and: [{implicitMembers: true}]};
-	if (strategy === 'roles' && user.externalRoles && user.externalRoles.length > 0) {
-		query.$and.push({
-			requiresExternalRoles: {$exists: true}
-		}, {
-			requiresExternalRoles: {$ne: null}
-		}, {
-			requiresExternalRoles: {$ne: []}
-		}, {
-			requiresExternalRoles: {$not: {$elemMatch: {$nin: user.externalRoles}}}
-		});
+	const query = { $and: [{ implicitMembers: true }] };
+	if (
+		strategy === 'roles' &&
+		user.externalRoles &&
+		user.externalRoles.length > 0
+	) {
+		query.$and.push(
+			{
+				requiresExternalRoles: { $exists: true }
+			},
+			{
+				requiresExternalRoles: { $ne: null }
+			},
+			{
+				requiresExternalRoles: { $ne: [] }
+			},
+			{
+				requiresExternalRoles: {
+					$not: { $elemMatch: { $nin: user.externalRoles } }
+				}
+			}
+		);
 	}
-	if (strategy === 'teams' && user.externalGroups && user.externalGroups.length > 0) {
+	if (
+		strategy === 'teams' &&
+		user.externalGroups &&
+		user.externalGroups.length > 0
+	) {
 		query.$and.push({
-			requiresExternalTeams: {$elemMatch: {$in: user.externalGroups}}
+			requiresExternalTeams: { $elemMatch: { $in: user.externalGroups } }
 		});
 	}
 
@@ -588,20 +694,29 @@ const getNestedTeamIds = async (teamIds = []) => {
 		return Promise.resolve([]);
 	}
 
-	const mappedTeamIds = teamIds.map((teamId) => _.isString(teamId) ? mongoose.Types.ObjectId(teamId) : teamId);
+	const mappedTeamIds = teamIds.map((teamId) =>
+		_.isString(teamId) ? mongoose.Types.ObjectId(teamId) : teamId
+	);
 
-	return await Team.distinct('_id', { _id: { $nin: mappedTeamIds }, ancestors: { $in: mappedTeamIds } }).exec();
+	return await Team.distinct('_id', {
+		_id: { $nin: mappedTeamIds },
+		ancestors: { $in: mappedTeamIds }
+	}).exec();
 };
 
 const getTeamIds = async (user, ...roles) => {
 	const explicitTeamIds = await getExplicitTeamIds(user, ...roles);
 	const implicitTeamIds = await getImplicitTeamIds(user, ...roles);
-	const nestedTeamIds = await getNestedTeamIds([...explicitTeamIds, ...implicitTeamIds]);
+	const nestedTeamIds = await getNestedTeamIds([
+		...explicitTeamIds,
+		...implicitTeamIds
+	]);
 
 	return [...explicitTeamIds, ...implicitTeamIds, ...nestedTeamIds];
 };
 
-const getMemberTeamIds = (user) => getTeamIds(user, 'member', 'editor', 'admin');
+const getMemberTeamIds = (user) =>
+	getTeamIds(user, 'member', 'editor', 'admin');
 
 const getEditorTeamIds = (user) => getTeamIds(user, 'editor', 'admin');
 
@@ -620,7 +735,6 @@ const filterTeamIds = async (user, teamIds) => {
 };
 
 const updateTeams = async (user) => {
-
 	const strategy = _.get(config, 'teams.implicitMembers.strategy', 'disabled');
 	const nestedTeamsEnabled = _.get(config, 'teams.nestedTeams', false);
 
@@ -629,7 +743,10 @@ const updateTeams = async (user) => {
 	}
 
 	const [adminTeamIds, editorTeamIds, memberTeamIds] = await Promise.all([
-		getTeamIds(user, 'admin'), getTeamIds(user, 'editor'), getTeamIds(user, 'member')]);
+		getTeamIds(user, 'admin'),
+		getTeamIds(user, 'editor'),
+		getTeamIds(user, 'member')
+	]);
 
 	const filteredEditorTeamIds = _.difference(editorTeamIds, adminTeamIds);
 	const filteredMemberTeamIds = _.difference(memberTeamIds, editorTeamIds);

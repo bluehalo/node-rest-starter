@@ -1,25 +1,22 @@
 'use strict';
 
-const
-	_ = require('lodash'),
-
+const _ = require('lodash'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	logger = deps.logger,
 	util = deps.utilService,
-
 	Audit = dbs.admin.model('Audit');
 
 /**
  * Retrieves the distinct values for a field in the Audit collection
  */
-exports.getDistinctValues = function(req, res) {
+exports.getDistinctValues = function (req, res) {
 	const fieldToQuery = req.query.field;
 
 	Audit.distinct(fieldToQuery, {}).exec((err, results) => {
-		if(null != err) {
+		if (null != err) {
 			// failure
-			logger.error({err: err, req: req}, 'Error finding distinct values');
+			logger.error({ err: err, req: req }, 'Error finding distinct values');
 			return util.send400Error(res, err);
 		}
 
@@ -27,7 +24,7 @@ exports.getDistinctValues = function(req, res) {
 	});
 };
 
-exports.search = async function(req, res) {
+exports.search = async function (req, res) {
 	const search = req.body.s || null;
 	let query = req.body.q || {};
 	query = util.toMongoose(query);
@@ -39,7 +36,13 @@ exports.search = async function(req, res) {
 
 	try {
 		const result = await Audit.containsSearch(
-			query, ['message', 'audit.auditType', 'audit.action', 'audit.object'], search, limit, offset, sortArr);
+			query,
+			['message', 'audit.auditType', 'audit.action', 'audit.object'],
+			search,
+			limit,
+			offset,
+			sortArr
+		);
 
 		// If any audit objects are strings, try to parse them as json. we may have stringified objects because mongo
 		// can't support keys with dots
@@ -61,9 +64,9 @@ exports.search = async function(req, res) {
 
 		// Serialize the response
 		res.status(200).json(toReturn);
-	} catch(err) {
+	} catch (err) {
 		// failure
-		logger.error({err: err, req: req}, 'Error searching for audit entries');
+		logger.error({ err: err, req: req }, 'Error searching for audit entries');
 		return util.handleErrorResponse(res, err);
 	}
 };

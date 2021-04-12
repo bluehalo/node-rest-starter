@@ -1,15 +1,13 @@
 'use strict';
 
-const
-	async = require('async'),
-
+const async = require('async'),
 	deps = require('../../../dependencies'),
 	logger = deps.logger;
 
 function BaseSocket(config) {
 	this._socket = config.socket;
 
-	if(typeof this._socket.on === 'function') {
+	if (typeof this._socket.on === 'function') {
 		this._socket.on('disconnect', this.disconnect.bind(this));
 		this._socket.on('error', this.error.bind(this));
 	}
@@ -22,32 +20,32 @@ BaseSocket.prototype.name = 'BaseSocket';
 /**
  * Base function to handle disconnects from the client
  */
-BaseSocket.prototype.disconnect = function() {
+BaseSocket.prototype.disconnect = function () {
 	logger.info('BaseSocket: Disconnected from client.');
 };
 
 /**
  * Base function to handle errors
  */
-BaseSocket.prototype.error = function(err) {
+BaseSocket.prototype.error = function (err) {
 	logger.error(err, 'BaseSocket: Client connection error');
 };
 
 /**
  * Base function to get the socket
  */
-BaseSocket.prototype.getSocket = function() {
+BaseSocket.prototype.getSocket = function () {
 	return this._socket;
 };
 
 /**
  * Base function to add listeners for the socket events
  */
-BaseSocket.prototype.addListeners = function() {
+BaseSocket.prototype.addListeners = function () {
 	logger.debug('BaseSocket: Calling addListeners');
 };
 
-BaseSocket.prototype.getUserId = function() {
+BaseSocket.prototype.getUserId = function () {
 	if (null == this._userId) {
 		const s = this.getSocket();
 		if (null != s && null != s.request && null != s.request.user) {
@@ -64,16 +62,16 @@ BaseSocket.prototype.getUserId = function() {
  * @returns {Object} An object that looks like an HTTP request.  It will contain the user object from the
  *   actually socket request.
  */
-BaseSocket.prototype.getRequest = function() {
+BaseSocket.prototype.getRequest = function () {
 	const self = this;
 
 	const data = {};
 	data.user = self.getSocket().request.user;
 
-	data.isAuthenticated = function() {
+	data.isAuthenticated = function () {
 		return self.getSocket().request.isAuthenticated();
 	};
-	data.isUnauthenticated = function() {
+	data.isUnauthenticated = function () {
 		return self.getSocket().request.isUnauthenticated();
 	};
 	return data;
@@ -88,13 +86,12 @@ BaseSocket.prototype.getRequest = function() {
  *
  * @returns {{status: Function, send: Function, json: Function}}
  */
-BaseSocket.prototype.getResponse = function(next) {
+BaseSocket.prototype.getResponse = function (next) {
 	function send(data) {
 		let err = null;
 		if (null != data && null != data.message) {
 			err = new Error(data.message);
-		}
-		else {
+		} else {
 			err = new Error('Unauthorized');
 		}
 		return next(err);
@@ -125,14 +122,14 @@ BaseSocket.prototype.getResponse = function(next) {
  * @returns {Promise} A promise that will be resolved when all the middleware has run.  You can either
  *   listen for this or pass in a callback.
  */
-BaseSocket.prototype.applyMiddleware = function(callbacks, done) {
+BaseSocket.prototype.applyMiddleware = function (callbacks, done) {
 	const self = this;
 	return new Promise((resolve, reject) => {
 		// Use the same request for all callbacks
 		const req = self.getRequest();
 
 		const tasks = callbacks.map((callback) => {
-			return function(next) {
+			return function (next) {
 				// Create a new response for each next() callback
 				const res = self.getResponse(next);
 
@@ -141,7 +138,6 @@ BaseSocket.prototype.applyMiddleware = function(callbacks, done) {
 			};
 		});
 		async.series(tasks, (err, results) => {
-
 			// Get the result from the last task
 			const result = results[tasks.length - 1];
 
@@ -154,8 +150,7 @@ BaseSocket.prototype.applyMiddleware = function(callbacks, done) {
 			// resolve or reject the promise
 			if (err) {
 				reject(err);
-			}
-			else {
+			} else {
 				resolve(result);
 			}
 		});

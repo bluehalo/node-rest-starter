@@ -4,7 +4,6 @@ const _ = require('lodash'),
 	path = require('path'),
 	config = require('../config'),
 	logger = require('./bunyan').logger,
-
 	bodyParser = require('body-parser'),
 	compress = require('compression'),
 	cookieParser = require('cookie-parser'),
@@ -17,7 +16,6 @@ const _ = require('lodash'),
 	passport = require('passport'),
 	swaggerJsDoc = require('swagger-jsdoc'),
 	swaggerUi = require('swagger-ui-express'),
-
 	MongoStore = require('connect-mongo')(session);
 
 const baseApiPath = '/api';
@@ -50,18 +48,20 @@ function initMiddleware(app) {
 	app.set('showStackError', true);
 
 	// Should be placed before express.static
-	app.use(compress({
-		filter: function (req, res) {
-			if (req.headers['x-no-compression']) {
-				// don't compress responses with this request header
-				return false;
-			}
+	app.use(
+		compress({
+			filter: function (req, res) {
+				if (req.headers['x-no-compression']) {
+					// don't compress responses with this request header
+					return false;
+				}
 
-			// fallback to standard filter function
-			return compress.filter(req, res);
-		},
-		level: 6
-	}));
+				// fallback to standard filter function
+				return compress.filter(req, res);
+			},
+			level: 6
+		})
+	);
 
 	// Environment dependent middleware
 	if (config.mode === 'development') {
@@ -77,16 +77,17 @@ function initMiddleware(app) {
 	}
 
 	// Request body parsing middleware should be above methodOverride
-	app.use(bodyParser.urlencoded({
-		extended: true
-	}));
+	app.use(
+		bodyParser.urlencoded({
+			extended: true
+		})
+	);
 	app.use(bodyParser.json());
 	app.use(methodOverride());
 
 	// Add the cookie parser and flash middleware
 	app.use(cookieParser(config.auth.sessionSecret));
 	app.use(flash());
-
 }
 
 /**
@@ -101,16 +102,18 @@ function initViewEngine(app) {
  */
 function initSession(app, db) {
 	// Express MongoDB session storage
-	app.use(session({
-		saveUninitialized: true,
-		resave: true,
-		secret: config.auth.sessionSecret,
-		cookie: config.auth.sessionCookie,
-		store: new MongoStore({
-			mongooseConnection: db.connection,
-			collection: config.auth.sessionCollection
+	app.use(
+		session({
+			saveUninitialized: true,
+			resave: true,
+			secret: config.auth.sessionSecret,
+			cookie: config.auth.sessionCookie,
+			store: new MongoStore({
+				mongooseConnection: db.connection,
+				collection: config.auth.sessionCollection
+			})
 		})
-	}));
+	);
 }
 
 /**
@@ -164,7 +167,6 @@ function initModulesServerRoutes(app) {
  * Configure final error handlers
  */
 function initErrorRoutes(app) {
-
 	// If there's an error, handle it
 	app.use((err, req, res, next) => {
 		// If the error object doesn't exists
@@ -193,7 +195,6 @@ function initErrorRoutes(app) {
 }
 
 function initSwaggerAPI(app) {
-
 	if (!config.apiDocs || config.apiDocs.enabled !== true) {
 		// apiDocs must be enabled explicitly in the config
 		return;
@@ -209,9 +210,11 @@ function initSwaggerAPI(app) {
 					email: _.get(config.mailer, 'from')
 				}
 			},
-			servers: [{
-				url: baseApiPath
-			}]
+			servers: [
+				{
+					url: baseApiPath
+				}
+			]
 		},
 		apis: [
 			...config.files.routes.map((route) => path.posix.resolve(route)),
@@ -220,7 +223,8 @@ function initSwaggerAPI(app) {
 	};
 
 	if (config.auth.strategy === 'local') {
-		swaggerOptions.swaggerDefinition.components = swaggerOptions.swaggerDefinition.components || {};
+		swaggerOptions.swaggerDefinition.components =
+			swaggerOptions.swaggerDefinition.components || {};
 		swaggerOptions.swaggerDefinition.components.securitySchemes = {
 			basicAuth: {
 				type: 'http',
@@ -236,11 +240,16 @@ function initSwaggerAPI(app) {
 	 * If no strategy is defined, assume it is used in both.
 	 */
 	swaggerSpec.paths = _.pickBy(swaggerSpec.paths, (_path) => {
-		return _path.strategy === undefined || _path.strategy === config.auth.strategy;
+		return (
+			_path.strategy === undefined || _path.strategy === config.auth.strategy
+		);
 	});
 
-	app.use(config.apiDocs.path || '/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
+	app.use(
+		config.apiDocs.path || '/api-docs',
+		swaggerUi.serve,
+		swaggerUi.setup(swaggerSpec)
+	);
 }
 
 /**
@@ -249,7 +258,6 @@ function initSwaggerAPI(app) {
  * @returns {express.Express}
  */
 module.exports.init = function (db) {
-
 	// Initialize express app
 	logger.info('Initializing Express');
 

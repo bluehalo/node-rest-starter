@@ -1,14 +1,10 @@
 'use strict';
 
-const
-	express = require('express'),
-
+const express = require('express'),
 	deps = require('../../../dependencies'),
 	config = deps.config,
 	logger = deps.logger,
-
 	users = require('./user.controller');
-
 
 const router = express.Router();
 
@@ -31,48 +27,50 @@ const router = express.Router();
  *               $ref: '#/components/schemas/User'
  */
 // Self-service user routes
-router.route('/user/me')
-	.get( users.has(users.requiresLogin), users.getCurrentUser)
+router
+	.route('/user/me')
+	.get(users.has(users.requiresLogin), users.getCurrentUser)
 	.post(users.has(users.requiresLogin), users.updateCurrentUser);
 
 // User getting another user's info
-router.route('/user/:userId')
-	.get(users.hasAccess, users.getUserById);
+router.route('/user/:userId').get(users.hasAccess, users.getUserById);
 
-router.route('/user-preference')
+router
+	.route('/user-preference')
 	.post(users.has(users.requiresLogin), users.updatePreferences);
 
-router.route('/user/required-org')
+router
+	.route('/user/required-org')
 	.post(users.has(users.requiresLogin), users.updateRequiredOrgs);
 
 // User searching for other users
-router.route('/users')
-	.post(users.hasAccess, users.searchUsers);
+router.route('/users').post(users.hasAccess, users.searchUsers);
 
 // User match-based search for other users (this searches based on a fragment)
-router.route('/users/match')
-	.post(users.hasAccess, users.matchUsers);
+router.route('/users/match').post(users.hasAccess, users.matchUsers);
 
 /**
  * Admin User Routes (requires admin)
  */
 
 // Admin retrieve/update/delete
-router.route('/admin/user/:userId')
-	.get(   users.hasAdminAccess, users.adminGetUser)
-	.post(  users.hasAdminAccess, users.adminUpdateUser)
+router
+	.route('/admin/user/:userId')
+	.get(users.hasAdminAccess, users.adminGetUser)
+	.post(users.hasAdminAccess, users.adminUpdateUser)
 	.delete(users.hasAdminAccess, users.adminDeleteUser);
 
 // Admin search users
-router.route('/admin/users')
-	.post(users.hasAdminAccess, users.adminSearchUsers);
+router.route('/admin/users').post(users.hasAdminAccess, users.adminSearchUsers);
 
 // Get user CSV using the specifies config id
-router.route('/admin/users/csv/:exportId')
+router
+	.route('/admin/users/csv/:exportId')
 	.get(users.hasAdminAccess, users.adminGetCSV);
 
 // Admin retrieving a User field for all users in the system
-router.route('/admin/users/getAll')
+router
+	.route('/admin/users/getAll')
 	.post(users.hasAdminAccess, users.adminGetAll);
 
 /**
@@ -119,19 +117,18 @@ router.route('/auth/signin').post(users.signin);
  *       '200':
  *          description: User was signed out.
  */
-router.route('/auth/signout')
+router
+	.route('/auth/signout')
 	.get(users.has(users.requiresLogin), users.signout);
 
 /**
  * Routes that only apply to the 'local' passport strategy
  */
 if (config.auth.strategy === 'local') {
-
 	logger.info('Configuring local user authentication routes.');
 
 	// Admin Create User
-	router.route('/admin/user')
-		.post(users.hasAdminAccess, users.adminCreateUser);
+	router.route('/admin/user').post(users.hasAdminAccess, users.adminCreateUser);
 
 	// Default setup is basic local auth
 	router.route('/auth/signup').post(users.signup);
@@ -139,22 +136,19 @@ if (config.auth.strategy === 'local') {
 	router.route('/auth/forgot').post(users.forgot);
 	router.route('/auth/reset/:token').get(users.validateResetToken);
 	router.route('/auth/reset/:token').post(users.reset);
-
-}
-/**
- * Routes that only apply to the 'proxy-pki' passport strategy
- */
-else if (config.auth.strategy === 'proxy-pki') {
-
+} else if (config.auth.strategy === 'proxy-pki') {
+	/**
+	 * Routes that only apply to the 'proxy-pki' passport strategy
+	 */
 	logger.info('Configuring proxy-pki user authentication routes.');
 
 	// Admin Create User
-	router.route('/admin/user')
+	router
+		.route('/admin/user')
 		.post(users.hasAdminAccess, users.adminCreateUserPki);
 
 	// DN passed via header from proxy
 	router.route('/auth/signup').post(users.proxyPkiSignup);
-
 }
 
 // Finish by binding the user middleware

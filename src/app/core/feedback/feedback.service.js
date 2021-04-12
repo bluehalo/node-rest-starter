@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	deps = require('../../../dependencies'),
+const deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
 	emailService = deps.emailService,

@@ -1,12 +1,8 @@
 'use strict';
 
-const
-	sinon = require('sinon'),
-
+const sinon = require('sinon'),
 	deps = require('../../../../dependencies'),
-
 	User = deps.dbs.admin.model('User'),
-
 	userEmailService = require('../user-email.service'),
 	userService = require('../user.service'),
 	resourcesService = require('../../resources/resources.service'),
@@ -110,7 +106,11 @@ describe('User Admin Controller:', () => {
 			await userAdminController.adminGetAll(req, res);
 
 			sinon.assert.calledOnce(User.find);
-			sinon.assert.calledWithMatch(deps.utilService.handleErrorResponse, res, 'error');
+			sinon.assert.calledWithMatch(
+				deps.utilService.handleErrorResponse,
+				res,
+				'error'
+			);
 			sinon.assert.notCalled(res.status);
 			sinon.assert.notCalled(res.json);
 		});
@@ -130,7 +130,9 @@ describe('User Admin Controller:', () => {
 			sinon.assert.notCalled(User.find);
 			sinon.assert.notCalled(deps.utilService.handleErrorResponse);
 			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWithMatch(res.json, { message: 'Query field must be provided' });
+			sinon.assert.calledWithMatch(res.json, {
+				message: 'Query field must be provided'
+			});
 		});
 
 		it('query field is empty string; returns error', async () => {
@@ -146,7 +148,9 @@ describe('User Admin Controller:', () => {
 
 			sinon.assert.notCalled(User.find);
 			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWithMatch(res.json, { message: 'Query field must be provided' });
+			sinon.assert.calledWithMatch(res.json, {
+				message: 'Query field must be provided'
+			});
 		});
 	});
 
@@ -168,10 +172,15 @@ describe('User Admin Controller:', () => {
 		it('user is found', async () => {
 			sandbox.stub(userService, 'update').resolves();
 
-			sandbox.stub(deps.config, 'coreEmails').value({ approvedUserEmail: { enabled: true } });
+			sandbox
+				.stub(deps.config, 'coreEmails')
+				.value({ approvedUserEmail: { enabled: true } });
 			await userAdminController.adminUpdateUser(req, res);
 
-			sinon.assert.calledWithMatch(deps.auditService.audit, 'admin user updated');
+			sinon.assert.calledWithMatch(
+				deps.auditService.audit,
+				'admin user updated'
+			);
 			sinon.assert.notCalled(userEmailService.emailApprovedUser);
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
@@ -185,7 +194,10 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminUpdateUser(req, res);
 
-			sinon.assert.calledWithMatch(deps.auditService.audit, 'admin user updated');
+			sinon.assert.calledWithMatch(
+				deps.auditService.audit,
+				'admin user updated'
+			);
 			sinon.assert.notCalled(userEmailService.emailApprovedUser);
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
@@ -199,7 +211,10 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminUpdateUser(req, res);
 
-			sinon.assert.calledWithMatch(deps.auditService.audit, 'admin user updated');
+			sinon.assert.calledWithMatch(
+				deps.auditService.audit,
+				'admin user updated'
+			);
 			sinon.assert.calledOnce(userEmailService.emailApprovedUser);
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
@@ -240,7 +255,10 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminDeleteUser(req, res);
 
-			sinon.assert.calledWithMatch(deps.auditService.audit, 'admin user deleted');
+			sinon.assert.calledWithMatch(
+				deps.auditService.audit,
+				'admin user deleted'
+			);
 			sinon.assert.calledOnce(resourcesService.deleteResourcesWithOwner);
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
@@ -252,7 +270,10 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminDeleteUser(req, res);
 
-			sinon.assert.calledWithMatch(deps.auditService.audit, 'admin user deleted');
+			sinon.assert.calledWithMatch(
+				deps.auditService.audit,
+				'admin user deleted'
+			);
 			sinon.assert.calledOnce(resourcesService.deleteResourcesWithOwner);
 			sinon.assert.notCalled(res.status);
 			sinon.assert.notCalled(res.json);

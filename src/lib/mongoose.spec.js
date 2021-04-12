@@ -1,5 +1,4 @@
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	proxyquire = require('proxyquire'),
 	should = require('should'),
 	config = require('../config.js');
@@ -19,7 +18,6 @@ function createSubjectUnderTest(databases) {
 }
 
 describe('Mongoose', () => {
-
 	const mongoHost = _.get(config, 'test.mongoHost', 'localhost');
 
 	const originalMongooseLib = require('./mongoose');
@@ -33,7 +31,6 @@ describe('Mongoose', () => {
 	});
 
 	describe('when only given admin database', () => {
-
 		let mongooseLib;
 
 		const adminDatabaseName = 'mean2-test-mongoose-admin';
@@ -90,9 +87,5 @@ describe('Mongoose', () => {
 				dbs.other.readyState.should.eql(1);
 			});
 		});
-
-
 	});
-
-
 });

@@ -1,17 +1,13 @@
 'use strict';
 
-const
-	_ = require('lodash'),
-
+const _ = require('lodash'),
 	deps = require('../../../../dependencies'),
 	config = deps.config,
 	dbs = deps.dbs,
 	util = deps.utilService,
 	auditService = deps.auditService,
-
 	TeamMember = dbs.admin.model('TeamUser'),
 	User = dbs.admin.model('User'),
-
 	userAuthorizationService = require('../auth/user-authorization.service'),
 	userService = require('../user.service'),
 	userProfileService = require('./user-profile.service'),
@@ -23,11 +19,10 @@ const
 
 // Get Current User
 exports.getCurrentUser = async (req, res) => {
-
 	// The user that is a parameter of the request is stored in 'userParam'
 	const user = req.user;
 
-	if (null == user){
+	if (null == user) {
 		res.status(400).json({
 			message: 'User is not logged in'
 		});
@@ -73,9 +68,18 @@ exports.updateCurrentUser = async (req, res) => {
 	// If they are changing the password, verify the current password
 	if (_.isString(req.body.password) && !_.isEmpty(req.body.password)) {
 		if (!user.authenticate(req.body.currentPassword)) {
-
 			// Audit failed authentication
-			auditService.audit('user update authentication failed', 'user', 'update authentication failed', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), {}, req.headers);
+			auditService.audit(
+				'user update authentication failed',
+				'user',
+				'update authentication failed',
+				TeamMember.auditCopy(
+					req.user,
+					util.getHeaderField(req.headers, 'x-real-ip')
+				),
+				{},
+				req.headers
+			);
 
 			res.status(400).json({
 				message: 'Current password invalid'
@@ -96,10 +100,20 @@ exports.updateCurrentUser = async (req, res) => {
 		delete user.salt;
 
 		// Audit user update
-		auditService.audit('user updated', 'user', 'update', TeamMember.auditCopy(req.user, util.getHeaderField(req.headers, 'x-real-ip')), {
-			before: originalUser,
-			after: User.auditCopy(user)
-		}, req.headers);
+		auditService.audit(
+			'user updated',
+			'user',
+			'update',
+			TeamMember.auditCopy(
+				req.user,
+				util.getHeaderField(req.headers, 'x-real-ip')
+			),
+			{
+				before: originalUser,
+				after: User.auditCopy(user)
+			},
+			req.headers
+		);
 
 		// Log in with the new info
 		req.login(user, (error) => {
@@ -117,7 +131,7 @@ exports.updatePreferences = async (req, res) => {
 	try {
 		await userProfileService.updatePreferences(req.user._id, req.body);
 		res.status(200).json({});
-	} catch(err) {
+	} catch (err) {
 		util.handleErrorResponse(res, err);
 	}
 };
@@ -126,18 +140,17 @@ exports.updateRequiredOrgs = async (req, res) => {
 	try {
 		await userProfileService.updateRequiredOrgs(req.user._id, req.body);
 		res.status(200).json({});
-	} catch(err) {
+	} catch (err) {
 		util.handleErrorResponse(res, err);
 	}
 };
 
 // Get a filtered version of a user by id
 exports.getUserById = (req, res) => {
-
 	// The user that is a parameter of the request is stored in 'userParam'
 	const user = req.userParam;
 
-	if (null == user){
+	if (null == user) {
 		res.status(400).json({
 			message: 'User does not exist'
 		});
@@ -157,7 +170,7 @@ exports.searchUsers = async (req, res) => {
 		const results = await userService.searchUsers(req.query, query, search);
 		results.elements = results.elements.map(User.filteredCopy);
 		res.status(200).json(results);
-	} catch(err) {
+	} catch (err) {
 		util.handleErrorResponse(res, err);
 	}
 };
@@ -169,10 +182,14 @@ exports.matchUsers = async (req, res) => {
 	const search = req.body.s;
 
 	try {
-		const results = await userService.searchUsers(req.query, query, search, ['name', 'username', 'email']);
+		const results = await userService.searchUsers(req.query, query, search, [
+			'name',
+			'username',
+			'email'
+		]);
 		results.elements = results.elements.map(User.filteredCopy);
 		res.status(200).json(results);
-	} catch(err) {
+	} catch (err) {
 		util.handleErrorResponse(res, err);
 	}
 };
@@ -186,5 +203,9 @@ exports.hasEdit = (req) => {
 	if (exports.canEditProfile(config.auth.strategy, req.user)) {
 		return Promise.resolve();
 	}
-	return Promise.reject({ status: 403, type: 'not-authorized', message: 'User not authorized to edit their profile' });
+	return Promise.reject({
+		status: 403,
+		type: 'not-authorized',
+		message: 'User not authorized to edit their profile'
+	});
 };

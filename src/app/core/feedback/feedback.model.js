@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	mongoose = require('mongoose'),
+const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
 	deps = require('../../../dependencies'),
@@ -26,7 +25,12 @@ const FeedbackSchema = new mongoose.Schema({
 	os: { type: String },
 	browser: { type: String },
 	classification: { type: String },
-	status: { type: String, default: 'New', enum: ['New', 'Open', 'Closed'], required: true },
+	status: {
+		type: String,
+		default: 'New',
+		enum: ['New', 'Open', 'Closed'],
+		required: true
+	},
 	assignee: { type: String },
 	updated: {
 		type: Date,

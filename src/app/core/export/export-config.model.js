@@ -2,10 +2,8 @@
 
 const _ = require('lodash'),
 	mongoose = require('mongoose'),
-
 	deps = require('../../../dependencies'),
 	utilService = deps.utilService,
-
 	getterPlugin = require('../../common/mongoose/getter.plugin');
 
 const ExportConfigSchema = new mongoose.Schema({

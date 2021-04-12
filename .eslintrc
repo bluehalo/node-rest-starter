@@ -10,18 +10,19 @@
 		"sourceType": "module"
 	},
 
-  	"plugins": [
-	  	"jsdoc"
-	],
+	"plugins": ["jsdoc", "prettier"],
 
-	"extends": "eslint:recommended",
+	"extends": ["eslint:recommended", "prettier"],
 	"rules": {
 		"arrow-parens": ["error", "always"],
 		"eqeqeq": ["error", "smart"],
 		"no-mixed-spaces-and-tabs": ["error", "smart-tabs"],
 		"no-trailing-spaces": ["error"],
-		"no-unused-vars": ["warn", { "vars": "all", "varsIgnorePattern": "extend|should", "args": "none" }],
-		"quotes": ["error", "single"],
+		"no-unused-vars": [
+			"warn",
+			{ "vars": "all", "varsIgnorePattern": "extend|should", "args": "none" }
+		],
+		"quotes": ["error", "single", { "avoidEscape": true }],
 		"linebreak-style": ["error", "unix"],
 		"semi": ["error", "always"],
 		"comma-dangle": ["error", "never"],
@@ -36,10 +37,13 @@
 		"callback-return": ["warn"],
 		"no-new-require": ["warn"],
 		"no-path-concat": ["warn"],
-		"prefer-destructuring": ["error", {
-			"object": false,
-			"array": true
-		}],
+		"prefer-destructuring": [
+			"error",
+			{
+				"object": false,
+				"array": true
+			}
+		],
 		"prefer-numeric-literals": ["error"],
 		"prefer-rest-params": ["warn"],
 		"prefer-spread": ["warn"],
@@ -47,7 +51,7 @@
 		"template-curly-spacing": ["error"],
 		"rest-spread-spacing": ["error"],
 		"prefer-arrow-callback": ["error"],
-	  	"jsdoc/no-undefined-types": 1
+		"jsdoc/no-undefined-types": 1,
 
 		//		"arrow-body-style": ["warn", "as-needed"],
 		//		"handle-callback-err": ["warn"],
@@ -57,8 +61,8 @@
 		//		"guard-for-in": ["warn"],
 		//		"no-shadow": ["warn"]
 
+		"prettier/prettier": ["error"]
 	},
 
-	"globals": {
-	}
+	"globals": {}
 }

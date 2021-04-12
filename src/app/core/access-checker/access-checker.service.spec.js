@@ -154,10 +154,7 @@ describe('Access Checker Service:', () => {
 					return CacheEntry.findOne({ _id: cache.outdated._id })
 						.exec()
 						.then((result) => {
-							validateCacheEntry(
-								result.value,
-								spec.cache.outdated.value
-							);
+							validateCacheEntry(result.value, spec.cache.outdated.value);
 						});
 				});
 		});
@@ -229,10 +226,7 @@ describe('Access Checker Service:', () => {
 				return CacheEntry.findOne({ key: cache.cacheonly.key })
 					.exec()
 					.then((result) => {
-						validateCacheEntry(
-							result.value,
-							spec.cache.cacheonly.value
-						);
+						validateCacheEntry(result.value, spec.cache.cacheonly.value);
 					});
 			});
 		});

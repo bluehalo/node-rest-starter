@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	userPasswordService = require('./user-password.service');
+const userPasswordService = require('./user-password.service');
 
 /**
  * Forgot for reset password (forgot POST)
@@ -15,13 +14,22 @@ exports.forgot = async (req, res) => {
 	try {
 		const token = await userPasswordService.generateToken();
 
-		const user = await userPasswordService.setResetTokenForUser(req.body.username, token);
+		const user = await userPasswordService.setResetTokenForUser(
+			req.body.username,
+			token
+		);
 
 		await userPasswordService.sendResetPasswordEmail(user, token, req);
 
-		res.status(200).json(`An email has been sent to ${user.email} with further instructions.`);
+		res
+			.status(200)
+			.json(
+				`An email has been sent to ${user.email} with further instructions.`
+			);
 	} catch (error) {
-		res.status(400).json({ message: 'Failure generating reset password token.' });
+		res
+			.status(400)
+			.json({ message: 'Failure generating reset password token.' });
 	}
 };
 
@@ -29,7 +37,9 @@ exports.forgot = async (req, res) => {
  * Reset password GET from email token
  */
 exports.validateResetToken = async (req, res) => {
-	const user = await userPasswordService.findUserForActiveToken(req.params.token);
+	const user = await userPasswordService.findUserForActiveToken(
+		req.params.token
+	);
 
 	if (!user) {
 		return res.status(400).json({ message: 'invalid-token' });
@@ -50,11 +60,18 @@ exports.reset = async (req, res) => {
 	}
 
 	try {
-		const user = await userPasswordService.resetPasswordForToken(req.params.token, req.body.password);
+		const user = await userPasswordService.resetPasswordForToken(
+			req.params.token,
+			req.body.password
+		);
 
 		await userPasswordService.sendPasswordResetConfirmEmail(user, req);
 
-		res.status(200).json(`An email has been sent to ${user.email} letting them know their password was reset.`);
+		res
+			.status(200)
+			.json(
+				`An email has been sent to ${user.email} letting them know their password was reset.`
+			);
 	} catch (error) {
 		res.status(400).json({ message: 'Failure resetting password.' });
 	}

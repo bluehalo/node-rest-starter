@@ -1,10 +1,8 @@
 'use strict';
 
-const
-	_ = require('lodash'),
+const _ = require('lodash'),
 	mongoose = require('mongoose'),
 	uuid = require('uuid'),
-
 	deps = require('../../../dependencies'),
 	util = deps.utilService,
 	getterPlugin = require('../../common/mongoose/getter.plugin');
@@ -37,52 +35,56 @@ OwnerSchema.index({ name: 1 });
 /**
  * Resource Schema
  */
-module.exports.resourceOptions = {discriminatorKey: 'resourceType'};
+module.exports.resourceOptions = { discriminatorKey: 'resourceType' };
 
-const ResourceSchema = new mongoose.Schema({
-	_id: {
-		type: String,
-		default: uuid.v4
+const ResourceSchema = new mongoose.Schema(
+	{
+		_id: {
+			type: String,
+			default: uuid.v4
+		},
+		title: {
+			type: String,
+			trim: true,
+			required: 'Title is required'
+		},
+		title_lowercase: {
+			type: String,
+			set: util.toLowerCase
+		},
+		description: {
+			type: String,
+			trim: true,
+			default: ''
+		},
+		created: {
+			type: Date,
+			default: Date.now,
+			get: util.dateParse
+		},
+		updated: {
+			type: Date,
+			default: Date.now,
+			get: util.dateParse
+		},
+		tags: [
+			{
+				type: String,
+				trim: true,
+				default: []
+			}
+		],
+		creator: {
+			type: mongoose.Schema.ObjectId,
+			ref: 'User'
+		},
+		owner: {
+			type: OwnerSchema,
+			required: 'Owner is required'
+		}
 	},
-	title: {
-		type: String,
-		trim: true,
-		required: 'Title is required'
-	},
-	title_lowercase: {
-		type: String,
-		set: util.toLowerCase
-	},
-	description: {
-		type: String,
-		trim: true,
-		default: ''
-	},
-	created: {
-		type: Date,
-		default: Date.now,
-		get: util.dateParse
-	},
-	updated: {
-		type: Date,
-		default: Date.now,
-		get: util.dateParse
-	},
-	tags: [{
-		type: String,
-		trim: true,
-		default: []
-	}],
-	creator: {
-		type: mongoose.Schema.ObjectId,
-		ref: 'User'
-	},
-	owner: {
-		type: OwnerSchema,
-		required: 'Owner is required'
-	}
-}, module.exports.resourceOptions);
-
+	module.exports.resourceOptions
+);
 
 /**
  * Index declarations
@@ -91,11 +93,10 @@ const ResourceSchema = new mongoose.Schema({
 ResourceSchema.index({ created: 1, updated: -1 });
 ResourceSchema.index({ title_lowercase: 'text', description: 'text' });
 
-
 /**
  * Lifecycle hooks
  */
-ResourceSchema.pre('save', function(next){
+ResourceSchema.pre('save', function (next) {
 	/**
 	 * @type {(mongoose.Schema.methods|mongoose.Model)}
 	 */
@@ -109,13 +110,12 @@ ResourceSchema.pre('save', function(next){
  * Instance Methods
  */
 
-
 /**
  * Static Methods
  */
 
 // Create a filtered copy for auditing
-ResourceSchema.statics.auditCopy = function(src) {
+ResourceSchema.statics.auditCopy = function (src) {
 	/**
 	 * @type {Object.<string, any>}
 	 */
@@ -132,7 +132,7 @@ ResourceSchema.statics.auditCopy = function(src) {
 	return toReturn;
 };
 
-ResourceSchema.statics.auditUpdateCopy = function(src) {
+ResourceSchema.statics.auditUpdateCopy = function (src) {
 	/**
 	 * @type {Object.<string, any>}
 	 */
@@ -147,7 +147,6 @@ ResourceSchema.statics.auditUpdateCopy = function(src) {
 
 	return toReturn;
 };
-
 
 /**
  * Model Registration

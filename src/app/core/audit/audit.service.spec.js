@@ -1,11 +1,8 @@
 'use strict';
 
-const
-	should = require('should'),
-
+const should = require('should'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
-
 	Audit = dbs.admin.model('Audit'),
 	auditService = require('./audit.service');
 
@@ -20,14 +17,12 @@ function clearDatabase() {
  * Unit tests
  */
 describe('Audit Service:', () => {
-
 	let startTimestamp;
 	before(() => {
-		return clearDatabase()
-			.then(() => {
-				const now = Date.now();
-				startTimestamp = now - (now % 1000); // remove milliseconds
-			});
+		return clearDatabase().then(() => {
+			const now = Date.now();
+			startTimestamp = now - (now % 1000); // remove milliseconds
+		});
 	});
 
 	after(() => {
@@ -35,20 +30,28 @@ describe('Audit Service:', () => {
 	});
 
 	describe('Create new Audit entry', () => {
-
 		it('should begin with no audits', () => {
-			return Audit.find({}).exec().then((results) => {
-				should(results).be.an.Array();
-				should(results).have.length(0);
-			});
+			return Audit.find({})
+				.exec()
+				.then((results) => {
+					should(results).be.an.Array();
+					should(results).have.length(0);
+				});
 		});
 
 		it('should be able to create a new audit through the service', () => {
-			return auditService.audit('some message', 'eventType', 'eventAction', 'eventActor', 'eventObject');
+			return auditService.audit(
+				'some message',
+				'eventType',
+				'eventAction',
+				'eventActor',
+				'eventObject'
+			);
 		});
 
 		it('should have one audit entry', () => {
-			return Audit.find({}).exec()
+			return Audit.find({})
+				.exec()
 				.then((results) => {
 					should(results).be.an.Array();
 					should(results).have.length(1);
@@ -67,14 +70,13 @@ describe('Audit Service:', () => {
 		});
 
 		it('should have one distinct action', () => {
-			return Audit.distinct('audit.action', {}).exec()
+			return Audit.distinct('audit.action', {})
+				.exec()
 				.then((results) => {
 					should(results).be.an.Array();
 					should(results.length).equal(1);
-					should(results).containDeep([ 'eventAction' ]);
+					should(results).containDeep(['eventAction']);
 				});
 		});
-
 	});
-
 });

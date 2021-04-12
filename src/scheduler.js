@@ -1,7 +1,6 @@
 'use strict';
 
 const path = require('path'),
-
 	deps = require('./dependencies'),
 	config = deps.config,
 	logger = deps.logger;
@@ -21,46 +20,59 @@ let interval;
 const services = [];
 
 function timeoutHandler() {
-
 	// Loop over all of the services
 	services.forEach((service) => {
 		try {
 			// If the service specifies an interval than use that, otherwise use the interval from the configuration
-			const serviceInterval = (service.service.interval) ? service.service.interval : service.configInterval;
+			const serviceInterval = service.service.interval
+				? service.service.interval
+				: service.configInterval;
 			// If interval has passed since the last run, run now
-			if(!service.running && Date.now() > service.lastRun + serviceInterval) {
+			if (!service.running && Date.now() > service.lastRun + serviceInterval) {
 				// Service is running
 				service.running = true;
 				const startTs = Date.now();
 
 				// Run and update the last run time
-				service.service.run(service.config).then(() => {
-					service.lastRun = Date.now();
-					service.running = false;
-					logger.debug('Scheduler: Ran %s in %s ms', service.file, (Date.now() - startTs));
-				}).catch((err) => {
-					// failure... eventually, we may want to react differently
-					service.lastRun = Date.now();
-					service.running = false;
-					logger.warn('Scheduler: %s failed in %s ms', service.file, (Date.now() - startTs));
-				});
-
+				service.service
+					.run(service.config)
+					.then(() => {
+						service.lastRun = Date.now();
+						service.running = false;
+						logger.debug(
+							'Scheduler: Ran %s in %s ms',
+							service.file,
+							Date.now() - startTs
+						);
+					})
+					.catch((err) => {
+						// failure... eventually, we may want to react differently
+						service.lastRun = Date.now();
+						service.running = false;
+						logger.warn(
+							'Scheduler: %s failed in %s ms',
+							service.file,
+							Date.now() - startTs
+						);
+					});
 			}
-		} catch(err) {
+		} catch (err) {
 			// the main loop won't die if a service is failing
-			logger.error(err, `Scheduler: Unexpected error running scheduled service: ${service.file}, continuing execution.`);
+			logger.error(
+				err,
+				`Scheduler: Unexpected error running scheduled service: ${service.file}, continuing execution.`
+			);
 		}
 	});
 
-	if(keepAlive) {
+	if (keepAlive) {
 		setTimeout(timeoutHandler, interval);
 	}
 }
 
-
-module.exports.start = function() {
+module.exports.start = function () {
 	// Only start if we're actually configured
-	if(null != config.scheduler) {
+	if (null != config.scheduler) {
 		const serviceConfigs = config.scheduler.services || [];
 
 		// Initialize the services
@@ -79,7 +91,7 @@ module.exports.start = function() {
 			service.lastRun = 0;
 
 			// Validate the service
-			if(null == service.configInterval || service.configInterval < 1000) {
+			if (null == service.configInterval || service.configInterval < 1000) {
 				logger.warn(service, 'Scheduler: Bad service configuration provided');
 			} else {
 				// Store it in the services array

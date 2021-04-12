@@ -2,7 +2,7 @@
 
 const through2 = require('through2');
 
-module.exports = function(delay) {
+module.exports = function (delay) {
 	delay = delay || 10;
 
 	// Store all the active timeouts
@@ -24,7 +24,6 @@ module.exports = function(delay) {
 
 	// Create a stream that applies a timeout to each payload.
 	const stream = through2.obj((chunk, enc, callback) => {
-
 		// After a delay, pass the chunk on to the next stream handler
 		const t = setTimeout(() => {
 			timeouts.splice(timeouts.indexOf(t), 1);
@@ -33,7 +32,6 @@ module.exports = function(delay) {
 		}, delay);
 
 		timeouts.push(t);
-
 	}, onFlush);
 
 	// If an upstream processor has an error, stop doing anything we had queued up.

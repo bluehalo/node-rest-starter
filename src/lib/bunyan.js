@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	bunyan = require('bunyan'),
+const bunyan = require('bunyan'),
 	config = require('../config');
 
 /**
@@ -17,7 +16,7 @@ function initializeConfig(c) {
 	c = c || {};
 
 	// Initialize the app log config (defaults to console warn)
-	if(null == c.application) {
+	if (null == c.application) {
 		c.application = [];
 		c.application.push({
 			stream: process.stdout,
@@ -26,7 +25,7 @@ function initializeConfig(c) {
 	}
 
 	// Initialize the audit log config (should always be info)
-	if(null == c.audit) {
+	if (null == c.audit) {
 		c.audit = [];
 		c.audit.push({
 			stream: process.stdout,
@@ -46,13 +45,12 @@ function initializeConfig(c) {
  */
 function reqSerializer(req) {
 	const output = bunyan.stdSerializers.req(req);
-	if(null != req && null != req.session && null != req.session.passport) {
+	if (null != req && null != req.session && null != req.session.passport) {
 		output.user = req.session.passport.user;
 	}
 
 	return output;
 }
-
 
 // Initialize the Config Object
 const loggerConfig = initializeConfig(config.logger);
@@ -85,7 +83,14 @@ const metricsLogger = bunyan.createLogger({
  */
 module.exports.logger = appLogger;
 module.exports.auditLogger = {
-	audit: function(message, eventType, eventAction, eventActor, eventObject, userAgentObject) {
+	audit: function (
+		message,
+		eventType,
+		eventAction,
+		eventActor,
+		eventObject,
+		userAgentObject
+	) {
 		const a = {
 			audit: {
 				type: eventType,
@@ -101,7 +106,7 @@ module.exports.auditLogger = {
 };
 
 module.exports.metricsLogger = {
-	log: function(payload) {
+	log: function (payload) {
 		metricsLogger.info({ metricsEvent: payload });
 	}
 };

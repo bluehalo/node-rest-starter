@@ -1,7 +1,6 @@
 'use strict';
 
-const
-	deps = require('../../../dependencies'),
+const deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
 	logger = deps.logger,
@@ -14,7 +13,7 @@ const
 	TeamMember = dbs.admin.model('TeamUser'),
 	ExportConfig = dbs.admin.model('ExportConfig');
 
-module.exports.submitFeedback = async function(req, res) {
+module.exports.submitFeedback = async function (req, res) {
 	try {
 		const audit = await auditService.audit(
 			'Feedback submitted',
@@ -36,19 +35,15 @@ module.exports.submitFeedback = async function(req, res) {
 
 		res.status(200).json(feedback);
 	} catch (err) {
-		logger.error(
-			{ err: err, req: req },
-			'Error submitting feedback'
-		);
+		logger.error({ err: err, req: req }, 'Error submitting feedback');
 		utilService.handleErrorResponse(res, err);
 	}
 };
 
-module.exports.adminGetFeedbackCSV = async function(req, res) {
+module.exports.adminGetFeedbackCSV = async function (req, res) {
 	const exportId = req.params.exportId;
 
-	const dateCallback = (value) =>
-		value ? new Date(value).toISOString() : '';
+	const dateCallback = (value) => (value ? new Date(value).toISOString() : '');
 	const defaultCallback = (value) => (value ? value : '');
 
 	try {
@@ -58,8 +53,7 @@ module.exports.adminGetFeedbackCSV = async function(req, res) {
 			return Promise.reject({
 				status: 404,
 				type: 'bad-argument',
-				message:
-					'Export configuration not found. Document may have expired.'
+				message: 'Export configuration not found. Document may have expired.'
 			});
 		}
 
@@ -113,10 +107,7 @@ module.exports.adminGetFeedbackCSV = async function(req, res) {
 			feedbackResult.results
 		);
 	} catch (err) {
-		logger.error(
-			{ err: err, req: req },
-			'Error exporting feedback entries'
-		);
+		logger.error({ err: err, req: req }, 'Error exporting feedback entries');
 		utilService.handleErrorResponse(res, err);
 	}
 };
@@ -136,11 +127,7 @@ module.exports.search = async (req, res) => {
 	const query = filters.length > 0 ? { $and: filters } : undefined;
 
 	try {
-		const searchPromise = feedbackService.search(
-			req.user,
-			req.query,
-			query
-		);
+		const searchPromise = feedbackService.search(req.user, req.query, query);
 		const results = await searchPromise;
 		res.status(200).json(results);
 	} catch (err) {
@@ -174,10 +161,7 @@ module.exports.updateFeedbackAssignee = async (req, res) => {
 		const updatedFeedback = await updateFeedbackAssigneePromise;
 		res.status(200).json(updatedFeedback);
 	} catch (err) {
-		logger.error(
-			{ err: err, req: req },
-			'Error updating feedback assignee'
-		);
+		logger.error({ err: err, req: req }, 'Error updating feedback assignee');
 		utilService.handleErrorResponse(res, err);
 	}
 };
@@ -223,7 +207,11 @@ module.exports.feedbackById = async (req, res, next, id) => {
 	try {
 		req.feedback = await feedbackService.readFeedback(id, populate);
 		if (null == req.feedback) {
-			return utilService.handleErrorResponse(res, { status: 404, type: 'not-found', message: 'Could not find feedback' });
+			return utilService.handleErrorResponse(res, {
+				status: 404,
+				type: 'not-found',
+				message: 'Could not find feedback'
+			});
 		}
 		return next();
 	} catch (err) {
