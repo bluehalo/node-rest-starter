@@ -9,5 +9,6 @@ module.exports = {
 	models: [ 'src/**/*.model!(.spec).js' ],
 	routes: [ 'src/**/*.routes!(.spec).js' ],
 	sockets: [ 'src/**/*.socket!(.spec).js' ],
-	config: [ 'src/**/*.config!(.spec).js' ]
+	config: [ 'src/**/*.config!(.spec).js' ],
+	docs: [ 'src/**/*/*.components.yml' ]
 };

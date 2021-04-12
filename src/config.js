@@ -112,6 +112,9 @@ function initGlobalConfigFiles(config, assets) {
 
 	// Setting Globbed e2e test files
 	config.files.e2e = getGlobbedPaths(assets.e2e);
+
+	// Setting Globbed doc files
+	config.files.docs = getGlobbedPaths(assets.docs);
 }
 
 function initDerivedConfig(config) {

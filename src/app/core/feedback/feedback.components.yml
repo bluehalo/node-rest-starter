@@ -1,0 +1,108 @@
+components:
+  schemas:
+    FeedbackCreate:
+      type: object
+      properties:
+        body:
+          type: string
+        url:
+          type: string
+        type:
+          type: string
+        classification:
+          type: string
+      example:
+        body: 'This is a great tool! Thanks for building it.'
+        url: 'http://localhost:3000/#/path/to/page'
+        type: 'Bug'
+        classification: 'CLASS 1'
+    Feedback:
+      allOf:
+        - $ref: '#/components/schemas/FeedbackCreate'
+        - type: object
+          properties:
+            _id:
+              type: string
+            status:
+              type: string
+              enum: [New, Open, Closed]
+            browser:
+              type: string
+            os:
+              type: string
+            created:
+              type: number
+            updated:
+              type: number
+            creator:
+              type: object
+              properties:
+                _id:
+                  type: string
+                username:
+                  type: string
+                name:
+                  type: string
+                email:
+                  type: string
+                organization:
+                  type: string
+      example:
+        _id: '12312312312312313'
+        status: 'New'
+        browser: 'Chrome 89.0.4389.90'
+        os: 'Windows'
+        created: 1617738797588
+        updated: 1617738797588
+        body: 'This is a great tool! Thanks for building it.'
+        url: 'http://localhost:3000/#/path/to/page'
+        type: 'Bug'
+        classification: 'CLASS 1'
+    FeedbackPage:
+      allOf:
+        - $ref: '#/components/schemas/ResultsPage'
+        - type: object
+          properties:
+            elements:
+              type: array
+              items:
+                $ref: '#/components/schemas/Feedback'
+  parameters:
+    feedbackIdParam:
+      in: path
+      name: feedbackId
+      required: true
+      schema:
+        type: string
+      description: the unique id of the feedback
+  responses:
+    FeedbackNotFound:
+      description: Unable to find feedback with the supplied ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 404
+            type: 'not-found'
+            message: 'Could not find feedback'
+    FeedbackUpdateInvalidId:
+      description: User attempted to update feedback with invalid ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 400
+            type: 'validation'
+            message: 'Invalid feedback ID'
+    FeedbackUpdateAnonymousUser:
+      description: Anonymous user attempted to update feedback
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 401
+            type: 'no-login'
+            message: 'User is not logged in'
