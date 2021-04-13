@@ -217,6 +217,7 @@ function initSwaggerAPI(app) {
 			]
 		},
 		apis: [
+			...config.files.docs.map((doc) => path.posix.resolve(doc)),
 			...config.files.routes.map((route) => path.posix.resolve(route)),
 			...config.files.models.map((model) => path.posix.resolve(model))
 		]

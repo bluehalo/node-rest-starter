@@ -1,0 +1,81 @@
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: number
+        type:
+          type: string
+        message:
+          type: string
+    ResultsPage:
+      type: object
+      properties:
+        pageNumber:
+          type: integer
+        pageSize:
+          type: integer
+        totalPages:
+          type: integer
+        totalSize:
+          type: integer
+      example:
+        pageNumber: 0
+        pageSize: 20
+        totalPages: 10
+        totalSize: 200
+        items: []
+  parameters:
+    pageParam:
+      in: query
+      name: page
+      schema:
+        type: integer
+      description: Page number
+    sizeParam:
+      in: query
+      name: size
+      schema:
+        type: integer
+      description: Number of results to return (result per page)
+    sortParam:
+      in: query
+      name: sort
+      schema:
+        type: string
+      description: Field name to sort by
+    dirParam:
+      in: query
+      name: dir
+      schema:
+        type: string
+      description: Sort direction (ASC or DESC)
+  requestBodies:
+    SearchCriteria:
+      description: >
+        Object contains property q: a mongo query, and/or s: a string to search contents of text indexed fields.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              s:
+                type: string
+              q:
+                type: object
+            example:
+              s: 'search string'
+              q: { }
+  responses:
+    NotAuthenticated:
+      description: User not authenticated
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 400
+            type: 'missing-credentials'
+            message: 'Missing credentials'
+

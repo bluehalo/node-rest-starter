@@ -8,33 +8,6 @@ const router = express.Router();
 
 /**
  * @swagger
- * components:
- *   parameters:
- *     feedbackIdParam:
- *       in: path
- *       name: feedbackId
- *       required: true
- *       schema:
- *         type: string
- *       description: the unique id of the feedback
- *   schemas:
- *     Feedback:
- *       type: object
- *       properties:
- *         body:
- *           type: string
- *         url:
- *           type: string
- *         type:
- *           type: string
- *       example:
- *         body: 'This is a great tool! Thanks for building it.'
- *         url: 'http://localhost:3000/#/path/to/page'
- *         type: 'Bug'
- */
-
-/**
- * @swagger
  * /feedback:
  *   post:
  *     tags: [Feedback]
@@ -48,7 +21,7 @@ const router = express.Router();
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Feedback'
+ *             $ref: '#/components/schemas/FeedbackCreate'
  *     responses:
  *       '200':
  *         description: Feedback was submitted successfully
@@ -61,23 +34,40 @@ const router = express.Router();
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: number
- *                 type:
- *                   type: string
- *                 message:
- *                   type: string
- *               example:
- *                 status: 401
- *                 type: 'no-login'
- *                 message: 'User is not logged in'
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               status: 401
+ *               type: 'no-login'
+ *               message: 'User is not logged in'
  */
 router
 	.route('/feedback')
 	.post(user.has(user.requiresLogin), feedback.submitFeedback);
 
+/**
+ * @swagger
+ * /admin/feedback:
+ *   post:
+ *     tags: [Feedback]
+ *     description: >
+ *       returns feedback matching search criteria
+ *     requestBody:
+ *       $ref: '#/components/requestBodies/SearchCriteria'
+ *     parameters:
+ *       - $ref: '#/components/parameters/pageParam'
+ *       - $ref: '#/components/parameters/sizeParam'
+ *       - $ref: '#/components/parameters/sortParam'
+ *       - $ref: '#/components/parameters/dirParam'
+ *     responses:
+ *       '200':
+ *         description: Feedback returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/FeedbackPage'
+ *       '400':
+ *         $ref: '#/components/responses/NotAuthenticated'
+ */
 router.route('/admin/feedback').post(user.hasAdminAccess, feedback.search);
 
 /**
@@ -100,6 +90,7 @@ router.route('/admin/feedback').post(user.hasAdminAccess, feedback.search);
  *             properties:
  *               status:
  *                 type: string
+ *                 enum: [New, Open, Closed]
  *     responses:
  *       '200':
  *         description: Feedback status was updated successfully
@@ -108,56 +99,11 @@ router.route('/admin/feedback').post(user.hasAdminAccess, feedback.search);
  *             schema:
  *               $ref: '#/components/schemas/Feedback'
  *       '400':
- *         description: User attempted to update feedback with invalid ID
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: number
- *                 type:
- *                   type: string
- *                 message:
- *                   type: string
- *               example:
- *                 status: 400
- *                 type: 'validation'
- *                 message: 'Invalid feedback ID'
+ *         $ref: '#/components/responses/FeedbackUpdateInvalidId'
  *       '401':
- *         description: Anonymous user attempted to update feedback status
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: number
- *                 type:
- *                   type: string
- *                 message:
- *                   type: string
- *               example:
- *                 status: 401
- *                 type: 'no-login'
- *                 message: 'User is not logged in'
+ *         $ref: '#/components/responses/FeedbackUpdateAnonymousUser'
  *       '404':
- *         description: Unable to find feedback with the supplied ID
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: number
- *                 type:
- *                   type: string
- *                 message:
- *                   type: string
- *               example:
- *                 status: 404
- *                 type: 'not-found'
- *                 message: 'Could not find feedback'
+ *         $ref: '#/components/responses/FeedbackNotFound'
  */
 router
 	.route('/admin/feedback/:feedbackId/status')
@@ -191,56 +137,11 @@ router
  *             schema:
  *               $ref: '#/components/schemas/Feedback'
  *       '400':
- *         description: User attempted to update feedback with invalid ID
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: number
- *                 type:
- *                   type: string
- *                 message:
- *                   type: string
- *               example:
- *                 status: 400
- *                 type: 'validation'
- *                 message: 'Invalid feedback ID'
+ *         $ref: '#/components/responses/FeedbackUpdateInvalidId'
  *       '401':
- *         description: Anonymous user attempted to update feedback assignee
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: number
- *                 type:
- *                   type: string
- *                 message:
- *                   type: string
- *               example:
- *                 status: 401
- *                 type: 'no-login'
- *                 message: 'User is not logged in'
+ *         $ref: '#/components/responses/FeedbackUpdateAnonymousUser'
  *       '404':
- *         description: Unable to find feedback with the supplied ID
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: number
- *                 type:
- *                   type: string
- *                 message:
- *                   type: string
- *               example:
- *                 status: 404
- *                 type: 'not-found'
- *                 message: 'Could not find feedback'
+ *         $ref: '#/components/responses/FeedbackNotFound'
  */
 router
 	.route('/admin/feedback/:feedbackId/assignee')

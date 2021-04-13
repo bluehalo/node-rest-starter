@@ -24,21 +24,21 @@ describe('Init Swagger API:', () => {
 						url: 'https://api.example.com/api'
 					}
 				]
-				// basePath: '/api'
 			},
 			apis: [
+				...config.files.docs.map((doc) => path.posix.resolve(doc)),
 				...config.files.routes.map((route) => path.posix.resolve(route)),
 				...config.files.models.map((model) => path.posix.resolve(model))
 			]
 		};
 
 		if (config.auth.strategy === 'local') {
-			swaggerOptions.swaggerDefinition.components = {
-				securitySchemes: {
-					basicAuth: {
-						type: 'http',
-						scheme: 'basic'
-					}
+			swaggerOptions.swaggerDefinition.components =
+				swaggerOptions.swaggerDefinition.components || {};
+			swaggerOptions.swaggerDefinition.components.securitySchemes = {
+				basicAuth: {
+					type: 'http',
+					scheme: 'basic'
 				}
 			};
 		}
