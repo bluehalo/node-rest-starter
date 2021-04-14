@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compile and watch via TSC",
+            "type": "npm",
+            "script": "tsc:watch",
+            "problemMatcher": "$tsc-watch",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "revealProblems": "onProblem"
+            },
+            "detail": "tsc --watch --noEmit",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
