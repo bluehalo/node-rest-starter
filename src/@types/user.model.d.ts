@@ -1,4 +1,5 @@
 import { Document, Model, model, Types, Schema, Query, Mongoose } from "mongoose"
+import { BinaryLike } from "crypto";
 
 type UserRoles = {
 	user?: boolean;
@@ -34,7 +35,7 @@ interface IUser extends Document {
 	lastLogin: Date | number;
 	newFeatureDismissed: Date;
 	preferences: Object;
-	salt?: crypto.BinaryLike;
+	salt: BinaryLike;
 }
 
 export interface UserDocument extends IUser {
