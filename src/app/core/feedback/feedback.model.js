@@ -16,7 +16,7 @@ const FeedbackSchema = new mongoose.Schema({
 		get: util.dateParse
 	},
 	creator: {
-		type: mongoose.Schema.ObjectId,
+		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User'
 	},
 	body: { type: String },

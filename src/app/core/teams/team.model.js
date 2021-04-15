@@ -28,7 +28,7 @@ const _ = require('lodash'),
  */
 const TeamRoleSchema = new mongoose.Schema({
 	_id: {
-		type: mongoose.Schema.ObjectId,
+		type: mongoose.Schema.Types.ObjectId,
 		ref: 'Team'
 	},
 	role: {
@@ -63,7 +63,7 @@ const TeamSchema = new mongoose.Schema({
 		get: util.dateParse
 	},
 	creator: {
-		type: mongoose.Schema.ObjectId,
+		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User'
 	},
 	creatorName: {
@@ -80,13 +80,13 @@ const TeamSchema = new mongoose.Schema({
 		type: [String]
 	},
 	parent: {
-		type: mongoose.Schema.ObjectId,
+		type: mongoose.Schema.Types.ObjectId,
 		ref: 'Team'
 	},
 	ancestors: {
 		type: [
 			{
-				type: mongoose.Schema.ObjectId,
+				type: mongoose.Schema.Types.ObjectId,
 				ref: 'Team'
 			}
 		]

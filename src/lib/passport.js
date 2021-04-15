@@ -18,6 +18,7 @@ module.exports.init = function () {
 				_id: id
 			},
 			'-salt -password',
+			null,
 			(err, user) => {
 				done(err, user);
 			}

@@ -120,6 +120,9 @@ const roleSchemaDef = {
  *         preferences:
  *           type: object
  */
+/**
+ * @type {mongoose.Schema<import('../../../@types/user.model').UserDocument, import('../../../@types/user.model').UserModel>}
+ */
 const UserSchema = new mongoose.Schema({
 	name: {
 		type: String,
@@ -247,12 +250,7 @@ UserSchema.index({ name: 'text', email: 'text', username: 'text' });
 /**
  * Lifecycle Hooks
  */
-
-// Process the password
 UserSchema.pre('save', function (next) {
-	/**
-	 * @type {(mongoose.Schema.methods|mongoose.Model)}
-	 */
 	const user = this;
 
 	// If the password is modified and it is valid, then re- salt/hash it
@@ -267,9 +265,6 @@ UserSchema.pre('save', function (next) {
 		user.password = user.hashPassword(user.password);
 	}
 
-	// Remember whether the document was new, for the post-save hook
-	this.wasNew = user.isNew;
-
 	next();
 });
 
@@ -277,7 +272,11 @@ UserSchema.pre('save', function (next) {
  * Instance Methods
  */
 
-// Hash Password
+/**
+ * Hash Password
+ * @param {string} password Password
+ * @returns {string} An SHA1 hash of the password.
+ */
 UserSchema.methods.hashPassword = function (password) {
 	const user = this;
 
@@ -290,9 +289,14 @@ UserSchema.methods.hashPassword = function (password) {
 	}
 };
 
-// Authenticate a password against the user
+/**
+ * Authenticate a password against the user
+ * @param {string} password Password attempt.
+ * @returns {boolean} Whether or not the password is correct.
+ */
 UserSchema.methods.authenticate = function (password) {
-	return this.password === this.hashPassword(password);
+	const user = this;
+	return user.password === user.hashPassword(password);
 };
 
 /**
@@ -426,7 +430,9 @@ UserSchema.statics.auditCopy = function (user, userIP) {
 
 UserSchema.statics.roles = roles;
 
+const User = mongoose.model('User', UserSchema);
+
 /**
  * Model Registration
  */
-module.exports = mongoose.model('User', UserSchema);
+module.exports = User;
