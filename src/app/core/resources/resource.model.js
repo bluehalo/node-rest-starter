@@ -19,7 +19,7 @@ const OwnerSchema = new mongoose.Schema({
 		required: 'Owner type is required'
 	},
 	_id: {
-		type: mongoose.Schema.ObjectId,
+		type: mongoose.Schema.Types.ObjectId,
 		required: 'Owner ID is required'
 	},
 	name: {
@@ -75,7 +75,7 @@ const ResourceSchema = new mongoose.Schema(
 			}
 		],
 		creator: {
-			type: mongoose.Schema.ObjectId,
+			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User'
 		},
 		owner: {
@@ -97,12 +97,8 @@ ResourceSchema.index({ title_lowercase: 'text', description: 'text' });
  * Lifecycle hooks
  */
 ResourceSchema.pre('save', function (next) {
-	/**
-	 * @type {(mongoose.Schema.methods|mongoose.Model)}
-	 */
-	const user = this;
-
-	user.title_lowercase = user.title;
+	const resource = this;
+	resource.title_lowercase = resource.title;
 	next();
 });
 

@@ -34,7 +34,7 @@ function save(message, user, res, audit) {
 			});
 		});
 	} else {
-		util.send400Error(res, error.group);
+		util.send400Error(res, error);
 	}
 }
 

@@ -12,7 +12,7 @@ module.exports.preferenceOptions = { discriminatorKey: 'preferenceType' };
 const PreferenceSchema = new mongoose.Schema(
 	{
 		user: {
-			type: mongoose.Schema.ObjectId,
+			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
 			required: 'User is required'
 		},

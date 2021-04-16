@@ -24,7 +24,9 @@ module.exports = function () {
 
 				User.findOne({ username: username })
 					.exec()
-					.then((user) => {
+					.then((
+						/** @type {import('../../@types/user.model').UserDocument} */ user
+					) => {
 						// The user wasn't found or the password was wrong
 						if (!user || !user.authenticate(password)) {
 							return done(null, false, {

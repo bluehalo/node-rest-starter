@@ -43,7 +43,7 @@ const MessageSchema = new mongoose.Schema({
 		get: util.dateParse
 	},
 	creator: {
-		type: mongoose.Schema.ObjectId,
+		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User'
 	}
 });
@@ -52,11 +52,11 @@ MessageSchema.plugin(pagingSearchPlugin);
 
 const DismissedMessageSchema = new mongoose.Schema({
 	messageId: {
-		type: mongoose.Schema.ObjectId,
+		type: mongoose.Schema.Types.ObjectId,
 		ref: 'Message'
 	},
 	userId: {
-		type: mongoose.Schema.ObjectId,
+		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User'
 	},
 	created: {

@@ -1,4 +1,5 @@
-import { Document, Model, model, Types, Schema, Query } from "mongoose"
+import { Document, Model, model, Types, Schema, Query, Mongoose } from "mongoose"
+import { BinaryLike } from "crypto";
 
 type UserRoles = {
 	user?: boolean;
@@ -7,7 +8,7 @@ type UserRoles = {
 	admin?: boolean;
 };
 
-interface IUser {
+interface IUser extends Document {
 	name: string;
 
 	organization: string;
@@ -16,7 +17,6 @@ interface IUser {
 	phone: string;
 	username: string;
 	password: string;
-	salt: string;
 	provider: string;
 	providerData: Object;
 	additionalProvidersData: Object;
@@ -35,9 +35,10 @@ interface IUser {
 	lastLogin: Date | number;
 	newFeatureDismissed: Date;
 	preferences: Object;
+	salt: BinaryLike;
 }
 
-export interface UserDocument extends IUser, Document {
+export interface UserDocument extends IUser {
 	authenticate(password: string): boolean;
 	hashPassword(password: string): string;
 }

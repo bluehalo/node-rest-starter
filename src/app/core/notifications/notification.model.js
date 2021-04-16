@@ -13,7 +13,7 @@ module.exports.notificationOptions = { discriminatorKey: 'notificationType' };
 const NotificationSchema = new mongoose.Schema(
 	{
 		user: {
-			type: mongoose.Schema.ObjectId,
+			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
 			required: 'User is required'
 		},
