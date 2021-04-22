@@ -82,29 +82,24 @@ module.exports.adminGetFeedbackCSV = async function (req, res) {
 		});
 
 		const query = result.config.q ? JSON.parse(result.config.q) : null;
-		const sortArr = [
-			{ property: result.config.sort, direction: result.config.dir }
-		];
+		const search = result.config.s;
+		const sort = utilService.getSortObj(result.config);
 
-		const feedbackResult = await Feedback.textSearch(
-			query,
-			null,
-			null,
-			null,
-			sortArr,
-			true,
-			{
+		const feedbackCursor = Feedback.find(query)
+			.textSearch(search)
+			.sort(sort)
+			.populate({
 				path: 'creator',
 				select: ['username', 'organization', 'name', 'email']
-			}
-		);
+			})
+			.cursor();
 
 		exportConfigController.exportCSV(
 			req,
 			res,
 			exportFileName,
 			columns,
-			feedbackResult.results
+			feedbackCursor
 		);
 	} catch (err) {
 		logger.error({ err: err, req: req }, 'Error exporting feedback entries');
@@ -113,21 +108,13 @@ module.exports.adminGetFeedbackCSV = async function (req, res) {
 };
 
 module.exports.search = async (req, res) => {
-	const filters = [];
-	if (req.body.q) {
-		filters.push(req.body.q);
-	}
-
-	const search = req.body.s || null;
-
-	if (search) {
-		filters.push({ $text: { $search: search } });
-	}
-
-	const query = filters.length > 0 ? { $and: filters } : undefined;
-
 	try {
-		const searchPromise = feedbackService.search(req.user, req.query, query);
+		const searchPromise = feedbackService.search(
+			req.user,
+			req.query,
+			req.body.s,
+			req.body.q
+		);
 		const results = await searchPromise;
 		res.status(200).json(results);
 	} catch (err) {

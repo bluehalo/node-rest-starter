@@ -226,6 +226,28 @@ module.exports.getSort = function (
 };
 
 /**
+ * Get the sort provided by the user, if there is one.
+ *
+ * @param {Object} queryParams
+ * @param {string} [defaultSort=undefined] (optional)
+ * @param {string} [defaultDir=ASC] (optional) default: ASC
+ * @returns {Object|null}
+ */
+module.exports.getSortObj = function (
+	queryParams,
+	defaultSort,
+	defaultDir = 'ASC'
+) {
+	const sort = _.get(queryParams, 'sort', defaultSort);
+	const dir = _.get(queryParams, 'dir', defaultDir);
+	if (!sort) {
+		return null;
+	}
+
+	return { [sort]: dir };
+};
+
+/**
  * Extract given field from request header
  */
 module.exports.getHeaderField = function (header, fieldName) {

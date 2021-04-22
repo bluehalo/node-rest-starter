@@ -141,6 +141,9 @@ const searchTextQuery = (
 	);
 };
 
+/**
+ * @deprecated migrate to using paginate.plugin, text-search.plugin and contains-search.plugin
+ */
 function pagingSearchPlugin(schema, options) {
 	// Search by text and other criteria
 	schema.statics.textSearch = function (
