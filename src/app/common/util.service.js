@@ -400,6 +400,9 @@ module.exports.submitPostRequest = (httpOpts, postBody) => {
 	});
 };
 
+/**
+ * @deprecated
+ */
 module.exports.getPagingResults = (
 	pageSize = 20,
 	pageNumber = 0,

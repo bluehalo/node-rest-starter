@@ -24,6 +24,11 @@ const containsSearchPlugin = (schema, pluginOptions = {}) => {
 			return this;
 		}
 
+		if (fields.length === 1) {
+			return this.find({
+				[fields[0]]: { $regex: new RegExp(escapeRegex(search), 'gim') }
+			});
+		}
 		return this.find({
 			$or: fields.map((element) => ({
 				[element]: { $regex: new RegExp(escapeRegex(search), 'gim') }
