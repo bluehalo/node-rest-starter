@@ -4,6 +4,10 @@ const should = require('should'),
 
 const TextExampleSchema = new mongoose.Schema({ field: String });
 TextExampleSchema.plugin(textSearchPlugin);
+
+/**
+ * @type {mongoose.Model<mongoose.Document<any, import('./types').TextSearchPlugin>>}
+ */
 const TextExample = mongoose.model('TextExample', TextExampleSchema);
 
 /**

@@ -4,6 +4,10 @@ const should = require('should'),
 
 const ContainsExampleSchema = new mongoose.Schema({ field: String });
 ContainsExampleSchema.plugin(containsSearchPlugin);
+
+/**
+ * @type {mongoose.Model<mongoose.Document<any, import('./types').ContainsSearchPlugin>>}
+ */
 const ContainsExample = mongoose.model(
 	'ContainsExample',
 	ContainsExampleSchema
@@ -13,6 +17,10 @@ const ContainsExample2Schema = new mongoose.Schema({ field: String });
 ContainsExample2Schema.plugin(containsSearchPlugin, {
 	fields: ['field1', 'field2']
 });
+
+/**
+ * @type {mongoose.Model<mongoose.Document<any, ContainsSearchPlugin>>}
+ */
 const ContainsExample2 = mongoose.model(
 	'ContainsExample2',
 	ContainsExample2Schema
