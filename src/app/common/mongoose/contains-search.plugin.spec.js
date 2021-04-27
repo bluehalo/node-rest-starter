@@ -19,7 +19,7 @@ ContainsExample2Schema.plugin(containsSearchPlugin, {
 });
 
 /**
- * @type {mongoose.Model<mongoose.Document<any, ContainsSearchPlugin>>}
+ * @type {mongoose.Model<mongoose.Document<any, import('./types').ContainsSearchPlugin>>}
  */
 const ContainsExample2 = mongoose.model(
 	'ContainsExample2',

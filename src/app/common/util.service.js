@@ -229,14 +229,14 @@ module.exports.getSort = function (
  * Get the sort provided by the user, if there is one.
  *
  * @param {Object} queryParams
+ * @param {'ASC' | 'DESC'} [defaultDir=ASC] (optional) default: ASC
  * @param {string} [defaultSort=undefined] (optional)
- * @param {string} [defaultDir=ASC] (optional) default: ASC
  * @returns {Object|null}
  */
 module.exports.getSortObj = function (
 	queryParams,
-	defaultSort,
-	defaultDir = 'ASC'
+	defaultDir = 'ASC',
+	defaultSort = undefined
 ) {
 	const sort = _.get(queryParams, 'sort', defaultSort);
 	const dir = _.get(queryParams, 'dir', defaultDir);

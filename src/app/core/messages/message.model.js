@@ -3,7 +3,8 @@
 const _ = require('lodash'),
 	mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
-	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
+	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
+	textSearchPlugin = require('../../common/mongoose/text-search.plugin'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
@@ -48,7 +49,8 @@ const MessageSchema = new mongoose.Schema({
 	}
 });
 MessageSchema.plugin(getterPlugin);
-MessageSchema.plugin(pagingSearchPlugin);
+MessageSchema.plugin(paginatePlugin);
+MessageSchema.plugin(textSearchPlugin);
 
 const DismissedMessageSchema = new mongoose.Schema({
 	messageId: {

@@ -156,40 +156,28 @@ exports.delete = function (req, res) {
 };
 
 // Search - with paging and sorting
-exports.search = function (req, res) {
-	// Handle the query/search/page
-	const query = req.body.q;
-	const search = req.body.s;
-
+exports.search = async (req, res) => {
 	const page = util.getPage(req.query);
 	const limit = util.getLimit(req.query);
-	const sortArr = util.getSort(req.query, 'DESC');
-	const offset = page * limit;
+	const sort = util.getSortObj(req.query, 'DESC');
 
-	Message.textSearch(query, search, limit, offset, sortArr)
-		.then((result) => {
-			// Create the return copy of the messages
-			const messages = [];
-			result.results.forEach((element) => {
-				messages.push(Message.fullCopy(element));
-			});
+	try {
+		const result = await Message.find(req.body.q)
+			.textSearch(req.body.s)
+			.sort(sort)
+			.paginate(limit, page);
 
-			// success
-			const toReturn = util.getPagingResults(
-				limit,
-				page,
-				result.count,
-				messages
-			);
+		// Create the return copy of the messages
+		result.elements = result.elements.map((element) =>
+			Message.fullCopy(element)
+		);
 
-			// Serialize the response
-			res.status(200).json(toReturn);
-		})
-		.catch((error) => {
-			// failure
-			logger.error(error);
-			return util.send400Error(res, error);
-		});
+		res.status(200).json(result);
+	} catch (error) {
+		// failure
+		logger.error(error);
+		return util.send400Error(res, error);
+	}
 };
 
 // Search - with paging and sorting

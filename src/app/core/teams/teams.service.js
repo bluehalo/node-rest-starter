@@ -349,8 +349,7 @@ const deleteTeam = async (team) => {
 const searchTeams = async (queryParams, query, search, user) => {
 	const page = util.getPage(queryParams);
 	const limit = util.getLimit(queryParams, 1000);
-	const sortArr = util.getSort(queryParams, 'DESC', '_id');
-	const offset = page * limit;
+	const sort = util.getSortObj(queryParams, 'DESC', '_id');
 
 	// If user is not an admin, constrain the results to the user's teams
 	if (!userAuthService.hasRoles(user, ['admin'])) {
@@ -371,16 +370,13 @@ const searchTeams = async (queryParams, query, search, user) => {
 		};
 	}
 
-	const result = await Team.textSearch(query, search, limit, offset, sortArr);
-
-	return util.getPagingResults(limit, page, result.count, result.results);
+	return Team.find(query).textSearch(search).sort(sort).paginate(limit, page);
 };
 
 const searchTeamMembers = async (search, query, queryParams, team) => {
 	const page = util.getPage(queryParams);
 	const limit = util.getLimit(queryParams);
-	const sortArr = util.getSort(queryParams, 'DESC', '_id');
-	const offset = page * limit;
+	const sort = util.getSortObj(queryParams, 'DESC', '_id');
 
 	// Inject the team query parameters
 	// Finds members explicitly added to the team using the id OR
@@ -432,20 +428,17 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
 		});
 	}
 
-	const results = await TeamMember.textSearch(
-		query,
-		search,
-		limit,
-		offset,
-		sortArr
-	);
+	const results = await TeamMember.find(query)
+		.textSearch(search)
+		.sort(sort)
+		.paginate(limit, page);
 
 	// Create the return copy of the users
-	const members = results.results.map((result) =>
-		TeamMember.teamCopy(result, team._id)
+	results.elements = results.elements.map((element) =>
+		TeamMember.teamCopy(element, team._id)
 	);
 
-	return util.getPagingResults(limit, page, results.count, members);
+	return results;
 };
 
 /**

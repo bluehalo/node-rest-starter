@@ -10,84 +10,62 @@ const deps = require('../../../dependencies'),
 /**
  * Public methods
  */
-module.exports.searchEntries = function (req, res) {
+module.exports.searchEntries = async (req, res) => {
 	// Handle the query/search/page
 	const query = req.body.q;
 	const search = req.body.s;
 
 	const page = util.getPage(req.query);
 	const limit = util.getLimit(req.query);
-	const sortArr = util.getSort(req.query, 'DESC');
-	const offset = page * limit;
+	const sort = util.getSortObj(req.query, 'DESC');
 
-	CacheEntry.textSearch(query, search, limit, offset, sortArr)
-		.then((result) => {
-			// Create the return copy of the users
-			const entries = [];
-			result.results.forEach((element) => {
-				entries.push(CacheEntry.fullCopy(element));
-			});
+	try {
+		const results = await CacheEntry.find(query)
+			.textSearch(search)
+			.sort(sort)
+			.paginate(limit, page);
 
-			// success
-			const toReturn = util.getPagingResults(
-				limit,
-				page,
-				result.count,
-				entries
-			);
+		// Create the return copy of the users
+		results.elements = results.elements.map((element) =>
+			CacheEntry.fullCopy(element)
+		);
 
-			// Serialize the response
-			res.json(toReturn);
-		})
-		.catch((error) => {
-			// failure
-			logger.error(error);
-			return util.send400Error(res, error);
-		});
+		res.json(results);
+	} catch (error) {
+		// failure
+		logger.error(error);
+		return util.send400Error(res, error);
+	}
 };
 
 // Match users given a search fragment
-exports.matchEntries = function (req, res) {
+exports.matchEntries = async (req, res) => {
 	// Handle the query/search/page
 	const query = req.body.q;
 	const search = req.body.s;
 
 	const page = util.getPage(req.query);
 	const limit = util.getLimit(req.query);
-	const sortArr = util.getSort(req.query);
+	const sort = util.getSortObj(req.query);
 	const offset = page * limit;
 
-	CacheEntry.containsSearch(
-		query,
-		['key', 'valueString'],
-		search,
-		limit,
-		offset,
-		sortArr
-	)
-		.then((result) => {
-			// Create the return copy of the users
-			const entries = [];
-			result.results.forEach((element) => {
-				entries.push(CacheEntry.fullCopy(element));
-			});
+	try {
+		const results = await CacheEntry.find(query)
+			.containsSearch(search)
+			.sort(sort)
+			.paginate(limit, page);
 
-			// success
-			const toReturn = util.getPagingResults(
-				limit,
-				page,
-				result.count,
-				entries
-			);
+		// Create the return copy of the cache entry
+		results.elements = results.elements.map((element) =>
+			CacheEntry.fullCopy(element)
+		);
 
-			// Serialize the response
-			res.json(toReturn);
-		})
-		.catch((error) => {
-			// failure
-			logger.error(error);
-			return util.send400Error(res, error);
-		});
+		res.json(results);
+	} catch (error) {
+		// failure
+		logger.error(error);
+		return util.send400Error(res, error);
+	}
 };
 
 exports.refreshEntry = function (req, res) {

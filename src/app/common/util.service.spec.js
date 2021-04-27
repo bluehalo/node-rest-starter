@@ -343,8 +343,9 @@ describe('Utils:', () => {
 			it(test.name, () => {
 				const actual = util.getSortObj(
 					test.input,
-					test.defaultSort,
-					test.defaultDir
+					// @ts-ignore
+					test.defaultDir,
+					test.defaultSort
 				);
 				should.exist(actual);
 				actual.should.containEql(test.expected);
