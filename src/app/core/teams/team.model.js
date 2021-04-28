@@ -153,6 +153,9 @@ mongoose.model('Team', TeamSchema, 'teams');
 // Team Copy of a User ( has team roles for the team )
 const userAuditCopy = UserModel.auditCopy;
 UserSchema.statics.auditCopy = (user = {}) => {
+	/**
+	 * @type {*}
+	 */
 	const toReturn = userAuditCopy(user);
 
 	if (user.constructor.name === 'model') {

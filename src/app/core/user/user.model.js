@@ -121,7 +121,7 @@ const roleSchemaDef = {
  *           type: object
  */
 /**
- * @type {mongoose.Schema<import('../../../@types/user.model').UserDocument, import('../../../@types/user.model').UserModel>}
+ * @type {mongoose.Schema<import('./types').UserDocument, import('./types').UserModel>}
  */
 const UserSchema = new mongoose.Schema({
 	name: {
@@ -274,6 +274,7 @@ UserSchema.pre('save', function (next) {
 
 /**
  * Hash Password
+ * @this import('./types').UserDocument
  * @param {string} password Password
  * @returns {string} An SHA1 hash of the password.
  */
@@ -291,6 +292,7 @@ UserSchema.methods.hashPassword = function (password) {
 
 /**
  * Authenticate a password against the user
+ * @this import('./types').UserDocument
  * @param {string} password Password attempt.
  * @returns {boolean} Whether or not the password is correct.
  */
@@ -430,6 +432,9 @@ UserSchema.statics.auditCopy = function (user, userIP) {
 
 UserSchema.statics.roles = roles;
 
+/**
+ * @type {import('./types').UserModel}
+ */
 const User = mongoose.model('User', UserSchema);
 
 /**
