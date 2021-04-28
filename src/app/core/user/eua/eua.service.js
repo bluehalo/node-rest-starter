@@ -31,7 +31,7 @@ const remove = (eua) => {
 	return eua.remove();
 };
 
-const search = async (queryParams, query, _search) => {
+const search = (queryParams, query, _search) => {
 	query = query || {};
 	const page = util.getPage(queryParams);
 	const limit = util.getLimit(queryParams);

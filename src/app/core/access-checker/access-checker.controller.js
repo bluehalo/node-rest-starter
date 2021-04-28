@@ -47,7 +47,6 @@ exports.matchEntries = async (req, res) => {
 	const page = util.getPage(req.query);
 	const limit = util.getLimit(req.query);
 	const sort = util.getSortObj(req.query);
-	const offset = page * limit;
 
 	try {
 		const results = await CacheEntry.find(query)

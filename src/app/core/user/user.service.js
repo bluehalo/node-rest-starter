@@ -26,7 +26,7 @@ const remove = (user) => {
 	return user.remove();
 };
 
-const searchUsers = async (queryParams, query, search, searchFields = []) => {
+const searchUsers = (queryParams, query, search, searchFields = []) => {
 	query = query || {};
 	const page = util.getPage(queryParams);
 	const limit = util.getLimit(queryParams);
