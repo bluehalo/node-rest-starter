@@ -31,23 +31,16 @@ const remove = (eua) => {
 	return eua.remove();
 };
 
-const search = async (queryParams, query, _search) => {
+const search = (queryParams, query, _search) => {
 	query = query || {};
 	const page = util.getPage(queryParams);
 	const limit = util.getLimit(queryParams);
-	const sortArr = util.getSort(queryParams, 'DESC');
-	const offset = page * limit;
+	const sort = util.getSortObj(queryParams, 'DESC');
 
-	const euas = await UserAgreement.textSearch(
-		query,
-		_search,
-		limit,
-		offset,
-		sortArr,
-		true
-	);
-
-	return util.getPagingResults(limit, page, euas.count, euas.results);
+	return UserAgreement.find(query)
+		.textSearch(_search)
+		.sort(sort)
+		.paginate(limit, page);
 };
 
 const publishEua = (eua) => {

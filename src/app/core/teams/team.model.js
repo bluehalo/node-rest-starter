@@ -3,7 +3,8 @@
 const _ = require('lodash'),
 	mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
-	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
+	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
+	textSearchPlugin = require('../../common/mongoose/text-search.plugin'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	util = deps.utilService,
@@ -93,7 +94,8 @@ const TeamSchema = new mongoose.Schema({
 	}
 });
 TeamSchema.plugin(getterPlugin);
-TeamSchema.plugin(pagingSearchPlugin);
+TeamSchema.plugin(paginatePlugin);
+TeamSchema.plugin(textSearchPlugin);
 
 /**
  * Index declarations

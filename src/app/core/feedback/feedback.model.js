@@ -2,7 +2,8 @@
 
 const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
-	pagingSearchPlugin = require('../../common/mongoose/paging-search.plugin'),
+	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
+	textSearchPlugin = require('../../common/mongoose/text-search.plugin'),
 	deps = require('../../../dependencies'),
 	util = deps.utilService;
 
@@ -41,7 +42,8 @@ const FeedbackSchema = new mongoose.Schema({
 });
 
 FeedbackSchema.plugin(getterPlugin);
-FeedbackSchema.plugin(pagingSearchPlugin);
+FeedbackSchema.plugin(paginatePlugin);
+FeedbackSchema.plugin(textSearchPlugin);
 
 /**
  * Index declarations

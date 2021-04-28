@@ -61,37 +61,28 @@ const create = async (reqUser, newFeedback, userSpec) => {
 	}
 };
 
-const search = async (reqUser, queryParams, query) => {
+const search = (reqUser, queryParams, search, query) => {
 	query = query || {};
 	const page = util.getPage(queryParams);
 	const limit = util.getLimit(queryParams, 100);
-	const sortArr = util.getSort(queryParams);
-	const offset = page * limit;
+	const sort = util.getSortObj(queryParams);
 
 	// Query for feedback
-	const feedback = await Feedback.textSearch(
-		query,
-		null,
-		limit,
-		offset,
-		sortArr,
-		true,
-		{
+	return Feedback.find(query)
+		.textSearch(search)
+		.sort(sort)
+		.populate({
 			path: 'creator',
 			select: ['username', 'organization', 'name', 'email']
-		}
-	);
-
-	return util.getPagingResults(limit, page, feedback.count, feedback.results);
+		})
+		.paginate(limit, page);
 };
 
 const readFeedback = async (feedbackId, populate = []) => {
 	if (!mongoose.Types.ObjectId.isValid(feedbackId)) {
 		throw { status: 400, type: 'validation', message: 'Invalid feedback ID' };
 	}
-	const feedback = await Feedback.findOne({
-		_id: feedbackId
-	})
+	const feedback = await Feedback.findById(feedbackId)
 		.populate(populate)
 		.exec();
 	return feedback;

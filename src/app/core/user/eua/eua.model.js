@@ -2,7 +2,8 @@
 
 const mongoose = require('mongoose'),
 	getterPlugin = require('../../../common/mongoose/getter.plugin'),
-	pagingSearchPlugin = require('../../../common/mongoose/paging-search.plugin'),
+	paginatePlugin = require('../../../common/mongoose/paginate.plugin'),
+	textSearchPlugin = require('../../../common/mongoose/text-search.plugin'),
 	deps = require('../../../../dependencies'),
 	util = deps.utilService;
 
@@ -37,7 +38,8 @@ const UserAgreementSchema = new mongoose.Schema({
 	}
 });
 UserAgreementSchema.plugin(getterPlugin);
-UserAgreementSchema.plugin(pagingSearchPlugin);
+UserAgreementSchema.plugin(paginatePlugin);
+UserAgreementSchema.plugin(textSearchPlugin);
 
 /**
  * Index declarations

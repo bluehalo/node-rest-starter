@@ -44,9 +44,7 @@ exports.adminGetCSV = (req, res) => {
 			const columns = result.config.cols,
 				query = result.config.q ? JSON.parse(result.config.q) : null,
 				search = result.config.s,
-				sortArr = [
-					{ property: result.config.sort, direction: result.config.dir }
-				],
+				sort = { [result.config.sort]: result.config.dir },
 				fileName = `${config.app.instanceName}-${result.type}.csv`;
 			let userData = [],
 				teamTitleMap = {},
@@ -79,29 +77,24 @@ exports.adminGetCSV = (req, res) => {
 				}
 			});
 
-			return TeamMember.textSearch(query, search, null, null, sortArr)
+			return TeamMember.find(query)
+				.textSearch(search)
+				.sort(sort)
+				.exec()
 				.then((userResult) => {
 					// Process user data to be usable for CSV
-					userData =
-						null != userResult.results
-							? userResult.results.map((user) => {
-									return TeamMember.fullCopy(user);
-							  })
-							: [];
+					userData = (userResult || []).map((user) =>
+						TeamMember.fullCopy(user)
+					);
 
 					if (isTeamRequested) {
 						let teamIds = [];
 						userData.forEach((user) => {
-							teamIds = teamIds.concat(
-								user.teams.map((t) => {
-									return t._id;
-								})
-							);
+							teamIds = teamIds.concat(user.teams.map((t) => t._id));
 						});
 						return Team.find({ _id: { $in: teamIds } }).exec();
-					} else {
-						return Promise.resolve();
 					}
+					return Promise.resolve();
 				})
 				.then((teamResults) => {
 					if (null != teamResults) {

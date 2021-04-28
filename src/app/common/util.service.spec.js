@@ -290,6 +290,69 @@ describe('Utils:', () => {
 		});
 	});
 
+	describe('getSortObj:', () => {
+		[
+			{
+				input: null,
+				expected: null,
+				name: 'should return null for null params '
+			},
+			{
+				input: {},
+				expected: null,
+				name: 'should return null for empty params'
+			}
+		].forEach((test) => {
+			it(test.name, () => {
+				const actual = util.getSortObj(test.input);
+				should(actual).equal(test.expected);
+			});
+		});
+
+		[
+			{
+				input: { sort: 'field1', dir: 'DESC' },
+				expected: { field1: 'DESC' },
+				name: 'should create sort array from request parameters'
+			},
+			{
+				input: { sort: 'field1' },
+				expected: { field1: 'ASC' },
+				name: 'should use default sort'
+			},
+			{
+				input: { sort: 'field1' },
+				defaultDir: 'DESC',
+				expected: { field1: 'DESC' },
+				name: 'should use override default dir'
+			},
+			{
+				input: {},
+				defaultSort: 'field1',
+				expected: { field1: 'ASC' },
+				name: 'should use override default sort'
+			},
+			{
+				input: {},
+				defaultDir: 'DESC',
+				defaultSort: 'field1',
+				expected: { field1: 'DESC' },
+				name: 'should use override default sort and dir'
+			}
+		].forEach((test) => {
+			it(test.name, () => {
+				const actual = util.getSortObj(
+					test.input,
+					// @ts-ignore
+					test.defaultDir,
+					test.defaultSort
+				);
+				should.exist(actual);
+				actual.should.containEql(test.expected);
+			});
+		});
+	});
+
 	describe('contains:', () => {
 		[
 			{

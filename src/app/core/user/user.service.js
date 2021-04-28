@@ -26,28 +26,21 @@ const remove = (user) => {
 	return user.remove();
 };
 
-const searchUsers = async (queryParams, query, search, searchFields = []) => {
+const searchUsers = (queryParams, query, search, searchFields = []) => {
 	query = query || {};
 	const page = util.getPage(queryParams);
 	const limit = util.getLimit(queryParams);
-	const sortArr = util.getSort(queryParams, 'DESC');
-	const offset = page * limit;
+	const sort = util.getSortObj(queryParams, 'DESC');
 
-	let result;
+	let mQuery = User.find(query);
+
 	if (searchFields.length > 0) {
-		result = await User.containsSearch(
-			query,
-			searchFields,
-			search,
-			limit,
-			offset,
-			sortArr
-		);
+		mQuery = mQuery.containsSearch(search, searchFields);
 	} else {
-		result = await User.textSearch(query, search, limit, offset, sortArr);
+		mQuery = mQuery.textSearch(search);
 	}
 
-	return util.getPagingResults(limit, page, result.count, result.results);
+	return mQuery.sort(sort).paginate(limit, page);
 };
 
 module.exports = {

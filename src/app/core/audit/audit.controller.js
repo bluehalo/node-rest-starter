@@ -31,22 +31,17 @@ exports.search = async function (req, res) {
 
 	const page = util.getPage(req.query);
 	const limit = util.getLimit(req.query);
-	const sortArr = util.getSort(req.query, 'DESC', '_id');
-	const offset = page * limit;
+	const sort = util.getSortObj(req.query, 'DESC', '_id');
 
 	try {
-		const result = await Audit.containsSearch(
-			query,
-			['message', 'audit.auditType', 'audit.action', 'audit.object'],
-			search,
-			limit,
-			offset,
-			sortArr
-		);
+		const result = await Audit.find(query)
+			.containsSearch(search)
+			.sort(sort)
+			.paginate(limit, page);
 
 		// If any audit objects are strings, try to parse them as json. we may have stringified objects because mongo
 		// can't support keys with dots
-		const results = result.results.map((doc) => {
+		result.elements = result.elements.map((doc) => {
 			if (_.isString(doc.audit.object)) {
 				try {
 					doc.audit.object = JSON.parse(doc.audit.object);
@@ -59,11 +54,8 @@ exports.search = async function (req, res) {
 			return doc;
 		});
 
-		// success
-		const toReturn = util.getPagingResults(limit, page, result.count, results);
-
 		// Serialize the response
-		res.status(200).json(toReturn);
+		res.status(200).json(result);
 	} catch (err) {
 		// failure
 		logger.error({ err: err, req: req }, 'Error searching for audit entries');

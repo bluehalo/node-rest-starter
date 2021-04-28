@@ -226,6 +226,28 @@ module.exports.getSort = function (
 };
 
 /**
+ * Get the sort provided by the user, if there is one.
+ *
+ * @param {Object} queryParams
+ * @param {'ASC' | 'DESC'} [defaultDir=ASC] (optional) default: ASC
+ * @param {string} [defaultSort=undefined] (optional)
+ * @returns {Object|null}
+ */
+module.exports.getSortObj = function (
+	queryParams,
+	defaultDir = 'ASC',
+	defaultSort = undefined
+) {
+	const sort = _.get(queryParams, 'sort', defaultSort);
+	const dir = _.get(queryParams, 'dir', defaultDir);
+	if (!sort) {
+		return null;
+	}
+
+	return { [sort]: dir };
+};
+
+/**
  * Extract given field from request header
  */
 module.exports.getHeaderField = function (header, fieldName) {
@@ -378,6 +400,9 @@ module.exports.submitPostRequest = (httpOpts, postBody) => {
 	});
 };
 
+/**
+ * @deprecated
+ */
 module.exports.getPagingResults = (
 	pageSize = 20,
 	pageNumber = 0,
