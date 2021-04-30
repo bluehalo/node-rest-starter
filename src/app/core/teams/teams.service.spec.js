@@ -1334,6 +1334,30 @@ describe('Team Service:', () => {
 			});
 		});
 
+		describe('getAncestorTeamIds', () => {
+			it('should return team ancestors', async () => {
+				const ancestors = await teamsService.getAncestorTeamIds([
+					team.nestedTeam2_1._id
+				]);
+				ancestors.should.deepEqual([
+					team.teamWithNoExternalTeam._id,
+					team.nestedTeam2._id
+				]);
+			});
+
+			it('should return empty array for team without ancestors', async () => {
+				const ancestors = await teamsService.getAncestorTeamIds([
+					team.teamWithNoExternalTeam._id
+				]);
+				ancestors.should.deepEqual([]);
+			});
+
+			it('should return empty array when no teams are passed in', async () => {
+				const ancestors = await teamsService.getAncestorTeamIds();
+				ancestors.should.deepEqual([]);
+			});
+		});
+
 		describe('updateTeams', () => {
 			it('implicit members disabled; nested teams disabled', async () => {
 				sandbox.stub(deps.config.teams, 'implicitMembers').value({});
@@ -1385,7 +1409,7 @@ describe('Team Service:', () => {
 				};
 				await teamsService.updateTeams(user);
 
-				user.teams.length.should.equal(12);
+				user.teams.length.should.equal(7);
 			});
 
 			it('implicit members enabled; nested teams enabled', async () => {
@@ -1404,7 +1428,7 @@ describe('Team Service:', () => {
 				};
 				await teamsService.updateTeams(user);
 
-				user.teams.length.should.equal(13);
+				user.teams.length.should.equal(8);
 			});
 		});
 	});
@@ -1520,23 +1544,23 @@ describe('Team Service:', () => {
 		const _user = {
 			teams: [
 				{
-					_id: '000000000000000000000001',
+					_id: mongoose.Types.ObjectId('000000000000000000000001'),
 					role: 'member'
 				},
 				{
-					_id: '000000000000000000000002',
+					_id: mongoose.Types.ObjectId('000000000000000000000002'),
 					role: 'member'
 				},
 				{
-					_id: '000000000000000000000003',
+					_id: mongoose.Types.ObjectId('000000000000000000000003'),
 					role: 'editor'
 				},
 				{
-					_id: '000000000000000000000004',
+					_id: mongoose.Types.ObjectId('000000000000000000000004'),
 					role: 'admin'
 				},
 				{
-					_id: '000000000000000000000005',
+					_id: mongoose.Types.ObjectId('000000000000000000000005'),
 					role: 'editor'
 				}
 			]
@@ -1544,27 +1568,27 @@ describe('Team Service:', () => {
 
 		it('should filter teamIds for membership (basic)', async () => {
 			const teamIds = await teamsService.filterTeamIds(_user, [
-				'000000000000000000000001'
+				mongoose.Types.ObjectId('000000000000000000000001')
 			]);
 			should.exist(teamIds);
 			teamIds.should.have.length(1);
-			should(teamIds[0]).equal('000000000000000000000001');
+			should(teamIds[0].toString()).equal('000000000000000000000001');
 		});
 
 		it('should filter teamIds for membership (advanced)', async () => {
 			const teamIds = await teamsService.filterTeamIds(_user, [
-				'000000000000000000000001',
-				'000000000000000000000002'
+				mongoose.Types.ObjectId('000000000000000000000001'),
+				mongoose.Types.ObjectId('000000000000000000000002')
 			]);
 			should.exist(teamIds);
 			teamIds.should.have.length(2);
-			should(teamIds[0]).equal('000000000000000000000001');
-			should(teamIds[1]).equal('000000000000000000000002');
+			should(teamIds[0].toString()).equal('000000000000000000000001');
+			should(teamIds[1].toString()).equal('000000000000000000000002');
 		});
 
 		it('should filter teamIds for membership when no access', async () => {
 			const teamIds = await teamsService.filterTeamIds(_user, [
-				'000000000000000000000006'
+				mongoose.Types.ObjectId('000000000000000000000006')
 			]);
 			should.exist(teamIds);
 			teamIds.should.have.length(0);
@@ -1574,11 +1598,11 @@ describe('Team Service:', () => {
 			const teamIds = await teamsService.filterTeamIds(_user);
 			should.exist(teamIds);
 			teamIds.should.have.length(5);
-			should(teamIds[0]).equal('000000000000000000000001');
-			should(teamIds[1]).equal('000000000000000000000002');
-			should(teamIds[2]).equal('000000000000000000000003');
-			should(teamIds[3]).equal('000000000000000000000004');
-			should(teamIds[4]).equal('000000000000000000000005');
+			should(teamIds[0].toString()).equal('000000000000000000000001');
+			should(teamIds[1].toString()).equal('000000000000000000000002');
+			should(teamIds[2].toString()).equal('000000000000000000000003');
+			should(teamIds[3].toString()).equal('000000000000000000000004');
+			should(teamIds[4].toString()).equal('000000000000000000000005');
 		});
 	});
 });
