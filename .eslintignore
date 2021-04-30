@@ -1,8 +1,11 @@
 # Ignore artifacts
+.nyc_output/
 build
 coverage
-.vscode
 
 # Configs
 config
 node_modules
+
+# IDE/Editor config
+.vscode/

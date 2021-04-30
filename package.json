@@ -24,7 +24,7 @@
     "lint:fix": "npm run lint:eslint:fix",
     "lint:eslint": "eslint \"./**/*.js\"",
     "lint:eslint:fix": "eslint \"./**/*.js\" --fix",
-    "tsc:check": "./node_modules/typescript/bin/tsc --project tsconfig.json --noEmit",
+    "tsc:check": "tsc --project tsconfig.json --noEmit",
     "tsc:watch": "tsc --watch --noEmit"
   },
   "nyc": {
