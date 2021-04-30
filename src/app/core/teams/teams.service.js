@@ -805,7 +805,12 @@ const updateTeams = async (user) => {
 	user.teams = updatedTeams;
 };
 
-const isObjectIdEqual = (value1, value2) => value1.equals(value2);
+const isObjectIdEqual = (value1, value2) => {
+	if (value1 == null) {
+		return false;
+	}
+	return value1.equals(value2);
+};
 
 module.exports = {
 	createTeam,
