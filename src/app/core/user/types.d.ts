@@ -1,5 +1,13 @@
-import { Document, Model, model, Types, Schema, Query, Mongoose } from "mongoose"
-import { BinaryLike } from "crypto";
+import {
+	Document,
+	Model,
+	model,
+	Types,
+	Schema,
+	Query,
+	Mongoose
+} from 'mongoose';
+import { BinaryLike } from 'crypto';
 
 type UserRoles = {
 	user?: boolean;

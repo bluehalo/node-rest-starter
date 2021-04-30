@@ -96,11 +96,17 @@ ResourceSchema.index({ title_lowercase: 'text', description: 'text' });
 /**
  * Lifecycle hooks
  */
-ResourceSchema.pre('save', function (next) {
+
+/**
+ * @this import('./types').ResourceDocument
+ * @param next
+ */
+const preSave = function (next) {
 	const resource = this;
 	resource.title_lowercase = resource.title;
 	next();
-});
+};
+ResourceSchema.pre('save', preSave);
 
 /**
  * Instance Methods
@@ -149,4 +155,10 @@ ResourceSchema.statics.auditUpdateCopy = function (src) {
  */
 
 mongoose.model('Owner', OwnerSchema);
-mongoose.model('Resource', ResourceSchema, 'resources');
+
+/**
+ * @type {import('./types').ResourceModel}
+ */
+const Resource = mongoose.model('Resource', ResourceSchema, 'resources');
+
+module.exports = Resource;

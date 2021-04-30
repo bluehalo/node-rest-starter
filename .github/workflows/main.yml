@@ -33,5 +33,6 @@ jobs:
         with:
           mongodb-version: ${{ matrix.mongodb-version }}
       - run: npm ci
+      - run: npm run tsc:check
       - run: npm run build
       - run: npm run test:ci
