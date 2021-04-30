@@ -312,32 +312,39 @@ describe('Utils:', () => {
 		[
 			{
 				input: { sort: 'field1', dir: 'DESC' },
-				expected: { field1: 'DESC' },
+				expected: { field1: -1 },
 				name: 'should create sort array from request parameters'
 			},
 			{
 				input: { sort: 'field1' },
-				expected: { field1: 'ASC' },
+				expected: { field1: 1 },
 				name: 'should use default sort'
 			},
 			{
 				input: { sort: 'field1' },
 				defaultDir: 'DESC',
-				expected: { field1: 'DESC' },
+				expected: { field1: -1 },
 				name: 'should use override default dir'
 			},
 			{
 				input: {},
 				defaultSort: 'field1',
-				expected: { field1: 'ASC' },
+				expected: { field1: 1 },
 				name: 'should use override default sort'
 			},
 			{
 				input: {},
 				defaultDir: 'DESC',
 				defaultSort: 'field1',
-				expected: { field1: 'DESC' },
+				expected: { field1: -1 },
 				name: 'should use override default sort and dir'
+			},
+			{
+				input: {},
+				defaultDir: 'invalid',
+				defaultSort: 'field1',
+				expected: { field1: -1 },
+				name: 'should default to DESC sort for invalid dir value'
 			}
 		].forEach((test) => {
 			it(test.name, () => {
