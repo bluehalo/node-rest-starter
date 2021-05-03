@@ -244,7 +244,7 @@ module.exports.getSortObj = function (
 		return null;
 	}
 
-	return { [sort]: dir };
+	return { [sort]: dir === 'ASC' ? 1 : -1 };
 };
 
 /**
