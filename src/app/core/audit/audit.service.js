@@ -1,6 +1,7 @@
 'use strict';
 
 const deps = require('../../../dependencies'),
+	dbs = deps.dbs,
 	logger = deps.logger,
 	auditLogger = deps.auditLogger;
 
@@ -25,7 +26,10 @@ module.exports.audit = async (
 	eventMetadata = null,
 	stringifyEventObject = false
 ) => {
-	const Audit = require('./audit.model');
+	/**
+	 * @type {import('./types').AuditModel}
+	 */
+	const Audit = dbs.admin.model('Audit');
 	const utilService = deps.utilService;
 
 	const actor = await Promise.resolve(eventActor);
