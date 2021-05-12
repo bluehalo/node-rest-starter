@@ -59,7 +59,7 @@
     "mongoose-unique-validator": "2.0",
     "morgan": "1.9",
     "multipipe": "2.0",
-    "nodemailer": "4.6",
+    "nodemailer": "6.4",
     "passport": "0.4",
     "passport-local": "1.0",
     "path": "0.12",
