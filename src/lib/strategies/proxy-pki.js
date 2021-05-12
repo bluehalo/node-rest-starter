@@ -1,7 +1,6 @@
 'use strict';
 
 const _ = require('lodash'),
-	mongoose = require('mongoose'),
 	passport = require('passport'),
 	deps = require('../../dependencies'),
 	dbs = deps.dbs,
