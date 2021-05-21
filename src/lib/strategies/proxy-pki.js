@@ -1,7 +1,6 @@
 'use strict';
 
 const _ = require('lodash'),
-	mongoose = require('mongoose'),
 	passport = require('passport'),
 	deps = require('../../dependencies'),
 	dbs = deps.dbs,
@@ -257,8 +256,8 @@ module.exports = () => {
 	passport.use(
 		new ProxyPkiStrategy(
 			{
-				primaryUserHeader: 'x-ssl-client-s-dn',
-				proxiedUserHeader: 'x-proxied-user-dn'
+				primaryUserHeader: config.proxyPkiPrimaryUserHeader,
+				proxiedUserHeader: config.proxyPkiProxiedUserHeader
 			},
 			async (req, primaryUserDn, proxiedUserDn, done) => {
 				// If there is no DN, we can't authenticate

@@ -8,6 +8,21 @@ module.exports = {
 	 * Core System Settings
 	 */
 
+	/**
+	 * When using the 'proxy-pki' authentication strategy,
+	 * this will be the header used to retrieve the user's
+	 * DN for initial authentication and use through the system.
+	 */
+	proxyPkiPrimaryUserHeader: 'x-ssl-client-s-dn',
+
+	/**
+	 * When using the 'proxy-pki' authentication strategy,
+	 * this will be the header used to retrieve the optional
+	 * proxied user's DN for combined authentication and
+	 * use through the system.
+	 */
+	proxyPkiProxiedUserHeader: 'x-proxied-user-dn',
+
 	// Auth system
 	auth: {
 		/**
