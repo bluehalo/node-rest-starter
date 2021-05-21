@@ -354,7 +354,9 @@ describe('User Auth Controller:', () => {
 			};
 
 			it('should work when user is synced with access checker', (done) => {
-				req.headers = { 'x-ssl-client-s-dn': spec.user.synced.providerData.dn };
+				req.headers = {
+					[config.proxyPkiPrimaryUserHeader]: spec.user.synced.providerData.dn
+				};
 				const res = {
 					status: (status) => {
 						should(status).equal(200);
@@ -405,7 +407,7 @@ describe('User Auth Controller:', () => {
 			// Unknown DN header
 			it('should fail when the dn is unknown and auto create is disabled', (done) => {
 				config.auth.autoCreateAccounts = false;
-				req.headers = { 'x-ssl-client-s-dn': 'unknown' };
+				req.headers = { [config.proxyPkiPrimaryUserHeader]: 'unknown' };
 				const res = {
 					status: (status) => {
 						return {
@@ -436,7 +438,9 @@ describe('User Auth Controller:', () => {
 			};
 
 			it('should update the user info from access checker on login', (done) => {
-				req.headers = { 'x-ssl-client-s-dn': spec.user.oldMd.providerData.dn };
+				req.headers = {
+					[config.proxyPkiPrimaryUserHeader]: spec.user.oldMd.providerData.dn
+				};
 				const res = {
 					status: (status) => {
 						should(status).equal(200);
@@ -461,7 +465,8 @@ describe('User Auth Controller:', () => {
 
 			it('should sync roles and groups from access checker on login', (done) => {
 				req.headers = {
-					'x-ssl-client-s-dn': spec.user.differentRolesAndGroups.providerData.dn
+					[config.proxyPkiPrimaryUserHeader]:
+						spec.user.differentRolesAndGroups.providerData.dn
 				};
 				const res = {
 					status: (status) => {
@@ -504,7 +509,8 @@ describe('User Auth Controller:', () => {
 
 			it('should have external roles and groups removed on login when missing from cache', (done) => {
 				req.headers = {
-					'x-ssl-client-s-dn': spec.user.missingUser.providerData.dn
+					[config.proxyPkiPrimaryUserHeader]:
+						spec.user.missingUser.providerData.dn
 				};
 				const res = {
 					status: (status) => {
@@ -536,7 +542,8 @@ describe('User Auth Controller:', () => {
 
 			it('should have external roles and groups removed on login when cache expired', (done) => {
 				req.headers = {
-					'x-ssl-client-s-dn': spec.user.expiredUser.providerData.dn
+					[config.proxyPkiPrimaryUserHeader]:
+						spec.user.expiredUser.providerData.dn
 				};
 				const res = {
 					status: (status) => {
@@ -575,7 +582,8 @@ describe('User Auth Controller:', () => {
 
 			it('should preserve user info, roles and groups on login', (done) => {
 				req.headers = {
-					'x-ssl-client-s-dn': spec.user.missingUserBypassed.providerData.dn
+					[config.proxyPkiPrimaryUserHeader]:
+						spec.user.missingUserBypassed.providerData.dn
 				};
 				const res = {
 					status: (status) => {
@@ -626,7 +634,8 @@ describe('User Auth Controller:', () => {
 
 			it('should preserve user info, roles and groups on login', (done) => {
 				req.headers = {
-					'x-ssl-client-s-dn': spec.user.userBypassed.providerData.dn
+					[config.proxyPkiPrimaryUserHeader]:
+						spec.user.userBypassed.providerData.dn
 				};
 				const res = {
 					status: (status) => {
@@ -664,7 +673,9 @@ describe('User Auth Controller:', () => {
 			};
 
 			it('should create a new account from access checker information', (done) => {
-				req.headers = { 'x-ssl-client-s-dn': spec.cache.cacheOnly.key };
+				req.headers = {
+					[config.proxyPkiPrimaryUserHeader]: spec.cache.cacheOnly.key
+				};
 				const res = {
 					status: (status) => {
 						should(status).equal(200);
@@ -714,8 +725,9 @@ describe('User Auth Controller:', () => {
 
 			it('should failed when not authorized to proxy users', (done) => {
 				req.headers = {
-					'x-ssl-client-s-dn': spec.user.synced.providerData.dn,
-					'x-proxied-user-dn': spec.user.userBypassed.providerData.dn
+					[config.proxyPkiPrimaryUserHeader]: spec.user.synced.providerData.dn,
+					[config.proxyPkiProxiedUserHeader]:
+						spec.user.userBypassed.providerData.dn
 				};
 				const res = {
 					status: (status) => {
@@ -741,8 +753,10 @@ describe('User Auth Controller:', () => {
 
 			it('should succeed when authorized to proxy users', (done) => {
 				req.headers = {
-					'x-ssl-client-s-dn': spec.user.userCanProxy.providerData.dn,
-					'x-proxied-user-dn': spec.user.userBypassed.providerData.dn
+					[config.proxyPkiPrimaryUserHeader]:
+						spec.user.userCanProxy.providerData.dn,
+					[config.proxyPkiProxiedUserHeader]:
+						spec.user.userBypassed.providerData.dn
 				};
 				const res = {
 					status: (status) => {
