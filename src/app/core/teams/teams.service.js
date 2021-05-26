@@ -357,7 +357,7 @@ const searchTeams = async (queryParams, query, search, user) => {
 
 		// If the query already has a filter by team, take the intersection
 		if (null != query._id && null != query._id.$in) {
-			teamIds = _.intersectionBy(teamIds, query._id.$in, (i) => i.toString());
+			teamIds = _.intersectionWith(teamIds, query._id.$in, isObjectIdEqual);
 		}
 
 		// If no remaining teams, return no results
@@ -589,6 +589,11 @@ const requestNewTeam = async (org, aoi, description, requester, req) => {
 	}
 };
 
+/**
+ * @param user
+ * @param {...string} roles
+ * @returns {Promise<mongoose.Types.ObjectId[]>}
+ */
 const getExplicitTeamIds = (user, ...roles) => {
 	// Validate the user input
 	if (null == user) {
@@ -610,13 +615,17 @@ const getExplicitTeamIds = (user, ...roles) => {
 		);
 	}
 
-	const userTeamIds = userTeams.map((t) => t._id.toString());
+	// const userTeamIds = userTeams.map((t) => t._id.toString());
+	const userTeamIds = userTeams.map((t) => t._id);
 
 	return Promise.resolve(userTeamIds);
 };
 
 /**
- * Team authorization Middleware
+ *
+ * @param user
+ * @param {...string} roles
+ * @returns {Promise<mongoose.Types.ObjectId[]>}
  */
 const getImplicitTeamIds = (user, ...roles) => {
 	// Validate the user input
@@ -628,6 +637,9 @@ const getImplicitTeamIds = (user, ...roles) => {
 		});
 	}
 
+	/**
+	 * @type {string | null}
+	 */
 	const strategy = _.get(config, 'teams.implicitMembers.strategy', null);
 
 	if (strategy == null || (roles.length > 0 && !roles.includes('member'))) {
@@ -681,42 +693,74 @@ const getImplicitTeamIds = (user, ...roles) => {
 	return Team.distinct('_id', query).exec();
 };
 
-const getNestedTeamIds = async (teamIds = []) => {
+/**
+ * @param {mongoose.Types.ObjectId[]} teamIds
+ * @returns {Promise<mongoose.Types.ObjectId[]>}
+ */
+const getNestedTeamIds = (teamIds = []) => {
 	const nestedTeamsEnabled = _.get(config, 'teams.nestedTeams', false);
 	if (!nestedTeamsEnabled || teamIds.length === 0) {
 		return Promise.resolve([]);
 	}
 
-	const mappedTeamIds = teamIds.map((teamId) =>
-		_.isString(teamId) ? mongoose.Types.ObjectId(teamId) : teamId
-	);
-
-	return await Team.distinct('_id', {
-		_id: { $nin: mappedTeamIds },
-		ancestors: { $in: mappedTeamIds }
+	return Team.distinct('_id', {
+		_id: { $nin: teamIds },
+		ancestors: { $in: teamIds }
 	}).exec();
 };
 
+/**
+ * @param {mongoose.Types.ObjectId[]} teamIds
+ * @returns {Promise<mongoose.Types.ObjectId[]>}
+ */
+const getAncestorTeamIds = (teamIds = []) => {
+	return Team.distinct('ancestors', { _id: { $in: teamIds } }).exec();
+};
+
+/**
+ * @param user
+ * @param {...string} roles
+ * @returns {Promise<mongoose.Types.ObjectId[]>}
+ */
 const getTeamIds = async (user, ...roles) => {
 	const explicitTeamIds = await getExplicitTeamIds(user, ...roles);
 	const implicitTeamIds = await getImplicitTeamIds(user, ...roles);
 	const nestedTeamIds = await getNestedTeamIds([
-		...explicitTeamIds,
-		...implicitTeamIds
+		...new Set([...explicitTeamIds, ...implicitTeamIds])
 	]);
 
-	return [...explicitTeamIds, ...implicitTeamIds, ...nestedTeamIds];
+	return [
+		...new Set([...explicitTeamIds, ...implicitTeamIds, ...nestedTeamIds])
+	];
 };
 
+/**
+ * @param user
+ * @returns {Promise<mongoose.Types.ObjectId[]>}
+ */
 const getMemberTeamIds = (user) =>
 	getTeamIds(user, 'member', 'editor', 'admin');
 
+/**
+ * @param user
+ * @returns {Promise<mongoose.Types.ObjectId[]>}
+ */
 const getEditorTeamIds = (user) => getTeamIds(user, 'editor', 'admin');
 
+/**
+ * @param user
+ * @returns {Promise<mongoose.Types.ObjectId[]>}
+ */
 const getAdminTeamIds = (user) => getTeamIds(user, 'admin');
 
-// Constrain a set of teamIds provided by the user to those the user actually has access to.
-const filterTeamIds = async (user, teamIds) => {
+/**
+ * Constrain a set of teamIds provided by the user to those the user actually has access to.
+ *
+ * @param user
+ * @param {mongoose.Types.ObjectId[]} [teamIds]
+ * @returns {Promise<mongoose.Types.ObjectId[]>}
+ */
+const filterTeamIds = async (user, teamIds = []) => {
 	const memberTeamIds = await getMemberTeamIds(user);
 
 	// If there were no teamIds to filter by, return all the team ids
@@ -724,7 +768,7 @@ const filterTeamIds = async (user, teamIds) => {
 		return memberTeamIds;
 	}
 	// Else, return the intersection of the two
-	return _.intersection(memberTeamIds, teamIds);
+	return _.intersectionWith(memberTeamIds, teamIds, isObjectIdEqual);
 };
 
 const updateTeams = async (user) => {
@@ -741,8 +785,16 @@ const updateTeams = async (user) => {
 		getTeamIds(user, 'member')
 	]);
 
-	const filteredEditorTeamIds = _.difference(editorTeamIds, adminTeamIds);
-	const filteredMemberTeamIds = _.difference(memberTeamIds, editorTeamIds);
+	const filteredEditorTeamIds = _.differenceWith(
+		editorTeamIds,
+		adminTeamIds,
+		isObjectIdEqual
+	);
+	const filteredMemberTeamIds = _.differenceWith(
+		memberTeamIds,
+		[...editorTeamIds, ...adminTeamIds],
+		isObjectIdEqual
+	);
 
 	const updatedTeams = [
 		...adminTeamIds.map((id) => ({ role: 'admin', _id: id })),
@@ -751,6 +803,13 @@ const updateTeams = async (user) => {
 	];
 
 	user.teams = updatedTeams;
+};
+
+const isObjectIdEqual = (value1, value2) => {
+	if (value1 == null) {
+		return false;
+	}
+	return value1.equals(value2);
 };
 
 module.exports = {
@@ -774,6 +833,7 @@ module.exports = {
 	getExplicitTeamIds,
 	getImplicitTeamIds,
 	getNestedTeamIds,
+	getAncestorTeamIds,
 	getTeamIds,
 	getMemberTeamIds,
 	getEditorTeamIds,

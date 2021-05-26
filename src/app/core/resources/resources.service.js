@@ -95,10 +95,6 @@ function searchResources(query, queryParams, user) {
 	// If user is not an admin, constrain the results to the user's teams
 	if (null == user.roles || !user.roles.admin) {
 		searchPromise = teamsService.getMemberTeamIds(user).then((teamIds) => {
-			teamIds = teamIds.map((teamId) =>
-				_.isString(teamId) ? mongoose.Types.ObjectId(teamId) : teamId
-			);
-
 			query.$or = [
 				{ 'owner.type': 'team', 'owner._id': { $in: teamIds } },
 				{ 'owner.type': 'user', 'owner._id': user._id }
@@ -139,10 +135,7 @@ async function constrainTagResults(teamId, user) {
 	}
 	if (null == user.roles || !user.roles.admin) {
 		// If user is not admin, constrain results to user's teams
-		let teamIds = await teamsService.getMemberTeamIds(user);
-		teamIds = teamIds.map((_teamId) =>
-			_.isString(_teamId) ? mongoose.Types.ObjectId(_teamId) : _teamId
-		);
+		const teamIds = await teamsService.getMemberTeamIds(user);
 
 		return {
 			$or: [
@@ -252,10 +245,6 @@ function filterResourcesByAccess(ids, user) {
 			.getMemberTeamIds(user)
 			.then((teamIds) => {
 				// Get teams user has belongs to
-				teamIds = teamIds.map((teamId) =>
-					_.isString(teamId) ? mongoose.Types.ObjectId(teamId) : teamId
-				);
-
 				const query = {
 					$and: [
 						{ _id: { $in: ids } },
