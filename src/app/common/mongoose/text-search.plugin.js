@@ -11,7 +11,7 @@ const textSearchPlugin = (schema) => {
 			return this;
 		}
 
-		return this.find({ $text: { $search: search } })
+		return this.where({ $text: { $search: search } })
 			.select({
 				score: { $meta: 'textScore' }
 			})
