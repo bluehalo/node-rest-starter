@@ -10,7 +10,7 @@ const _ = require('lodash'),
 	userAuthService = require('../../app/core/user/auth/user-authentication.service'),
 	userEmailService = require('../../app/core/user/user-email.service'),
 	TeamMember = dbs.admin.model('TeamUser'),
-	User = require('../../app/core/user/user.model');
+	User = dbs.admin.model('User');
 
 class ProxyPkiStrategy extends passport.Strategy {
 	constructor(options, verify) {
