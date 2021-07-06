@@ -1,7 +1,7 @@
 'use strict';
 
+const { DateTime } = require('luxon');
 const should = require('should'),
-	moment = require('moment'),
 	proxyquire = require('proxyquire'),
 	deps = require('../../../../dependencies'),
 	config = deps.config;
@@ -26,7 +26,7 @@ describe('User Email Service:', () => {
 		name: 'test',
 		username: 'test',
 		email: 'test@test.test',
-		lastLogin: moment().subtract(daysAgo, 'day')
+		lastLogin: DateTime.now().minus({ days: daysAgo })
 	};
 
 	describe('sendEmail', () => {

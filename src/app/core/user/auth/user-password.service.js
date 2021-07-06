@@ -1,7 +1,7 @@
 'use strict';
 
+const { DateTime } = require('luxon');
 const crypto = require('crypto'),
-	moment = require('moment'),
 	deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
@@ -46,7 +46,7 @@ module.exports.setResetTokenForUser = async (username, token) => {
 
 	// Generate the token and the expire date/time
 	user.resetPasswordToken = token;
-	user.resetPasswordExpires = moment().add(1, 'hour');
+	user.resetPasswordExpires = DateTime.now().plus({ hours: 1 });
 
 	// Save the user with the token
 	return userService.update(user);
