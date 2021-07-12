@@ -1,7 +1,7 @@
 'use strict';
 
+const { DateTime } = require('luxon');
 const _ = require('lodash'),
-	moment = require('moment'),
 	deps = require('../../../../dependencies'),
 	dbs = deps.dbs,
 	config = deps.config,
@@ -11,7 +11,8 @@ const _ = require('lodash'),
 	User = dbs.admin.model('User');
 
 async function sendEmail(user, emailConfig) {
-	const numOfDays = moment().diff(user.lastLogin, 'days');
+	// This current DateTime may be a millisecond or two later than user.lastLogin due to Luxon's precision, so we round down to the number of days.
+	const numOfDays = Math.floor(DateTime.now().diff(user.lastLogin).as('days'));
 	try {
 		const mailOptions = await emailService.generateMailOptions(
 			user,
