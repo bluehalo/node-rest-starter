@@ -53,6 +53,15 @@ const getTeamRole = (user, team) => {
 		return user.teams[ndx].role;
 	}
 
+	const nestedTeamsEnabled = _.get(config, 'teams.nestedTeams', false);
+	if (nestedTeamsEnabled) {
+		for (const ancestor of team.ancestors || []) {
+			const role = getTeamRole(user, ancestor);
+			if (role) {
+				return role;
+			}
+		}
+	}
 	return null;
 };
 

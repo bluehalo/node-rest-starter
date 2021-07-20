@@ -1276,6 +1276,34 @@ describe('Team Service:', () => {
 			team['nestedTeam2_1'] = await t.save();
 		});
 
+		describe('getTeamRole', () => {
+			it('Should get team role for root team', () => {
+				const role = teamsService.getActiveTeamRole(
+					user.user1,
+					team.teamWithNoExternalTeam
+				);
+				should.exist(role);
+				role.should.equal('member');
+			});
+
+			it('Should get team role for nested team', () => {
+				const role = teamsService.getActiveTeamRole(
+					user.user1,
+					team.nestedTeam2_1
+				);
+				should.exist(role);
+				role.should.equal('member');
+			});
+
+			it('Should not get team role for nested team', () => {
+				const role = teamsService.getActiveTeamRole(
+					user.user2,
+					team.nestedTeam1
+				);
+				should.not.exist(role);
+			});
+		});
+
 		describe('getNestedTeamIds', () => {
 			it('return empty array if nestedTeams is disabled in config', async () => {
 				sandbox.stub(deps.config.teams, 'nestedTeams').value(false);
