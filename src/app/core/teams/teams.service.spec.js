@@ -1286,13 +1286,23 @@ describe('Team Service:', () => {
 				role.should.equal('member');
 			});
 
-			it('Should get team role for nested team', () => {
+			it('Should get team role for nested team when nested teams are enabled', () => {
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(true);
 				const role = teamsService.getActiveTeamRole(
 					user.user1,
 					team.nestedTeam2_1
 				);
 				should.exist(role);
 				role.should.equal('member');
+			});
+
+			it('Should not get team role for nested team when nested teams are disabled', () => {
+				sandbox.stub(deps.config.teams, 'nestedTeams').value(false);
+				const role = teamsService.getActiveTeamRole(
+					user.user1,
+					team.nestedTeam2_1
+				);
+				should.not.exist(role);
 			});
 
 			it('Should not get team role for nested team', () => {
