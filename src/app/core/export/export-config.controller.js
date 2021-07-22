@@ -60,12 +60,22 @@ exports.requestExport = (req, res) => {
 };
 
 /**
+ * @callback ExportColumnCallback
+ * @function
+ *
+ * @typedef {object} ExportColumnDef
+ * @property {string} key
+ * @property {string} title
+ * @property {ExportColumnCallback} callback
+ */
+
+/**
  * Export a CSV file with rows derived from an array of objects or a readable stream
  *
  * @param {*} req
  * @param {*} res
  * @param {string} filename the name of the exported file
- * @param {{ key: string, title: string, callback?: Function }[]} columns the columns to include in the exported CSV file
+ * @param {ExportColumnDef[]} columns the columns to include in the exported CSV file
  * @param {Array.<any>} data an array of objects containing data for rows, or an instance of readable
  */
 exports.exportCSV = (req, res, filename, columns, data) => {

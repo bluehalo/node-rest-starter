@@ -88,16 +88,16 @@ const readFeedback = async (feedbackId, populate = []) => {
 	return feedback;
 };
 
-const updateFeedbackAssignee = async (feedback, assignee) => {
+const updateFeedbackAssignee = (feedback, assignee) => {
 	feedback.assignee = assignee;
 	feedback.updated = Date.now();
-	return await feedback.save();
+	return feedback.save();
 };
 
-const updateFeedbackStatus = async (feedback, status) => {
+const updateFeedbackStatus = (feedback, status) => {
 	feedback.status = status;
 	feedback.updated = Date.now();
-	return await feedback.save();
+	return feedback.save();
 };
 
 module.exports = {
