@@ -12,7 +12,7 @@ const _ = require('lodash'),
 const getProvider = () => {
 	let provider;
 
-	const erConfig = _.get(deps.config, 'auth.externalRoles');
+	const erConfig = deps.config?.auth?.externalRoles;
 
 	if (null != erConfig.provider) {
 		provider = require(path.posix.resolve(erConfig.provider.file))(
@@ -27,10 +27,10 @@ const getProvider = () => {
 	return provider;
 };
 
-const getRoleStrategy = () => _.get(deps.config, 'auth.roleStrategy', 'local');
+const getRoleStrategy = () => deps.config?.auth?.roleStrategy ?? 'local';
 
 const getRoles = () =>
-	_.get(deps.config, 'auth.roles', ['user', 'editor', 'auditor', 'admin']);
+	deps.config?.auth?.roles ?? ['user', 'editor', 'auditor', 'admin'];
 
 /**
  * ==========================================================

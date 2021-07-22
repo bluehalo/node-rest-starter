@@ -121,7 +121,7 @@ function doSearchTags(countAggregation, resultAggregation, page, limit) {
 		Resource.aggregate(countAggregation),
 		Resource.aggregate(resultAggregation)
 	]).then((results) => {
-		const totalSize = _.get(results, '[0][0].total', 0);
+		const totalSize = results?.[0]?.[0]?.total ?? 0;
 		const elements = results[1].map((result) => result._id);
 		return util.getPagingResults(limit, page, totalSize, elements);
 	});

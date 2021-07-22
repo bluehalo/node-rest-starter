@@ -1,7 +1,6 @@
 'use strict';
 
-const _ = require('lodash'),
-	mongoose = require('mongoose'),
+const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
 	textSearchPlugin = require('../../common/mongoose/text-search.plugin'),
@@ -174,7 +173,7 @@ UserSchema.statics.auditCopy = (user = {}) => {
 					.model('Team')
 					.findOne({ _id: team._id })
 					.exec()
-					.then((t) => _.get(t, 'name', null))
+					.then((t) => t?.name ?? null)
 			)
 	).then(
 		(teamNames) => {

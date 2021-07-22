@@ -188,7 +188,7 @@ module.exports.dateParse = function (date) {
  * @returns {number}
  */
 module.exports.getLimit = function (queryParams, maxSize = 100) {
-	const limit = _.get(queryParams, 'size', 20);
+	const limit = queryParams?.size ?? 20;
 	return isNaN(limit) ? 20 : Math.max(1, Math.min(maxSize, Math.floor(limit)));
 };
 
@@ -198,7 +198,7 @@ module.exports.getLimit = function (queryParams, maxSize = 100) {
  * @returns {number}
  */
 module.exports.getPage = function (queryParams) {
-	const page = _.get(queryParams, 'page', 0);
+	const page = queryParams?.page ?? 0;
 	return isNaN(page) ? 0 : Math.max(0, page);
 };
 
@@ -217,8 +217,8 @@ module.exports.getSort = function (
 	defaultDir = 'ASC',
 	defaultSort = undefined
 ) {
-	const sort = _.get(queryParams, 'sort', defaultSort);
-	const dir = _.get(queryParams, 'dir', defaultDir);
+	const sort = queryParams?.sort ?? defaultSort;
+	const dir = queryParams?.dir ?? defaultDir;
 	if (!sort) {
 		return null;
 	}
@@ -238,8 +238,8 @@ module.exports.getSortObj = function (
 	defaultDir = 'ASC',
 	defaultSort = undefined
 ) {
-	const sort = _.get(queryParams, 'sort', defaultSort);
-	const dir = _.get(queryParams, 'dir', defaultDir);
+	const sort = queryParams?.sort ?? defaultSort;
+	const dir = queryParams?.dir ?? defaultDir;
 	if (!sort) {
 		return null;
 	}
@@ -251,7 +251,7 @@ module.exports.getSortObj = function (
  * Extract given field from request header
  */
 module.exports.getHeaderField = function (header, fieldName) {
-	return null == header || null == header[fieldName] ? null : header[fieldName];
+	return header?.[fieldName] ?? null;
 };
 
 /**

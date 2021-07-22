@@ -1,7 +1,6 @@
 'use strict';
 
-const _ = require('lodash'),
-	mongoose = require('mongoose'),
+const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
 	textSearchPlugin = require('../../common/mongoose/text-search.plugin'),
@@ -74,7 +73,7 @@ DismissedMessageSchema.plugin(getterPlugin);
  */
 
 // MessageSchema.index({created: -1});
-const expireAfterSeconds = _.get(config, 'messages.expireSeconds', 2592000); // default to 30 days
+const expireAfterSeconds = config?.messages?.expireSeconds ?? 2592000; // default to 30 days
 DismissedMessageSchema.index(
 	{ created: -1 },
 	{ expireAfterSeconds: expireAfterSeconds }

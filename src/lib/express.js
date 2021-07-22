@@ -207,7 +207,7 @@ function initSwaggerAPI(app) {
 				title: config.app.title,
 				description: config.app.description,
 				contact: {
-					email: _.get(config.mailer, 'from')
+					email: config.mailer?.path
 				}
 			},
 			servers: [

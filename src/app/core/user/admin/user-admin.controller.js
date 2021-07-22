@@ -94,9 +94,9 @@ exports.adminUpdateUser = async (req, res) => {
 			req.headers
 		);
 
-		if (_.get(config, 'coreEmails.approvedUserEmail.enabled', false)) {
-			const originalUserRole = _.get(originalUser, 'roles.user', null);
-			const newUserRole = _.get(user, 'roles.user', null);
+		if (config?.coreEmails?.approvedUserEmail?.enabled ?? false) {
+			const originalUserRole = originalUser?.roles?.user ?? null;
+			const newUserRole = user?.roles?.user ?? null;
 
 			if (originalUserRole !== newUserRole && newUserRole) {
 				await userEmailService.emailApprovedUser(user);
