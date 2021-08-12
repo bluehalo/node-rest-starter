@@ -74,7 +74,7 @@ const getTeamRole = (user, team) => {
  * @returns {boolean}
  */
 const isImplicitMember = (user, team) => {
-	const strategy = _.get(config, 'teams.implicitMembers.strategy', null);
+	const strategy = config?.teams?.implicitMembers?.strategy ?? null;
 
 	if (strategy === 'roles') {
 		return meetsRequiredExternalRoles(user, team);
@@ -182,7 +182,7 @@ const getActiveTeamRole = (user, team) => {
 	}
 
 	const implicitMembersEnabled =
-		_.get(config, 'teams.implicitMembers.strategy', null) !== null;
+		(config?.teams?.implicitMembers?.strategy ?? null) !== null;
 
 	// implicit team members is not enabled, or the team does not have implicit members enabled
 	if (!implicitMembersEnabled || !team.implicitMembers) {
@@ -393,11 +393,7 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
 	query = query || {};
 	query.$or = [{ 'teams._id': team._id }];
 
-	const implicitTeamStrategy = _.get(
-		config,
-		'teams.implicitMembers.strategy',
-		null
-	);
+	const implicitTeamStrategy = config?.teams?.implicitMembers?.strategy ?? null;
 
 	if (
 		implicitTeamStrategy === 'roles' &&
@@ -649,7 +645,7 @@ const getImplicitTeamIds = (user, ...roles) => {
 	/**
 	 * @type {string | null}
 	 */
-	const strategy = _.get(config, 'teams.implicitMembers.strategy', null);
+	const strategy = config?.teams?.implicitMembers?.strategy ?? null;
 
 	if (strategy == null || (roles.length > 0 && !roles.includes('member'))) {
 		return Promise.resolve([]);
@@ -707,7 +703,7 @@ const getImplicitTeamIds = (user, ...roles) => {
  * @returns {Promise<mongoose.Types.ObjectId[]>}
  */
 const getNestedTeamIds = (teamIds = []) => {
-	const nestedTeamsEnabled = _.get(config, 'teams.nestedTeams', false);
+	const nestedTeamsEnabled = config?.teams?.nestedTeams ?? false;
 	if (!nestedTeamsEnabled || teamIds.length === 0) {
 		return Promise.resolve([]);
 	}
@@ -781,8 +777,8 @@ const filterTeamIds = async (user, teamIds = []) => {
 };
 
 const updateTeams = async (user) => {
-	const strategy = _.get(config, 'teams.implicitMembers.strategy', 'disabled');
-	const nestedTeamsEnabled = _.get(config, 'teams.nestedTeams', false);
+	const strategy = config?.teams?.implicitMembers?.strategy ?? 'disabled';
+	const nestedTeamsEnabled = config?.teams?.nestedTeams ?? false;
 
 	if (strategy === 'disabled' && !nestedTeamsEnabled) {
 		return;

@@ -165,7 +165,7 @@ async function handleUser(dn, req, isProxy) {
 	const acUser = await accessChecker.get(dnLower);
 
 	// Default to creating accounts automatically
-	const autoCreateAccounts = _.get(config, 'auth.autoCreateAccounts', true);
+	const autoCreateAccounts = config?.auth?.autoCreateAccounts ?? true;
 
 	// If the user is not known locally, is not known by access checker, and we are creating accounts, create the account as an empty account
 	if (null == localUser && null == acUser && (isProxy || !autoCreateAccounts)) {

@@ -32,12 +32,7 @@ const passwordMessage = 'Password must be at least 6 characters long';
 /**
  * User Roles
  */
-const roles = _.get(config, 'auth.roles', [
-	'user',
-	'editor',
-	'auditor',
-	'admin'
-]);
+const roles = config?.auth?.roles ?? ['user', 'editor', 'auditor', 'admin'];
 const roleSchemaDef = {
 	type: roles.reduce((obj, role) => {
 		obj[role] = { type: Boolean, default: false };

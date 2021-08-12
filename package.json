@@ -8,7 +8,7 @@
     "url": "https://github.com:Asymmetrik/node-rest-starter.git"
   },
   "engines": {
-    "node": ">=12.14.0",
+    "node": ">=14.17.0",
     "npm": ">=5.6.0",
     "yarn": ">=1.5.1"
   },
@@ -80,10 +80,10 @@
     "@types/passport": "0.4",
     "@types/q": "1.5",
     "@types/socket.io": "^2.1.13",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^8.1.0",
-    "eslint-plugin-jsdoc": "^32.2.0",
-    "eslint-plugin-prettier": "^3.3.1",
+    "eslint": "^7.31.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-jsdoc": "^35.5.0",
+    "eslint-plugin-prettier": "^3.4.0",
     "husky": "^4.2.1",
     "lint-staged": "^10.0.7",
     "mocha": "^7.1.1",

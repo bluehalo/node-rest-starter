@@ -1,5 +1,4 @@
-const _ = require('lodash'),
-	proxyquire = require('proxyquire'),
+const proxyquire = require('proxyquire'),
 	should = require('should'),
 	config = require('../config.js');
 
@@ -18,7 +17,7 @@ function createSubjectUnderTest(databases) {
 }
 
 describe('Mongoose', () => {
-	const mongoHost = _.get(config, 'test.mongoHost', 'localhost');
+	const mongoHost = config?.test?.mongoHost ?? 'localhost';
 
 	const originalMongooseLib = require('./mongoose');
 

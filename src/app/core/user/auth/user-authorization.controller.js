@@ -119,7 +119,7 @@ module.exports.requiresExternalRoles = (req, requiredRoles) => {
  * Checks whether user has defined organization level values if values are required
  */
 module.exports.requiresOrganizationLevels = (req) => {
-	const required = _.get(config, 'orgLevelConfig.required', false);
+	const required = config?.orgLevelConfig?.required ?? false;
 
 	if (!required) {
 		// Organization levels are not required, proceed
