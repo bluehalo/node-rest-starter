@@ -140,6 +140,15 @@ module.exports.search = async (req, res) => {
 	}
 };
 
+module.exports.getAncestorTeamIds = async (req, res) => {
+	try {
+		const result = await teamsService.getAncestorTeamIds(req.body.teamIds);
+		res.status(200).json(result);
+	} catch (err) {
+		util.handleErrorResponse(res, err);
+	}
+};
+
 module.exports.requestNewTeam = async (req, res) => {
 	const user = req.user;
 	const org = req.body.org || null;

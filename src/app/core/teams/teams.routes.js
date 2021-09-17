@@ -14,6 +14,8 @@ router.route('/team').put(user.hasEditorAccess, teams.create);
 
 router.route('/teams').post(user.hasAccess, teams.search);
 
+router.route('/team/ancestors').post(user.hasAccess, teams.getAncestorTeamIds);
+
 router
 	.route('/team/:teamId')
 	.get(
