@@ -312,10 +312,12 @@ const createTeam = async (teamInfo, creator, firstAdmin) => {
 	user = User.filteredCopy(user);
 
 	// Save the new team
-	await newTeam.save();
+	const savedTeam = await newTeam.save();
 
 	// Add first admin as first team member with admin role, or the creator if null
-	return addMemberToTeam(user || creator, newTeam, 'admin');
+	await addMemberToTeam(user || creator, newTeam, 'admin');
+
+	return readTeam(savedTeam._id);
 };
 
 /**

@@ -10,6 +10,7 @@ const getSystemConfig = function() {
 	const toReturn = {
 
 		auth: config.auth.strategy,
+		apiDocs: config.apiDocs,
 		app: config.app,
 		requiredRoles: config.auth.requiredRoles,
 

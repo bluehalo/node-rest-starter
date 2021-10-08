@@ -25,7 +25,7 @@ components:
         pageSize: 20
         totalPages: 10
         totalSize: 200
-        items: []
+        elements: []
   parameters:
     pageParam:
       in: query
@@ -54,7 +54,7 @@ components:
   requestBodies:
     SearchCriteria:
       description: >
-        Object contains property q: a mongo query, and/or s: a string to search contents of text indexed fields.
+        Criteria used for searching records, including a structured query (q) and text search (s)
       content:
         application/json:
           schema:
@@ -62,8 +62,10 @@ components:
             properties:
               s:
                 type: string
+                description: Optional value to search against any fields in a text index for those records.
               q:
                 type: object
+                description: Structured search object for matching database records. Typically supports MongoDB queries.
             example:
               s: 'search string'
               q: { }
