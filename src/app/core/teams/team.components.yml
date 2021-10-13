@@ -53,6 +53,13 @@ components:
       schema:
         type: string
       description: the unique id of the team
+    memberIdParam:
+      in: path
+      name: memberId
+      required: true
+      schema:
+        type: string
+      description: the unique id of the member
   requestBodies:
     CreateTeam:
       description: Values used to create a new team
@@ -112,6 +119,17 @@ components:
                       type: string
                       enum: [requester, member, editor, admin]
                       description: The role to give to this new member in the team
+    AddTeamMember:
+      description: Adds a member to a Team
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              role:
+                type: string
+                enum: [requester, member, editor, admin]
+                description: The role to give to this new member in the team
   responses:
     CreatedTeam:
       description: Team was created
@@ -138,7 +156,9 @@ components:
           schema:
             $ref: '#/components/schemas/Team'
     RequestTeamAccess:
-      description: The request to join a team was submitted.
+      description: The request to join a team was submitted
+    RequestNewTeam:
+      description: The request for a new team was successfully submitted
     TeamIds:
       description: List of unique Team IDs
       content:
@@ -150,7 +170,13 @@ components:
               type: string
               description: Unique Team ID
     AddedTeamMembers:
-      description: The members were successfully added to the team.
+      description: The members were successfully added to the team
+    AddedTeamMember:
+      description: The new member was successfully added to the team
+    RemovedTeamMember:
+      description: A member was successfully removed from the team
+    UpdatedTeamMemberRole:
+      description: The member's role in the team has been successfully updated
     TeamListing:
       description: The Teams that match the search criteria
       content:

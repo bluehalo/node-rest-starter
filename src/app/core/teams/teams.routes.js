@@ -71,6 +71,8 @@ router.route('/team/ancestors').post(user.hasAccess, teams.getAncestorTeamIds);
  *     responses:
  *       '200':
  *         $ref: '#/components/responses/UpdateTeam'
+ *       '400':
+ *         description: Update unsuccessful. Could not find team.
  *   delete:
  *     tags: [Team]
  *     description: Deletes a Team
@@ -79,6 +81,8 @@ router.route('/team/ancestors').post(user.hasAccess, teams.getAncestorTeamIds);
  *     responses:
  *       '200':
  *         $ref: '#/components/responses/DeleteTeam'
+ *       '400':
+ *         description: Deletion unsuccessful. Could not find team.
  */
 router
 	.route('/team/:teamId')
@@ -109,9 +113,21 @@ router
  *     responses:
  *       '204':
  *         $ref: '#/components/responses/RequestTeamAccess'
+ *       '400':
+ *         description: Request for team access unsuccessful. Could not find team.
  */
 router.route('/team/:teamId/request').post(user.hasAccess, teams.requestAccess);
 
+/**
+ * @swagger
+ * /team-request:
+ *   post:
+ *     tags: [Team]
+ *     description: Requests a new Team. Notifies the team organization admin of the request.
+ *     responses:
+ *       '204':
+ *         $ref: '#/components/responses/RequestNewTeam'
+ */
 router.route('/team-request').post(user.hasAccess, teams.requestNewTeam);
 
 /**
@@ -140,6 +156,8 @@ router.route('/team-request').post(user.hasAccess, teams.requestNewTeam);
  *     responses:
  *       '200':
  *         $ref: '#/components/responses/TeamMembers'
+ *       '400':
+ *         description: Add unsuccessful. Could not find team or new members not specified.
  */
 router
 	.route('/team/:teamId/members')
@@ -154,6 +172,34 @@ router
 		teams.searchMembers
 	);
 
+/**
+ * @swagger
+ * /team/{teamId}/member/{memberId}:
+ *   post:
+ *     tags: [Team]
+ *     description: Adds a member to a Team
+ *     parameters:
+ *       - $ref: '#/components/parameters/teamIdParam'
+ *       - $ref: '#/components/parameters/memberIdParam'
+ *     requestBody:
+ *       $ref: '#/components/requestBodies/AddTeamMember'
+ *     responses:
+ *       '204':
+ *         $ref: '#/components/responses/AddedTeamMember'
+ *       '400':
+ *         description: Add unsuccessful. Could not find team.
+ *   delete:
+ *     tags: [Team]
+ *     description: Deletes a member from a team
+ *     parameters:
+ *       - $ref: '#/components/parameters/teamIdParam'
+ *       - $ref: '#/components/parameters/memberIdParam'
+ *     responses:
+ *       '204':
+ *         $ref: '#/components/responses/RemovedTeamMember'
+ *       '400':
+ *         description: Deletion unsuccessful. Could not find team.
+ */
 router
 	.route('/team/:teamId/member/:memberId')
 	.post(
@@ -167,6 +213,21 @@ router
 		teams.removeMember
 	);
 
+/**
+ * @swagger
+ * /team/:teamId/member/:memberId/role:
+ *   post:
+ *     tags: [Team]
+ *     description: Updates a member's role in a team.
+ *     parameters:
+ *       - $ref: '#/components/parameters/teamIdParam'
+ *       - $ref: '#/components/parameters/memberIdParam'
+ *     responses:
+ *       '204':
+ *         $ref: '#/components/responses/UpdatedTeamMemberRole'
+ *       '400':
+ *         description: Update unsuccessful. Could not find team.
+ */
 router
 	.route('/team/:teamId/member/:memberId/role')
 	.post(
