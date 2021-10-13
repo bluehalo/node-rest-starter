@@ -132,27 +132,27 @@ exports.update = function (req, res) {
 
 // Delete
 exports.delete = function (req, res) {
-	const message = req.message;
-	Message.deleteOne({ _id: message._id })
-		.exec()
-		.catch((err) => {
-			util.catchError(res, err, () => {
-				res.status(200).json(message);
-			});
-		});
+	try {
+		const message = req.message;
+		Message.deleteOne({ _id: message._id }).exec();
 
-	// Audit the message delete attempt
-	auditService.audit(
-		'message deleted',
-		'message',
-		'delete',
-		TeamMember.auditCopy(
-			req.user,
-			util.getHeaderField(req.headers, 'x-real-ip')
-		),
-		Message.auditCopy(req.message),
-		req.headers
-	);
+		// Audit the message delete attempt
+		auditService.audit(
+			'message deleted',
+			'message',
+			'delete',
+			TeamMember.auditCopy(
+				req.user,
+				util.getHeaderField(req.headers, 'x-real-ip')
+			),
+			Message.auditCopy(req.message),
+			req.headers
+		);
+
+		res.status(200).json(message);
+	} catch (err) {
+		util.handleErrorResponse(res, err);
+	}
 };
 
 // Search - with paging and sorting
