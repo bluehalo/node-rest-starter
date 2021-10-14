@@ -73,6 +73,45 @@ components:
                 description: User ID of the first Team Admin who can grant access to other members
               team:
                 $ref: '#/components/schemas/NewTeam'
+    UpdateTeam:
+      description: Values used to update an existing team
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NewTeam'
+    RequestAccess:
+      description: Request access to a team
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NewTeam'
+    RequestNewTeam:
+      description: Request a new team
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              org:
+                type: string
+                description: The team organization
+              aoi:
+                type: string
+                description: The team AOI
+              description:
+                type: string
+                description: The description of the request
+    UpdateMemberRole:
+      description: Update a member's role
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              role:
+                type: string
+                enum: [requester, member, editor, admin]
+                description: The role to give to this new member in the team
     GetAncestorTeams:
       description: From a set of Team IDs, requests a list of Ancestor Team IDs
       content:

@@ -68,6 +68,8 @@ router.route('/team/ancestors').post(user.hasAccess, teams.getAncestorTeamIds);
  *     description: Updates the details of a Team
  *     parameters:
  *       - $ref: '#/components/parameters/teamIdParam'
+ *     requestBody:
+ *       $ref: '#/components/requestBodies/UpdateTeam'
  *     responses:
  *       '200':
  *         $ref: '#/components/responses/UpdateTeam'
@@ -110,6 +112,8 @@ router
  *     description: Requests access to a Team. Notifies team admins of the request
  *     parameters:
  *       - $ref: '#/components/parameters/teamIdParam'
+ *     requestBody:
+ *       $ref: '#/components/requestBodies/RequestAccess'
  *     responses:
  *       '204':
  *         $ref: '#/components/responses/RequestTeamAccess'
@@ -124,6 +128,8 @@ router.route('/team/:teamId/request').post(user.hasAccess, teams.requestAccess);
  *   post:
  *     tags: [Team]
  *     description: Requests a new Team. Notifies the team organization admin of the request.
+ *     requestBody:
+ *       $ref: '#/components/requestBodies/RequestNewTeam'
  *     responses:
  *       '204':
  *         $ref: '#/components/responses/RequestNewTeam'
@@ -222,6 +228,8 @@ router
  *     parameters:
  *       - $ref: '#/components/parameters/teamIdParam'
  *       - $ref: '#/components/parameters/memberIdParam'
+ *     requestBody:
+ *      $ref: '#/components/requestBodies/UpdateMemberRole'
  *     responses:
  *       '204':
  *         $ref: '#/components/responses/UpdatedTeamMemberRole'
