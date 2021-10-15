@@ -45,6 +45,30 @@ components:
             creatorName:
               type: string
               description: Full display name of the user who created the team
+    TeamMember:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the Team Member, matching their unique User ID
+        name:
+          type: string
+          description: Full name of the Team Member
+        username:
+          type: string
+          description: Unique name for the User that can be shared across systems and/or used to login.
+        teams:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                description: Unique ID of the Team
+              role:
+                type: string
+                enum: [requester, member, editor, admin]
+                description: The role that this member has on this team
   parameters:
     teamIdParam:
       in: path
@@ -235,10 +259,6 @@ components:
         application/json:
           schema:
             type: array
-            description: List of Team Members - TODO
+            description: List of Team Members
             items:
-              type: object
-              properties:
-                _id:
-                  type: string
-                  description: Unique Team Member ID
+              $ref: '#/components/schemas/TeamMember'

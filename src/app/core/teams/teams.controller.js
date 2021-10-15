@@ -1,9 +1,7 @@
 'use strict';
 
 const deps = require('../../../dependencies'),
-	dbs = deps.dbs,
-	util = deps.utilService,
-	auditService = deps.auditService,
+	{ dbs, utilService: util, auditService, logger } = deps,
 	TeamMember = dbs.admin.model('TeamUser'),
 	Team = dbs.admin.model('Team'),
 	teamsService = require('./teams.service');
@@ -370,13 +368,24 @@ module.exports.teamById = async (req, res, next, id) => {
 		}
 	];
 
-	const team = await teamsService.readTeam(id, populate);
+	try {
+		const team = await teamsService.readTeam(id, populate);
 
-	if (null == team) {
+		if (null == team) {
+			return next(new Error('Could not find team'));
+		}
+		req.team = team;
+		return next();
+	} catch (err) {
+		logger.error(`Error finding team ${id}:`, err);
+		// If there was an error here, it is likely because the team ID
+		// parameter does not match the Mongo ObjectId format or a database
+		// connection problem that would not let us find the Team.
+
+		// In any case, without this try-catch, we run the risk of
+		// an unhandled promise exception.
 		return next(new Error('Could not find team'));
 	}
-	req.team = team;
-	return next();
 };
 
 module.exports.teamMemberById = async (req, res, next, id) => {

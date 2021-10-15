@@ -188,14 +188,14 @@ UserSchema.statics.auditCopy = (user = {}) => {
 
 // Team Copy of a User (has team roles for the team )
 UserSchema.statics.teamCopy = function (user, teamId) {
-	let toReturn = null;
-
-	if (null != user) {
-		toReturn = user.toObject();
-
-		toReturn.teams = user.teams;
+	if (user == null) {
+		return null;
 	}
 
+	// By using the filtered copy of a user, we ensure that we're not
+	// returning any sensitive values that other users should not see.
+	const toReturn = dbs.admin.model('User').filteredCopy(user);
+	toReturn.teams = user.teams;
 	return toReturn;
 };
 

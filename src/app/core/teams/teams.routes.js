@@ -221,7 +221,7 @@ router
 
 /**
  * @swagger
- * /team/:teamId/member/:memberId/role:
+ * /team/{teamId}/member/{memberId}/role:
  *   post:
  *     tags: [Team]
  *     description: Updates a member's role in a team.

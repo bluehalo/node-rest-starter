@@ -334,12 +334,16 @@ UserSchema.statics.filteredCopy = function (user) {
 		toReturn._id = user._id;
 		toReturn.name = user.name;
 		toReturn.username = user.username;
-		toReturn.created = user.created;
-		toReturn.lastLogin = user.lastLogin;
-		toReturn.messagesAcknowledged = user.messagesAcknowledged;
-		toReturn.alertsViewed = user.alertsViewed;
 		toReturn.organizationLevels = user.organizationLevels;
-		toReturn.newFeatureDismissed = user.newFeatureDismissed;
+
+		// The below fields (and other) are available, but shouldn't
+		// necessarily be exposed to other users.
+
+		// toReturn.created = user.created;
+		// toReturn.lastLogin = user.lastLogin;
+		// toReturn.messagesAcknowledged = user.messagesAcknowledged;
+		// toReturn.alertsViewed = user.alertsViewed;
+		// toReturn.newFeatureDismissed = user.newFeatureDismissed;
 
 		if (null != user.providerData) {
 			toReturn.providerData = {
