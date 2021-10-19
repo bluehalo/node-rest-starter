@@ -7,6 +7,8 @@ const should = require('should'),
 	Team = dbs.admin.model('Team'),
 	TeamMember = dbs.admin.model('TeamUser');
 
+const { spy } = require('sinon');
+
 /**
  * Globals
  */
@@ -117,6 +119,32 @@ describe('Team Model:', () => {
 			user1.teams.push({ _id: team1.id, role: 'member' });
 			user1.teams.push({ _id: team2.id, role: 'editor' });
 			user1.teams.push({ _id: team3.id, role: 'admin' });
+		});
+
+		describe('Static methods', () => {
+			describe('teamCopy', () => {
+				it('should return null if passed null', () => {
+					should(TeamMember.teamCopy(null)).be.null();
+				});
+				it('should defer to user filteredCopy', () => {
+					const filteredSpy = spy(dbs.admin.model('User'), 'filteredCopy');
+					const teams = [1, 2, 3];
+					const user = {
+						_id: 'test',
+						name: 'test',
+						organizationLevels: 1,
+						username: 'test',
+						password: 'sneaky',
+						teams
+					};
+					const copy = TeamMember.teamCopy(user);
+					should(filteredSpy.calledWith(user)).be.true();
+					// Check for sensitive info & clean expectation.
+					should(copy.password).be.undefined();
+					delete user.password;
+					should(copy).be.eql(user);
+				});
+			});
 		});
 	});
 });
