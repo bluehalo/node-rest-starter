@@ -131,10 +131,10 @@ exports.update = function (req, res) {
 };
 
 // Delete
-exports.delete = function (req, res) {
+exports.delete = async function (req, res) {
 	try {
 		const message = req.message;
-		Message.deleteOne({ _id: message._id }).exec();
+		await Message.deleteOne({ _id: message._id }).exec();
 
 		// Audit the message delete attempt
 		auditService.audit(
