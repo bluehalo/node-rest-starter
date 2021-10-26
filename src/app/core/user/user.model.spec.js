@@ -112,6 +112,36 @@ describe('User Model:', () => {
 		});
 
 		describe('createCopy', () => {
+			/**
+			 * Strip fields from expectation that are not copied. This includes:
+			 * - _id
+			 * - providerData
+			 * - salt
+			 *
+			 * Also, ignore matching on the "created" and "updated" date fields,
+			 * since those will not necessarily match the original user.
+			 * @param {object} user
+			 * @returns object with user fields that should be compared after a copy
+			 */
+			const onlyComparableFields = (user) => {
+				// By destructuring like this, we create a new object with only the
+				// fields that we care to compare.
+				const {
+					// eslint-disable-next-line no-unused-vars
+					_id,
+					// eslint-disable-next-line no-unused-vars
+					providerData,
+					// eslint-disable-next-line no-unused-vars
+					salt,
+					// eslint-disable-next-line no-unused-vars
+					created,
+					// eslint-disable-next-line no-unused-vars
+					updated,
+					...userToCompare
+				} = user;
+				return userToCompare;
+			};
+
 			it('should only return specific fields, update time', () => {
 				const now = Date.now();
 				const testUser = {
@@ -135,12 +165,19 @@ describe('User Model:', () => {
 					preferences: true
 				};
 				const copy = User.createCopy(testUser);
-				// Test that sensitive values are removed.
+
 				should(copy.created).be.eql(copy.updated);
-				should(copy.created > testUser.created);
-				// Strip fields from expectation that are not copied.
-				['_id', 'providerData', 'salt'].forEach((k) => delete testUser[k]);
-				should(copy).be.eql(testUser);
+				should(copy.created >= testUser.created);
+
+				// Test that sensitive values are removed.
+				should(copy._id).be.undefined();
+				should(copy.salt).be.undefined();
+				should(copy.providerData).be.undefined();
+
+				const copyUserToVerify = onlyComparableFields(copy);
+				const testUserToExpect = onlyComparableFields(testUser);
+
+				should(copyUserToVerify).be.eql(testUserToExpect);
 			});
 		});
 
