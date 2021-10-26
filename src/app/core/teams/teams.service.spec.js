@@ -95,6 +95,7 @@ describe('Team Service:', () => {
 
 	// Generic test users
 	spec.user.user1 = localUserSpec('user1');
+	spec.user.user1.roles = { user: 1 };
 	spec.userTeams.user1 = [
 		{ team: 'teamWithNoExternalTeam', role: 'member' },
 		{ team: 'teamWithNoExternalTeam2', role: 'member' }
@@ -103,6 +104,7 @@ describe('Team Service:', () => {
 	spec.user.user2 = localUserSpec('user2');
 
 	spec.user.user3 = localUserSpec('user3');
+	spec.user.user3.roles = { user: 1 };
 	spec.userTeams.user3 = [{ team: 'teamWithNoExternalTeam', role: 'admin' }];
 
 	spec.user.admin = localUserSpec('admin');
@@ -510,6 +512,58 @@ describe('Team Service:', () => {
 			result.totalPages.should.equal(1);
 			result.elements.should.be.an.Array();
 			result.elements.length.should.be.equal(1);
+		});
+
+		it('check isMember field', async () => {
+			const queryParams = { size: 100 };
+			const query = {};
+			const search = '';
+			const result = await teamsService.searchTeams(
+				queryParams,
+				query,
+				search,
+				user.user1
+			);
+
+			should.exist(result);
+			result.totalSize.should.equal(100);
+			result.pageSize.should.equal(queryParams.size);
+			result.pageNumber.should.equal(0);
+			result.totalPages.should.equal(1);
+			result.elements.should.be.an.Array();
+			result.elements.length.should.be.equal(queryParams.size);
+
+			const isMemberResults = result.elements
+				.filter((element) => element.isMember)
+				.map((team) => team.name);
+
+			// user 1 is only members of these two teams (defined by user setup above)
+			isMemberResults.length.should.equal(2);
+			isMemberResults[0].should.equal(team.teamWithNoExternalTeam2.name);
+			isMemberResults[1].should.equal(team.teamWithNoExternalTeam.name);
+
+			const result2 = await teamsService.searchTeams(
+				queryParams,
+				query,
+				search,
+				user.user3
+			);
+
+			should.exist(result2);
+			result2.totalSize.should.equal(100);
+			result2.pageSize.should.equal(queryParams.size);
+			result2.pageNumber.should.equal(0);
+			result2.totalPages.should.equal(1);
+			result2.elements.should.be.an.Array();
+			result2.elements.length.should.be.equal(queryParams.size);
+
+			const isMemberResults2 = result2.elements
+				.filter((element) => element.isMember)
+				.map((team) => team.name);
+
+			// user 3 is only members of one of these teams (defined by user setup above)
+			isMemberResults2.length.should.equal(1);
+			isMemberResults2[0].should.equal(team.teamWithNoExternalTeam.name);
 		});
 	});
 

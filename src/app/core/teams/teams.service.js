@@ -381,7 +381,36 @@ const searchTeams = async (queryParams, query, search, user) => {
 		};
 	}
 
-	return Team.find(query).textSearch(search).sort(sort).paginate(limit, page);
+	// get teams user is a part of
+	const teamIds = (await getMemberTeamIds(user)).map((id) => id.toString());
+
+	// get results
+	const results = await Team.find(query)
+		.textSearch(search)
+		.sort(sort)
+		.paginate(limit, page);
+
+	// append isMember field to elements if user is part of the team
+	results.elements = await results.elements.map((res) => {
+		return {
+			// explicitly map fields since we can't just destructure the paginate plugin with isMember not part of the schema
+			name: res.name,
+			description: res.description,
+			created: res.created,
+			creator: res.creator,
+			creatorName: res.creatorName,
+			implicitMembers: res.implicitMembers,
+			requiresExternalRoles: res.requiresExternalRoles,
+			requiresExternalTeams: res.requiresExternalTeams,
+			parent: res.parent,
+			ancestors: res.ancestors,
+
+			// isMember field is not part of schema
+			isMember: teamIds.includes(res.id)
+		};
+	});
+
+	return results;
 };
 
 const searchTeamMembers = async (search, query, queryParams, team) => {
