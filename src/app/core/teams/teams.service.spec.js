@@ -526,12 +526,12 @@ describe('Team Service:', () => {
 			);
 
 			should.exist(result);
-			result.totalSize.should.equal(100);
+			result.totalSize.should.equal(2);
 			result.pageSize.should.equal(queryParams.size);
 			result.pageNumber.should.equal(0);
 			result.totalPages.should.equal(1);
 			result.elements.should.be.an.Array();
-			result.elements.length.should.be.equal(queryParams.size);
+			result.elements.length.should.be.equal(2);
 
 			const isMemberResults = result.elements
 				.filter((element) => element.isMember)
@@ -550,12 +550,12 @@ describe('Team Service:', () => {
 			);
 
 			should.exist(result2);
-			result2.totalSize.should.equal(100);
+			result2.totalSize.should.equal(1);
 			result2.pageSize.should.equal(queryParams.size);
 			result2.pageNumber.should.equal(0);
 			result2.totalPages.should.equal(1);
 			result2.elements.should.be.an.Array();
-			result2.elements.length.should.be.equal(queryParams.size);
+			result2.elements.length.should.be.equal(1);
 
 			const isMemberResults2 = result2.elements
 				.filter((element) => element.isMember)

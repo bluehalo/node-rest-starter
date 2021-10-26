@@ -48,7 +48,6 @@ components:
             isMember:
               type: boolean
               description: Whether the user making the request is a member of the team or not
-              required: false
     TeamMember:
       type: object
       properties:
