@@ -362,10 +362,13 @@ const searchTeams = async (queryParams, query, search, user) => {
 	const limit = util.getLimit(queryParams, 1000);
 	const sort = util.getSortObj(queryParams, 'DESC', '_id');
 
+	let teamIds = await getMemberTeamIds(user);
+
+	// convert team ids to strings
+	const teamIdStrings = teamIds.map((id) => id.toString());
+
 	// If user is not an admin, constrain the results to the user's teams
 	if (!userAuthService.hasRoles(user, ['admin'])) {
-		let teamIds = await getMemberTeamIds(user);
-
 		// If the query already has a filter by team, take the intersection
 		if (null != query._id && null != query._id.$in) {
 			teamIds = _.intersectionWith(teamIds, query._id.$in, isObjectIdEqual);
@@ -381,9 +384,6 @@ const searchTeams = async (queryParams, query, search, user) => {
 		};
 	}
 
-	// get teams user is a part of
-	const teamIds = (await getMemberTeamIds(user)).map((id) => id.toString());
-
 	// get results
 	const results = await Team.find(query)
 		.textSearch(search)
@@ -393,20 +393,8 @@ const searchTeams = async (queryParams, query, search, user) => {
 	// append isMember field to elements if user is part of the team
 	results.elements = await results.elements.map((res) => {
 		return {
-			// explicitly map fields since we can't just destructure the paginate plugin with isMember not part of the schema
-			name: res.name,
-			description: res.description,
-			created: res.created,
-			creator: res.creator,
-			creatorName: res.creatorName,
-			implicitMembers: res.implicitMembers,
-			requiresExternalRoles: res.requiresExternalRoles,
-			requiresExternalTeams: res.requiresExternalTeams,
-			parent: res.parent,
-			ancestors: res.ancestors,
-
-			// isMember field is not part of schema
-			isMember: teamIds.includes(res.id)
+			...res.toJSON(),
+			isMember: teamIdStrings.includes(res.id)
 		};
 	});
 
