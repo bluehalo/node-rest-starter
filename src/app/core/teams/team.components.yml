@@ -45,6 +45,9 @@ components:
             creatorName:
               type: string
               description: Full display name of the user who created the team
+            isMember:
+              type: boolean
+              description: Whether the user making the request is a member of the team or not
     TeamMember:
       type: object
       properties:

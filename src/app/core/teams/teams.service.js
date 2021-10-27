@@ -362,10 +362,13 @@ const searchTeams = async (queryParams, query, search, user) => {
 	const limit = util.getLimit(queryParams, 1000);
 	const sort = util.getSortObj(queryParams, 'DESC', '_id');
 
+	let teamIds = await getMemberTeamIds(user);
+
+	// convert team ids to strings
+	const teamIdStrings = teamIds.map((id) => id.toString());
+
 	// If user is not an admin, constrain the results to the user's teams
 	if (!userAuthService.hasRoles(user, ['admin'])) {
-		let teamIds = await getMemberTeamIds(user);
-
 		// If the query already has a filter by team, take the intersection
 		if (null != query._id && null != query._id.$in) {
 			teamIds = _.intersectionWith(teamIds, query._id.$in, isObjectIdEqual);
@@ -381,7 +384,21 @@ const searchTeams = async (queryParams, query, search, user) => {
 		};
 	}
 
-	return Team.find(query).textSearch(search).sort(sort).paginate(limit, page);
+	// get results
+	const results = await Team.find(query)
+		.textSearch(search)
+		.sort(sort)
+		.paginate(limit, page);
+
+	// append isMember field to elements if user is part of the team
+	results.elements = await results.elements.map((res) => {
+		return {
+			...res.toJSON(),
+			isMember: teamIdStrings.includes(res.id)
+		};
+	});
+
+	return results;
 };
 
 const searchTeamMembers = async (search, query, queryParams, team) => {
