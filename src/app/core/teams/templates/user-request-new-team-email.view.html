@@ -1,3 +1,4 @@
+{{ header }}
 <p>Hey there {{ app.title }} Admins,</p>
 <p>A user named <strong>{{ user.name }}</strong> with username <strong>{{ user.username }}</strong> has requested a new team:</p>
 <p>
@@ -6,3 +7,4 @@
 	<strong>Description:</strong> {{ description }}<br/>
 </p>
 <p>Click <a href="{{ app.clientUrl }}/team/create">here</a> to create this team!</p>
+{{ footer }}
