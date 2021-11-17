@@ -978,9 +978,11 @@ describe('Team Service:', () => {
 				name: 'test team'
 			};
 
-			const expectedEmailContent = `<p>Hey there <strong>${_team.name}</strong> Admin,</p>
+			const expectedEmailContent = `HEADER
+<p>Hey there <strong>${_team.name}</strong> Admin,</p>
 <p>A user named <strong>${_user.name}</strong> with username <strong>${_user.username}</strong> has requested access to the team.</p>
 <p>Click <a href="${config.app.clientUrl}/team/${_team._id}">here</a> to give them access!</p>
+FOOTER
 `;
 
 			await teamsService.sendRequestEmail(toEmails, _user, _team, {});
@@ -1118,7 +1120,8 @@ describe('Team Service:', () => {
 		it('should create mailOptions properly', async () => {
 			const sendMailStub = sandbox.stub(deps.emailService, 'sendMail');
 
-			const expectedEmailContent = `<p>Hey there ${config.app.title} Admins,</p>
+			const expectedEmailContent = `HEADER
+<p>Hey there ${config.app.title} Admins,</p>
 <p>A user named <strong>${_user.name}</strong> with username <strong>${_user.username}</strong> has requested a new team:</p>
 <p>
 \t<strong>Organization:</strong> org<br/>
@@ -1126,6 +1129,7 @@ describe('Team Service:', () => {
 \t<strong>Description:</strong> description<br/>
 </p>
 <p>Click <a href="${config.app.clientUrl}/team/create">here</a> to create this team!</p>
+FOOTER
 `;
 
 			await teamsService.requestNewTeam('org', 'aoi', 'description', _user, {
