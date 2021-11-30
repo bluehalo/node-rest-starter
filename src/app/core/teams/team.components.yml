@@ -106,12 +106,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/NewTeam'
-    RequestAccess:
-      description: Request access to a team
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/NewTeam'
     RequestNewTeam:
       description: Request a new team
       content:
