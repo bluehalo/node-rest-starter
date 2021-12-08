@@ -112,8 +112,6 @@ router
  *     description: Requests access to a Team. Notifies team admins of the request
  *     parameters:
  *       - $ref: '#/components/parameters/teamIdParam'
- *     requestBody:
- *       $ref: '#/components/requestBodies/RequestAccess'
  *     responses:
  *       '204':
  *         $ref: '#/components/responses/RequestTeamAccess'

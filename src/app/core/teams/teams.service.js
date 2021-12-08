@@ -571,7 +571,8 @@ const requestAccessToTeam = async (requester, team, req) => {
 	// Add requester role to user for this team
 	await addMemberToTeam(requester, team, 'requester');
 
-	return sendRequestEmail(adminEmails, requester, team, req);
+	// Email template rendering requires simple objects and not Mongo classes
+	return sendRequestEmail(adminEmails, requester, team.toJSON(), req);
 };
 
 const requestNewTeam = async (org, aoi, description, requester, req) => {
