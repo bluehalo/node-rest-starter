@@ -175,6 +175,10 @@ const UserSchema = new mongoose.Schema({
 		type: Boolean,
 		default: false
 	},
+	canMasquerade: {
+		type: Boolean,
+		default: false
+	},
 	externalGroups: {
 		type: [],
 		default: []
@@ -416,6 +420,7 @@ UserSchema.statics.auditCopy = function (user, userIP) {
 	toReturn.alertsViewed = user.alertsViewed;
 	toReturn.newFeatureDismissed = user.newFeatureDismissed;
 	toReturn.canProxy = user.canProxy;
+	toReturn.canMasquerade = user.canMasquerade;
 	if (null != userIP) {
 		toReturn.ip = userIP;
 	}

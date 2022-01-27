@@ -43,9 +43,15 @@ const searchUsers = (queryParams, query, search, searchFields = []) => {
 	return mQuery.sort(sort).paginate(limit, page);
 };
 
+const updateLastLogin = (user) => {
+	user.lastLogin = Date.now();
+	return user.save();
+};
+
 module.exports = {
 	read,
 	update,
 	remove,
-	searchUsers
+	searchUsers,
+	updateLastLogin
 };

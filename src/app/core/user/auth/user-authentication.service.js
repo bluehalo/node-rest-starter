@@ -7,7 +7,10 @@ const _ = require('lodash'),
 	config = deps.config,
 	dbs = deps.dbs,
 	util = deps.utilService,
-	User = dbs.admin.model('User');
+	User = dbs.admin.model('User'),
+	TeamMember = dbs.admin.model('TeamUser'),
+	accessChecker = require('../../access-checker/access-checker.service'),
+	userEmailService = require('../../user/user-email.service');
 
 /**
  * ==========================================================
@@ -131,4 +134,129 @@ module.exports.authenticateAndLogin = function (req, res, next) {
 			module.exports.login(user, req).then(resolve).catch(reject);
 		})(req, res, next);
 	});
+};
+
+function copyACMetadata(dest, src) {
+	// Copy each field from the access checker user to the local user
+	['name', 'organization', 'email', 'username'].forEach((e) => {
+		// Only overwrite if there's a value
+		if (src?.[e]?.trim() ?? '' !== '') {
+			dest[e] = src[e];
+		}
+	});
+
+	// Always overwrite these fields
+	dest.externalRoles = src?.roles ?? [];
+	dest.externalGroups = src?.groups ?? [];
+	return dest;
+}
+
+/**
+ * Create the user locally given the information from access checker
+ */
+async function createUser(dn, acUser) {
+	// Create the new user
+	const newUser = new User({
+		name: 'unknown',
+		organization: 'unknown',
+		organizationLevels: {},
+		email: 'unknown@mail.com',
+		username: dn.toLowerCase()
+	});
+
+	// Copy over the access checker metadata
+	copyACMetadata(newUser, acUser);
+
+	// Add the provider data
+	newUser.providerData = { dn: dn, dnLower: dn.toLowerCase() };
+	newUser.provider = 'pki';
+
+	// Initialize the new user
+	const initializedUser = await module.exports.initializeNewUser(newUser);
+
+	// Check for existing user with same username
+	const existingUser = await User.findOne({
+		username: initializedUser.username
+	}).exec();
+
+	// If existing user exists, update providerData with dn
+	if (existingUser) {
+		existingUser.providerData.dn = dn;
+		existingUser.providerData.dnLower = dn.toLowerCase();
+		return existingUser.save();
+	}
+
+	// else save
+	return initializedUser.save();
+}
+
+const autoCreateUser = async (dn, req, acUser) => {
+	// Create the user
+	const newUser = await createUser(dn, acUser);
+
+	// Send email for new user if enabled, no reason to wait for success
+	if (config.coreEmails?.userSignupAlert?.enabled) {
+		userEmailService.signupEmail(newUser, req);
+	}
+
+	if (config.coreEmails?.welcomeEmail?.enabled) {
+		userEmailService.welcomeEmail(newUser, req);
+	}
+
+	// Audit user signup
+	await auditService.audit(
+		'user signup',
+		'user',
+		'user signup',
+		{},
+		User.auditCopy(newUser)
+	);
+
+	return newUser;
+};
+
+module.exports.verifyUser = async (dn, req, isProxy = false) => {
+	const dnLower = dn.toLowerCase();
+
+	const localUser = await User.findOne({
+		'providerData.dnLower': dnLower
+	}).exec();
+
+	// Bypass AC check
+	if (localUser?.bypassAccessCheck) {
+		return localUser;
+	}
+
+	const acUser = await accessChecker.get(dnLower);
+
+	// Default to creating accounts automatically
+	const autoCreateAccounts = config?.auth?.autoCreateAccounts ?? true;
+
+	// If the user is not known locally, is not known by access checker, and we are creating accounts, create the account as an empty account
+	if (null == localUser && null == acUser && (isProxy || !autoCreateAccounts)) {
+		throw {
+			status: 401,
+			type: 'invalid-credentials',
+			message: 'Certificate unknown, expired, or unauthorized'
+		};
+	}
+
+	// Else if the user is not known locally, and we are creating accounts, create the account as an empty account
+	if (null == localUser && autoCreateAccounts) {
+		return autoCreateUser(dn, req, acUser);
+	}
+
+	// update local user with is known locally, but not in access checker, update their user info to reflect
+	copyACMetadata(localUser, acUser);
+
+	// Audit user update
+	await auditService.audit(
+		'user updated from access checker',
+		'user',
+		'update',
+		TeamMember.auditCopy(localUser),
+		User.auditCopy(localUser)
+	);
+
+	return localUser.save();
 };

@@ -248,7 +248,7 @@ describe('User Auth Controller:', () => {
 		spec.user.oldMd = proxyPkiUserSpec('oldMd');
 		spec.cache.oldMd.value.name = 'New Name';
 		spec.cache.oldMd.value.organization = 'New Organization';
-		spec.cache.oldMd.value.email = 'New Email';
+		spec.cache.oldMd.value.email = 'new.email@mail.com';
 
 		// Different roles in cache
 		spec.cache.differentRolesAndGroups = cacheSpec('differentRoles');

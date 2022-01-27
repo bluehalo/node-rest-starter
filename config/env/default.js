@@ -1,9 +1,11 @@
 'use strict';
 
-const contactEmail = process.env.CONTACT_EMAIL || process.env.MAILER_ADMIN || 'noreply@asymmetrik.com';
+const contactEmail =
+	process.env.CONTACT_EMAIL ||
+	process.env.MAILER_ADMIN ||
+	'noreply@asymmetrik.com';
 
 module.exports = {
-
 	/**
 	 * Core System Settings
 	 */
@@ -23,6 +25,13 @@ module.exports = {
 	 */
 	proxyPkiProxiedUserHeader: 'x-proxied-user-dn',
 
+	/**
+	 * When using the 'proxy-pki' authentication strategy,
+	 * this will be the header used to retrieve the optional
+	 * masquerade user's DN for admin masquerade access
+	 */
+	masqueradeUserHeader: 'x-masquerade-user-dn',
+
 	// Auth system
 	auth: {
 		/**
@@ -37,14 +46,14 @@ module.exports = {
 		/**
 		 * 'local' strategy uses a locally managed username/password and user profile
 		 */
-		// strategy: 'local',
+		strategy: 'local',
 
 		/**
 		 * 'proxy-pki' strategy assumes that the Node app is behind an SSL terminating
 		 * proxy server. The proxy is responsible for passing the DN of the incoming
 		 * user in the the 'x-ssl-client-dn' header.
 		 */
-		strategy: 'local',
+		// strategy: 'proxy-pki',
 
 		// accessChecker: {
 		// 	provider: {
@@ -61,7 +70,7 @@ module.exports = {
 		// 	},
 		// 	cacheExpire: 1000*60*60*24 // expiration of cache entries
 		// },
-        //
+		//
 		// autoLogin: true,
 		// autoCreateAccounts: true,
 		// defaultRoles: { user: true },
@@ -69,6 +78,7 @@ module.exports = {
 
 		roles: ['user', 'editor', 'auditor', 'admin'],
 		roleStrategy: 'local', // 'local' || 'external' || 'hybrid'
+		masquerade: true, // set to false to disable admin masquerading when using proxy-pki
 
 		externalRoles: {
 			provider: {
@@ -90,7 +100,7 @@ module.exports = {
 
 		// Session Expiration controls how long sessions can live (in ms)
 		sessionCookie: {
-			maxAge: 24*60*60*1000
+			maxAge: 24 * 60 * 60 * 1000
 		},
 
 		// Session secret is used to validate sessions
@@ -98,7 +108,6 @@ module.exports = {
 
 		// Session mongo collection
 		sessionCollection: 'sessions'
-
 	},
 
 	// Scheduled task runner
@@ -125,7 +134,6 @@ module.exports = {
 		],
 		interval: 10000
 	},
-
 
 	// MongoDB
 	db: {
@@ -163,7 +171,8 @@ module.exports = {
 	// Copyright footer (shown above the system footer)
 	copyright: {
 		// HTML-enabled contents of the banner
-		html: 'Copyright © 2018 <a href="http://www.asymmetrik.com" target="_blank">Asymmetrik, Ltd</a>. All Rights Reserved.'
+		html:
+			'Copyright © 2018 <a href="http://www.asymmetrik.com" target="_blank">Asymmetrik, Ltd</a>. All Rights Reserved.'
 	},
 
 	feedback: {
@@ -180,48 +189,59 @@ module.exports = {
 		},
 		userSignupAlert: {
 			enabled: true,
-			templatePath: 'src/app/core/user/templates/user-signup-alert-email.server.view.html',
+			templatePath:
+				'src/app/core/user/templates/user-signup-alert-email.server.view.html',
 			subject: 'New Account Request - {{ app.serverUrl }}',
 			to: contactEmail
 		},
 		welcomeEmail: {
 			enabled: true,
-			templatePath: 'src/app/core/user/templates/user-welcome-email.server.view.html',
+			templatePath:
+				'src/app/core/user/templates/user-welcome-email.server.view.html',
 			subject: 'Welcome to {{ app.title }}!'
 		},
 		approvedUserEmail: {
 			enabled: true,
-			templatePath: 'src/app/core/user/templates/approved-user-email.server.view.html',
+			templatePath:
+				'src/app/core/user/templates/approved-user-email.server.view.html',
 			subject: 'Your {{ app.title }} account has been approved!'
 		},
 		feedbackEmail: {
-			templatePath: 'src/app/core/feedback/templates/user-feedback-email.view.html',
+			templatePath:
+				'src/app/core/feedback/templates/user-feedback-email.view.html',
 			subject: '{{ app.title }}: Feedback Submitted',
 			bcc: contactEmail
 		},
 		teamAccessRequestEmail: {
-			templatePath: 'src/app/core/teams/templates/user-request-access-email.view.html',
-			subject: '{{ app.title }}: A user has requested access to Team {{ team.name }}'
+			templatePath:
+				'src/app/core/teams/templates/user-request-access-email.view.html',
+			subject:
+				'{{ app.title }}: A user has requested access to Team {{ team.name }}'
 		},
 		newTeamRequest: {
-			templatePath: 'src/app/core/teams/templates/user-request-new-team-email.view.html',
+			templatePath:
+				'src/app/core/teams/templates/user-request-new-team-email.view.html',
 			subject: 'New Team Requested',
 			bcc: contactEmail
 		},
 		userInactivity: {
-			templatePath: 'src/app/core/user/templates/inactivity-email.server.view.html',
+			templatePath:
+				'src/app/core/user/templates/inactivity-email.server.view.html',
 			subject: '{{ app.title }}: Inactivity Notice'
 		},
 		userDeactivate: {
-			templatePath: 'src/app/core/user/templates/deactivate-email.server.view.html',
+			templatePath:
+				'src/app/core/user/templates/deactivate-email.server.view.html',
 			subject: '{{ app.title }}: Account Deactivation'
 		},
 		resetPassword: {
-			templatePath: 'src/app/core/user/templates/reset-password-email.server.view.html',
+			templatePath:
+				'src/app/core/user/templates/reset-password-email.server.view.html',
 			subject: 'Password Reset'
 		},
 		resetPasswordConfirm: {
-			templatePath: 'src/app/core/user/templates/reset-password-confirm-email.server.view.html',
+			templatePath:
+				'src/app/core/user/templates/reset-password-confirm-email.server.view.html',
 			subject: 'Your password has been changed'
 		}
 	},
@@ -272,7 +292,6 @@ module.exports = {
 		*/
 	},
 
-
 	/**
 	 * Development/debugging settings
 	 */
@@ -286,7 +305,6 @@ module.exports = {
 	// Express route logging
 	expressLogging: false,
 
-
 	/**
 	 * Logging Settings
 	 */
@@ -298,7 +316,7 @@ module.exports = {
 			{
 				stream: process.stdout,
 				level: 'info'
-			}//,
+			} //,
 			// Rotating file logger
 			//{
 			//	type: 'rotating-file',
@@ -322,7 +340,7 @@ module.exports = {
 			{
 				stream: process.stdout,
 				level: 'info'
-			}//,
+			} //,
 			//{
 			//	type: 'rotating-file',
 			//	level: 'info',
@@ -336,7 +354,7 @@ module.exports = {
 			{
 				stream: process.stdout,
 				level: 'info'
-			}//,
+			} //,
 			//{
 			//	type: 'rotating-file',
 			//	level: 'info',
@@ -404,7 +422,5 @@ module.exports = {
 	/*
 	 * Configurations for External Services
 	 */
-	external: { }
-
-
+	external: {}
 };

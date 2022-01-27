@@ -29,7 +29,7 @@ module.exports.has = (requirement) => {
 	// Return a function that adapts the requirements to middleware
 	return (req, res, next) => {
 		Promise.resolve(requirement(req))
-			.then((result) => {
+			.then(() => {
 				next();
 			})
 			.catch((errorResult) => {
