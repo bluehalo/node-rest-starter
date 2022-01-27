@@ -416,40 +416,15 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
 
 	if (
 		implicitTeamStrategy === 'roles' &&
-		team.requiresExternalRoles &&
-		team.requiresExternalRoles.length > 0
+		team.requiresExternalRoles?.length > 0
 	) {
-		query.$or.push({
-			$and: [
-				{
-					externalRoles: { $exists: true }
-				},
-				{
-					externalRoles: { $ne: null }
-				},
-				{
-					externalRoles: { $ne: [] }
-				},
-				{
-					externalRoles: {
-						$not: { $elemMatch: { $nin: team.requiresExternalRoles } }
-					}
-				}
-			]
-		});
+		query.$or.push({ externalRoles: { $all: team.requiresExternalRoles } });
 	}
 	if (
 		implicitTeamStrategy === 'teams' &&
-		team.requiresExternalTeams &&
-		team.requiresExternalTeams.length > 0
+		team.requiresExternalTeams?.length > 0
 	) {
-		query.$or.push({
-			$and: [
-				{
-					externalGroups: { $elemMatch: { $in: team.requiresExternalTeams } }
-				}
-			]
-		});
+		query.$or.push({ externalGroups: { $all: team.requiresExternalTeams } });
 	}
 
 	const results = await TeamMember.find(query)
@@ -640,7 +615,6 @@ const getExplicitTeamIds = (user, ...roles) => {
 		);
 	}
 
-	// const userTeamIds = userTeams.map((t) => t._id.toString());
 	const userTeamIds = userTeams.map((t) => t._id);
 
 	return Promise.resolve(userTeamIds);
@@ -676,14 +650,10 @@ const getImplicitTeamIds = (user, ...roles) => {
 	}
 
 	/**
-	 * @type {any}
+	 * @type {import('mongoose').FilterQuery<Team>}
 	 */
 	const query = { $and: [{ implicitMembers: true }] };
-	if (
-		strategy === 'roles' &&
-		user.externalRoles &&
-		user.externalRoles.length > 0
-	) {
+	if (strategy === 'roles' && user.externalRoles?.length > 0) {
 		query.$and.push(
 			{
 				requiresExternalRoles: { $exists: true }
@@ -701,14 +671,23 @@ const getImplicitTeamIds = (user, ...roles) => {
 			}
 		);
 	}
-	if (
-		strategy === 'teams' &&
-		user.externalGroups &&
-		user.externalGroups.length > 0
-	) {
-		query.$and.push({
-			requiresExternalTeams: { $elemMatch: { $in: user.externalGroups } }
-		});
+	if (strategy === 'teams' && user.externalGroups?.length > 0) {
+		query.$and.push(
+			{
+				requiresExternalTeams: { $exists: true }
+			},
+			{
+				requiresExternalTeams: { $ne: null }
+			},
+			{
+				requiresExternalTeams: { $ne: [] }
+			},
+			{
+				requiresExternalTeams: {
+					$not: { $elemMatch: { $nin: user.externalGroups } }
+				}
+			}
+		);
 	}
 
 	if (query.$and.length === 1) {
