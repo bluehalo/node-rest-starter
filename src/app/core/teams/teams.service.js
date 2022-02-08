@@ -16,6 +16,7 @@ const _ = require('lodash'),
 	User = dbs.admin.model('User');
 
 const teamRolesMap = {
+	blocked: { priority: -1 },
 	requester: { priority: 0 },
 	member: { priority: 1 },
 	editor: { priority: 5 },
