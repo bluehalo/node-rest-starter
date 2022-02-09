@@ -81,11 +81,11 @@ describe('Team Service:', () => {
 
 	// User implicit added to team by having an external group
 	spec.user.implicit1 = proxyPkiUserSpec('implicit1');
-	spec.user.implicit1.externalGroups = ['external-group'];
+	spec.user.implicit1.externalGroups = ['external-group', 'external-group-2'];
 
 	// User implicit added to team by having an external role
 	spec.user.implicit2 = proxyPkiUserSpec('implicit2');
-	spec.user.implicit2.externalRoles = ['external-role'];
+	spec.user.implicit2.externalRoles = ['external-role', 'external-role-2'];
 
 	// User explicitly added to a group.  Group is added in before() block below
 	spec.user.explicit = proxyPkiUserSpec('explicit');
