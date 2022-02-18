@@ -241,7 +241,7 @@ const verifyNotLastAdmin = async (user, team) => {
 	// Just need to make sure we find one active admin who isn't this user
 	const adminFound = results.some((u) => {
 		const role = getActiveTeamRole(u, team);
-		return null != role && role === 'admin';
+		return role === 'admin';
 	});
 
 	if (adminFound) {
@@ -653,7 +653,7 @@ const getExplicitTeamIds = (user, ...roles) => {
  * @param {...string} roles
  * @returns {Promise<mongoose.Types.ObjectId[]>}
  */
-const getImplicitTeamIds = (user, ...roles) => {
+const getImplicitTeamIds = async (user, ...roles) => {
 	// Validate the user input
 	if (null == user) {
 		return Promise.reject({
@@ -680,11 +680,8 @@ const getImplicitTeamIds = (user, ...roles) => {
 	 * @type {any}
 	 */
 	const query = { $and: [{ implicitMembers: true }] };
-	if (
-		strategy === 'roles' &&
-		user.externalRoles &&
-		user.externalRoles.length > 0
-	) {
+
+	if (strategy === 'roles' && (user.externalRoles?.length ?? 0) > 0) {
 		query.$and.push(
 			{
 				requiresExternalRoles: { $exists: true }
@@ -702,11 +699,7 @@ const getImplicitTeamIds = (user, ...roles) => {
 			}
 		);
 	}
-	if (
-		strategy === 'teams' &&
-		user.externalGroups &&
-		user.externalGroups.length > 0
-	) {
+	if (strategy === 'teams' && (user.externalGroups?.length ?? 0) > 0) {
 		query.$and.push({
 			requiresExternalTeams: { $elemMatch: { $in: user.externalGroups } }
 		});
@@ -716,6 +709,13 @@ const getImplicitTeamIds = (user, ...roles) => {
 		return Promise.resolve([]);
 	}
 
+	const blockedTeamIds = await getExplicitTeamIds(user, 'blocked');
+	if (blockedTeamIds.length > 0) {
+		query.$and.push({
+			_id: { $nin: blockedTeamIds }
+		});
+	}
+
 	return Team.distinct('_id', query).exec();
 };
 
@@ -723,7 +723,7 @@ const getImplicitTeamIds = (user, ...roles) => {
  * @param {mongoose.Types.ObjectId[]} teamIds
  * @returns {Promise<mongoose.Types.ObjectId[]>}
  */
-const getNestedTeamIds = (teamIds = []) => {
+const getNestedTeamIds = async (teamIds = []) => {
 	const nestedTeamsEnabled = config?.teams?.nestedTeams ?? false;
 	if (!nestedTeamsEnabled || teamIds.length === 0) {
 		return Promise.resolve([]);
