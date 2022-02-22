@@ -335,6 +335,7 @@ UserSchema.statics.filteredCopy = function (user) {
 		toReturn.name = user.name;
 		toReturn.username = user.username;
 		toReturn.organizationLevels = user.organizationLevels;
+		toReturn.lastLogin = user.lastLogin;
 
 		// The below fields (and other) are available, but shouldn't
 		// necessarily be exposed to other users.
