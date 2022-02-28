@@ -723,7 +723,7 @@ const getImplicitTeamIds = async (user, ...roles) => {
  * @param {mongoose.Types.ObjectId[]} teamIds
  * @returns {Promise<mongoose.Types.ObjectId[]>}
  */
-const getNestedTeamIds = async (teamIds = []) => {
+const getNestedTeamIds = (teamIds = []) => {
 	const nestedTeamsEnabled = config?.teams?.nestedTeams ?? false;
 	if (!nestedTeamsEnabled || teamIds.length === 0) {
 		return Promise.resolve([]);
