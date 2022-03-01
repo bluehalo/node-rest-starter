@@ -35,7 +35,7 @@ const TeamRoleSchema = new mongoose.Schema({
 		type: String,
 		trim: true,
 		default: 'member',
-		enum: ['admin', 'editor', 'member', 'requester']
+		enum: ['admin', 'editor', 'member', 'requester', 'blocked']
 	}
 });
 TeamRoleSchema.plugin(getterPlugin);
