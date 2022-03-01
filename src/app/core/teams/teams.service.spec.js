@@ -1217,7 +1217,7 @@ FOOTER
 				const teamIds = await teamsService.getImplicitTeamIds(user.implicit2);
 				should.exist(teamIds);
 				teamIds.should.be.Array();
-				teamIds.length.should.equal(1);
+				teamIds.length.should.equal(2);
 			});
 
 			it('should find implicit teams for user with matching external roles (plain object)', async () => {
@@ -1226,7 +1226,7 @@ FOOTER
 				);
 				should.exist(teamIds);
 				teamIds.should.be.Array();
-				teamIds.length.should.equal(1);
+				teamIds.length.should.equal(2);
 			});
 
 			it('should not find implicit teams for user without matching external roles', async () => {
