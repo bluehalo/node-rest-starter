@@ -412,6 +412,15 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
 	query = query || {};
 	query.$or = [{ 'teams._id': team._id }];
 
+	// Change query for explicit vs implicit users
+	if (query.$and?.length > 0) {
+		if (query.$and[0].explicit.$in[0] === 'true') {
+			query.$and = [{ 'teams._id': team._id }];
+		} else {
+			query = { $or: [] };
+		}
+	}
+
 	const implicitTeamStrategy = config?.teams?.implicitMembers?.strategy ?? null;
 
 	if (
