@@ -416,7 +416,8 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
 	if (query.$and?.length > 0) {
 		if (query.$and[0].explicit.$in[0] === 'true') {
 			query.$and = [{ 'teams._id': team._id }];
-		} else {
+		}
+		if (query.$and[0].explicit.$in[0] === 'false') {
 			query = { $or: [] };
 		}
 	}
