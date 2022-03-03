@@ -133,6 +133,7 @@ describe('Team Model:', () => {
 						_id: 'test',
 						name: 'test',
 						organizationLevels: 1,
+						lastLogin: undefined,
 						username: 'test',
 						password: 'sneaky',
 						teams

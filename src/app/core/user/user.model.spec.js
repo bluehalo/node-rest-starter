@@ -60,6 +60,7 @@ describe('User Model:', () => {
 			it('should only return specific fields', () => {
 				const testUser = {
 					_id: 'test',
+					lastLogin: undefined,
 					name: 'test',
 					password: 'testpwd',
 					organizationLevels: 5,
