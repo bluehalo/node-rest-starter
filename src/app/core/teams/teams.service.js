@@ -411,14 +411,26 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
 	// members implicitly added by having the externalGroup required by requiresExternalTeam
 	query = query || {};
 	query.$or = [{ 'teams._id': team._id }];
+	let filterWithImplicit = false;
 
-	// Change query for explicit vs implicit users
+	// Update query to accurately filter by team roles and implicit vs. explicit members
 	if (query.$and?.length > 0) {
 		if (query.$and[0]?.explicit?.$in[0] === 'true') {
 			query.$and = [{ 'teams._id': team._id }];
 		}
 		if (query.$and[0]?.explicit?.$in[0] === 'false') {
 			query = { $or: [] };
+		}
+		if (query.$and[0]?.$or?.length > 0) {
+			if (query.$and[0].$or.find((t) => t['teams.role'] === 'member')) {
+				filterWithImplicit = true;
+			}
+			for (let i = 0; i < query.$and[0].$or.length; i++) {
+				const role = query.$and[0].$or[i]['teams.role'];
+				query.$and[0].$or[i] = {
+					teams: { $elemMatch: { role: role, _id: team._id } }
+				};
+			}
 		}
 	}
 
@@ -429,12 +441,22 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
 		team.requiresExternalRoles?.length > 0
 	) {
 		query.$or.push({ externalRoles: { $all: team.requiresExternalRoles } });
+		if (filterWithImplicit) {
+			query.$and[0].$or.push({
+				externalRoles: { $all: team.requiresExternalRoles }
+			});
+		}
 	}
 	if (
 		implicitTeamStrategy === 'teams' &&
 		team.requiresExternalTeams?.length > 0
 	) {
 		query.$or.push({ externalGroups: { $all: team.requiresExternalTeams } });
+		if (filterWithImplicit) {
+			query.$and[0].$or.push({
+				externalGroups: { $all: team.requiresExternalTeams }
+			});
+		}
 	}
 
 	const results = await TeamMember.find(query)
