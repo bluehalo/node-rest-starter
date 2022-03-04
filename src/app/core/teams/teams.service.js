@@ -402,63 +402,87 @@ const searchTeams = async (queryParams, query, search, user) => {
 	return results;
 };
 
-const searchTeamMembers = async (search, query, queryParams, team) => {
-	const page = util.getPage(queryParams);
-	const limit = util.getLimit(queryParams);
-	const sort = util.getSortObj(queryParams, 'DESC', '_id');
-
-	// Inject the team query parameters
-	// Finds members explicitly added to the team using the id OR
-	// members implicitly added by having the externalGroup required by requiresExternalTeam
-	query = query || {};
-	query.$or = [{ 'teams._id': team._id }];
-	let filterWithImplicit = false;
-
-	// Update query to accurately filter by team roles and implicit vs. explicit members
-	if (query.$and?.length > 0) {
-		if (query.$and[0]?.explicit?.$in[0] === 'true') {
-			query.$and = [{ 'teams._id': team._id }];
-		}
-		if (query.$and[0]?.explicit?.$in[0] === 'false') {
-			query = { $or: [] };
-		}
-		if (query.$and[0]?.$or?.length > 0) {
-			if (query.$and[0].$or.find((t) => t['teams.role'] === 'member')) {
-				filterWithImplicit = true;
-			}
-			for (let i = 0; i < query.$and[0].$or.length; i++) {
-				const role = query.$and[0].$or[i]['teams.role'];
-				query.$and[0].$or[i] = {
-					teams: { $elemMatch: { role: role, _id: team._id } }
-				};
-			}
-		}
-	}
-
+const getImplicitMemberFilter = (team) => {
 	const implicitTeamStrategy = config?.teams?.implicitMembers?.strategy ?? null;
-
 	if (
 		implicitTeamStrategy === 'roles' &&
 		team.requiresExternalRoles?.length > 0
 	) {
-		query.$or.push({ externalRoles: { $all: team.requiresExternalRoles } });
-		if (filterWithImplicit) {
-			query.$and[0].$or.push({
-				externalRoles: { $all: team.requiresExternalRoles }
-			});
-		}
+		return {
+			$and: [
+				{ externalRoles: { $all: team.requiresExternalRoles } },
+				{ 'teams._id': { $ne: team._id } }
+			]
+		};
 	}
 	if (
 		implicitTeamStrategy === 'teams' &&
 		team.requiresExternalTeams?.length > 0
 	) {
-		query.$or.push({ externalGroups: { $all: team.requiresExternalTeams } });
-		if (filterWithImplicit) {
-			query.$and[0].$or.push({
-				externalGroups: { $all: team.requiresExternalTeams }
+		return {
+			$and: [
+				{ externalGroups: { $all: team.requiresExternalTeams } },
+				{ 'teams._id': { $ne: team._id } }
+			]
+		};
+	}
+};
+
+const updateMemberFilter = (query, team) => {
+	// Extract member types and roles for filtering
+	const types = query.$and?.find((filter) => filter.type)?.type.$in ?? [];
+	const roles = query.$and?.find((filter) => filter.role)?.role.$in ?? [];
+
+	// Remove member types and roles filters from query
+	_.remove(query.$and, (filter) => filter.type || filter.role);
+	if (query.$and?.length === 0) {
+		delete query.$and;
+	}
+
+	query.$or = [];
+	if (types.length === 0 && roles.length === 0) {
+		query.$or.push(getImplicitMemberFilter(team));
+		query.$or.push({ 'teams._id': team._id });
+	} else if (types.length > 0 && roles.length > 0) {
+		if (types.indexOf('implicit') !== -1 && roles.indexOf('member') !== -1) {
+			query.$or.push(getImplicitMemberFilter(team));
+		}
+		if (types.indexOf('explicit') !== -1) {
+			query.$or.push({
+				teams: { $elemMatch: { _id: team._id, role: { $in: roles } } }
 			});
 		}
+	} else if (types.length > 0) {
+		if (types.indexOf('implicit') !== -1) {
+			query.$or.push(getImplicitMemberFilter(team));
+		}
+		if (types.indexOf('explicit') !== -1) {
+			query.$or.push({ 'teams._id': team._id });
+		}
+	} /* roles.length > 0 */ else {
+		if (roles.indexOf('member') !== -1) {
+			query.$or.push(getImplicitMemberFilter(team));
+		}
+		query.$or.push({
+			teams: { $elemMatch: { _id: team._id, role: { $in: roles } } }
+		});
 	}
+
+	// If $or is empty, that means we have conflicting filters (i.e. implicit members with admin role) and should
+	// return zero results.  Need to create invalid query to ensure no results are found.
+	if (query.$or.length === 0) {
+		query.$or.push({ 'teams.role': 'invalid' });
+	}
+
+	return query;
+};
+
+const searchTeamMembers = async (search, query, queryParams, team) => {
+	const page = util.getPage(queryParams);
+	const limit = util.getLimit(queryParams);
+	const sort = util.getSortObj(queryParams, 'DESC', '_id');
+
+	query = updateMemberFilter(query, team);
 
 	const results = await TeamMember.find(query)
 		.textSearch(search)
