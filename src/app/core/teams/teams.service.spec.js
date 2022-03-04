@@ -70,6 +70,10 @@ describe('Team Service:', () => {
 	spec.team.teamWithExternalRoles.implicitMembers = true;
 	spec.team.teamWithExternalRoles.requiresExternalRoles = ['external-role'];
 
+	spec.team.teamWithExternalRoles2 = teamSpec('external-roles-2');
+	spec.team.teamWithExternalRoles2.implicitMembers = true;
+	spec.team.teamWithExternalRoles2.requiresExternalRoles = ['external-role-2'];
+
 	spec.team.teamWithNoExternalTeam = teamSpec('no-external');
 	spec.team.teamWithNoExternalTeam.requiresExternalTeams = [];
 
@@ -109,6 +113,13 @@ describe('Team Service:', () => {
 
 	spec.user.admin = localUserSpec('admin');
 	spec.user.admin.roles = { user: 1, admin: 1 };
+
+	spec.user.blocked = localUserSpec('blocked');
+	spec.user.blocked.roles = { user: 1 };
+	spec.user.blocked.externalRoles = ['external-role-2'];
+	spec.userTeams.blocked = [
+		{ team: 'teamWithExternalRoles2', role: 'blocked' }
+	];
 
 	let user = {};
 	let team = {};
@@ -241,6 +252,20 @@ describe('Team Service:', () => {
 			);
 
 			should.not.exist(role);
+		});
+
+		it('return blocked role for user blocked from team that they would otherwise be an implicit member', () => {
+			sandbox
+				.stub(deps.config.teams, 'implicitMembers')
+				.value({ strategy: 'roles' });
+
+			const role = teamsService.getActiveTeamRole(
+				user.blocked,
+				team.teamWithExternalRoles2
+			);
+
+			should.exist(role);
+			role.should.equal('blocked');
 		});
 	});
 
@@ -444,7 +469,7 @@ describe('Team Service:', () => {
 
 	describe('searchTeams', () => {
 		beforeEach(async () => {
-			const teams = [...Array(95).keys()].map((index) => {
+			const teams = [...Array(94).keys()].map((index) => {
 				return new Team({
 					name: `Name-${index}`,
 					description: `Description-${index}`
@@ -1192,7 +1217,7 @@ FOOTER
 				const teamIds = await teamsService.getImplicitTeamIds(user.implicit2);
 				should.exist(teamIds);
 				teamIds.should.be.Array();
-				teamIds.length.should.equal(1);
+				teamIds.length.should.equal(2);
 			});
 
 			it('should find implicit teams for user with matching external roles (plain object)', async () => {
@@ -1201,7 +1226,7 @@ FOOTER
 				);
 				should.exist(teamIds);
 				teamIds.should.be.Array();
-				teamIds.length.should.equal(1);
+				teamIds.length.should.equal(2);
 			});
 
 			it('should not find implicit teams for user without matching external roles', async () => {
@@ -1210,6 +1235,19 @@ FOOTER
 				}).exec();
 				should.exist(_user, 'expected implicit1 to exist');
 				_user.username.should.equal('implicit1_username');
+
+				const teamIds = await teamsService.getImplicitTeamIds(_user);
+				should.exist(teamIds);
+				teamIds.should.be.Array();
+				teamIds.should.be.empty();
+			});
+
+			it('should not find implicit teams for user with matching external roles, but is explicitly blocked', async () => {
+				const _user = await User.findOne({
+					username: 'blocked_username'
+				}).exec();
+				should.exist(_user, 'expected blocked to exist');
+				_user.username.should.equal('blocked_username');
 
 				const teamIds = await teamsService.getImplicitTeamIds(_user);
 				should.exist(teamIds);
@@ -1529,7 +1567,7 @@ FOOTER
 		});
 	});
 
-	describe('getTeamIds', () => {
+	describe('getExplicitTeamIds', () => {
 		const _user = {
 			teams: [
 				{
@@ -1616,6 +1654,33 @@ FOOTER
 
 			teamIds[0].should.equal('000000000000000000000004');
 		});
+	});
+
+	describe('getTeamIds', () => {
+		const _user = {
+			teams: [
+				{
+					_id: '000000000000000000000001',
+					role: 'member'
+				},
+				{
+					_id: '000000000000000000000002',
+					role: 'member'
+				},
+				{
+					_id: '000000000000000000000003',
+					role: 'editor'
+				},
+				{
+					_id: '000000000000000000000004',
+					role: 'admin'
+				},
+				{
+					_id: '000000000000000000000005',
+					role: 'editor'
+				}
+			]
+		};
 
 		it('should find all team members', async () => {
 			const teamIds = await teamsService.getMemberTeamIds(_user);
@@ -1633,6 +1698,12 @@ FOOTER
 			const teamIds = await teamsService.getAdminTeamIds(_user);
 			should.exist(teamIds);
 			teamIds.should.have.length(1);
+		});
+
+		it('should not', async () => {
+			const teamIds = await teamsService.getMemberTeamIds(user.blocked);
+			should.exist(teamIds);
+			teamIds.should.have.length(0);
 		});
 	});
 
