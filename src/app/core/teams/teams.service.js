@@ -441,11 +441,17 @@ const updateMemberFilter = (query, team) => {
 
 	query.$or = [];
 	if (types.length === 0 && roles.length === 0) {
-		query.$or.push(getImplicitMemberFilter(team));
+		const implicitFilter = getImplicitMemberFilter(team);
+		if (implicitFilter) {
+			query.$or.push(implicitFilter);
+		}
 		query.$or.push({ 'teams._id': team._id });
 	} else if (types.length > 0 && roles.length > 0) {
 		if (types.indexOf('implicit') !== -1 && roles.indexOf('member') !== -1) {
-			query.$or.push(getImplicitMemberFilter(team));
+			const implicitFilter = getImplicitMemberFilter(team);
+			if (implicitFilter) {
+				query.$or.push(implicitFilter);
+			}
 		}
 		if (types.indexOf('explicit') !== -1) {
 			query.$or.push({
@@ -454,14 +460,20 @@ const updateMemberFilter = (query, team) => {
 		}
 	} else if (types.length > 0) {
 		if (types.indexOf('implicit') !== -1) {
-			query.$or.push(getImplicitMemberFilter(team));
+			const implicitFilter = getImplicitMemberFilter(team);
+			if (implicitFilter) {
+				query.$or.push(implicitFilter);
+			}
 		}
 		if (types.indexOf('explicit') !== -1) {
 			query.$or.push({ 'teams._id': team._id });
 		}
 	} /* roles.length > 0 */ else {
 		if (roles.indexOf('member') !== -1) {
-			query.$or.push(getImplicitMemberFilter(team));
+			const implicitFilter = getImplicitMemberFilter(team);
+			if (implicitFilter) {
+				query.$or.push(implicitFilter);
+			}
 		}
 		query.$or.push({
 			teams: { $elemMatch: { _id: team._id, role: { $in: roles } } }
@@ -482,7 +494,7 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
 	const limit = util.getLimit(queryParams);
 	const sort = util.getSortObj(queryParams, 'DESC', '_id');
 
-	query = updateMemberFilter(query, team);
+	query = updateMemberFilter(query ?? {}, team);
 
 	const results = await TeamMember.find(query)
 		.textSearch(search)
