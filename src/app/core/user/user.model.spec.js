@@ -203,6 +203,7 @@ describe('User Model:', () => {
 					phone: '5',
 					bypassAccessCheck: true,
 					canProxy: true,
+					canMasquerade: false,
 					providerData: {
 						dn
 					},

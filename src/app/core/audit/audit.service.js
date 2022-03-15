@@ -1,9 +1,22 @@
 'use strict';
 
 const deps = require('../../../dependencies'),
+	config = deps.config,
 	dbs = deps.dbs,
 	logger = deps.logger,
 	auditLogger = deps.auditLogger;
+
+const getMasqueradingUserDn = (eventActor, headers) => {
+	if (config.auth.strategy === 'proxy-pki' && config.auth.masquerade) {
+		const masqueradeUserDn =
+			headers?.[config.masqueradeUserHeader ?? 'x-masquerade-user-dn'];
+
+		if (eventActor.dn === masqueradeUserDn) {
+			return headers?.[config.proxyPkiPrimaryUserHeader ?? 'x-ssl-client-s-dn'];
+		}
+	}
+	return undefined;
+};
 
 /**
  * Creates an audit entry persisted to Mongo and the bunyan logger
@@ -48,6 +61,11 @@ module.exports.audit = async (
 			userSpec: userAgentObj
 		}
 	});
+
+	const masqueradingUserDn = getMasqueradingUserDn(actor, eventMetadata);
+	if (masqueradingUserDn) {
+		newAudit.audit.masqueradingUser = masqueradingUserDn;
+	}
 
 	newAudit.audit.object = stringifyEventObject
 		? JSON.stringify(eventObject)

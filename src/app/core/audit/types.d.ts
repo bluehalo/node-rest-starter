@@ -12,6 +12,7 @@ interface IAudit extends Document {
 			browser: string;
 			os: string;
 		};
+		masqueradingUser?: string;
 	};
 }
 

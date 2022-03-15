@@ -28,7 +28,8 @@ const AuditSchema = new mongoose.Schema({
 		userSpec: {
 			browser: { type: String },
 			os: { type: String }
-		}
+		},
+		masqueradingUser: { type: String }
 	}
 });
 
