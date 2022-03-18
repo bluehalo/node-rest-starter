@@ -26,7 +26,7 @@ describe('User Email Service:', () => {
 		name: 'test',
 		username: 'test',
 		email: 'test@test.test',
-		lastLogin: DateTime.now().minus({ days: daysAgo })
+		lastLogin: DateTime.now().toUTC().minus({ days: daysAgo }).toMillis()
 	};
 
 	describe('sendEmail', () => {
