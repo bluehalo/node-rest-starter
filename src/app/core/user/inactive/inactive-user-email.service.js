@@ -12,7 +12,9 @@ const _ = require('lodash'),
 
 async function sendEmail(user, emailConfig) {
 	// This current DateTime may be a millisecond or two later than user.lastLogin due to Luxon's precision, so we round down to the number of days.
-	const numOfDays = Math.floor(DateTime.now().diff(user.lastLogin).as('days'));
+	const numOfDays = Math.floor(
+		DateTime.now().diff(DateTime.fromMillis(user.lastLogin)).as('days')
+	);
 	try {
 		const mailOptions = await emailService.generateMailOptions(
 			user,
