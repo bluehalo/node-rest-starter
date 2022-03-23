@@ -6,16 +6,22 @@ const textSearchPlugin = (schema) => {
 	 * @param {string} search
 	 * @returns {*}
 	 */
-	schema.query.textSearch = function (search) {
+	schema.query.textSearch = function (search, sortByTextScore = false) {
 		if (null == search || '' === search) {
 			return this;
 		}
 
-		return this.where({ $text: { $search: search } })
-			.select({
+		const query = this.where({ $text: { $search: search } }).select({
+			score: { $meta: 'textScore' }
+		});
+
+		if (sortByTextScore) {
+			return query.sort({
+				...this.getOptions().sort,
 				score: { $meta: 'textScore' }
-			})
-			.sort({ ...this.getOptions().sort, score: { $meta: 'textScore' } });
+			});
+		}
+		return query;
 	};
 };
 

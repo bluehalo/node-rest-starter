@@ -24,6 +24,21 @@ describe('Text Search Plugin:', () => {
 
 		it('should not add to filter/options if search term is null/undefined/empty string', () => {
 			[null, undefined, ''].forEach((search) => {
+				const query = TextExample.find().textSearch(search, true);
+
+				const filter = query.getFilter();
+				should.exist(filter);
+				should.not.exist(filter.$text);
+				should.not.exist(query.projection());
+
+				const options = query.getOptions();
+				should.exist(options);
+				should.not.exist(options.sort);
+			});
+		});
+
+		it('should not add to filter/options if search term is null/undefined/empty string and sortByTextScore is false', () => {
+			[null, undefined, ''].forEach((search) => {
 				const query = TextExample.find().textSearch(search);
 
 				const filter = query.getFilter();
@@ -38,7 +53,7 @@ describe('Text Search Plugin:', () => {
 		});
 
 		it('should update query filter/options', () => {
-			const query = TextExample.find().textSearch('test');
+			const query = TextExample.find().textSearch('test', true);
 
 			const filter = query.getFilter();
 			should.exist(filter);
@@ -52,6 +67,22 @@ describe('Text Search Plugin:', () => {
 			should.exist(options);
 			should.exist(options.sort);
 			options.sort.should.containEql({ score: { $meta: 'textScore' } });
+		});
+
+		it('should not update sort options if sortByTextScore is false', () => {
+			const query = TextExample.find().textSearch('test');
+
+			const filter = query.getFilter();
+			should.exist(filter);
+			should.exist(filter.$text);
+			filter.should.containEql({ $text: { $search: 'test' } });
+
+			should.exist(query.projection());
+			query.projection().should.containEql({ score: { $meta: 'textScore' } });
+
+			const options = query.getOptions();
+			should.exist(options);
+			should.not.exist(options.sort);
 		});
 	});
 });
