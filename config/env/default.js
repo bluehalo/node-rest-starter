@@ -57,7 +57,7 @@ module.exports = {
 
 		// accessChecker: {
 		// 	provider: {
-		// 		file: 'src/app/core/access-checker/providers/example-provider.server.service.js',
+		// 		file: 'src/app/core/access-checker/providers/example-provider.service.js',
 		// 		config: {
 		// 			'user cn string': {
 		// 				name: 'User Name',
