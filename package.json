@@ -25,7 +25,8 @@
     "lint:eslint": "eslint \"./**/*.js\"",
     "lint:eslint:fix": "eslint \"./**/*.js\" --fix",
     "tsc:check": "tsc --project tsconfig.json --noEmit",
-    "tsc:watch": "tsc --watch --noEmit"
+    "tsc:watch": "tsc --watch --noEmit",
+    "prepare": "husky install"
   },
   "nyc": {
     "include": "src",
@@ -86,7 +87,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-jsdoc": "^35.5.0",
     "eslint-plugin-prettier": "^3.4.0",
-    "husky": "^4.2.1",
+    "husky": "^7.0.0",
     "lint-staged": "^10.0.7",
     "mocha": "^7.1.1",
     "mochawesome": "^5.0.0",
@@ -100,11 +101,6 @@
     "should": "13",
     "sinon": "^7.5.0",
     "supertest": "3.3"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
   },
   "lint-staged": {
     "*.js": "eslint --fix"
