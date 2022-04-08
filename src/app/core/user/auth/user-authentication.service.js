@@ -10,6 +10,7 @@ const _ = require('lodash'),
 	User = dbs.admin.model('User'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	accessChecker = require('../../access-checker/access-checker.service'),
+	userAuthorizationService = require('../auth/user-authorization.service'),
 	userEmailService = require('../../user/user-email.service');
 
 /**
@@ -57,6 +58,9 @@ module.exports.login = (user, req) => {
 			if (err) {
 				return reject({ status: 500, type: 'login-error', message: err });
 			}
+
+			userEmailService.welcomeWithAccessEmail(user, req);
+
 			// update the user's last login time
 			User.findOneAndUpdate(
 				{ _id: user._id },
@@ -194,14 +198,8 @@ const autoCreateUser = async (dn, req, acUser) => {
 	// Create the user
 	const newUser = await createUser(dn, acUser);
 
-	// Send email for new user if enabled, no reason to wait for success
-	if (config.coreEmails?.userSignupAlert?.enabled) {
-		userEmailService.signupEmail(newUser, req);
-	}
-
-	if (config.coreEmails?.welcomeEmail?.enabled) {
-		userEmailService.welcomeEmail(newUser, req);
-	}
+	userEmailService.signupEmail(newUser, req);
+	userEmailService.welcomeNoAccessEmail(newUser, req);
 
 	// Audit user signup
 	await auditService.audit(

@@ -72,21 +72,9 @@ const signup = (user, req, res) => {
 		})
 		.then((newUser) => {
 			// Send email for new user if enabled, no reason to wait for success
-			if (config.coreEmails) {
-				if (
-					config.coreEmails.userSignupAlert &&
-					config.coreEmails.userSignupAlert.enabled
-				) {
-					userEmailService.signupEmail(user, req);
-				}
+			userEmailService.signupEmail(user, req);
+			userEmailService.welcomeNoAccessEmail(user, req);
 
-				if (
-					config.coreEmails.welcomeEmail &&
-					config.coreEmails.welcomeEmail.enabled
-				) {
-					userEmailService.welcomeEmail(user, req);
-				}
-			}
 			return auditService
 				.audit(
 					'user signup',

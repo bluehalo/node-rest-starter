@@ -12,7 +12,11 @@ describe('User Email Service:', () => {
 	const user = {
 		name: 'test',
 		username: 'test',
-		email: 'test@test.test'
+		email: 'test@test.test',
+		roles: {
+			user: true
+		},
+		lastLogin: Date.now()
 	};
 
 	let sandbox;
@@ -93,29 +97,36 @@ FOOTER`;
 		});
 	});
 
-	describe('welcomeEmail', () => {
+	describe('welcomeWithAccessEmail', () => {
 		it('error sending email', async () => {
+			sandbox
+				.stub(deps.config.coreEmails.welcomeWithAccess, 'recentDuration')
+				.value({ seconds: 0 });
 			sandbox.stub(deps.emailService, 'sendMail').rejects(new Error('error'));
 
-			await userEmailService.welcomeEmail(user, {});
+			await userEmailService.welcomeWithAccessEmail(user, {});
 
 			sinon.assert.calledOnce(deps.logger.error);
 		});
 
 		it('should create mailOptions properly', async () => {
 			const expectedEmailContent = `HEADER
-<p>Welcome to ${config.app.title}, ${user.name}!</p>
-<p>Thanks for requesting an account! We've alerted our admins and they will be reviewing your request shortly. </p>
-<p>While you're waiting, click <a href="${config.app.clientUrl}/help/getting-started">here</a> to learn more about our system.</p>
+<p>Welcome Back to ${config.app.title}, ${user.name}!</p>
+<p>Have a question? Take a look at our <a href="${config.app.helpUrl}">Help documentation</a>.</p>
+<p>If you need to contact a member of our team, you can reach us at ${config.app.contactEmail}.</p>
 <br/>
 <br/>
 <p>Thanks,</p>
 <p>The ${config.app.title} Support Team</p><p></p>
-FOOTER`;
+FOOTER
+`;
 
+			sandbox
+				.stub(deps.config.coreEmails.welcomeWithAccess, 'recentDuration')
+				.value({ seconds: 0 });
 			sandbox.stub(deps.emailService, 'sendMail').resolves();
 
-			await userEmailService.welcomeEmail(user, {});
+			await userEmailService.welcomeWithAccessEmail(user, {});
 
 			sinon.assert.calledWithMatch(deps.emailService.sendMail, {
 				to: user.email,

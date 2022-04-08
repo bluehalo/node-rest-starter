@@ -194,10 +194,19 @@ module.exports = {
 			subject: 'New Account Request - {{ app.serverUrl }}',
 			to: contactEmail
 		},
-		welcomeEmail: {
+		welcomeNoAccess: {
 			enabled: true,
+			skipIfUserHasRole: 'user',
 			templatePath:
-				'src/app/core/user/templates/user-welcome-email.server.view.html',
+				'src/app/core/user/templates/user-welcome-no-access-email.server.view.html',
+			subject: 'Welcome to {{ app.title }} - No Access!'
+		},
+		welcomeWithAccess: {
+			enabled: true,
+			recentDuration: { days: 90 },
+			accessRole: 'user',
+			templatePath:
+				'src/app/core/user/templates/user-welcome-with-access-email.server.view.html',
 			subject: 'Welcome to {{ app.title }}!'
 		},
 		approvedUserEmail: {

@@ -197,16 +197,17 @@ describe('Email Service:', () => {
 		it('should build email content', async () => {
 			const expectedResult = `${header}
 <p>Welcome to ${config.app.title}, ${user.name}!</p>
-<p>Thanks for requesting an account! We've alerted our admins and they will be reviewing your request shortly. </p>
-<p>While you're waiting, click <a href="${config.app.clientUrl}/help/getting-started">here</a> to learn more about our system.</p>
+<p>Have a question? Take a look at our <a href="${config.app.helpUrl}">Help documentation</a>.</p>
+<p>If you need to contact a member of our team, you can reach us at ${config.app.contactEmail}.</p>
 <br/>
 <br/>
 <p>Thanks,</p>
 <p>The ${config.app.title} Support Team</p><p></p>
-${footer}`;
+${footer}
+`;
 
 			const subject = await emailService.buildEmailContent(
-				'src/app/core/user/templates/user-welcome-email.server.view.html',
+				'src/app/core/user/templates/user-welcome-with-access-email.server.view.html',
 				user
 			);
 			should.exist(subject);
@@ -277,7 +278,7 @@ ${footer}`;
 			const emailConfig = {
 				subject: 'Test',
 				templatePath:
-					'src/app/core/user/templates/user-welcome-email.server.view.html'
+					'src/app/core/user/templates/user-welcome-with-access-email.server.view.html'
 			};
 
 			const options = await emailService.generateMailOptions(
