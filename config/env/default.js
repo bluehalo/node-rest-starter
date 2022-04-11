@@ -422,5 +422,14 @@ module.exports = {
 	/*
 	 * Configurations for External Services
 	 */
-	external: {}
+	external: {},
+
+	/**
+	 * Configurations for configuring Prometheus metrics exporter
+	 */
+	metrics: {
+		enabled: false,
+		prefix: 'starter',
+		collectDefaultMetrics: true
+	}
 };

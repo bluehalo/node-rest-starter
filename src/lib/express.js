@@ -16,6 +16,7 @@ const _ = require('lodash'),
 	passport = require('passport'),
 	swaggerJsDoc = require('swagger-jsdoc'),
 	swaggerUi = require('swagger-ui-express'),
+	metrics = require('./metrics'),
 	MongoStore = require('connect-mongo')(session);
 
 const baseApiPath = '/api';
@@ -133,6 +134,13 @@ function initModulesConfiguration(app, db) {
 	config.files.configs.forEach((configPath) => {
 		require(path.posix.resolve(configPath))(app, db);
 	});
+}
+
+/**
+ * Invoke metrics start function
+ */
+function initMetricsMonitoring() {
+	metrics.start();
 }
 
 /**
@@ -284,6 +292,9 @@ module.exports.init = function (db) {
 
 	// Initialize Modules configuration
 	initModulesConfiguration(app);
+
+	// Initialize Prometheus Metrics monitoring
+	initMetricsMonitoring();
 
 	// Initialize Helmet security headers
 	initHelmetHeaders(app);

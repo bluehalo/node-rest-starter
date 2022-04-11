@@ -15,6 +15,9 @@ module.exports.dbs = require('./lib/mongoose').dbs;
 // Socket IO
 module.exports.socketIO = require('./lib/socket.io');
 
+// Metrics
+module.exports.metrics = require('./lib/metrics');
+
 // Core Services
 module.exports.auditService = require('./app/core/audit/audit.service');
 module.exports.emailService = require('./app/core/email/email.service');
