@@ -3,6 +3,7 @@
 const sinon = require('sinon'),
 	deps = require('../../../dependencies'),
 	config = deps.config,
+	userService = require('./user.service'),
 	userEmailService = require('./user-email.service');
 
 /**
@@ -16,7 +17,7 @@ describe('User Email Service:', () => {
 		roles: {
 			user: true
 		},
-		lastLogin: Date.now()
+		lastLoginWithAccess: Date.now()
 	};
 
 	let sandbox;
@@ -103,6 +104,7 @@ FOOTER`;
 				.stub(deps.config.coreEmails.welcomeWithAccess, 'recentDuration')
 				.value({ seconds: 0 });
 			sandbox.stub(deps.emailService, 'sendMail').rejects(new Error('error'));
+			sandbox.stub(userService, 'updateLastLoginWithAccess').resolves();
 
 			await userEmailService.welcomeWithAccessEmail(user, {});
 
@@ -125,6 +127,7 @@ FOOTER
 				.stub(deps.config.coreEmails.welcomeWithAccess, 'recentDuration')
 				.value({ seconds: 0 });
 			sandbox.stub(deps.emailService, 'sendMail').resolves();
+			sandbox.stub(userService, 'updateLastLoginWithAccess').resolves();
 
 			await userEmailService.welcomeWithAccessEmail(user, {});
 
