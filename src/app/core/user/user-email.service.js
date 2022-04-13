@@ -5,6 +5,7 @@ const { DateTime } = require('luxon'),
 	config = deps.config,
 	emailService = deps.emailService,
 	logger = deps.logger,
+	userService = require('./user.service'),
 	userAuthorizationService = require('./auth/user-authorization.service');
 
 // Send email alert to system admins about new account request
@@ -84,26 +85,25 @@ module.exports.welcomeWithAccessEmail = async (user, req) => {
 	);
 	const accessRole = config.coreEmails.welcomeWithAccess.accessRole;
 
-	if (
-		accessRole &&
-		userAuthorizationService.hasRole(user, accessRole) &&
-		recentCutoff.toMillis() > user.lastLogin
-	) {
-		try {
-			const mailOptions = await emailService.generateMailOptions(
-				user,
-				req,
-				config.coreEmails.welcomeWithAccess,
-				{},
-				{},
-				{
-					to: user.email
-				}
-			);
-			await emailService.sendMail(mailOptions);
-		} catch (error) {
-			// Log the error but this shouldn't block the user from signing up
-			logger.error({ err: error, req: req }, 'Failure sending email.');
+	if (accessRole && userAuthorizationService.hasRole(user, accessRole)) {
+		if (recentCutoff.toMillis() > user.lastLoginWithAccess) {
+			try {
+				const mailOptions = await emailService.generateMailOptions(
+					user,
+					req,
+					config.coreEmails.welcomeWithAccess,
+					{},
+					{},
+					{
+						to: user.email
+					}
+				);
+				await emailService.sendMail(mailOptions);
+			} catch (error) {
+				// Log the error but this shouldn't block the user from signing up
+				logger.error({ err: error, req: req }, 'Failure sending email.');
+			}
 		}
+		userService.updateLastLoginWithAccess(user);
 	}
 };

@@ -48,10 +48,16 @@ const updateLastLogin = (user) => {
 	return user.save();
 };
 
+const updateLastLoginWithAccess = (user) => {
+	user.lastLoginWithAccess = Date.now();
+	return user.save();
+};
+
 module.exports = {
 	read,
 	update,
 	remove,
 	searchUsers,
-	updateLastLogin
+	updateLastLogin,
+	updateLastLoginWithAccess
 };
