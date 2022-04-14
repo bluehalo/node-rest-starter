@@ -81,6 +81,8 @@ const roleSchemaDef = {
  *           default: null
  *         lastLogin:
  *           type: integer
+ *         lastLoginWithAccess:
+ *           type: integer
  *         newFeatureDismissed:
  *           type: boolean
  *           default: null
@@ -224,6 +226,11 @@ const UserSchema = new mongoose.Schema({
 		get: util.dateParse
 	},
 	lastLogin: {
+		type: Date,
+		default: null,
+		get: util.dateParse
+	},
+	lastLoginWithAccess: {
 		type: Date,
 		default: null,
 		get: util.dateParse
