@@ -95,3 +95,40 @@ db.useragreements.createIndex({ title: 'text', text: 'text' }, { background: tru
 db.users.createIndex({ username: 1 }, { background: true });
 db.users.createIndex({ name: 'text', email: 'text', username: 'text' }, { background: true });
 ```
+
+## Application Metrics via Prometheus
+
+Application metrics may be enabled that will expose an `/api/metrics` endpoints with metrics information structured to be retrieved by Prometheus.
+
+By default, metrics metadata will be limited to internal Node metrics, however it is possible to selectively enable monitoring for individual express routes using the `requestMetricsMiddleware` middleware function. Adding the middleware function to an express route will expose metrics for total request counts and request duration
+
+```javascript
+router.route('/config')
+.get(
+	metrics.requestMetricsMiddleware('/config'),
+	config.read)
+;
+```
+
+```
+# HELP starter_http_requests_total Counter for total requests received
+# TYPE starter_http_requests_total counter
+starter_http_requests_total{route="/config",method="GET",status="200"} 4
+
+# HELP starter_http_request_duration_seconds Duration of HTTP requests in seconds
+# TYPE starter_http_request_duration_seconds histogram
+starter_http_request_duration_seconds_bucket{le="0.005",route="/config",method="GET",status="200"} 4
+starter_http_request_duration_seconds_bucket{le="0.01",route="/config",method="GET",status="200"} 4
+starter_http_request_duration_seconds_bucket{le="0.025",route="/config",method="GET",status="200"} 4
+starter_http_request_duration_seconds_bucket{le="0.05",route="/config",method="GET",status="200"} 4
+starter_http_request_duration_seconds_bucket{le="0.1",route="/config",method="GET",status="200"} 4
+starter_http_request_duration_seconds_bucket{le="0.25",route="/config",method="GET",status="200"} 4
+starter_http_request_duration_seconds_bucket{le="0.5",route="/config",method="GET",status="200"} 4
+starter_http_request_duration_seconds_bucket{le="1",route="/config",method="GET",status="200"} 4
+starter_http_request_duration_seconds_bucket{le="2.5",route="/config",method="GET",status="200"} 4
+starter_http_request_duration_seconds_bucket{le="5",route="/config",method="GET",status="200"} 4
+starter_http_request_duration_seconds_bucket{le="10",route="/config",method="GET",status="200"} 4
+starter_http_request_duration_seconds_bucket{le="+Inf",route="/config",method="GET",status="200"} 4
+starter_http_request_duration_seconds_sum{route="/config",method="GET",status="200"} 0.019
+starter_http_request_duration_seconds_count{route="/config",method="GET",status="200"} 4
+```
