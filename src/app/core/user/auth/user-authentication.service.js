@@ -132,9 +132,7 @@ module.exports.authenticateAndLogin = function (req, res, next) {
 			}
 			// Else the authentication was successful
 			// Set the user ip if available.
-			user.ip = _.isUndefined(req.headers['x-real-ip'])
-				? null
-				: req.headers['x-real-ip'];
+			user.ip = req.headers?.['x-real-ip'] ?? null;
 			module.exports.login(user, req).then(resolve).catch(reject);
 		})(req, res, next);
 	});

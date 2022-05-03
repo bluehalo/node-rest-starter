@@ -277,8 +277,6 @@ describe('User Profile Controller:', () => {
 				body: {},
 				user: new User()
 			};
-
-			sandbox.stub(deps.utilService, 'handleErrorResponse').resolves();
 		});
 
 		it('search returns successfully', async () => {
@@ -289,7 +287,6 @@ describe('User Profile Controller:', () => {
 			await userProfileController.searchUsers(req, res);
 
 			sinon.assert.calledOnce(userService.searchUsers);
-			sinon.assert.notCalled(deps.utilService.handleErrorResponse);
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.calledOnce(res.json);
 		});
@@ -302,8 +299,6 @@ describe('User Profile Controller:', () => {
 				body: {},
 				user: new User()
 			};
-
-			sandbox.stub(deps.utilService, 'handleErrorResponse').resolves();
 		});
 
 		it('search returns successfully', async () => {
@@ -314,7 +309,6 @@ describe('User Profile Controller:', () => {
 			await userProfileController.matchUsers(req, res);
 
 			sinon.assert.calledOnce(userService.searchUsers);
-			sinon.assert.notCalled(deps.utilService.handleErrorResponse);
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.calledOnce(res.json);
 		});
