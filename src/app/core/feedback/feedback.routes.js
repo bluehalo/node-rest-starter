@@ -1,8 +1,13 @@
 'use strict';
 
 const express = require('express'),
+	{ Validator } = require('express-json-validator-middleware'),
 	feedback = require('./feedback.controller'),
-	user = require('../user/user.controller');
+	user = require('../user/user.controller'),
+	feedbackSchemas = require('./feedback.schemas');
+
+// @ts-ignore
+const { validate } = new Validator();
 
 const router = express.Router();
 
@@ -42,7 +47,11 @@ const router = express.Router();
  */
 router
 	.route('/feedback')
-	.post(user.has(user.requiresLogin), feedback.submitFeedback);
+	.post(
+		user.has(user.requiresLogin),
+		validate({ body: feedbackSchemas.create }),
+		feedback.submitFeedback
+	);
 
 /**
  * @swagger

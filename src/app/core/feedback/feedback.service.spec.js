@@ -41,18 +41,6 @@ describe('Feedback Service:', () => {
 	};
 
 	describe('sendFeedback', () => {
-		it('should reject invalid feedback', async () => {
-			let error = null;
-			try {
-				await feedbackService.sendFeedback(user, {});
-			} catch (e) {
-				error = e;
-			}
-			should.exist(error);
-			error.status.should.equal(400);
-			error.message.should.equal('Invalid submission.');
-		});
-
 		it('should create mailOptions properly', async () => {
 			const feedback = {
 				body: 'feedback body',

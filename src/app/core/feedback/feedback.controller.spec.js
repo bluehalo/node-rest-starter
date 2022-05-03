@@ -1,8 +1,11 @@
 'use strict';
 
+const express = require('express');
+// Patches express to support async/await.  Should be called immediately after express.
+require('express-async-errors');
+
 const request = require('supertest'),
 	should = require('should'),
-	express = require('express'),
 	bodyParser = require('body-parser'),
 	mock = require('mock-require'),
 	deps = require('../../../dependencies'),
@@ -50,6 +53,7 @@ describe('Feedback Controller', () => {
 
 		router.use(mock.reRequire('./feedback.routes'));
 		app.use(router);
+		app.use(require('../../common/express/error-handlers').defaultErrorHandler);
 	});
 
 	after(() => {
@@ -91,27 +95,6 @@ describe('Feedback Controller', () => {
 					})
 					.end(done);
 			});
-		});
-
-		it('should get an error submitting invalid feedback', (done) => {
-			const spec = {
-				// missing body
-				type: 'Bug',
-				url: 'http://localhost:3000/some-page?with=param'
-			};
-
-			request(app)
-				.post('/feedback')
-				.send(spec)
-				.expect('Content-Type', /json/)
-				.expect(400)
-				.expect((res) => {
-					should(res.body).eql({
-						status: 400,
-						message: 'Invalid submission.'
-					});
-				})
-				.end(done);
 		});
 	});
 
@@ -218,7 +201,7 @@ describe('Feedback Controller', () => {
 				.expect(400)
 				.expect((res) => {
 					should(res.body).eql({
-						message: 'Invalid feedback ID',
+						message: 'Error: Invalid feedback ID',
 						status: 400,
 						type: 'validation'
 					});
@@ -235,7 +218,7 @@ describe('Feedback Controller', () => {
 				.expect(404)
 				.expect((res) => {
 					should(res.body).eql({
-						message: 'Could not find feedback',
+						message: 'Error: Could not find feedback',
 						status: 404,
 						type: 'not-found'
 					});
@@ -301,7 +284,7 @@ describe('Feedback Controller', () => {
 				.expect(400)
 				.expect((res) => {
 					should(res.body).eql({
-						message: 'Invalid feedback ID',
+						message: 'Error: Invalid feedback ID',
 						status: 400,
 						type: 'validation'
 					});
@@ -318,7 +301,7 @@ describe('Feedback Controller', () => {
 				.expect(404)
 				.expect((res) => {
 					should(res.body).eql({
-						message: 'Could not find feedback',
+						message: 'Error: Could not find feedback',
 						status: 404,
 						type: 'not-found'
 					});

@@ -1,5 +1,9 @@
 'use strict';
 
+const express = require('express');
+// Patches express to support async/await.  Should be called immediately after express.
+require('express-async-errors');
+
 const _ = require('lodash'),
 	path = require('path'),
 	config = require('../config'),
@@ -7,7 +11,6 @@ const _ = require('lodash'),
 	bodyParser = require('body-parser'),
 	compress = require('compression'),
 	cookieParser = require('cookie-parser'),
-	express = require('express'),
 	session = require('express-session'),
 	flash = require('connect-flash'),
 	helmet = require('helmet'),
@@ -16,7 +19,8 @@ const _ = require('lodash'),
 	passport = require('passport'),
 	swaggerJsDoc = require('swagger-jsdoc'),
 	swaggerUi = require('swagger-ui-express'),
-	MongoStore = require('connect-mongo')(session);
+	MongoStore = require('connect-mongo')(session),
+	errorHandlers = require('../app/common/express/error-handlers');
 
 const baseApiPath = '/api';
 
@@ -167,21 +171,9 @@ function initModulesServerRoutes(app) {
  * Configure final error handlers
  */
 function initErrorRoutes(app) {
-	// If there's an error, handle it
-	app.use((err, req, res, next) => {
-		// If the error object doesn't exists
-		if (!err) return next();
-
-		// Log it
-		logger.error(err);
-
-		// send server error
-		res.status(500).json({
-			status: 500,
-			type: 'server-error',
-			message: 'Unexpected server error'
-		});
-	});
+	app.use(errorHandlers.jsonSchemaValidationErrorHandler);
+	app.use(errorHandlers.mongooseValidationErrorHandler);
+	app.use(errorHandlers.defaultErrorHandler);
 
 	// Assume 404 since no middleware responded
 	app.use((req, res) => {
