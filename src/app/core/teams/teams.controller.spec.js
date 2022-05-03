@@ -233,48 +233,6 @@ describe('Teams Controller:', () => {
 	});
 
 	describe('addMembers', () => {
-		it('team members not found', async () => {
-			const req = {
-				team: { _id: '12345' },
-				body: {}
-			};
-			await teamsController.addMembers(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'New team members not specified'
-				})
-			);
-		});
-
-		it('team members empty array', async () => {
-			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
-				body: { newMembers: [] }
-			};
-
-			await teamsController.addMembers(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'New team members not specified'
-				})
-			);
-		});
-
 		it('request handled', async () => {
 			const req = {
 				team: { _id: '12345' },

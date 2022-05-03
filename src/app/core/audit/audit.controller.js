@@ -33,32 +33,26 @@ exports.search = async function (req, res) {
 	const limit = util.getLimit(req.query);
 	const sort = util.getSortObj(req.query, 'DESC', '_id');
 
-	try {
-		const result = await Audit.find(query)
-			.containsSearch(search)
-			.sort(sort)
-			.paginate(limit, page);
+	const result = await Audit.find(query)
+		.containsSearch(search)
+		.sort(sort)
+		.paginate(limit, page);
 
-		// If any audit objects are strings, try to parse them as json. we may have stringified objects because mongo
-		// can't support keys with dots
-		result.elements = result.elements.map((doc) => {
-			if (_.isString(doc.audit.object)) {
-				try {
-					doc.audit.object = JSON.parse(doc.audit.object);
-					return doc;
-				} catch (e) {
-					// ignore
-					return doc;
-				}
+	// If any audit objects are strings, try to parse them as json. we may have stringified objects because mongo
+	// can't support keys with dots
+	result.elements = result.elements.map((doc) => {
+		if (_.isString(doc.audit.object)) {
+			try {
+				doc.audit.object = JSON.parse(doc.audit.object);
+				return doc;
+			} catch (e) {
+				// ignore
+				return doc;
 			}
-			return doc;
-		});
+		}
+		return doc;
+	});
 
-		// Serialize the response
-		res.status(200).json(result);
-	} catch (err) {
-		// failure
-		logger.error({ err: err, req: req }, 'Error searching for audit entries');
-		return util.handleErrorResponse(res, err);
-	}
+	// Serialize the response
+	res.status(200).json(result);
 };

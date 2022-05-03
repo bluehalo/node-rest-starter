@@ -32,9 +32,7 @@ module.exports.has = (requirement) => {
 			.then(() => {
 				next();
 			})
-			.catch((errorResult) => {
-				util.handleErrorResponse(res, errorResult);
-			});
+			.catch(next);
 	};
 };
 
@@ -44,12 +42,10 @@ module.exports.has = (requirement) => {
 module.exports.hasAll = function (...requirements) {
 	return (req, res, next) => {
 		Promise.resolve(module.exports.requiresAll(requirements)(req))
-			.then((result) => {
+			.then(() => {
 				next();
 			})
-			.catch((errorResult) => {
-				util.handleErrorResponse(res, errorResult);
-			});
+			.catch(next);
 	};
 };
 
@@ -78,12 +74,10 @@ module.exports.requiresAll = (requirements) => {
 module.exports.hasAny = function (...requirements) {
 	return (req, res, next) => {
 		Promise.resolve(module.exports.requiresAny(requirements)(req))
-			.then((result) => {
+			.then(() => {
 				next();
 			})
-			.catch((errorResult) => {
-				util.handleErrorResponse(res, errorResult);
-			});
+			.catch(next);
 	};
 };
 
@@ -94,7 +88,7 @@ module.exports.requiresAny = (requirements) => {
 		const applyRequirement = (i) => {
 			if (i < requirements.length) {
 				return requirements[i](req)
-					.then((result) => {
+					.then(() => {
 						// Success means we're done
 						return Promise.resolve();
 					})
@@ -111,10 +105,9 @@ module.exports.requiresAny = (requirements) => {
 
 		if (requirements.length > 0) {
 			return applyRequirement(0);
-		} else {
-			// Nothing to check passes
-			return Promise.resolve();
 		}
+		// Nothing to check passes
+		return Promise.resolve();
 	};
 };
 

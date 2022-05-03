@@ -181,14 +181,6 @@ module.exports.addMember = async (req, res) => {
  * Add specified members with specified roles to a team
  */
 module.exports.addMembers = async (req, res) => {
-	if (null == req.body.newMembers || req.body.newMembers.length === 0) {
-		return util.handleErrorResponse(res, {
-			status: 400,
-			type: 'error',
-			message: 'New team members not specified'
-		});
-	}
-
 	await Promise.all(
 		req.body.newMembers
 			.filter((member) => null != member._id)

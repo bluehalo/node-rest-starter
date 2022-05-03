@@ -93,28 +93,6 @@ describe('User Admin Controller:', () => {
 			sinon.assert.calledWithMatch(res.json, ['user1 Name', 'user2 Name']);
 		});
 
-		it('error executing query; returns error', async () => {
-			const req = {
-				body: { field: 'name' }
-			};
-
-			sandbox.stub(User, 'find').returns({
-				exec: () => Promise.reject('error')
-			});
-			sandbox.stub(deps.utilService, 'handleErrorResponse').returns();
-
-			await userAdminController.adminGetAll(req, res);
-
-			sinon.assert.calledOnce(User.find);
-			sinon.assert.calledWithMatch(
-				deps.utilService.handleErrorResponse,
-				res,
-				'error'
-			);
-			sinon.assert.notCalled(res.status);
-			sinon.assert.notCalled(res.json);
-		});
-
 		it('query field undefined; returns error', async () => {
 			const req = {
 				body: {}
@@ -220,20 +198,6 @@ describe('User Admin Controller:', () => {
 			sinon.assert.called(res.json);
 			sinon.assert.notCalled(deps.utilService.handleErrorResponse);
 		});
-
-		it('user is found; save throws error', async () => {
-			req.body.roles = { user: true };
-
-			sandbox.stub(userService, 'update').rejects('error');
-
-			await userAdminController.adminUpdateUser(req, res);
-
-			sinon.assert.notCalled(deps.auditService.audit);
-			sinon.assert.notCalled(userEmailService.emailApprovedUser);
-			sinon.assert.notCalled(res.status);
-			sinon.assert.notCalled(res.json);
-			sinon.assert.calledOnce(deps.utilService.handleErrorResponse);
-		});
 	});
 
 	describe('adminDeleteUser', () => {
@@ -263,21 +227,6 @@ describe('User Admin Controller:', () => {
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
 			sinon.assert.notCalled(deps.utilService.handleErrorResponse);
-		});
-
-		it('user is found; remove throws error', async () => {
-			sandbox.stub(userService, 'remove').rejects({ message: 'error' });
-
-			await userAdminController.adminDeleteUser(req, res);
-
-			sinon.assert.calledWithMatch(
-				deps.auditService.audit,
-				'admin user deleted'
-			);
-			sinon.assert.calledOnce(resourcesService.deleteResourcesWithOwner);
-			sinon.assert.notCalled(res.status);
-			sinon.assert.notCalled(res.json);
-			sinon.assert.calledOnce(deps.utilService.handleErrorResponse);
 		});
 	});
 
@@ -327,17 +276,6 @@ describe('User Admin Controller:', () => {
 				sinon.assert.calledWith(res.status, 200);
 				sinon.assert.calledOnce(res.json);
 			});
-		});
-
-		it('search throws error', async () => {
-			sandbox.stub(userService, 'searchUsers').rejects(new Error('error'));
-
-			await userAdminController.adminSearchUsers(req, res);
-
-			sinon.assert.calledOnce(userService.searchUsers);
-			sinon.assert.calledOnce(deps.utilService.handleErrorResponse);
-			sinon.assert.notCalled(res.status);
-			sinon.assert.notCalled(res.json);
 		});
 	});
 });
