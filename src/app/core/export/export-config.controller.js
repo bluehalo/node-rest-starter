@@ -23,7 +23,7 @@ module.exports.requestExport = async (req, res) => {
 		req.body.config.q = JSON.stringify(req.body.config.q);
 	}
 
-	const generatedConfig = exportConfigService.generateConfig(req);
+	const generatedConfig = await exportConfigService.generateConfig(req);
 
 	auditService.audit(
 		`${req.body.type} config created`,

@@ -10,7 +10,6 @@ const _ = require('lodash'),
 	User = dbs.admin.model('User'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	accessChecker = require('../../access-checker/access-checker.service'),
-	userAuthorizationService = require('../auth/user-authorization.service'),
 	userEmailService = require('../../user/user-email.service');
 
 /**

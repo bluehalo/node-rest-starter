@@ -1,8 +1,6 @@
 'use strict';
 
-const _ = require('lodash'),
-	deps = require('../../../dependencies'),
-	util = deps.utilService;
+const _ = require('lodash');
 
 /**
  * Extend user's controller

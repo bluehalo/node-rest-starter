@@ -1,8 +1,6 @@
 'use strict';
 
-const deps = require('../../../dependencies'),
-	util = deps.utilService,
-	notificationsService = require('./notification.service');
+const notificationsService = require('./notification.service');
 
 module.exports.search = async (req, res) => {
 	// Get search and query parameters
