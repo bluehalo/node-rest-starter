@@ -8,6 +8,7 @@ const deps = require('../../../../dependencies'),
 	userAuthService = require('./user-authentication.service'),
 	userAuthorizationService = require('./user-authorization.service'),
 	userEmailService = require('../user-email.service'),
+	teamService = require('../../teams/teams.service'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	User = dbs.admin.model('User');
 
@@ -22,6 +23,7 @@ async function login(user, req, res) {
 	try {
 		const result = await userAuthService.login(user, req);
 		userAuthorizationService.updateRoles(result);
+		await teamService.updateTeams(result);
 		res.status(200).json(result);
 	} catch (err) {
 		util.handleErrorResponse(res, err);
@@ -33,6 +35,7 @@ async function authenticateAndLogin(req, res, next) {
 	try {
 		const result = await userAuthService.authenticateAndLogin(req, res, next);
 		userAuthorizationService.updateRoles(result);
+		await teamService.updateTeams(result);
 		res.status(200).json(result);
 	} catch (err) {
 		util.handleErrorResponse(res, err);
