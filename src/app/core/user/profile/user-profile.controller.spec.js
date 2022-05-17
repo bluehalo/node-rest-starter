@@ -236,35 +236,6 @@ describe('User Profile Controller:', () => {
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
 		});
-
-		it('user is logged in; error updating', async () => {
-			const req = {
-				body: {},
-				user: new User()
-			};
-
-			sandbox.stub(userProfileService, 'updatePreferences').throws('error');
-			sandbox.stub(deps.utilService, 'handleErrorResponse').resolves();
-
-			await userProfileController.updatePreferences(req, res);
-
-			sinon.assert.calledOnce(userProfileService.updatePreferences);
-			sinon.assert.calledOnce(deps.utilService.handleErrorResponse);
-		});
-
-		it('user is not logged in (user not attached to request)', async () => {
-			const req = {
-				body: {}
-			};
-
-			sandbox.stub(userProfileService, 'updatePreferences').resolves();
-			sandbox.stub(deps.utilService, 'handleErrorResponse').resolves();
-
-			await userProfileController.updatePreferences(req, res);
-
-			sinon.assert.notCalled(userProfileService.updatePreferences);
-			sinon.assert.calledOnce(deps.utilService.handleErrorResponse);
-		});
 	});
 
 	describe('updateRequiredOrgs', () => {
@@ -283,35 +254,6 @@ describe('User Profile Controller:', () => {
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
 		});
-
-		it('user is logged in; error updating', async () => {
-			const req = {
-				body: {},
-				user: new User()
-			};
-
-			sandbox.stub(userProfileService, 'updateRequiredOrgs').throws('error');
-			sandbox.stub(deps.utilService, 'handleErrorResponse').resolves();
-
-			await userProfileController.updateRequiredOrgs(req, res);
-
-			sinon.assert.calledOnce(userProfileService.updateRequiredOrgs);
-			sinon.assert.calledOnce(deps.utilService.handleErrorResponse);
-		});
-
-		it('user is not logged in (user not attached to request)', async () => {
-			const req = {
-				body: {}
-			};
-
-			sandbox.stub(userProfileService, 'updateRequiredOrgs').resolves();
-			sandbox.stub(deps.utilService, 'handleErrorResponse').resolves();
-
-			await userProfileController.updateRequiredOrgs(req, res);
-
-			sinon.assert.notCalled(userProfileService.updateRequiredOrgs);
-			sinon.assert.calledOnce(deps.utilService.handleErrorResponse);
-		});
 	});
 
 	describe('getUserById', () => {
@@ -326,17 +268,6 @@ describe('User Profile Controller:', () => {
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
 		});
-
-		it('user is not found', async () => {
-			const req = {
-				body: {}
-			};
-
-			await userProfileController.getUserById(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.called(res.json);
-		});
 	});
 
 	describe('searchUsers', () => {
@@ -346,8 +277,6 @@ describe('User Profile Controller:', () => {
 				body: {},
 				user: new User()
 			};
-
-			sandbox.stub(deps.utilService, 'handleErrorResponse').resolves();
 		});
 
 		it('search returns successfully', async () => {
@@ -358,20 +287,8 @@ describe('User Profile Controller:', () => {
 			await userProfileController.searchUsers(req, res);
 
 			sinon.assert.calledOnce(userService.searchUsers);
-			sinon.assert.notCalled(deps.utilService.handleErrorResponse);
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.calledOnce(res.json);
-		});
-
-		it('search throws error', async () => {
-			sandbox.stub(userService, 'searchUsers').rejects(new Error('error'));
-
-			await userProfileController.searchUsers(req, res);
-
-			sinon.assert.calledOnce(userService.searchUsers);
-			sinon.assert.calledOnce(deps.utilService.handleErrorResponse);
-			sinon.assert.notCalled(res.status);
-			sinon.assert.notCalled(res.json);
 		});
 	});
 
@@ -382,8 +299,6 @@ describe('User Profile Controller:', () => {
 				body: {},
 				user: new User()
 			};
-
-			sandbox.stub(deps.utilService, 'handleErrorResponse').resolves();
 		});
 
 		it('search returns successfully', async () => {
@@ -394,20 +309,8 @@ describe('User Profile Controller:', () => {
 			await userProfileController.matchUsers(req, res);
 
 			sinon.assert.calledOnce(userService.searchUsers);
-			sinon.assert.notCalled(deps.utilService.handleErrorResponse);
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.calledOnce(res.json);
-		});
-
-		it('search throws error', async () => {
-			sandbox.stub(userService, 'searchUsers').rejects(new Error('error'));
-
-			await userProfileController.matchUsers(req, res);
-
-			sinon.assert.calledOnce(userService.searchUsers);
-			sinon.assert.calledOnce(deps.utilService.handleErrorResponse);
-			sinon.assert.notCalled(res.status);
-			sinon.assert.notCalled(res.json);
 		});
 	});
 

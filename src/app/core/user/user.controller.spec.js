@@ -48,22 +48,11 @@ describe('User Controller:', () => {
 				requiresEua: fail('eua')
 			});
 			const ctrl = mock.reRequire('./user.controller');
-			ctrl.hasAccess(
-				{},
-				{
-					status: () => {
-						return {
-							json: (actual) => {
-								should(actual.message).eql('eua');
-								done();
-							}
-						};
-					}
-				},
-				() => {
-					done('should not get here');
-				}
-			);
+			ctrl.hasAccess({}, {}, (err) => {
+				should.exist(err);
+				err.message.should.equal('eua');
+				done();
+			});
 		});
 
 		it('should fail a user without user role access', (done) => {
@@ -77,22 +66,11 @@ describe('User Controller:', () => {
 				requiresEua: pass('eua')
 			});
 			const ctrl = mock.reRequire('./user.controller');
-			ctrl.hasAccess(
-				{},
-				{
-					status: () => {
-						return {
-							json: (actual) => {
-								should(actual.message).eql('user');
-								done();
-							}
-						};
-					}
-				},
-				() => {
-					done('should not get here');
-				}
-			);
+			ctrl.hasAccess({}, {}, (err) => {
+				should.exist(err);
+				err.message.should.equal('user');
+				done();
+			});
 		});
 
 		it('should fail first on user role even if eua is missing', (done) => {
@@ -106,22 +84,11 @@ describe('User Controller:', () => {
 				requiresEua: fail('eua')
 			});
 			const ctrl = mock.reRequire('./user.controller');
-			ctrl.hasAccess(
-				{},
-				{
-					status: () => {
-						return {
-							json: (actual) => {
-								should(actual.message).eql('user');
-								done();
-							}
-						};
-					}
-				},
-				() => {
-					done('should not get here');
-				}
-			);
+			ctrl.hasAccess({}, {}, (err) => {
+				should.exist(err);
+				err.message.should.equal('user');
+				done();
+			});
 		});
 	});
 });

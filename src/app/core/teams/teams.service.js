@@ -270,10 +270,10 @@ const validateTeamRole = (role) => {
 };
 
 const readTeam = (id, populate = []) => {
-	const query = {
-		_id: id
-	};
-	return Team.findOne(query).populate(populate).exec();
+	if (!mongoose.Types.ObjectId.isValid(id)) {
+		throw { status: 400, type: 'validation', message: 'Invalid team ID' };
+	}
+	return Team.findById(id).populate(populate).exec();
 };
 
 const readTeamMember = (id, populate = []) => {

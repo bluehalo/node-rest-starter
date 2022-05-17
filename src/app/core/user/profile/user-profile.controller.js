@@ -128,36 +128,18 @@ exports.updateCurrentUser = async (req, res) => {
 };
 
 exports.updatePreferences = async (req, res) => {
-	try {
-		await userProfileService.updatePreferences(req.user._id, req.body);
-		res.status(200).json({});
-	} catch (err) {
-		util.handleErrorResponse(res, err);
-	}
+	await userProfileService.updatePreferences(req.user._id, req.body);
+	res.status(200).json({});
 };
 
 exports.updateRequiredOrgs = async (req, res) => {
-	try {
-		await userProfileService.updateRequiredOrgs(req.user._id, req.body);
-		res.status(200).json({});
-	} catch (err) {
-		util.handleErrorResponse(res, err);
-	}
+	await userProfileService.updateRequiredOrgs(req.user._id, req.body);
+	res.status(200).json({});
 };
 
 // Get a filtered version of a user by id
 exports.getUserById = (req, res) => {
-	// The user that is a parameter of the request is stored in 'userParam'
-	const user = req.userParam;
-
-	if (null == user) {
-		res.status(400).json({
-			message: 'User does not exist'
-		});
-		return;
-	}
-
-	res.status(200).json(User.filteredCopy(user));
+	res.status(200).json(User.filteredCopy(req.userParam));
 };
 
 // Search for users (return filtered version of user)
@@ -166,13 +148,9 @@ exports.searchUsers = async (req, res) => {
 	const query = req.body.q;
 	const search = req.body.s;
 
-	try {
-		const results = await userService.searchUsers(req.query, query, search);
-		results.elements = results.elements.map(User.filteredCopy);
-		res.status(200).json(results);
-	} catch (err) {
-		util.handleErrorResponse(res, err);
-	}
+	const results = await userService.searchUsers(req.query, query, search);
+	results.elements = results.elements.map(User.filteredCopy);
+	res.status(200).json(results);
 };
 
 // Match users given a search fragment
@@ -181,17 +159,13 @@ exports.matchUsers = async (req, res) => {
 	const query = req.body.q;
 	const search = req.body.s;
 
-	try {
-		const results = await userService.searchUsers(req.query, query, search, [
-			'name',
-			'username',
-			'email'
-		]);
-		results.elements = results.elements.map(User.filteredCopy);
-		res.status(200).json(results);
-	} catch (err) {
-		util.handleErrorResponse(res, err);
-	}
+	const results = await userService.searchUsers(req.query, query, search, [
+		'name',
+		'username',
+		'email'
+	]);
+	results.elements = results.elements.map(User.filteredCopy);
+	res.status(200).json(results);
 };
 
 exports.canEditProfile = (authStrategy, user) => {

@@ -10,15 +10,6 @@ const deps = require('../../../dependencies'),
 	mongoose = require('mongoose');
 
 const sendFeedback = async (user, feedback, req) => {
-	if (
-		null == user ||
-		null == feedback.body ||
-		null == feedback.type ||
-		null == feedback.url
-	) {
-		return Promise.reject({ status: 400, message: 'Invalid submission.' });
-	}
-
 	try {
 		const mailOptions = await emailService.generateMailOptions(
 			user,
@@ -78,14 +69,11 @@ const search = (reqUser, queryParams, search, query) => {
 		.paginate(limit, page);
 };
 
-const readFeedback = async (feedbackId, populate = []) => {
+const readFeedback = (feedbackId, populate = []) => {
 	if (!mongoose.Types.ObjectId.isValid(feedbackId)) {
 		throw { status: 400, type: 'validation', message: 'Invalid feedback ID' };
 	}
-	const feedback = await Feedback.findById(feedbackId)
-		.populate(populate)
-		.exec();
-	return feedback;
+	return Feedback.findById(feedbackId).populate(populate).exec();
 };
 
 const updateFeedbackAssignee = (feedback, assignee) => {

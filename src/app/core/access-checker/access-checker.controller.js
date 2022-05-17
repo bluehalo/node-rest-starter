@@ -3,7 +3,6 @@
 const deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	util = deps.utilService,
-	logger = deps.logger,
 	accessCheckerService = require('./access-checker.service'),
 	CacheEntry = dbs.admin.model('CacheEntry');
 
@@ -19,23 +18,17 @@ module.exports.searchEntries = async (req, res) => {
 	const limit = util.getLimit(req.query);
 	const sort = util.getSortObj(req.query, 'DESC');
 
-	try {
-		const results = await CacheEntry.find(query)
-			.textSearch(search)
-			.sort(sort)
-			.paginate(limit, page);
+	const results = await CacheEntry.find(query)
+		.textSearch(search)
+		.sort(sort)
+		.paginate(limit, page);
 
-		// Create the return copy of the users
-		results.elements = results.elements.map((element) =>
-			CacheEntry.fullCopy(element)
-		);
+	// Create the return copy of the users
+	results.elements = results.elements.map((element) =>
+		CacheEntry.fullCopy(element)
+	);
 
-		res.json(results);
-	} catch (error) {
-		// failure
-		logger.error(error);
-		return util.send400Error(res, error);
-	}
+	res.json(results);
 };
 
 // Match users given a search fragment
@@ -48,86 +41,30 @@ exports.matchEntries = async (req, res) => {
 	const limit = util.getLimit(req.query);
 	const sort = util.getSortObj(req.query);
 
-	try {
-		const results = await CacheEntry.find(query)
-			.containsSearch(search)
-			.sort(sort)
-			.paginate(limit, page);
+	const results = await CacheEntry.find(query)
+		.containsSearch(search)
+		.sort(sort)
+		.paginate(limit, page);
 
-		// Create the return copy of the cache entry
-		results.elements = results.elements.map((element) =>
-			CacheEntry.fullCopy(element)
-		);
+	// Create the return copy of the cache entry
+	results.elements = results.elements.map((element) =>
+		CacheEntry.fullCopy(element)
+	);
 
-		res.json(results);
-	} catch (error) {
-		// failure
-		logger.error(error);
-		return util.send400Error(res, error);
-	}
+	res.json(results);
 };
 
-exports.refreshEntry = function (req, res) {
-	if (null == req.params.key) {
-		util.handleErrorResponse(res, {
-			status: 400,
-			type: 'bad-request',
-			message: "Missing 'key' request argument"
-		});
-	} else {
-		accessCheckerService
-			.refreshEntry(req.params.key)
-			.then(() => {
-				res.status(204).end();
-			})
-			.catch((error) => {
-				util.handleErrorResponse(res, {
-					status: 500,
-					type: 'error',
-					message: error
-				});
-			});
-	}
+module.exports.refreshEntry = async (req, res) => {
+	await accessCheckerService.refreshEntry(req.params.key);
+	res.status(204).end();
 };
 
-exports.deleteEntry = function (req, res) {
-	if (null == req.params.key) {
-		util.handleErrorResponse(res, {
-			status: 400,
-			type: 'bad-request',
-			message: "Missing 'key' request argument"
-		});
-	} else {
-		accessCheckerService
-			.deleteEntry(req.params.key)
-			.then(() => {
-				res.status(204).end();
-			})
-			.catch((error) => {
-				util.handleErrorResponse(res, {
-					status: 500,
-					type: 'error',
-					message: error
-				});
-			});
-	}
+module.exports.deleteEntry = async (req, res) => {
+	await accessCheckerService.deleteEntry(req.params.key);
+	res.status(204).end();
 };
 
-exports.refreshCurrentUser = function (req, res) {
-	const key =
-		null != req.user && null != req.user.providerData
-			? req.user.providerData.dnLower
-			: undefined;
-	accessCheckerService
-		.refreshEntry(key)
-		.then(() => {
-			res.status(204).end();
-		})
-		.catch((error) => {
-			util.handleErrorResponse(res, {
-				status: 500,
-				type: 'error',
-				message: error
-			});
-		});
+module.exports.refreshCurrentUser = async (req, res) => {
+	await accessCheckerService.refreshEntry(req.user?.providerData?.dnLower);
+	res.status(204).end();
 };

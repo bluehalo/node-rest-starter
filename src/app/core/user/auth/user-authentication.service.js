@@ -10,7 +10,6 @@ const _ = require('lodash'),
 	User = dbs.admin.model('User'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	accessChecker = require('../../access-checker/access-checker.service'),
-	userAuthorizationService = require('../auth/user-authorization.service'),
 	userEmailService = require('../../user/user-email.service');
 
 /**
@@ -132,9 +131,7 @@ module.exports.authenticateAndLogin = function (req, res, next) {
 			}
 			// Else the authentication was successful
 			// Set the user ip if available.
-			user.ip = _.isUndefined(req.headers['x-real-ip'])
-				? null
-				: req.headers['x-real-ip'];
+			user.ip = req.headers?.['x-real-ip'] ?? null;
 			module.exports.login(user, req).then(resolve).catch(reject);
 		})(req, res, next);
 	});

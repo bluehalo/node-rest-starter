@@ -17,46 +17,27 @@ const os = require('os'),
  * expire after a number of minutes (see export-config.server.service).
  */
 
-exports.requestExport = (req, res) => {
-	if (null != req.body.config.q) {
+module.exports.requestExport = async (req, res) => {
+	if (req.body.config.q) {
 		// Stringify the query JSON because '$' is reserved in Mongo.
 		req.body.config.q = JSON.stringify(req.body.config.q);
 	}
-	if (null == req.body.type) {
-		return utilService.handleErrorResponse(res, {
-			status: 400,
-			type: 'missing export type',
-			message: 'Missing export type.'
-		});
-	}
 
-	exportConfigService
-		.generateConfig(req)
-		.then((generatedConfig) => {
-			return auditService
-				.audit(
-					`${req.body.type} config created`,
-					'export',
-					'create',
-					TeamMember.auditCopy(
-						req.user,
-						utilService.getHeaderField(req.headers, 'x-real-ip')
-					),
-					ExportConfig.auditCopy(generatedConfig),
-					req.headers
-				)
-				.then(() => {
-					return Promise.resolve(generatedConfig);
-				});
-		})
-		.then(
-			(result) => {
-				res.status(200).json({ _id: result._id });
-			},
-			(err) => {
-				utilService.handleErrorResponse(res, err);
-			}
-		);
+	const generatedConfig = await exportConfigService.generateConfig(req);
+
+	auditService.audit(
+		`${req.body.type} config created`,
+		'export',
+		'create',
+		TeamMember.auditCopy(
+			req.user,
+			utilService.getHeaderField(req.headers, 'x-real-ip')
+		),
+		ExportConfig.auditCopy(generatedConfig),
+		req.headers
+	);
+
+	res.status(200).json({ _id: generatedConfig._id });
 };
 
 /**

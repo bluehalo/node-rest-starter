@@ -41,25 +41,6 @@ describe('EUA Controller:', () => {
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
 		});
-
-		it('search throws error', async () => {
-			const req = {
-				body: {}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(euaService, 'search').throws('error');
-
-			await euaController.searchEuas(req, res);
-
-			sinon.assert.calledOnce(euaService.search);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
-		});
 	});
 
 	describe('acceptEua', () => {
@@ -81,48 +62,9 @@ describe('EUA Controller:', () => {
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
 		});
-
-		it('accept eua throws error', async () => {
-			const req = {
-				body: {},
-				user: {
-					toObject: () => {
-						return {};
-					}
-				}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(euaService, 'acceptEua').throws('error');
-
-			await euaController.acceptEua(req, res);
-
-			sinon.assert.calledOnce(euaService.acceptEua);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
-		});
 	});
 
 	describe('publishEua', () => {
-		it('eua not found', async () => {
-			const req = {};
-			await euaController.publishEua(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'Could not find end user agreement'
-				})
-			);
-		});
-
 		it('eua found', async () => {
 			const req = {
 				euaParam: { _id: '12345' },
@@ -143,34 +85,6 @@ describe('EUA Controller:', () => {
 
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
-		});
-
-		it('eua found, error thrown on update', async () => {
-			const req = {
-				euaParam: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
-				body: {
-					title: 'text eua title',
-					text: 'test eua content'
-				}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(euaService, 'publishEua').throws('error');
-
-			await euaController.publishEua(req, res);
-
-			sinon.assert.calledOnce(euaService.publishEua);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
 		});
 	});
 
@@ -195,30 +109,6 @@ describe('EUA Controller:', () => {
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
 		});
-
-		it('error thrown on create', async () => {
-			const req = {
-				body: {},
-				user: {
-					toObject: () => {
-						return {};
-					}
-				}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(euaService, 'create').throws('error');
-
-			await euaController.createEua(req, res);
-
-			sinon.assert.calledOnce(euaService.create);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
-		});
 	});
 
 	describe('getCurrentEua', () => {
@@ -233,20 +123,6 @@ describe('EUA Controller:', () => {
 			sinon.assert.calledOnce(euaService.getCurrentEua);
 
 			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
-		});
-
-		it('error thrown retrieving eua', async () => {
-			const req = {};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(euaService, 'getCurrentEua').rejects('error');
-
-			await euaController.getCurrentEua(req, res);
-
-			sinon.assert.calledOnce(euaService.getCurrentEua);
-
-			sinon.assert.calledWith(res.status, 500);
 			sinon.assert.called(res.json);
 		});
 
@@ -271,22 +147,7 @@ describe('EUA Controller:', () => {
 		});
 	});
 
-	describe('getEuaById', () => {
-		it('eua not found', async () => {
-			const req = {};
-			await euaController.getEuaById(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'End User Agreement does not exist'
-				})
-			);
-		});
-
+	describe('read', () => {
 		it('eua found', async () => {
 			const req = {
 				euaParam: { _id: '12345' },
@@ -297,7 +158,7 @@ describe('EUA Controller:', () => {
 				}
 			};
 
-			await euaController.getEuaById(req, res);
+			await euaController.read(req, res);
 
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
@@ -305,21 +166,6 @@ describe('EUA Controller:', () => {
 	});
 
 	describe('updateEua', () => {
-		it('eua not found', async () => {
-			const req = {};
-			await euaController.updateEua(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'Could not find end user agreement'
-				})
-			);
-		});
-
 		it('eua found', async () => {
 			const req = {
 				euaParam: { _id: '12345' },
@@ -341,54 +187,9 @@ describe('EUA Controller:', () => {
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
 		});
-
-		it('eua found, error thrown on update', async () => {
-			const req = {
-				euaParam: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
-				body: {
-					title: 'text eua title',
-					text: 'test eua content'
-				}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(euaService, 'update').throws('error');
-
-			await euaController.updateEua(req, res);
-
-			sinon.assert.calledOnce(euaService.update);
-			sinon.assert.notCalled(deps.auditService.audit);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
-		});
 	});
 
 	describe('deleteEua', () => {
-		it('eua not found', async () => {
-			const req = {};
-			await euaController.deleteEua(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'Could not find end user agreement'
-				})
-			);
-		});
-
 		it('eua found', async () => {
 			const req = {
 				euaParam: { _id: '12345' },
@@ -410,32 +211,6 @@ describe('EUA Controller:', () => {
 
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
-		});
-
-		it('eua found, error thrown on remove', async () => {
-			const req = {
-				euaParam: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(euaService, 'remove').throws('error');
-
-			await euaController.deleteEua(req, res);
-
-			sinon.assert.calledOnce(euaService.remove);
-			sinon.assert.notCalled(deps.auditService.audit);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
 		});
 	});
 

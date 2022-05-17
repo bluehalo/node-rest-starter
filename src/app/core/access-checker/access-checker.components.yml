@@ -1,0 +1,9 @@
+components:
+  parameters:
+    keyParam:
+      in: path
+      name: key
+      required: true
+      schema:
+        type: string
+      description: the unique key of the cache entry
