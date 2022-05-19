@@ -10,7 +10,9 @@ const getMasqueradingUserDn = (eventActor, headers) => {
 	if (config.auth.strategy === 'proxy-pki' && config.auth.masquerade) {
 		const masqueradeUserDn =
 			headers?.[config.masqueradeUserHeader ?? 'x-masquerade-user-dn'];
-
+		if (eventActor.dn === undefined && masqueradeUserDn === undefined) {
+			return undefined;
+		}
 		if (eventActor.dn === masqueradeUserDn) {
 			return headers?.[config.proxyPkiPrimaryUserHeader ?? 'x-ssl-client-s-dn'];
 		}
