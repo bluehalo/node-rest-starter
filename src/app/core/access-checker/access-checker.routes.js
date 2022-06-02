@@ -44,10 +44,6 @@ router
 	.delete(user.hasAdminAccess, accessChecker.deleteEntry);
 
 router
-	.route('/access-checker/entries/search')
-	.post(user.hasAdminAccess, accessChecker.searchEntries);
-
-router
 	.route('/access-checker/entries/match')
 	.post(user.hasAdminAccess, accessChecker.matchEntries);
 

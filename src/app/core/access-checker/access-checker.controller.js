@@ -9,28 +9,6 @@ const deps = require('../../../dependencies'),
 /**
  * Public methods
  */
-module.exports.searchEntries = async (req, res) => {
-	// Handle the query/search/page
-	const query = req.body.q;
-	const search = req.body.s;
-
-	const page = util.getPage(req.query);
-	const limit = util.getLimit(req.query);
-	const sort = util.getSortObj(req.query, 'DESC');
-
-	const results = await CacheEntry.find(query)
-		.textSearch(search)
-		.sort(sort)
-		.paginate(limit, page);
-
-	// Create the return copy of the users
-	results.elements = results.elements.map((element) =>
-		CacheEntry.fullCopy(element)
-	);
-
-	res.json(results);
-};
-
 // Match users given a search fragment
 exports.matchEntries = async (req, res) => {
 	// Handle the query/search/page
