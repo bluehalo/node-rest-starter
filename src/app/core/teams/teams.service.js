@@ -387,7 +387,7 @@ const searchTeams = async (queryParams, query, search, user) => {
 
 	// get results
 	const results = await Team.find(query)
-		.textSearch(search)
+		.containsSearch(search)
 		.sort(sort)
 		.paginate(limit, page);
 
@@ -497,7 +497,7 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
 	query = updateMemberFilter(query ?? {}, team);
 
 	const results = await TeamMember.find(query)
-		.textSearch(search)
+		.containsSearch(search)
 		.sort(sort)
 		.paginate(limit, page);
 

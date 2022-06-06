@@ -3,7 +3,7 @@
 const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
-	textSearchPlugin = require('../../common/mongoose/text-search.plugin'),
+	containsSearchPlugin = require('../../common/mongoose/contains-search.plugin'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	util = deps.utilService,
@@ -94,14 +94,16 @@ const TeamSchema = new mongoose.Schema({
 });
 TeamSchema.plugin(getterPlugin);
 TeamSchema.plugin(paginatePlugin);
-TeamSchema.plugin(textSearchPlugin);
+TeamSchema.plugin(containsSearchPlugin, {
+	fields: ['name', 'description']
+});
 
 /**
  * Index declarations
  */
-
-// Text-search index
-TeamSchema.index({ name: 'text', description: 'text' });
+TeamSchema.index({ name: 1 });
+TeamSchema.index({ description: 1 });
+TeamSchema.index({ created: 1 });
 
 /**
  * Lifecycle Hooks
