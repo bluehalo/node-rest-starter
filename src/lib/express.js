@@ -238,10 +238,15 @@ function initSwaggerAPI(app) {
 		);
 	});
 
+	const uiOptions = {
+		filter: true,
+		...config.apiDocs.uiOptions
+	};
+
 	app.use(
 		config.apiDocs.path || '/api-docs',
 		swaggerUi.serve,
-		swaggerUi.setup(swaggerSpec)
+		swaggerUi.setup(swaggerSpec, null, uiOptions)
 	);
 }
 
