@@ -29,13 +29,13 @@ module.exports.submitFeedback = async function (req, res) {
 		req.body,
 		audit.audit.userSpec
 	);
-	await feedbackService.sendFeedback(req.user, feedback, req);
+	await feedbackService.sendFeedbackEmail(req.user, feedback, req);
 
 	res.status(200).json(feedback);
 };
 
 module.exports.adminGetFeedbackCSV = async function (req, res) {
-	const exportId = req.params.exportId;
+	const exportId = req.params['exportId'];
 
 	const dateCallback = (value) => (value ? new Date(value).toISOString() : '');
 	const defaultCallback = (value) => (value ? value : '');
@@ -97,13 +97,11 @@ module.exports.adminGetFeedbackCSV = async function (req, res) {
 };
 
 module.exports.search = async (req, res) => {
-	const searchPromise = feedbackService.search(
-		req.user,
+	const results = await feedbackService.search(
 		req.query,
 		req.body.s,
 		req.body.q
 	);
-	const results = await searchPromise;
 	res.status(200).json(results);
 };
 
@@ -162,7 +160,7 @@ module.exports.feedbackById = async (req, res, next, id) => {
 		}
 	];
 
-	req.feedback = await feedbackService.readFeedback(id, populate);
+	req.feedback = await feedbackService.read(id, populate);
 	if (!req.feedback) {
 		throw {
 			status: 404,
