@@ -1,10 +1,24 @@
 /* eslint-disable no-console */
 'use strict';
 
+const { hideBin } = require('yargs/helpers');
+
 const Mocha = require('mocha'),
-	argv = require('yargs').argv,
+	yargs = require('yargs/yargs')(hideBin(process.argv)).option({
+		ci: { type: 'boolean' },
+		bail: { type: 'boolean' },
+		filter: { type: 'string' }
+	}),
 	config = require('./config.js'),
 	mongoose = require('./lib/mongoose.js');
+
+/**
+ * @type {any}
+ * This coercion is required due to yarg's unfortunate split {} | Promise<{}> typing.
+ * TSC tries to reconcile the two types and is unable to do so.
+ * @see https://github.com/yargs/yargs/issues/2175ß
+ */
+const argv = yargs.argv;
 
 console.info('Starting initialization of tests');
 
