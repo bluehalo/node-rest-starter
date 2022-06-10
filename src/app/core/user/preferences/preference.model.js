@@ -2,7 +2,8 @@
 
 const mongoose = require('mongoose'),
 	deps = require('../../../../dependencies'),
-	util = deps.utilService;
+	util = deps.utilService,
+	paginatePlugin = require('../../../common/mongoose/paginate.plugin');
 
 /**
  * Preference Schema
@@ -29,6 +30,8 @@ const PreferenceSchema = new mongoose.Schema(
 	},
 	module.exports.preferenceOptions
 );
+
+PreferenceSchema.plugin(paginatePlugin);
 
 /**
  * Index declarations

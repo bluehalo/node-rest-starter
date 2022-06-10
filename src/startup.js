@@ -2,6 +2,7 @@
 
 const logger = require('./lib/bunyan').logger,
 	http = require('http'),
+	agenda = require('./lib/agenda'),
 	express = require('./lib/express'),
 	mongoose = require('./lib/mongoose'),
 	socketio = require('./lib/socket.io');
@@ -18,6 +19,9 @@ module.exports = function () {
 			logger.info(
 				'Mongoose connected, proceeding with application configuration'
 			);
+
+			// Init agenda.js scheduler
+			agenda.init();
 
 			// Initialize express
 			const app = express.init(db.admin);
