@@ -5,14 +5,19 @@ const mongoose = require('mongoose'),
 	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
 	textSearchPlugin = require('../../common/mongoose/text-search.plugin'),
 	deps = require('../../../dependencies'),
-	dbs = deps.dbs,
-	config = deps.config,
 	util = deps.utilService;
 
 /**
- * Message Schema
+ * Import types for reference below
+ * @typedef {import('./types').MessageDocument} MessageDocument
+ * @typedef {import('./types').MessageModel} MessageModel
+ * @typedef {import('./types').DismissedMessageDocument} DismissedMessageDocument
+ * @typedef {import('./types').DismissedMessageModel} DismissedMessageModel
  */
 
+/**
+ * @type {mongoose.Schema<MessageDocument, MessageModel>}
+ */
 const MessageSchema = new mongoose.Schema({
 	title: {
 		type: String,
@@ -51,34 +56,11 @@ MessageSchema.plugin(getterPlugin);
 MessageSchema.plugin(paginatePlugin);
 MessageSchema.plugin(textSearchPlugin);
 
-const DismissedMessageSchema = new mongoose.Schema({
-	messageId: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'Message'
-	},
-	userId: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'User'
-	},
-	created: {
-		type: Date,
-		default: Date.now,
-		get: util.dateParse
-	}
-});
-DismissedMessageSchema.plugin(getterPlugin);
-
 /**
  * Index declarations
  */
 
 // MessageSchema.index({created: -1});
-const expireAfterSeconds = config?.messages?.expireSeconds ?? 2592000; // default to 30 days
-DismissedMessageSchema.index(
-	{ created: -1 },
-	{ expireAfterSeconds: expireAfterSeconds }
-);
-DismissedMessageSchema.index({ userId: 1 });
 
 // Text-search index
 MessageSchema.index({ title: 'text', body: 'text', type: 'text' });
@@ -124,24 +106,9 @@ MessageSchema.statics.fullCopy = function (src) {
 	return newMessage;
 };
 
-DismissedMessageSchema.statics.auditCopy = function (src) {
-	const dismissedMessage = {};
-	src = src || {};
-
-	dismissedMessage.messageId = src.messageId;
-	dismissedMessage.userId = src.userId;
-	dismissedMessage.created = src.created;
-	dismissedMessage._id = src._id;
-
-	return dismissedMessage;
-};
-
 /**
  * Model Registration
  */
-dbs.admin.model('Message', MessageSchema, 'messages');
-dbs.admin.model(
-	'DismissedMessage',
-	DismissedMessageSchema,
-	'messages.dismissed'
-);
+const Message = mongoose.model('Message', MessageSchema, 'messages');
+
+module.exports = Message;

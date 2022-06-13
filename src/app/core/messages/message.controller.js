@@ -1,66 +1,23 @@
 'use strict';
 
-const path = require('path'),
-	deps = require('../../../dependencies'),
-	config = deps.config,
+const deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	auditService = deps.auditService,
 	util = deps.utilService,
-	messageService = require('./messages.service')(),
-	publishProvider = require(path.posix.resolve(config.publishProvider)),
+	messageService = require('./messages.service'),
 	TeamMember = dbs.admin.model('TeamUser'),
-	Message = dbs.admin.model('Message');
-
-function copyMutableFields(dest, src) {
-	['title', 'type', 'body', 'ackRequired'].forEach((key) => {
-		if (null != src[key]) {
-			dest[key] = src[key];
-		}
-	});
-}
-
-/**
- * Publish
- */
-function publish(destination, message, retry) {
-	return publishProvider.publish(destination, message, retry);
-}
-
-/**
- * Publish a message
- *
- * @param {Message} message The message to be published
- * @returns {Promise} A promise that is resolved when the send is successful.
- */
-function sendMessage(message) {
-	// Turn Mongo models into regular objects before we serialize
-	if (null != message && null != message.toObject) {
-		message = message.toObject();
-	} else {
-		throw new Error("'message' parameter must be defined'");
-	}
-
-	const payload = {
-		type: 'message',
-		id: message._id.toString(),
-		time: Date.now(),
-		message: message
-	};
-	const destination = config.messages.topic;
-	return publish(destination, payload, true);
-}
+	Message = dbs.admin.model('Message'),
+	DismissedMessage = dbs.admin.model('DismissedMessage');
 
 // Create
 module.exports.create = async (req, res) => {
-	const message = new Message(req.body);
-	message.creator = req.user;
-	message.created = Date.now();
-	message.updated = Date.now();
+	const message = await messageService.create(req.user, req.body);
 
-	await message.save();
+	// Publish message
+	messageService.publishMessage(message);
 
 	// Audit creation of messages
-	auditService.audit(
+	await auditService.audit(
 		'message created',
 		'message',
 		'create',
@@ -72,9 +29,6 @@ module.exports.create = async (req, res) => {
 		req.headers
 	);
 
-	// Publish message
-	sendMessage(message);
-
 	res.status(200).json(message);
 };
 
@@ -85,22 +39,13 @@ exports.read = (req, res) => {
 
 // Update
 module.exports.update = async (req, res) => {
-	// Retrieve the message from persistence
-	const message = req.message;
+	// Make a copy of the original message for auditing purposes
+	const originalMessage = Message.auditCopy(req.message);
 
-	// Make a copy of the original deck for a "before" snapshot
-	const originalMessage = Message.auditCopy(message);
-
-	// Update the updated date
-	message.updated = Date.now();
-
-	copyMutableFields(message, req.body);
-
-	// Save
-	await message.save();
+	const message = messageService.update(req.message, req.body);
 
 	// Audit the save action
-	auditService.audit(
+	await auditService.audit(
 		'message updated',
 		'message',
 		'update',
@@ -117,11 +62,10 @@ module.exports.update = async (req, res) => {
 
 // Delete
 module.exports.delete = async (req, res) => {
-	const message = req.message;
-	await Message.deleteOne({ _id: message._id }).exec();
+	await messageService.delete(req.message);
 
 	// Audit the message delete attempt
-	auditService.audit(
+	await auditService.audit(
 		'message deleted',
 		'message',
 		'delete',
@@ -133,36 +77,35 @@ module.exports.delete = async (req, res) => {
 		req.headers
 	);
 
-	res.status(200).json(message);
+	res.status(200).json(req.message);
 };
 
 // Search - with paging and sorting
 module.exports.search = async (req, res) => {
-	const page = util.getPage(req.query);
-	const limit = util.getLimit(req.query);
-	const sort = util.getSortObj(req.query, 'DESC');
-
-	const result = await Message.find(req.body.q)
-		.textSearch(req.body.s)
-		.sort(sort)
-		.paginate(limit, page);
+	const results = await messageService.search(
+		req.query,
+		req.body.s,
+		req.body.q
+	);
 
 	// Create the return copy of the messages
-	result.elements = result.elements.map((element) => Message.fullCopy(element));
+	results.elements = results.elements.map((element) =>
+		Message.fullCopy(element)
+	);
 
-	res.status(200).json(result);
+	res.status(200).json(results);
 };
 
 /**
  * Message middleware
  */
 module.exports.messageById = async (req, res, next, id) => {
-	const message = await Message.findById(id);
+	const message = await messageService.read(id);
 	if (!message) {
-		return next(new Error(`Failed to load message ${id}`));
+		return next(new Error(`Failed to load message: ${id}`));
 	}
 	req.message = message;
-	next();
+	return next();
 };
 
 /**
@@ -178,13 +121,23 @@ module.exports.getRecentMessages = async (req, res) => {
  * @param req
  * @param res
  */
-module.exports.dismissMessage = async (req, res) => {
-	const result = await messageService.dismissMessage(
-		req.body.messageIds,
-		req.user,
-		req.headers
+exports.dismissMessage = async (req, res) => {
+	const dismissedMessages = await messageService.dismissMessages(
+		req.body['messageIds'],
+		req.user
 	);
-	res.status(200).json(result);
-};
 
-module.exports.sendMessage = sendMessage;
+	// Audit dismissal of messages
+	for (const dismissedMessage of dismissedMessages) {
+		auditService.audit(
+			'message dismissed',
+			'message',
+			'dismissed',
+			TeamMember.auditCopy(req.user),
+			DismissedMessage.auditCopy(dismissedMessage),
+			req.headers
+		);
+	}
+
+	res.status(200).json(dismissedMessages);
+};

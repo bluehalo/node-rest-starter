@@ -56,7 +56,7 @@ describe('Feedback Service:', () => {
 FOOTER
 `;
 
-			await feedbackService.sendFeedback(user, feedback, {});
+			await feedbackService.sendFeedbackEmail(user, feedback, {});
 
 			should.exist(mailOptions, 'expected mailOptions to exist');
 
@@ -81,14 +81,14 @@ FOOTER
 				url: 'http://localhost:3000/home',
 				type: 'Question'
 			}).save();
-			const feedback = await feedbackService.readFeedback(savedFeedback._id);
+			const feedback = await feedbackService.read(savedFeedback._id);
 			should.exist(feedback);
 		});
 
 		it('should throw a 400 errorResult if an invalid feedback ID is supplied', async () => {
 			let error = null;
 			try {
-				await feedbackService.readFeedback('1234');
+				await feedbackService.read('1234');
 			} catch (e) {
 				error = e;
 			}
@@ -99,7 +99,7 @@ FOOTER
 		});
 
 		it('should return null if a nonexistent feedback ID is supplied', async () => {
-			const feedback = await feedbackService.readFeedback('123412341234');
+			const feedback = await feedbackService.read('123412341234');
 			should.not.exist(feedback);
 		});
 	});
