@@ -110,29 +110,41 @@ module.exports = {
 		sessionCollection: 'sessions'
 	},
 
-	// Scheduled task runner
-	scheduler: {
-		services: [
+	agenda: {
+		enabled: true,
+		jobs: [
 			// {
-			// 	file: 'app/access-checker/server/services/cache-refresh.server.service.js',
-			// 	interval: 5000,
-			// 	config: {
-			// 		refresh: 8*3600000 // 8 Hours
+			// 	file: './src/app/core/access-checker/cache/cache-refresh.job.js',
+			// 	name: 'cache-refresh',
+			// 	interval: '12 hours',
+			// 	data: {
+			// 		refresh: 12 * 3600000
 			// 	}
 			// },
 			// {
-			// 	file: './src/server/app/util/schedulers/inactive-user-notification.server.service.js',
-			// 	interval: 86400000, //every day
-			// 	config: {
-			// 		deactivateAfter: 90 * 86400000, // deactivate account after 90 days of inactivity
-			// 		alertInterval: [
-			// 			30 * 86400000,  // 30 days
+			// 	file: './src/app/core/user/inactive/inactive-user.job.js',
+			// 	name: 'inactive-user',
+			// 	interval: '1 days',
+			// 	data: {
+			// 		alertIntervals: [
+			// 			30 * 86400000, // 30 days
 			// 			60 * 86400000 // 60 days
-			// 		]
+			// 		],
+			// 		deactivateAfter: 90 * 86400000 // 90 days
 			// 	}
+			// },
+			// {
+			// 	file: './src/app/core/user/preferences/preference-cleanup.job.js',
+			// 	name: 'preference-cleanup',
+			// 	interval: '1 days'
+			// },
+			// {
+			// 	file: 'path/to/job/definition',
+			// 	name: 'job-name',
+			// 	options: {},
+			// 	interval: '0 * * * *'
 			// }
-		],
-		interval: 10000
+		]
 	},
 
 	// MongoDB
