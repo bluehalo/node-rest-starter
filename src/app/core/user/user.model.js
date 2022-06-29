@@ -247,7 +247,9 @@ const UserSchema = new mongoose.Schema({
 UserSchema.plugin(getterPlugin);
 UserSchema.plugin(uniqueValidator);
 UserSchema.plugin(paginatePlugin);
-UserSchema.plugin(containsSearchPlugin);
+UserSchema.plugin(containsSearchPlugin, {
+	fields: ['name', 'username']
+});
 UserSchema.plugin(textSearchPlugin);
 
 /**
