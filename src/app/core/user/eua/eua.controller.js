@@ -1,11 +1,7 @@
 'use strict';
 
-const deps = require('../../../../dependencies'),
-	dbs = deps.dbs,
-	util = deps.utilService,
-	auditService = deps.auditService,
+const { dbs, auditService } = require('../../../../dependencies'),
 	euaService = require('./eua.service'),
-	TeamMember = dbs.admin.model('TeamUser'),
 	User = dbs.admin.model('User'),
 	UserAgreement = dbs.admin.model('UserAgreement');
 
@@ -31,12 +27,8 @@ module.exports.publishEua = async (req, res) => {
 		'eua published',
 		'eua',
 		'published',
-		TeamMember.auditCopy(
-			req.user,
-			util.getHeaderField(req.headers, 'x-real-ip')
-		),
-		UserAgreement.auditCopy(result),
-		req.headers
+		req,
+		UserAgreement.auditCopy(result)
 	);
 
 	res.status(200).json(result);
@@ -47,17 +39,7 @@ module.exports.acceptEua = async (req, res) => {
 	const user = await euaService.acceptEua(req.user);
 
 	// Audit accepted eua
-	await auditService.audit(
-		'eua accepted',
-		'eua',
-		'accepted',
-		TeamMember.auditCopy(
-			req.user,
-			util.getHeaderField(req.headers, 'x-real-ip')
-		),
-		{},
-		req.headers
-	);
+	await auditService.audit('eua accepted', 'eua', 'accepted', req, {});
 
 	res.status(200).json(User.fullCopy(user));
 };
@@ -71,12 +53,8 @@ module.exports.createEua = async (req, res) => {
 		'eua create',
 		'eua',
 		'create',
-		TeamMember.auditCopy(
-			req.user,
-			util.getHeaderField(req.headers, 'x-real-ip')
-		),
-		UserAgreement.auditCopy(result),
-		req.headers
+		req,
+		UserAgreement.auditCopy(result)
 	);
 
 	res.status(200).json(result);
@@ -101,20 +79,10 @@ module.exports.updateEua = async (req, res) => {
 	const results = await euaService.update(req.euaParam, req.body);
 
 	// Audit user update
-	await auditService.audit(
-		'end user agreement updated',
-		'eua',
-		'update',
-		TeamMember.auditCopy(
-			req.user,
-			util.getHeaderField(req.headers, 'x-real-ip')
-		),
-		{
-			before: originalEua,
-			after: UserAgreement.auditCopy(results)
-		},
-		req.headers
-	);
+	await auditService.audit('end user agreement updated', 'eua', 'update', req, {
+		before: originalEua,
+		after: UserAgreement.auditCopy(results)
+	});
 
 	res.status(200).json(results);
 };
@@ -131,12 +99,8 @@ module.exports.deleteEua = async (req, res) => {
 		'eua deleted',
 		'eua',
 		'delete',
-		TeamMember.auditCopy(
-			req.user,
-			util.getHeaderField(req.headers, 'x-real-ip')
-		),
-		UserAgreement.auditCopy(eua),
-		req.headers
+		req,
+		UserAgreement.auditCopy(eua)
 	);
 
 	res.status(200).json(results);

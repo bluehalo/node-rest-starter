@@ -1,8 +1,6 @@
 'use strict';
 
-const deps = require('../../../dependencies'),
-	{ dbs, utilService: util, auditService } = deps,
-	TeamMember = dbs.admin.model('TeamUser'),
+const { dbs, utilService, auditService } = require('../../../dependencies'),
 	Team = dbs.admin.model('Team'),
 	teamsService = require('./teams.service');
 
@@ -21,12 +19,8 @@ module.exports.create = async (req, res) => {
 		'team created',
 		'team',
 		'create',
-		TeamMember.auditCopy(
-			req.user,
-			util.getHeaderField(req.headers, 'x-real-ip')
-		),
-		Team.auditCopy(result),
-		req.headers
+		req,
+		Team.auditCopy(result)
 	);
 
 	res.status(200).json(result);
@@ -48,20 +42,10 @@ module.exports.update = async (req, res) => {
 
 	const result = await teamsService.updateTeam(req.team, req.body);
 
-	await auditService.audit(
-		'team updated',
-		'team',
-		'update',
-		TeamMember.auditCopy(
-			req.user,
-			util.getHeaderField(req.headers, 'x-real-ip')
-		),
-		{
-			before: originalTeam,
-			after: Team.auditCopy(result)
-		},
-		req.headers
-	);
+	await auditService.audit('team updated', 'team', 'update', req, {
+		before: originalTeam,
+		after: Team.auditCopy(result)
+	});
 
 	res.status(200).json(result);
 };
@@ -77,12 +61,8 @@ module.exports.delete = async (req, res) => {
 		'team deleted',
 		'team',
 		'delete',
-		TeamMember.auditCopy(
-			req.user,
-			util.getHeaderField(req.headers, 'x-real-ip')
-		),
-		Team.auditCopy(req.team),
-		req.headers
+		req,
+		Team.auditCopy(req.team)
 	);
 
 	res.status(200).json(req.team);
@@ -94,7 +74,7 @@ module.exports.delete = async (req, res) => {
 module.exports.search = async (req, res) => {
 	// Get search and query parameters
 	const search = req.body.s ?? null;
-	const query = util.toMongoose(req.body.q ?? {});
+	const query = utilService.toMongoose(req.body.q ?? {});
 
 	const result = await teamsService.searchTeams(
 		req.query,
@@ -118,18 +98,11 @@ module.exports.requestNewTeam = async (req, res) => {
 
 	await teamsService.requestNewTeam(org, aoi, description, user, req);
 
-	await auditService.audit(
-		'new team requested',
-		'team',
-		'request',
-		TeamMember.auditCopy(req.user),
-		{
-			org,
-			aoi,
-			description
-		},
-		req.headers
-	);
+	await auditService.audit('new team requested', 'team', 'request', req, {
+		org,
+		aoi,
+		description
+	});
 
 	res.status(204).end();
 };
@@ -145,7 +118,7 @@ module.exports.requestAccess = async (req, res) => {
 module.exports.searchMembers = async (req, res) => {
 	// Get search and query parameters
 	const search = req.body.s ?? null;
-	const query = util.toMongoose(req.body.q ?? {});
+	const query = utilService.toMongoose(req.body.q ?? {});
 
 	const result = await teamsService.searchTeamMembers(
 		search,
@@ -169,9 +142,8 @@ module.exports.addMember = async (req, res) => {
 		`team ${role} added`,
 		'team-role',
 		'user add',
-		TeamMember.auditCopy(req.user),
-		Team.auditCopyTeamMember(req.team, req.userParam, role),
-		req.headers
+		req,
+		Team.auditCopyTeamMember(req.team, req.userParam, role)
 	);
 
 	res.status(204).end();
@@ -192,9 +164,8 @@ module.exports.addMembers = async (req, res) => {
 						`team ${member.role} added`,
 						'team-role',
 						'user add',
-						TeamMember.auditCopy(req.user),
-						Team.auditCopyTeamMember(req.team, req.userParam, member.role),
-						req.headers
+						req,
+						Team.auditCopyTeamMember(req.team, req.userParam, member.role)
 					);
 				}
 			})
@@ -213,9 +184,8 @@ module.exports.removeMember = async (req, res) => {
 		'team member removed',
 		'team-role',
 		'user remove',
-		TeamMember.auditCopy(req.user),
-		Team.auditCopyTeamMember(req.team, req.userParam),
-		req.headers
+		req,
+		Team.auditCopyTeamMember(req.team, req.userParam)
 	);
 
 	res.status(204).end();
@@ -231,9 +201,8 @@ module.exports.updateMemberRole = async (req, res) => {
 		`team role changed to ${role}`,
 		'team-role',
 		'user add',
-		TeamMember.auditCopy(req.user),
-		Team.auditCopyTeamMember(req.team, req.userParam, role),
-		req.headers
+		req,
+		Team.auditCopyTeamMember(req.team, req.userParam, role)
 	);
 
 	res.status(204).end();

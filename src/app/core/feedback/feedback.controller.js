@@ -1,15 +1,15 @@
 'use strict';
 
-const deps = require('../../../dependencies'),
-	dbs = deps.dbs,
-	config = deps.config,
-	auditService = deps.auditService,
-	utilService = deps.utilService,
+const {
+		dbs,
+		config,
+		auditService,
+		utilService
+	} = require('../../../dependencies'),
 	exportConfigController = require('../export/export-config.controller'),
 	exportConfigService = require('../export/export-config.service'),
 	feedbackService = require('./feedback.service'),
 	Feedback = dbs.admin.model('Feedback'),
-	TeamMember = dbs.admin.model('TeamUser'),
 	ExportConfig = dbs.admin.model('ExportConfig');
 
 module.exports.submitFeedback = async function (req, res) {
@@ -17,12 +17,8 @@ module.exports.submitFeedback = async function (req, res) {
 		'Feedback submitted',
 		'feedback',
 		'create',
-		TeamMember.auditCopy(
-			req.user,
-			utilService.getHeaderField(req.headers, 'x-real-ip')
-		),
-		req.body,
-		req.headers
+		req,
+		req.body
 	);
 	const feedback = await feedbackService.create(
 		req.user,
@@ -56,12 +52,8 @@ module.exports.adminGetFeedbackCSV = async function (req, res) {
 		`${result.type} CSV config retrieved`,
 		'export',
 		'export',
-		TeamMember.auditCopy(
-			req.user,
-			utilService.getHeaderField(req.headers, 'x-real-ip')
-		),
-		ExportConfig.auditCopy(result),
-		req.headers
+		req,
+		ExportConfig.auditCopy(result)
 	);
 
 	const columns = result.config.cols;
@@ -111,12 +103,8 @@ module.exports.updateFeedbackAssignee = async (req, res) => {
 		'Feedback assignee updated',
 		'feedback',
 		'update',
-		TeamMember.auditCopy(
-			req.user,
-			utilService.getHeaderField(req.headers, 'x-real-ip')
-		),
-		req.body,
-		req.headers
+		req,
+		req.body
 	);
 
 	const updateFeedbackAssigneePromise = feedbackService.updateFeedbackAssignee(
@@ -133,12 +121,8 @@ module.exports.updateFeedbackStatus = async (req, res) => {
 		'Feedback status updated',
 		'feedback',
 		'update',
-		TeamMember.auditCopy(
-			req.user,
-			utilService.getHeaderField(req.headers, 'x-real-ip')
-		),
-		req.body,
-		req.headers
+		req,
+		req.body
 	);
 
 	const updateFeedbackStatusPromise = feedbackService.updateFeedbackStatus(

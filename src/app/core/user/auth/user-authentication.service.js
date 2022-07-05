@@ -2,13 +2,8 @@
 
 const _ = require('lodash'),
 	passport = require('passport'),
-	deps = require('../../../../dependencies'),
-	auditService = deps.auditService,
-	config = deps.config,
-	dbs = deps.dbs,
-	util = deps.utilService,
+	{ auditService, config, dbs } = require('../../../../dependencies'),
 	User = dbs.admin.model('User'),
-	TeamMember = dbs.admin.model('TeamUser'),
 	accessChecker = require('../../access-checker/access-checker.service'),
 	userEmailService = require('../../user/user-email.service');
 
@@ -78,9 +73,8 @@ module.exports.login = (user, req) => {
 				'User successfully logged in',
 				'user-authentication',
 				'authentication succeeded',
-				{},
-				User.auditCopy(user, util.getHeaderField(req.headers, 'x-real-ip')),
-				req.headers
+				req,
+				{}
 			);
 		});
 	});
@@ -122,9 +116,8 @@ module.exports.authenticateAndLogin = function (req, res, next) {
 					info.message,
 					'user-authentication',
 					'authentication failed',
-					{},
-					{ username: username },
-					req.headers
+					req,
+					{ username: username }
 				);
 
 				return reject(info);
@@ -203,7 +196,7 @@ const autoCreateUser = async (dn, req, acUser) => {
 		'user signup',
 		'user',
 		'user signup',
-		{},
+		req,
 		User.auditCopy(newUser)
 	);
 
@@ -249,7 +242,7 @@ module.exports.verifyUser = async (dn, req, isProxy = false) => {
 		'user updated from access checker',
 		'user',
 		'update',
-		TeamMember.auditCopy(localUser),
+		req,
 		User.auditCopy(localUser)
 	);
 

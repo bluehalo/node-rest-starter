@@ -1,10 +1,14 @@
 'use strict';
 
-const deps = require('../../../dependencies'),
-	config = deps.config,
-	dbs = deps.dbs,
-	logger = deps.logger,
-	auditLogger = deps.auditLogger;
+const {
+	dbs,
+	config,
+	logger,
+	auditLogger,
+	utilService
+} = require('../../../dependencies');
+
+// Creates an audit entry persisted to Mongo and the bunyan logger
 
 const getMasqueradingUserDn = (eventActor, headers) => {
 	if (config.auth.strategy === 'proxy-pki' && config.auth.masquerade) {
@@ -23,28 +27,35 @@ const getMasqueradingUserDn = (eventActor, headers) => {
  * @param {string} message
  * @param {string} eventType
  * @param {string} eventAction
- * @param {* | Promise<*>} eventActor
- * @param {*} eventObject
- * @param {*} [eventMetadata]
- * @param {boolean} [stringifyEventObject]
- * @returns {Promise<import('./types').AuditDocument>}
+ * @param {import('express').Request | object} requestOrEventActor
+ * @param {object} eventObject
+ * @param {*} eventMetadata
+ * @returns {Promise<any>}
  */
 module.exports.audit = async (
 	message,
 	eventType,
 	eventAction,
-	eventActor,
+	requestOrEventActor,
 	eventObject,
-	eventMetadata = null,
-	stringifyEventObject = false
+	eventMetadata = null
 ) => {
 	/**
 	 * @type {import('./types').AuditModel}
 	 */
 	const Audit = dbs.admin.model('Audit');
-	const utilService = deps.utilService;
 
-	const actor = await Promise.resolve(eventActor);
+	let actor = {};
+	if (requestOrEventActor.name && requestOrEventActor.username) {
+		actor = requestOrEventActor;
+	} else if (requestOrEventActor.user && requestOrEventActor.headers) {
+		const TeamMember = dbs.admin.model('TeamUser');
+		actor = TeamMember.auditCopy(
+			requestOrEventActor.user,
+			utilService.getHeaderField(requestOrEventActor.headers, 'x-real-ip')
+		);
+		eventMetadata = requestOrEventActor.headers;
+	}
 
 	// Extract additional metadata to audit
 	const userAgentObj = utilService.getUserAgentFromHeader(eventMetadata);
@@ -56,7 +67,8 @@ module.exports.audit = async (
 		audit: {
 			auditType: eventType,
 			action: eventAction,
-			actor: actor,
+			object: eventObject,
+			actor,
 			userSpec: userAgentObj
 		}
 	});
@@ -65,10 +77,6 @@ module.exports.audit = async (
 	if (masqueradingUserDn) {
 		newAudit.audit.masqueradingUser = masqueradingUserDn;
 	}
-
-	newAudit.audit.object = stringifyEventObject
-		? JSON.stringify(eventObject)
-		: eventObject;
 
 	// Send to bunyan logger for logfile persistence
 	auditLogger.audit(

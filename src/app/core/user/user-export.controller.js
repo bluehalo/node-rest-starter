@@ -1,10 +1,7 @@
 'use strict';
 
 const _ = require('lodash'),
-	deps = require('../../../dependencies'),
-	config = deps.config,
-	dbs = deps.dbs,
-	auditService = deps.auditService,
+	{ config, dbs, auditService } = require('../../../dependencies'),
 	Team = dbs.admin.model('Team'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	ExportConfig = dbs.admin.model('ExportConfig'),
@@ -29,9 +26,8 @@ module.exports.adminGetCSV = async (req, res) => {
 		`${result.type} CSV config retrieved`,
 		'export',
 		'export',
-		TeamMember.auditCopy(req.user),
-		ExportConfig.auditCopy(result),
-		req.headers
+		req,
+		ExportConfig.auditCopy(result)
 	);
 
 	const columns = result.config.cols,
