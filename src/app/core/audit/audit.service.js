@@ -27,7 +27,7 @@ const getMasqueradingUserDn = (eventActor, headers) => {
  * @param {string} message
  * @param {string} eventType
  * @param {string} eventAction
- * @param {import('express').Request | object} requestOrEventActor
+ * @param {import('express').Request | Promsie<object> | object} requestOrEventActor
  * @param {object} eventObject
  * @param {*} eventMetadata
  * @returns {Promise<any>}
@@ -45,12 +45,14 @@ module.exports.audit = async (
 	 */
 	const Audit = dbs.admin.model('Audit');
 
+	requestOrEventActor = await requestOrEventActor;
+
 	let actor = {};
 	if (requestOrEventActor.name && requestOrEventActor.username) {
 		actor = requestOrEventActor;
 	} else if (requestOrEventActor.user && requestOrEventActor.headers) {
 		const TeamMember = dbs.admin.model('TeamUser');
-		actor = TeamMember.auditCopy(
+		actor = await TeamMember.auditCopy(
 			requestOrEventActor.user,
 			utilService.getHeaderField(requestOrEventActor.headers, 'x-real-ip')
 		);
