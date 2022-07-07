@@ -27,7 +27,7 @@ const getMasqueradingUserDn = (eventActor, headers) => {
  * @param {string} message
  * @param {string} eventType
  * @param {string} eventAction
- * @param {import('express').Request | Promsie<object> | object} requestOrEventActor
+ * @param {import('express').Request | Promise<object> | object} requestOrEventActor
  * @param {object} eventObject
  * @param {*} eventMetadata
  * @returns {Promise<any>}
