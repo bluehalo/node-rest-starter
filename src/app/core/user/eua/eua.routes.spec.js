@@ -4,8 +4,7 @@ const express = require('express');
 // Patches express to support async/await.  Should be called immediately after express.
 require('express-async-errors');
 
-const bodyParser = require('body-parser'),
-	mock = require('mock-require'),
+const mock = require('mock-require'),
 	request = require('supertest'),
 	should = require('should'),
 	{
@@ -45,7 +44,7 @@ describe('EUA Routes:', () => {
 
 	before(() => {
 		app = express();
-		app.use(bodyParser.json());
+		app.use(express.json());
 
 		userCtrl = mock.reRequire('../user.controller');
 

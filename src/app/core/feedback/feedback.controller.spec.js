@@ -6,7 +6,6 @@ require('express-async-errors');
 
 const request = require('supertest'),
 	should = require('should'),
-	bodyParser = require('body-parser'),
 	mock = require('mock-require'),
 	deps = require('../../../dependencies'),
 	Feedback = deps.dbs.admin.model('Feedback'),
@@ -27,7 +26,7 @@ describe('Feedback Controller', () => {
 
 	before(() => {
 		app = express();
-		app.use(bodyParser.json());
+		app.use(express.json());
 
 		// Mock access for the User Controller method that adds authentication to these endpoints
 		mock('../user/user.controller', {

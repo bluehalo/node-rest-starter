@@ -8,7 +8,6 @@ const _ = require('lodash'),
 	path = require('path'),
 	config = require('../config'),
 	logger = require('./bunyan').logger,
-	bodyParser = require('body-parser'),
 	compress = require('compression'),
 	cookieParser = require('cookie-parser'),
 	session = require('express-session'),
@@ -82,11 +81,11 @@ function initMiddleware(app) {
 
 	// Request body parsing middleware should be above methodOverride
 	app.use(
-		bodyParser.urlencoded({
+		express.urlencoded({
 			extended: true
 		})
 	);
-	app.use(bodyParser.json());
+	app.use(express.json());
 	app.use(methodOverride());
 
 	// Add the cookie parser and flash middleware
