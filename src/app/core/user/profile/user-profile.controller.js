@@ -1,12 +1,12 @@
 'use strict';
 
 const _ = require('lodash'),
-	deps = require('../../../../dependencies'),
-	config = deps.config,
-	dbs = deps.dbs,
-	util = deps.utilService,
-	auditService = deps.auditService,
-	TeamMember = dbs.admin.model('TeamUser'),
+	{
+		config,
+		dbs,
+		utilService,
+		auditService
+	} = require('../../../../dependencies'),
 	User = dbs.admin.model('User'),
 	userAuthorizationService = require('../auth/user-authorization.service'),
 	userService = require('../user.service'),
@@ -73,12 +73,8 @@ exports.updateCurrentUser = async (req, res) => {
 				'user update authentication failed',
 				'user',
 				'update authentication failed',
-				TeamMember.auditCopy(
-					req.user,
-					util.getHeaderField(req.headers, 'x-real-ip')
-				),
-				{},
-				req.headers
+				req,
+				{}
 			);
 
 			res.status(400).json({
@@ -100,20 +96,10 @@ exports.updateCurrentUser = async (req, res) => {
 		delete user.salt;
 
 		// Audit user update
-		auditService.audit(
-			'user updated',
-			'user',
-			'update',
-			TeamMember.auditCopy(
-				req.user,
-				util.getHeaderField(req.headers, 'x-real-ip')
-			),
-			{
-				before: originalUser,
-				after: User.auditCopy(user)
-			},
-			req.headers
-		);
+		auditService.audit('user updated', 'user', 'update', req, {
+			before: originalUser,
+			after: User.auditCopy(user)
+		});
 
 		// Log in with the new info
 		req.login(user, (error) => {
@@ -123,7 +109,7 @@ exports.updateCurrentUser = async (req, res) => {
 			res.status(200).json(User.fullCopy(user));
 		});
 	} catch (err) {
-		util.catchError(res, err);
+		utilService.catchError(res, err);
 	}
 };
 

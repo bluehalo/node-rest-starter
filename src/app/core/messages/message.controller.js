@@ -1,11 +1,7 @@
 'use strict';
 
-const deps = require('../../../dependencies'),
-	dbs = deps.dbs,
-	auditService = deps.auditService,
-	util = deps.utilService,
+const { dbs, auditService } = require('../../../dependencies'),
 	messageService = require('./messages.service'),
-	TeamMember = dbs.admin.model('TeamUser'),
 	Message = dbs.admin.model('Message'),
 	DismissedMessage = dbs.admin.model('DismissedMessage');
 
@@ -21,12 +17,8 @@ module.exports.create = async (req, res) => {
 		'message created',
 		'message',
 		'create',
-		TeamMember.auditCopy(
-			req.user,
-			util.getHeaderField(req.headers, 'x-real-ip')
-		),
-		Message.auditCopy(message),
-		req.headers
+		req,
+		Message.auditCopy(message)
 	);
 
 	res.status(200).json(message);
@@ -45,17 +37,10 @@ module.exports.update = async (req, res) => {
 	const message = messageService.update(req.message, req.body);
 
 	// Audit the save action
-	await auditService.audit(
-		'message updated',
-		'message',
-		'update',
-		TeamMember.auditCopy(
-			req.user,
-			util.getHeaderField(req.headers, 'x-real-ip')
-		),
-		{ before: originalMessage, after: Message.auditCopy(message) },
-		req.headers
-	);
+	await auditService.audit('message updated', 'message', 'update', req, {
+		before: originalMessage,
+		after: Message.auditCopy(message)
+	});
 
 	res.status(200).json(message);
 };
@@ -69,12 +54,8 @@ module.exports.delete = async (req, res) => {
 		'message deleted',
 		'message',
 		'delete',
-		TeamMember.auditCopy(
-			req.user,
-			util.getHeaderField(req.headers, 'x-real-ip')
-		),
-		Message.auditCopy(req.message),
-		req.headers
+		req,
+		Message.auditCopy(req.message)
 	);
 
 	res.status(200).json(req.message);
@@ -133,9 +114,8 @@ exports.dismissMessage = async (req, res) => {
 			'message dismissed',
 			'message',
 			'dismissed',
-			TeamMember.auditCopy(req.user),
-			DismissedMessage.auditCopy(dismissedMessage),
-			req.headers
+			req,
+			DismissedMessage.auditCopy(dismissedMessage)
 		);
 	}
 

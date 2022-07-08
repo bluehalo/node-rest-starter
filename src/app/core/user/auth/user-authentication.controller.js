@@ -1,15 +1,10 @@
 'use strict';
 
-const deps = require('../../../../dependencies'),
-	dbs = deps.dbs,
-	config = deps.config,
-	util = deps.utilService,
-	auditService = deps.auditService,
+const { dbs, config, auditService } = require('../../../../dependencies'),
 	userAuthService = require('./user-authentication.service'),
 	userAuthorizationService = require('./user-authorization.service'),
 	userEmailService = require('../user-email.service'),
 	teamService = require('../../teams/teams.service'),
-	TeamMember = dbs.admin.model('TeamUser'),
 	User = dbs.admin.model('User');
 
 /**
@@ -27,12 +22,8 @@ async function adminCreateUser(user, req, res) {
 		'admin user create',
 		'user',
 		'admin user create',
-		TeamMember.auditCopy(
-			req.user,
-			util.getHeaderField(req.headers, 'x-real-ip')
-		),
-		User.auditCopy(result),
-		req.headers
+		req,
+		User.auditCopy(result)
 	);
 	res.status(200).json(User.fullCopy(result));
 }
@@ -50,9 +41,8 @@ const signup = async (user, req, res) => {
 		'user signup',
 		'user',
 		'user signup',
-		{},
-		User.auditCopy(newUser),
-		req.headers
+		req,
+		User.auditCopy(newUser)
 	);
 
 	const result = await userAuthService.login(user, req);

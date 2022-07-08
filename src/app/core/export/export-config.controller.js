@@ -2,14 +2,8 @@
 
 const os = require('os'),
 	streams = require('stream'),
-	deps = require('../../../dependencies'),
-	dbs = deps.dbs,
-	utilService = deps.utilService,
-	logger = deps.logger,
-	auditService = deps.auditService,
-	csvStream = deps.csvStream,
+	{ dbs, logger, auditService, csvStream } = require('../../../dependencies'),
 	exportConfigService = require('./export-config.service'),
-	TeamMember = dbs.admin.model('TeamUser'),
 	ExportConfig = dbs.admin.model('ExportConfig');
 
 /**
@@ -29,12 +23,8 @@ module.exports.requestExport = async (req, res) => {
 		`${req.body.type} config created`,
 		'export',
 		'create',
-		TeamMember.auditCopy(
-			req.user,
-			utilService.getHeaderField(req.headers, 'x-real-ip')
-		),
-		ExportConfig.auditCopy(generatedConfig),
-		req.headers
+		req,
+		ExportConfig.auditCopy(generatedConfig)
 	);
 
 	res.status(200).json({ _id: generatedConfig._id });
