@@ -1,8 +1,9 @@
 'use strict';
 
-const _ = require('lodash'),
-	should = require('should'),
-	proxyquire = require('proxyquire');
+const should = require('should'),
+	sinon = require('sinon'),
+	deps = require('../../../../dependencies'),
+	userAuthenticationService = require('./user-authentication.service');
 
 /**
  * Helpers
@@ -26,99 +27,76 @@ function userSpec(key) {
 }
 
 function validateDefaultRoles(updatedUser) {
-	const keys = _.keys(testDefaultRoles);
-
 	should.exist(updatedUser.roles);
-
-	_.forEach(keys, (key) => {
+	for (const key of Object.keys(testDefaultRoles)) {
 		should(updatedUser.roles[key]).equal(testDefaultRoles[key]);
-	});
-
-	return Promise.resolve(updatedUser);
-}
-
-function createSubjectUnderTest(dependencies) {
-	const stubs = {};
-	stubs['../../../../dependencies'] = dependencies || {};
-	return proxyquire('./user-authentication.service', stubs);
+	}
 }
 
 /**
  * Unit tests
  */
 describe('User Authentication Service:', () => {
+	let sandbox;
+
+	beforeEach(() => {
+		sandbox = sinon.createSandbox();
+		sandbox.stub(deps.config, 'auth').value({ defaultRoles: testDefaultRoles });
+	});
+
+	afterEach(() => {
+		sandbox.restore();
+	});
+
 	describe('initializeNewUser', () => {
-		const userAuthenticationService = createSubjectUnderTest({
-			config: {
-				auth: {
-					defaultRoles: testDefaultRoles
-				}
-			}
-		});
-
-		it('should set default roles when none are initially set', (done) => {
+		it('should set default roles when none are initially set', async () => {
 			const user = userSpec('Basic');
-			userAuthenticationService
-				.initializeNewUser(user)
-				.then(validateDefaultRoles)
-				.then(() => {
-					done();
-				})
-				.catch(done);
+			const updatedUser = await userAuthenticationService.initializeNewUser(
+				user
+			);
+			validateDefaultRoles(updatedUser);
 		});
 
-		it('should set default roles when set to an empty object', (done) => {
+		it('should set default roles when set to an empty object', async () => {
 			const user = userSpec('Basic');
 			user.roles = {};
-			userAuthenticationService
-				.initializeNewUser(user)
-				.then(validateDefaultRoles)
-				.then(() => {
-					done();
-				})
-				.catch(done);
+			const updatedUser = await userAuthenticationService.initializeNewUser(
+				user
+			);
+			validateDefaultRoles(updatedUser);
 		});
 
-		it('should set default roles in addition to existing', (done) => {
+		it('should set default roles in addition to existing', async () => {
 			const user = userSpec('Basic');
 			user.roles = { admin: false, editor: true };
-			userAuthenticationService
-				.initializeNewUser(user)
-				.then(validateDefaultRoles)
-				.then((updatedUser) => {
-					should(updatedUser.roles.admin).equal(false);
-					should(updatedUser.roles.editor).equal(true);
-				})
-				.then(() => {
-					done();
-				})
-				.catch(done);
+
+			const updatedUser = await userAuthenticationService.initializeNewUser(
+				user
+			);
+			validateDefaultRoles(updatedUser);
+			should(updatedUser.roles.admin).equal(false);
+			should(updatedUser.roles.editor).equal(true);
 		});
 
-		it('should not override existing roles', (done) => {
+		it('should not override existing roles', async () => {
 			const user = userSpec('Basic');
 
-			user.roles = _.clone(testDefaultRoles);
+			user.roles = { ...testDefaultRoles };
 			// reverse the boolean value of each default role
-			_.forEach(_.keys(testDefaultRoles), (key) => {
+			for (const key of Object.keys(testDefaultRoles)) {
 				user.roles[key] = !user.roles[key];
-			});
+			}
 			user.roles.admin = false;
 			user.roles.editor = true;
 
-			userAuthenticationService
-				.initializeNewUser(user)
-				.then((updatedUser) => {
-					_.forEach(_.keys(testDefaultRoles), (key) => {
-						should(user.roles[key]).equal(!testDefaultRoles[key]);
-					});
-					should(updatedUser.roles.admin).equal(false);
-					should(updatedUser.roles.editor).equal(true);
-				})
-				.then(() => {
-					done();
-				})
-				.catch(done);
+			const updatedUser = await userAuthenticationService.initializeNewUser(
+				user
+			);
+			for (const key of Object.keys(testDefaultRoles)) {
+				should(user.roles[key]).equal(!testDefaultRoles[key]);
+			}
+			should(updatedUser.roles.admin).equal(false);
+			should(updatedUser.roles.editor).equal(true);
 		});
 	});
 });
