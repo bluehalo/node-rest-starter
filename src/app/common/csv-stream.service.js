@@ -45,7 +45,7 @@ module.exports = (columns) => {
 
 				// Invoke any callback associated with the column
 				if (_.has(column, 'callback')) {
-					value = column.callback(value);
+					value = column.callback(value, chunk);
 				}
 
 				// Emit a blank column rather than null
