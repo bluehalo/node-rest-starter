@@ -1,52 +1,45 @@
 'use strict';
 
 const should = require('should'),
-	proxyquire = require('proxyquire'),
+	sinon = require('sinon'),
 	deps = require('../../../dependencies'),
+	feedbackService = require('./feedback.service'),
+	User = deps.dbs.admin.model('User'),
 	Feedback = deps.dbs.admin.model('Feedback'),
 	config = deps.config;
-
-/**
- * Helpers
- */
-
-function createSubjectUnderTest(dependencies) {
-	const stubs = {};
-	stubs['../../../dependencies'] = dependencies || {};
-	return proxyquire('./feedback.service', stubs);
-}
 
 /**
  * Unit tests
  */
 describe('Feedback Service:', () => {
-	let mailOptions = null;
-
-	const feedbackService = createSubjectUnderTest({
-		// config: config,
-		emailService: {
-			sendMail: (mo) => {
-				mailOptions = mo;
-			},
-			buildEmailContent: deps.emailService.buildEmailContent,
-			buildEmailSubject: deps.emailService.buildEmailSubject,
-			generateMailOptions: deps.emailService.generateMailOptions
-		}
-	});
-
-	const user = {
+	const user = User({
 		name: 'test',
 		username: 'test',
 		email: 'test@test.test'
-	};
+	});
+
+	let sandbox;
+
+	beforeEach(() => {
+		sandbox = sinon.createSandbox();
+		sandbox.stub(deps.auditService, 'audit').resolves();
+	});
+
+	afterEach(() => {
+		sandbox.restore();
+	});
 
 	describe('sendFeedback', () => {
 		it('should create mailOptions properly', async () => {
-			const feedback = {
+			const sendMailStub = sandbox
+				.stub(deps.emailService, 'sendMail')
+				.resolves();
+
+			const feedback = Feedback({
 				body: 'feedback body',
 				type: 'type',
 				url: 'url'
-			};
+			});
 
 			const expectedEmailContent = `HEADER
 <p>Hey there ${config.app.title} Admins,</p>
@@ -57,6 +50,9 @@ FOOTER
 `;
 
 			await feedbackService.sendFeedbackEmail(user, feedback, {});
+
+			sinon.assert.called(sendMailStub);
+			const [mailOptions] = sendMailStub.getCall(0).args;
 
 			should.exist(mailOptions, 'expected mailOptions to exist');
 

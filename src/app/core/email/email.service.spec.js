@@ -1,33 +1,28 @@
 'use strict';
 
-const proxyquire = require('proxyquire'),
-	should = require('should'),
+const should = require('should'),
+	sinon = require('sinon'),
 	uuid = require('uuid'),
-	_ = require('lodash'),
 	deps = require('../../../dependencies'),
+	emailService = deps.emailService,
 	config = deps.config;
-
-/**
- * Globals
- */
 
 /**
  * Unit tests
  */
-
-function createSubjectUnderTest(emailServiceConfig) {
-	const stubConfig = _.merge({}, emailServiceConfig);
-
-	const stubs = {};
-	stubs['../../../dependencies'] = { config: stubConfig };
-	return proxyquire('./email.service', stubs);
-}
-
 describe('Email Service:', () => {
+	let sandbox;
+
+	beforeEach(() => {
+		sandbox = sinon.createSandbox();
+	});
+
+	afterEach(() => {
+		sandbox.restore();
+	});
+
 	describe('getMissingMailOptions:', () => {
 		it('should find required missing fields', () => {
-			const emailService = createSubjectUnderTest();
-
 			let missing = emailService.getMissingMailOptions({});
 			missing.length.should.equal(4);
 			missing[0].should.equal('("to" or "cc" or "bcc")');
@@ -109,7 +104,7 @@ describe('Email Service:', () => {
 
 	describe('sendMail:', () => {
 		it('should fail for invalid mail provider', async () => {
-			const emailService = createSubjectUnderTest({});
+			sandbox.stub(deps.config, 'mailer').value({});
 
 			let error = null;
 
@@ -124,12 +119,6 @@ describe('Email Service:', () => {
 		});
 
 		it('should fail for null mailOptions', async () => {
-			const emailService = createSubjectUnderTest({
-				mailer: {
-					provider: './src/app/core/email/providers/log-email.provider.js'
-				}
-			});
-
 			let error = null;
 
 			try {
@@ -143,12 +132,6 @@ describe('Email Service:', () => {
 		});
 
 		it('should fail for incomplete mailOptions', async () => {
-			const emailService = createSubjectUnderTest({
-				mailer: {
-					provider: './src/app/core/email/providers/log-email.provider.js'
-				}
-			});
-
 			let error = null;
 			try {
 				await emailService.sendMail({ to: 'to', from: 'from', html: 'html' });
@@ -162,12 +145,6 @@ describe('Email Service:', () => {
 			);
 		});
 		it('should work', async () => {
-			const emailService = createSubjectUnderTest({
-				mailer: {
-					provider: './src/app/core/email/providers/log-email.provider.js'
-				}
-			});
-
 			await emailService.sendMail({
 				to: 'to',
 				from: 'from',
@@ -180,19 +157,19 @@ describe('Email Service:', () => {
 	describe('buildEmailContent:', () => {
 		const header = uuid.v4();
 		const footer = uuid.v4();
-		const emailService = createSubjectUnderTest({
-			app: config.app,
-			coreEmails: {
-				default: {
-					header,
-					footer
-				}
-			}
-		});
 
 		const user = {
 			name: 'test'
 		};
+
+		beforeEach(() => {
+			sandbox.stub(deps.config, 'coreEmails').value({
+				default: {
+					header,
+					footer
+				}
+			});
+		});
 
 		it('should build email content', async () => {
 			const expectedResult = `${header}
@@ -232,11 +209,9 @@ ${footer}
 
 	describe('buildEmailSubject:', () => {
 		it('should build email subject', () => {
-			const emailService = createSubjectUnderTest({
-				coreEmails: {
-					default: {
-						subjectPrefix: '(pre)'
-					}
+			sandbox.stub(deps.config, 'coreEmails').value({
+				default: {
+					subjectPrefix: '(pre)'
 				}
 			});
 
@@ -260,19 +235,19 @@ ${footer}
 	describe('generateMailOptions', () => {
 		const header = uuid.v4();
 		const footer = uuid.v4();
-		const emailService = createSubjectUnderTest({
-			app: config.app,
-			coreEmails: {
-				default: {
-					header,
-					footer
-				}
-			}
-		});
 
 		const user = {
 			name: 'test'
 		};
+
+		beforeEach(() => {
+			sandbox.stub(deps.config, 'coreEmails').value({
+				default: {
+					header,
+					footer
+				}
+			});
+		});
 
 		it('should return merged mail options', async () => {
 			const emailConfig = {
