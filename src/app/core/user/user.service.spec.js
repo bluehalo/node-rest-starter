@@ -44,9 +44,7 @@ describe('User Profile Service:', () => {
 		});
 
 		it('read returns null for invalid id', async () => {
-			const user = await userService.read(
-				mongoose.Types.ObjectId('5cc9db5f738d4a7198466bc0')
-			);
+			const user = await userService.read('5cc9db5f738d4a7198466bc0');
 			should.not.exist(user);
 		});
 	});

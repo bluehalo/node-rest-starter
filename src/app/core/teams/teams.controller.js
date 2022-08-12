@@ -8,7 +8,7 @@ const { dbs, utilService, auditService } = require('../../../dependencies'),
  * Create a new team. The team creator is automatically added as an admin
  */
 module.exports.create = async (req, res) => {
-	const result = await teamsService.createTeam(
+	const result = await teamsService.create(
 		req.body.team,
 		req.user,
 		req.body.firstAdmin
@@ -40,7 +40,7 @@ module.exports.update = async (req, res) => {
 	// Make a copy of the original team for auditing purposes
 	const originalTeam = Team.auditCopy(req.team);
 
-	const result = await teamsService.updateTeam(req.team, req.body);
+	const result = await teamsService.update(req.team, req.body);
 
 	await auditService.audit('team updated', 'team', 'update', req, {
 		before: originalTeam,
@@ -54,7 +54,7 @@ module.exports.update = async (req, res) => {
  * Delete the team
  */
 module.exports.delete = async (req, res) => {
-	await teamsService.deleteTeam(req.team);
+	await teamsService.delete(req.team);
 
 	// Audit the team delete attempt
 	await auditService.audit(
@@ -76,12 +76,7 @@ module.exports.search = async (req, res) => {
 	const search = req.body.s ?? null;
 	const query = utilService.toMongoose(req.body.q ?? {});
 
-	const result = await teamsService.searchTeams(
-		req.query,
-		query,
-		search,
-		req.user
-	);
+	const result = await teamsService.search(req.query, query, search, req.user);
 	res.status(200).json(result);
 };
 
@@ -223,7 +218,7 @@ module.exports.teamById = async (req, res, next, id) => {
 		}
 	];
 
-	const team = await teamsService.readTeam(id, populate);
+	const team = await teamsService.read(id, populate);
 	if (!team) {
 		return next(new Error('Could not find team'));
 	}

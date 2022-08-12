@@ -76,7 +76,8 @@ describe('EUA Service:', () => {
 		it('read returns null for invalid id', async () => {
 			// Read eua
 			const eua = await euaService.read(
-				mongoose.Types.ObjectId('012345678912')
+				// mongoose.Types.ObjectId('012345678912')
+				'012345678912'
 			);
 			should.not.exist(eua);
 		});
@@ -262,7 +263,7 @@ describe('EUA Service:', () => {
 			// query for user and verify accepted eua is now updated
 			user = await User.findById(user._id);
 			should.exist(user.acceptedEua);
-			user.acceptedEua.should.be.greaterThan(now);
+			user.acceptedEua.should.be.greaterThanOrEqual(now);
 		});
 	});
 });

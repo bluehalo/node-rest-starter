@@ -309,17 +309,15 @@ describe('Team Service:', () => {
 		});
 	});
 
-	describe('readTeam', () => {
+	describe('read', () => {
 		it('read finds team', async () => {
-			const t = await teamsService.readTeam(team.teamWithNoExternalTeam._id);
+			const t = await teamsService.read(team.teamWithNoExternalTeam._id);
 			should.exist(t);
 			t.name.should.equal('no-external');
 		});
 
 		it('read returns null when no team found', async () => {
-			const t = await teamsService.readTeam(
-				mongoose.Types.ObjectId('012345678912')
-			);
+			const t = await teamsService.read('012345678912');
 			should.not.exist(t);
 		});
 	});
@@ -339,13 +337,13 @@ describe('Team Service:', () => {
 		});
 	});
 
-	describe('createTeam', () => {
+	describe('create', () => {
 		it('explicit admin should be used', async () => {
 			const queryParams = { dir: 'ASC', page: '0', size: '5', sort: 'name' };
 			const creator = await User.findOne({ name: 'user1 Name' }).exec();
 			const admin = await User.findOne({ name: 'user2 Name' }).exec();
 
-			await teamsService.createTeam(teamSpec('test-create-2'), creator, admin);
+			await teamsService.create(teamSpec('test-create-2'), creator, admin);
 			team = await Team.findOne({ name: 'test-create-2' }).exec();
 			const members = await teamsService.searchTeamMembers(
 				null,
@@ -363,7 +361,7 @@ describe('Team Service:', () => {
 			const creator = user.user1;
 
 			// null admin should default to creator
-			await teamsService.createTeam(teamSpec('test-create'), creator, null);
+			await teamsService.create(teamSpec('test-create'), creator, null);
 			const _team = await Team.findOne({ name: 'test-create' }).exec();
 			const members = await teamsService.searchTeamMembers(
 				null,
@@ -381,7 +379,7 @@ describe('Team Service:', () => {
 			let _team = teamSpec('nested-team');
 			_team.parent = team.teamWithNoExternalTeam._id;
 
-			await teamsService.createTeam(_team, creator, null);
+			await teamsService.create(_team, creator, null);
 			_team = await Team.findOne({ name: 'nested-team' }).exec();
 
 			should.exist(_team);
@@ -393,14 +391,14 @@ describe('Team Service:', () => {
 		});
 	});
 
-	describe('updateTeam', () => {
+	describe('update', () => {
 		it('should update team', async () => {
 			const updates = {
 				name: `${team.teamWithNoExternalTeam.name}_updated`
 			};
 
 			const updatedTeam = await teamsService
-				.updateTeam(team.teamWithNoExternalTeam, updates)
+				.update(team.teamWithNoExternalTeam, updates)
 				.should.be.fulfilled();
 
 			// Verify updates were applied on returned object
@@ -412,12 +410,12 @@ describe('Team Service:', () => {
 		});
 	});
 
-	describe('deleteTeam', () => {
+	describe('delete', () => {
 		it('should delete team, if team has no resources', async () => {
 			const beforeTeamCount = await Team.count({});
 
 			await teamsService
-				.deleteTeam(team.teamWithNoExternalTeam)
+				.delete(team.teamWithNoExternalTeam)
 				.should.be.fulfilled();
 
 			// Verify Team no longer exists
@@ -447,7 +445,7 @@ describe('Team Service:', () => {
 			await resource.save();
 
 			await teamsService
-				.deleteTeam(team.teamWithNoExternalTeam)
+				.delete(team.teamWithNoExternalTeam)
 				.should.be.rejectedWith({
 					status: 400,
 					type: 'bad-request',
@@ -467,7 +465,7 @@ describe('Team Service:', () => {
 		});
 	});
 
-	describe('searchTeams', () => {
+	describe('search', () => {
 		beforeEach(async () => {
 			const teams = [...Array(94).keys()].map((index) => {
 				return new Team({
@@ -483,7 +481,7 @@ describe('Team Service:', () => {
 			const queryParams = { size: 10 };
 			const query = {};
 			const search = '';
-			const result = await teamsService.searchTeams(
+			const result = await teamsService.search(
 				queryParams,
 				query,
 				search,
@@ -503,7 +501,7 @@ describe('Team Service:', () => {
 			const queryParams = { size: 10 };
 			const query = {};
 			const search = '';
-			const result = await teamsService.searchTeams(
+			const result = await teamsService.search(
 				queryParams,
 				query,
 				search,
@@ -523,7 +521,7 @@ describe('Team Service:', () => {
 			const queryParams = { size: 10 };
 			const query = { _id: { $in: [team.teamWithNoExternalTeam._id] } };
 			const search = '';
-			const result = await teamsService.searchTeams(
+			const result = await teamsService.search(
 				queryParams,
 				query,
 				search,
@@ -543,7 +541,7 @@ describe('Team Service:', () => {
 			const queryParams = { size: 100 };
 			const query = {};
 			const search = '';
-			const result = await teamsService.searchTeams(
+			const result = await teamsService.search(
 				queryParams,
 				query,
 				search,
@@ -567,7 +565,7 @@ describe('Team Service:', () => {
 			isMemberResults[0].should.equal(team.teamWithNoExternalTeam2.name);
 			isMemberResults[1].should.equal(team.teamWithNoExternalTeam.name);
 
-			const result2 = await teamsService.searchTeams(
+			const result2 = await teamsService.search(
 				queryParams,
 				query,
 				search,

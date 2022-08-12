@@ -1,13 +1,9 @@
-import {
-	Document,
-	Model,
-	model,
-	Types,
-	Schema,
-	Query,
-	Mongoose
-} from 'mongoose';
+import { Document, Model } from 'mongoose';
 import { BinaryLike } from 'crypto';
+import {
+	ContainsSearchPlugin,
+	TextSearchPlugin
+} from '../../common/mongoose/types';
 
 type UserRoles = {
 	user?: boolean;
@@ -33,14 +29,15 @@ interface IUser extends Document {
 	externalGroups: string[];
 	externalRoles: string[];
 	bypassAccessCheck: boolean;
-	updated: Date;
+	updated: Date | number;
 	created: Date;
 	messagesAcknowledged: Date;
 	alertsViewed: Date;
 	resetPasswordToken: string;
 	resetPasswordExpires: string;
-	acceptedEua: Date;
+	acceptedEua: Date | number;
 	lastLogin: Date | number;
+	lastLoginWithAccess: Date | number;
 	newFeatureDismissed: Date;
 	preferences: Object;
 	salt: BinaryLike;
@@ -51,7 +48,12 @@ export interface UserDocument extends IUser {
 	hashPassword(password: string): string;
 }
 
-export interface UserModel extends Model<UserDocument> {
+type QueryHelpers<T> = ContainsSearchPlugin &
+	TextSearchPlugin &
+	PaginatePlugin<T>;
+
+export interface UserModel
+	extends Model<UserDocument, QueryHelpers<UserDocument>> {
 	createCopy(user: Object): Object;
 	auditCopy(user: Object, userIP?: string): Object;
 }

@@ -1,19 +1,29 @@
 'use strict';
 
 const path = require('path'),
-	deps = require('../../../dependencies'),
-	dbs = deps.dbs,
-	config = deps.config,
-	util = deps.utilService,
+	{ dbs, config, utilService } = require('../../../dependencies'),
 	publishProvider = require(path.posix.resolve(config.publishProvider));
 
 /**
- * @type {import('./types').MessageModel}
+ * Import types for reference below
+ *
+ * @typedef {import('mongoose').PopulateOptions} PopulateOptions
+ * @typedef {import('./types').MessageDocument} MessageDocument
+ * @typedef {import('./types').LeanMessageDocument} LeanMessageDocument
+ * @typedef {import('./types').DismissedMessageDocument} DismissedMessageDocument
+ * @typedef {import('./types').LeanDismissedMessageDocument} LeanDismissedMessageDocument
+ * @typedef {import('./types').DismissedMessageModel} DismissedMessageModel
+ * @typedef {import('./types').MessageModel} MessageModel
+ * @typedef {import('../user/types').UserDocument} UserDocument
+ */
+
+/**
+ * @type {MessageModel}
  */
 const Message = dbs.admin.model('Message');
 
 /**
- * @typedef {import('./types').DismissedMessageModel} DismissedMessageModel
+ * @type {DismissedMessageModel}
  */
 const DismissedMessage = dbs.admin.model('DismissedMessage');
 
@@ -25,157 +35,140 @@ const copyMutableFields = (dest, src) => {
 	});
 };
 
-/**
- * Import types for reference below
- * @typedef {import('./types').MessageDocument} MessageDocument
- * @typedef {import('mongoose').LeanDocument<MessageDocument>} LeanMessageDocument
- * @typedef {import('./types').DismissedMessageDocument} DismissedMessageDocument
- * @typedef {import('mongoose').LeanDocument<DismissedMessage>} LeanDismissedMessageDocument
- * @typedef {import('mongoose').PopulateOptions} PopulateOptions
- * @typedef {import('../user/types').UserDocument} UserDocument
- */
+class MessagesService {
+	/**
+	 * @param {UserDocument} user
+	 * @param {*} doc
+	 * @returns {Promise<MessageDocument>}
+	 */
+	create(user, doc) {
+		const message = new Message(doc);
+		message.creator = user._id;
+		message.created = Date.now();
+		message.updated = Date.now();
 
-/**
- * @param {UserDocument} user
- * @param {*} doc
- * @returns {Promise<MessageDocument>}
- */
-const create = (user, doc) => {
-	const message = new Message(doc);
-	message.creator = user._id;
-	message.created = Date.now();
-	message.updated = Date.now();
+		return message.save();
+	}
 
-	return message.save();
-};
+	/**
+	 * @param {string} id
+	 * @param {string | PopulateOptions | Array<string | PopulateOptions>} [populate]
+	 * @returns {Promise<MessageDocument | null>}
+	 */
+	read(id, populate = []) {
+		return Message.findById(id).populate(populate).exec();
+	}
 
-/**
- * @param {string} id
- * @param {string | PopulateOptions | Array<string | PopulateOptions>} [populate]
- * @returns {Promise<MessageDocument | null>}
- */
-const read = (id, populate = []) => {
-	return Message.findById(id).populate(populate).exec();
-};
+	/**
+	 * @param {MessageDocument} document The document to update
+	 * @param {*} obj The object with updated fields
+	 * @returns {Promise<MessageDocument>}
+	 */
+	update(document, obj) {
+		copyMutableFields(document, obj);
+		document.updated = Date.now();
+		return document.save();
+	}
 
-/**
- * @param {MessageDocument} record The record to edit
- * @param {*} updatedRecord The record with updated fields
- * @returns {Promise<MessageDocument>}
- */
-const update = (record, updatedRecord) => {
-	copyMutableFields(record, updatedRecord);
-	record.updated = Date.now();
-	return record.save();
-};
+	/**
+	 * @param {MessageDocument} document The document to delete
+	 * @returns {Promise<MessageDocument>}
+	 */
+	delete(document) {
+		return document.remove();
+	}
 
-/**
- * @param {MessageDocument} record The record to edit
- * @returns {Promise<MessageDocument>}
- */
-const deleteMessage = (record) => {
-	return record.remove();
-};
+	/**
+	 * @param [queryParams]
+	 * @param {string} [search]
+	 * @param {import('mongoose').FilterQuery<MessageDocument>} [query]
+	 * @returns {Promise<import('../../common/mongoose/types').PagingResults<MessageDocument>>}
+	 */
+	search(queryParams = {}, search = '', query = {}) {
+		query = query || {};
+		const page = utilService.getPage(queryParams);
+		const limit = utilService.getLimit(queryParams);
+		const sort = utilService.getSortObj(queryParams, 'DESC', 'updated');
 
-/**
- * @param [queryParams]
- * @param {string} [search]
- * @param {import('mongoose').FilterQuery<MessageDocument>} [query]
- * @returns {Promise<import('../../common/mongoose/types').PagingResults<MessageDocument>>}
- */
-const search = (queryParams = {}, search = '', query = {}) => {
-	query = query || {};
-	const page = util.getPage(queryParams);
-	const limit = util.getLimit(queryParams);
-	const sort = util.getSortObj(queryParams, 'DESC', 'updated');
+		return Message.find(query)
+			.textSearch(search)
+			.sort(sort)
+			.paginate(limit, page);
+	}
 
-	return Message.find(query)
-		.textSearch(search)
-		.sort(sort)
-		.paginate(limit, page);
-};
+	/**
+	 * @returns {Promise<Array<LeanMessageDocument>>}
+	 */
+	getAllMessages() {
+		const timeLimit = config['dismissedMessagesTimePeriod'] ?? 604800000;
 
-/**
- * @returns {Promise<Array<LeanMessageDocument>>}
- */
-const getAllMessages = () => {
-	const timeLimit = config.dismissedMessagesTimePeriod || 604800000;
+		return Message.find()
+			.where('created')
+			.gte(Date.now() - timeLimit)
+			.lean()
+			.exec();
+	}
 
-	return Message.find()
-		.where('created')
-		.gte(Date.now() - timeLimit)
-		.lean()
-		.exec();
-};
+	/**
+	 * @param userId
+	 * @returns {Promise<Array<LeanDismissedMessageDocument>>}
+	 */
+	getDismissedMessages(userId) {
+		return DismissedMessage.find({ userId: userId }).lean().exec();
+	}
 
-/**
- * @param userId
- * @returns {Promise<Array<LeanDismissedMessageDocument>>}
- */
-const getDismissedMessages = (userId) => {
-	return DismissedMessage.find({ userId: userId }).lean().exec();
-};
+	/**
+	 * Get recent, unread messages
+	 *
+	 * @param userId
+	 * @returns {Promise<Array<LeanMessageDocument>>}
+	 */
+	async getRecentMessages(userId) {
+		const [allMessages, dismissedMessages] = await Promise.all([
+			this.getAllMessages(),
+			this.getDismissedMessages(userId)
+		]);
 
-/**
- * Get recent, unread messages
- *
- * @param userId
- * @returns {Promise<Array<LeanMessageDocument>>}
- */
-const getRecentMessages = async (userId) => {
-	const [allMessages, dismissedMessages] = await Promise.all([
-		getAllMessages(),
-		getDismissedMessages(userId)
-	]);
+		const filteredMessages = allMessages.filter((message) => {
+			const isDismissed = dismissedMessages.some((dismissed) =>
+				dismissed.messageId.equals(message._id)
+			);
+			return !isDismissed;
+		});
 
-	const filteredMessages = allMessages.filter((message) => {
-		const isDismissed = dismissedMessages.some((dismissed) =>
-			dismissed.messageId.equals(message._id)
+		return filteredMessages;
+	}
+
+	/**
+	 *
+	 * @param {string[]} messageIds
+	 * @param {UserDocument} user
+	 * @returns {Promise<DismissedMessageDocument[]>}
+	 */
+	dismissMessages(messageIds, user) {
+		const dismissals = messageIds.map((messageId) =>
+			new DismissedMessage({ messageId, userId: user._id }).save()
 		);
-		return !isDismissed;
-	});
+		return Promise.all(dismissals);
+	}
 
-	return filteredMessages;
-};
+	/**
+	 * Publish a message
+	 *
+	 * @param {MessageDocument} message The message to be published
+	 */
+	publishMessage(message) {
+		publishProvider.publish(
+			config.messages.topic,
+			{
+				type: 'message',
+				id: message._id.toString(),
+				time: Date.now(),
+				message: message.toObject()
+			},
+			true
+		);
+	}
+}
 
-/**
- *
- * @param {string[]} messageIds
- * @param {UserDocument} user
- * @returns {Promise<DismissedMessage[]>}
- */
-const dismissMessages = (messageIds, user) => {
-	const dismissals = messageIds.map((messageId) =>
-		new DismissedMessage({ messageId, userId: user._id }).save()
-	);
-	return Promise.all(dismissals);
-};
-
-/**
- * Publish a message
- *
- * @param {MessageDocument} message The message to be published
- */
-const publishMessage = (message) => {
-	publishProvider.publish(
-		config.messages.topic,
-		{
-			type: 'message',
-			id: message._id.toString(),
-			time: Date.now(),
-			message: message.toObject()
-		},
-		true
-	);
-};
-
-module.exports = {
-	create,
-	read,
-	update,
-	delete: deleteMessage,
-	search: search,
-	getRecentMessages,
-	dismissMessages,
-	publishMessage
-};
+module.exports = new MessagesService();

@@ -1,75 +1,113 @@
-const deps = require('../../../../dependencies'),
-	util = deps.utilService,
-	dbs = deps.dbs,
-	User = dbs.admin.model('User'),
-	UserAgreement = dbs.admin.model('UserAgreement');
+const { dbs, utilService } = require('../../../../dependencies');
 
-const create = (input) => {
-	const eua = new UserAgreement(input);
-	eua.created = Date.now();
-	eua.updated = eua.created;
+/**
+ * Import types for reference below
+ *
+ * @typedef {import('mongoose').PopulateOptions} PopulateOptions
+ * @typedef {import('./types').UserAgreementDocument} UserAgreementDocument
+ * @typedef {import('./types').UserAgreementModel} UserAgreementModel
+ * @typedef {import('../types').UserDocument} UserDocument
+ */
 
-	return eua.save();
-};
+class EuaService {
+	constructor() {
+		/**
+		 * @type {UserAgreementModel}
+		 */
+		this.model = dbs.admin.model('UserAgreement');
+	}
 
-const read = (id, populate = []) => {
-	return UserAgreement.findById(id).populate(populate).exec();
-};
+	/**
+	 * @param obj
+	 * @returns {Promise<UserAgreementDocument>}
+	 */
+	create(obj) {
+		const document = new this.model(obj);
+		document.created = Date.now();
+		document.updated = document.created;
 
-const update = (eua, updatedEua) => {
-	// Copy over the new eua properties
-	eua.text = updatedEua.text;
-	eua.title = updatedEua.title;
+		return document.save();
+	}
 
-	// Update the updated date
-	eua.updated = Date.now();
+	/**
+	 * @param {string} id
+	 * @param {string | PopulateOptions | Array<string | PopulateOptions>} [populate]
+	 * @returns {Promise<UserAgreementDocument | null>}
+	 */
+	read(id, populate = []) {
+		return this.model.findById(id).populate(populate).exec();
+	}
 
-	return eua.save();
-};
+	/**
+	 * @param {UserAgreementDocument} document The document to update
+	 * @param {*} obj The obj with updated fields
+	 * @returns {Promise<UserAgreementDocument>}
+	 */
+	update(document, obj) {
+		// Copy over the new eua properties
+		document.text = obj.text;
+		document.title = obj.title;
 
-const remove = (eua) => {
-	return eua.remove();
-};
+		// Update the updated date
+		document.updated = Date.now();
 
-const search = (queryParams, query, _search) => {
-	query = query || {};
-	const page = util.getPage(queryParams);
-	const limit = util.getLimit(queryParams);
-	const sort = util.getSortObj(queryParams, 'DESC');
+		return document.save();
+	}
 
-	return UserAgreement.find(query)
-		.textSearch(_search)
-		.sort(sort)
-		.paginate(limit, page);
-};
+	/**
+	 * @param {UserAgreementDocument} document The document to delete
+	 * @returns {Promise<UserAgreementDocument>}
+	 */
+	remove(document) {
+		return document.remove();
+	}
 
-const publishEua = (eua) => {
-	eua.published = Date.now();
+	/**
+	 * @param [queryParams]
+	 * @param {import('mongoose').FilterQuery<UserAgreementDocument>} [query]
+	 * @param {string} [search]
+	 * @returns {Promise<import('../../../common/mongoose/types').PagingResults<UserAgreementDocument>>}
+	 */
+	search(queryParams, query, search) {
+		query = query || {};
+		const page = utilService.getPage(queryParams);
+		const limit = utilService.getLimit(queryParams);
+		const sort = utilService.getSortObj(queryParams, 'DESC');
 
-	return eua.save();
-};
+		return this.model
+			.find(query)
+			.textSearch(search)
+			.sort(sort)
+			.paginate(limit, page);
+	}
 
-const getCurrentEua = () => {
-	return UserAgreement.findOne({ published: { $ne: null, $exists: true } })
-		.sort({ published: -1 })
-		.exec();
-};
+	/**
+	 * @param {UserAgreementDocument} document The eua to publish
+	 * @returns {Promise<UserAgreementDocument | null>}
+	 */
+	publishEua(document) {
+		document.published = Date.now();
+		return document.save();
+	}
 
-const acceptEua = (user) => {
-	return User.findOneAndUpdate(
-		{ _id: user._id },
-		{ acceptedEua: Date.now() },
-		{ new: true, upsert: false }
-	).exec();
-};
+	/**
+	 * @returns {Promise<UserAgreementDocument | null>}
+	 */
+	getCurrentEua() {
+		return this.model
+			.findOne({ published: { $ne: null, $exists: true } })
+			.sort({ published: -1 })
+			.exec();
+	}
 
-module.exports = {
-	create,
-	read,
-	update,
-	remove,
-	search,
-	publishEua,
-	acceptEua,
-	getCurrentEua
-};
+	/**
+	 * @param {UserDocument} user
+	 * @returns {Promise<UserDocument | null>}
+	 */
+	acceptEua(user) {
+		user.acceptedEua = Date.now();
+		return user.save();
+	}
+}
+
+module.exports = new EuaService();
