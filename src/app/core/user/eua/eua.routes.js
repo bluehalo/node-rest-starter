@@ -21,7 +21,7 @@ router
 
 router
 	.route('/eua/:euaId')
-	.get(users.hasAdminAccess, users.getEuaById)
+	.get(users.hasAdminAccess, users.read)
 	.post(users.hasAdminAccess, users.updateEua)
 	.delete(users.hasAdminAccess, users.deleteEua);
 

@@ -270,10 +270,10 @@ const validateTeamRole = (role) => {
 };
 
 const readTeam = (id, populate = []) => {
-	const query = {
-		_id: id
-	};
-	return Team.findOne(query).populate(populate).exec();
+	if (!mongoose.Types.ObjectId.isValid(id)) {
+		throw { status: 400, type: 'validation', message: 'Invalid team ID' };
+	}
+	return Team.findById(id).populate(populate).exec();
 };
 
 const readTeamMember = (id, populate = []) => {
@@ -387,7 +387,7 @@ const searchTeams = async (queryParams, query, search, user) => {
 
 	// get results
 	const results = await Team.find(query)
-		.textSearch(search)
+		.containsSearch(search)
 		.sort(sort)
 		.paginate(limit, page);
 
@@ -497,7 +497,7 @@ const searchTeamMembers = async (search, query, queryParams, team) => {
 	query = updateMemberFilter(query ?? {}, team);
 
 	const results = await TeamMember.find(query)
-		.textSearch(search)
+		.containsSearch(search)
 		.sort(sort)
 		.paginate(limit, page);
 

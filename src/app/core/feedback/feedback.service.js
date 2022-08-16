@@ -6,10 +6,92 @@ const deps = require('../../../dependencies'),
 	emailService = deps.emailService,
 	util = deps.utilService,
 	logger = deps.logger,
-	Feedback = dbs.admin.model('Feedback'),
 	mongoose = require('mongoose');
 
-const sendFeedback = async (user, feedback, req) => {
+/**
+ * @type {import('./types').FeedbackModel}
+ */
+const Feedback = dbs.admin.model('Feedback');
+
+/**
+ * Import types for reference below
+ * @typedef {import('./types').FeedbackDocument} FeedbackDocument
+ * @typedef {import('mongoose').PopulateOptions} PopulateOptions
+ * @typedef {import('../user/types').UserDocument} UserDocument
+ */
+
+/**
+ * @param {UserDocument} user
+ * @param {*} doc
+ * @param {*} userSpec
+ * @returns {Promise<FeedbackDocument>}
+ */
+const create = async (user, doc, userSpec) => {
+	const feedback = new Feedback({
+		body: doc.body,
+		type: doc.type,
+		url: doc.url,
+		classification: doc.classification,
+		creator: user._id,
+		browser: userSpec.browser,
+		os: userSpec.os
+	});
+
+	try {
+		return await feedback.save();
+	} catch (err) {
+		// Log and continue the error
+		logger.error(
+			{ err: err, feedback: doc },
+			'Error trying to persist feedback record to storage.'
+		);
+		return Promise.reject(err);
+	}
+};
+
+/**
+ * @param {string} id
+ * @param {string | PopulateOptions | Array<string | PopulateOptions>} [populate]
+ * @returns {Promise<FeedbackDocument | null>}
+ */
+const read = (id, populate = []) => {
+	if (!mongoose.Types.ObjectId.isValid(id)) {
+		throw { status: 400, type: 'validation', message: 'Invalid feedback ID' };
+	}
+	return Feedback.findById(id).populate(populate).exec();
+};
+
+/**
+ * @param [queryParams]
+ * @param {string} [search]
+ * @param {import('mongoose').FilterQuery<FeedbackDocument>} [query]
+ * @returns {Promise<import('../../common/mongoose/types').PagingResults<FeedbackDocument>>}
+ */
+const search = (queryParams = {}, search = '', query = {}) => {
+	query = query || {};
+	const page = util.getPage(queryParams);
+	const limit = util.getLimit(queryParams, 100);
+	const sort = util.getSortObj(queryParams);
+
+	// Query for feedback
+	return Feedback.find(query)
+		.textSearch(search)
+		.sort(sort)
+		.populate({
+			path: 'creator',
+			select: ['username', 'organization', 'name', 'email']
+		})
+		.paginate(limit, page);
+};
+
+/**
+ *
+ * @param {UserDocument} user
+ * @param {FeedbackDocument} feedback
+ * @param req
+ * @returns {Promise<void>}
+ */
+const sendFeedbackEmail = async (user, feedback, req) => {
 	if (
 		null == user ||
 		null == feedback.body ||
@@ -38,62 +120,22 @@ const sendFeedback = async (user, feedback, req) => {
 	}
 };
 
-const create = async (reqUser, newFeedback, userSpec) => {
-	const feedback = new Feedback({
-		body: newFeedback.body,
-		type: newFeedback.type,
-		url: newFeedback.url,
-		classification: newFeedback.classification,
-		creator: reqUser._id,
-		browser: userSpec.browser,
-		os: userSpec.os
-	});
-
-	try {
-		return await feedback.save();
-	} catch (err) {
-		// Log and continue the error
-		logger.error(
-			{ err: err, feedback: newFeedback },
-			'Error trying to persist feedback record to storage.'
-		);
-		return Promise.reject(err);
-	}
-};
-
-const search = (reqUser, queryParams, search, query) => {
-	query = query || {};
-	const page = util.getPage(queryParams);
-	const limit = util.getLimit(queryParams, 100);
-	const sort = util.getSortObj(queryParams);
-
-	// Query for feedback
-	return Feedback.find(query)
-		.textSearch(search)
-		.sort(sort)
-		.populate({
-			path: 'creator',
-			select: ['username', 'organization', 'name', 'email']
-		})
-		.paginate(limit, page);
-};
-
-const readFeedback = async (feedbackId, populate = []) => {
-	if (!mongoose.Types.ObjectId.isValid(feedbackId)) {
-		throw { status: 400, type: 'validation', message: 'Invalid feedback ID' };
-	}
-	const feedback = await Feedback.findById(feedbackId)
-		.populate(populate)
-		.exec();
-	return feedback;
-};
-
+/**
+ * @param {FeedbackDocument} feedback
+ * @param {string} assignee
+ * @returns {Promise<FeedbackDocument>}
+ */
 const updateFeedbackAssignee = (feedback, assignee) => {
 	feedback.assignee = assignee;
 	feedback.updated = Date.now();
 	return feedback.save();
 };
 
+/**
+ * @param {FeedbackDocument} feedback
+ * @param {'New' | 'Open' | 'Closed'} status
+ * @returns {Promise<FeedbackDocument>}
+ */
 const updateFeedbackStatus = (feedback, status) => {
 	feedback.status = status;
 	feedback.updated = Date.now();
@@ -102,9 +144,9 @@ const updateFeedbackStatus = (feedback, status) => {
 
 module.exports = {
 	create,
+	read,
 	search,
-	sendFeedback,
-	readFeedback,
 	updateFeedbackAssignee,
-	updateFeedbackStatus
+	updateFeedbackStatus,
+	sendFeedbackEmail
 };

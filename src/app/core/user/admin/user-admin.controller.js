@@ -1,13 +1,13 @@
 'use strict';
 
 const _ = require('lodash'),
-	deps = require('../../../../dependencies'),
-	config = deps.config,
-	dbs = deps.dbs,
-	util = deps.utilService,
-	logger = deps.logger,
-	auditService = deps.auditService,
-	TeamMember = dbs.admin.model('TeamUser'),
+	{
+		config,
+		dbs,
+		utilService,
+		logger,
+		auditService
+	} = require('../../../../dependencies'),
 	User = dbs.admin.model('User'),
 	resourcesService = require('../../resources/resources.service'),
 	userAuthorizationService = require('../auth/user-authorization.service'),
@@ -40,17 +40,13 @@ exports.adminGetAll = async (req, res) => {
 	const proj = {};
 	proj[field] = 1;
 
-	try {
-		const results = await User.find(util.toMongoose(query), proj).exec();
+	const results = await User.find(utilService.toMongoose(query), proj).exec();
 
-		res.status(200).json(
-			results.map((r) => {
-				return r[field];
-			})
-		);
-	} catch (error) {
-		return util.handleErrorResponse(res, error);
-	}
+	res.status(200).json(
+		results.map((r) => {
+			return r[field];
+		})
+	);
 };
 
 // Admin Update a User
@@ -74,39 +70,25 @@ exports.adminUpdateUser = async (req, res) => {
 		user.password = req.body.password;
 	}
 
-	try {
-		// Save the user
-		await userService.update(user);
+	// Save the user
+	await userService.update(user);
 
-		// Audit user update
-		auditService.audit(
-			'admin user updated',
-			'user',
-			'admin update',
-			TeamMember.auditCopy(
-				req.user,
-				util.getHeaderField(req.headers, 'x-real-ip')
-			),
-			{
-				before: originalUser,
-				after: User.auditCopy(user)
-			},
-			req.headers
-		);
+	// Audit user update
+	auditService.audit('admin user updated', 'user', 'admin update', req, {
+		before: originalUser,
+		after: User.auditCopy(user)
+	});
 
-		if (config?.coreEmails?.approvedUserEmail?.enabled ?? false) {
-			const originalUserRole = originalUser?.roles?.user ?? null;
-			const newUserRole = user?.roles?.user ?? null;
+	if (config?.coreEmails?.approvedUserEmail?.enabled ?? false) {
+		const originalUserRole = originalUser?.roles?.user ?? null;
+		const newUserRole = user?.roles?.user ?? null;
 
-			if (originalUserRole !== newUserRole && newUserRole) {
-				await userEmailService.emailApprovedUser(user);
-			}
+		if (originalUserRole !== newUserRole && newUserRole) {
+			await userEmailService.emailApprovedUser(user);
 		}
-
-		res.status(200).json(User.fullCopy(user));
-	} catch (error) {
-		return util.handleErrorResponse(res, error);
 	}
+
+	res.status(200).json(User.fullCopy(user));
 };
 
 // Admin Delete a User
@@ -114,24 +96,16 @@ exports.adminDeleteUser = async (req, res) => {
 	// Init Variables
 	const user = req.userParam;
 
-	try {
-		await auditService.audit(
-			'admin user deleted',
-			'user',
-			'admin delete',
-			TeamMember.auditCopy(
-				req.user,
-				util.getHeaderField(req.headers, 'x-real-ip')
-			),
-			User.auditCopy(user),
-			req.headers
-		);
-		await resourcesService.deleteResourcesWithOwner(user._id, 'user');
-		await userService.remove(user);
-		res.status(200).json(User.fullCopy(user));
-	} catch (err) {
-		util.handleErrorResponse(res, err);
-	}
+	await auditService.audit(
+		'admin user deleted',
+		'user',
+		'admin delete',
+		req,
+		User.auditCopy(user)
+	);
+	await resourcesService.deleteResourcesWithOwner(user._id, 'user');
+	await userService.remove(user);
+	res.status(200).json(User.fullCopy(user));
 };
 
 // Admin Search for Users
@@ -140,15 +114,11 @@ exports.adminSearchUsers = async (req, res) => {
 	const query = userAuthorizationService.updateUserFilter(req.body.q);
 	const search = req.body.s;
 
-	try {
-		const results = await userService.searchUsers(req.query, query, search);
-		results.elements = results.elements.map((user) => {
-			const userCopy = User.fullCopy(user);
-			userAuthorizationService.updateRoles(userCopy);
-			return userCopy;
-		});
-		res.status(200).json(results);
-	} catch (error) {
-		return util.handleErrorResponse(res, error);
-	}
+	const results = await userService.searchUsers(req.query, query, search);
+	results.elements = results.elements.map((user) => {
+		const userCopy = User.fullCopy(user);
+		userAuthorizationService.updateRoles(userCopy);
+		return userCopy;
+	});
+	res.status(200).json(results);
 };

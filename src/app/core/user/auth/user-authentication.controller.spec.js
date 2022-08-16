@@ -126,7 +126,7 @@ describe('User Auth Controller:', () => {
 				userAuthenticationController.signin(req, res, () => {});
 			});
 
-			it('should fail with incorrect password', (done) => {
+			it('should fail with incorrect password', async () => {
 				const req = {};
 				req.body = { username: user.username, password: 'wrong' };
 				req.headers = {};
@@ -134,24 +134,18 @@ describe('User Auth Controller:', () => {
 					return cb && cb();
 				};
 
-				const res = {};
-				res.status = (status) => {
-					should(status).equal(401);
+				let err;
+				try {
+					await userAuthenticationController.signin(req, {});
+				} catch (e) {
+					err = e;
+				}
 
-					return {
-						json: (info) => {
-							should.exist(info);
-							should(info.type).equal('invalid-credentials');
-
-							done();
-						}
-					};
-				};
-
-				userAuthenticationController.signin(req, res, () => {});
+				should.exist(err);
+				should(err.type).equal('invalid-credentials');
 			});
 
-			it('should fail with missing password', (done) => {
+			it('should fail with missing password', async () => {
 				const req = {};
 				req.body = { username: user.username, password: undefined };
 				req.headers = {};
@@ -159,25 +153,17 @@ describe('User Auth Controller:', () => {
 					return cb && cb();
 				};
 
-				const res = {
-					status: (status) => {
-						should(status).equal(400);
-
-						return {
-							json: (info) => {
-								should.exist(info);
-								should(info.type).equal('missing-credentials');
-
-								done();
-							}
-						};
-					}
-				};
-
-				userAuthenticationController.signin(req, res, () => {});
+				let err;
+				try {
+					await userAuthenticationController.signin(req, {});
+				} catch (e) {
+					err = e;
+				}
+				should.exist(err);
+				should(err.type).equal('missing-credentials');
 			});
 
-			it('should fail with missing username', (done) => {
+			it('should fail with missing username', async () => {
 				const req = {};
 				req.body = { username: undefined, password: 'asdfasdf' };
 				req.headers = {};
@@ -185,25 +171,17 @@ describe('User Auth Controller:', () => {
 					return cb && cb();
 				};
 
-				const res = {
-					status: (status) => {
-						should(status).equal(400);
-
-						return {
-							json: (info) => {
-								should.exist(info);
-								should(info.type).equal('missing-credentials');
-
-								done();
-							}
-						};
-					}
-				};
-
-				userAuthenticationController.signin(req, res, () => {});
+				let err;
+				try {
+					await userAuthenticationController.signin(req, {});
+				} catch (e) {
+					err = e;
+				}
+				should.exist(err);
+				should(err.type).equal('missing-credentials');
 			});
 
-			it('should fail with unknown user', (done) => {
+			it('should fail with unknown user', async () => {
 				const req = {};
 				req.body = { username: 'totally doesnt exist', password: 'asdfasdf' };
 				req.headers = {};
@@ -211,22 +189,14 @@ describe('User Auth Controller:', () => {
 					return cb && cb();
 				};
 
-				const res = {
-					status: (status) => {
-						should(status).equal(401);
-
-						return {
-							json: (info) => {
-								should.exist(info);
-								should(info.type).equal('invalid-credentials');
-
-								done();
-							}
-						};
-					}
-				};
-
-				userAuthenticationController.signin(req, res, () => {});
+				let err;
+				try {
+					await userAuthenticationController.signin(req, {});
+				} catch (e) {
+					err = e;
+				}
+				should.exist(err);
+				should(err.type).equal('invalid-credentials');
 			});
 		}); // describe - login
 	});
@@ -386,44 +356,31 @@ describe('User Auth Controller:', () => {
 			});
 
 			// No DN header
-			it('should fail when there is no dn', (done) => {
+			it('should fail when there is no dn', async () => {
 				req.headers = {};
-				const res = {
-					status: (status) => {
-						return {
-							json: (info) => {
-								should(info.type).equal('missing-credentials');
-								should(status).equal(400);
 
-								done();
-							}
-						};
-					}
-				};
-
-				userAuthenticationController.signin(req, res, () => {});
+				let err;
+				try {
+					await userAuthenticationController.signin(req, {});
+				} catch (e) {
+					err = e;
+				}
+				should.exist(err);
+				should(err.type).equal('missing-credentials');
 			});
 
 			// Unknown DN header
-			it('should fail when the dn is unknown and auto create is disabled', (done) => {
+			it('should fail when the dn is unknown and auto create is disabled', async () => {
 				config.auth.autoCreateAccounts = false;
 				req.headers = { [config.proxyPkiPrimaryUserHeader]: 'unknown' };
-				const res = {
-					status: (status) => {
-						return {
-							json: (info) => {
-								should(info.type).equal('invalid-credentials');
-								should(status).equal(401);
-
-								config.auth.autoCreateAccounts = true;
-
-								done();
-							}
-						};
-					}
-				};
-
-				userAuthenticationController.signin(req, res, () => {});
+				let err;
+				try {
+					await userAuthenticationController.signin(req, {});
+				} catch (e) {
+					err = e;
+				}
+				should.exist(err);
+				should(err.type).equal('invalid-credentials');
 			});
 		});
 
@@ -673,6 +630,7 @@ describe('User Auth Controller:', () => {
 			};
 
 			it('should create a new account from access checker information', (done) => {
+				config.auth.autoCreateAccounts = true;
 				req.headers = {
 					[config.proxyPkiPrimaryUserHeader]: spec.cache.cacheOnly.key
 				};
@@ -713,7 +671,9 @@ describe('User Auth Controller:', () => {
 					}
 				};
 
-				userAuthenticationController.signin(req, res, () => {});
+				userAuthenticationController.signin(req, res, () => {
+					done('should not be called');
+				});
 			});
 		});
 
@@ -723,32 +683,27 @@ describe('User Auth Controller:', () => {
 				return cb && cb();
 			};
 
-			it('should failed when not authorized to proxy users', (done) => {
+			it('should fail when not authorized to proxy users', async () => {
 				req.headers = {
 					[config.proxyPkiPrimaryUserHeader]: spec.user.synced.providerData.dn,
 					[config.proxyPkiProxiedUserHeader]:
 						spec.user.userBypassed.providerData.dn
 				};
-				const res = {
-					status: (status) => {
-						should(status).equal(403);
-						return {
-							json: (info) => {
-								should.exist(info);
-								should(info).eql({
-									status: 403,
-									message:
-										'Not approved to proxy users. Please verify your credentials.',
-									type: 'authentication-error'
-								});
 
-								done();
-							}
-						};
-					}
-				};
-
-				userAuthenticationController.signin(req, res, () => {});
+				let err;
+				try {
+					await userAuthenticationController.signin(req, {}, () => {});
+				} catch (e) {
+					err = e;
+				}
+				should.exist(err);
+				should(err).eql({
+					status: 403,
+					message:
+						'Not approved to proxy users. Please verify your credentials.',
+					type: 'authentication-error'
+				});
+				// done();
 			});
 
 			it('should succeed when authorized to proxy users', (done) => {

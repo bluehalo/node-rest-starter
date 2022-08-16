@@ -1,12 +1,13 @@
 'use strict';
 
 const express = require('express'),
+	{ Validator } = require('express-json-validator-middleware'),
 	teams = require('./teams.controller'),
-	user = require('../user/user.controller');
+	user = require('../user/user.controller'),
+	teamSchemas = require('./teams.schemas');
 
-/**
- * Team Routes
- */
+// @ts-ignore
+const { validate } = new Validator();
 
 const router = express.Router();
 
@@ -168,6 +169,7 @@ router
 	.put(
 		user.hasAccess,
 		user.hasAny(user.requiresAdminRole, teams.requiresAdmin),
+		validate({ body: teamSchemas.addMembers }),
 		teams.addMembers
 	)
 	.post(

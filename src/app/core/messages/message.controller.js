@@ -1,264 +1,100 @@
 'use strict';
 
-const mongoose = require('mongoose'),
-	path = require('path'),
-	ValidationError = mongoose.Error.ValidationError,
-	deps = require('../../../dependencies'),
-	config = deps.config,
-	dbs = deps.dbs,
-	logger = deps.logger,
-	auditService = deps.auditService,
-	util = deps.utilService,
-	messageService = require('./messages.service')(),
-	publishProvider = require(path.posix.resolve(config.publishProvider)),
-	TeamMember = dbs.admin.model('TeamUser'),
-	Message = dbs.admin.model('Message');
-
-function copyMutableFields(dest, src) {
-	['title', 'type', 'body', 'ackRequired'].forEach((key) => {
-		if (null != src[key]) {
-			dest[key] = src[key];
-		}
-	});
-}
-
-// Given a message save to mongo and send update to storm
-function save(message, user, res, audit) {
-	const error = new ValidationError(message);
-
-	if (!error.errors || Object.keys(error.errors).length === 0) {
-		message.save((err, result) => {
-			util.catchError(res, err, () => {
-				res.status(200).json(result);
-				audit();
-			});
-		});
-	} else {
-		util.send400Error(res, error);
-	}
-}
-
-/**
- * Publish
- */
-function publish(destination, message, retry) {
-	return publishProvider.publish(destination, message, retry);
-}
-
-/**
- * Publish a message
- *
- * @param {Message} message The message to be published
- * @returns {Promise} A promise that is resolved when the send is successful.
- */
-function sendMessage(message) {
-	// Turn Mongo models into regular objects before we serialize
-	if (null != message && null != message.toObject) {
-		message = message.toObject();
-	} else {
-		throw new Error("'message' parameter must be defined'");
-	}
-
-	const payload = {
-		type: 'message',
-		id: message._id.toString(),
-		time: Date.now(),
-		message: message
-	};
-	const destination = config.messages.topic;
-	return publish(destination, payload, true);
-}
+const { dbs, auditService } = require('../../../dependencies'),
+	messageService = require('./messages.service'),
+	Message = dbs.admin.model('Message'),
+	DismissedMessage = dbs.admin.model('DismissedMessage');
 
 // Create
-exports.create = function (req, res) {
-	const message = new Message(req.body);
-	message.creator = req.user;
-	message.created = Date.now();
-	message.updated = Date.now();
+module.exports.create = async (req, res) => {
+	const message = await messageService.create(req.user, req.body);
 
-	save(message, req.user, res, () => {
-		// Audit creation of messages
-		auditService.audit(
-			'message created',
-			'message',
-			'create',
-			TeamMember.auditCopy(
-				req.user,
-				util.getHeaderField(req.headers, 'x-real-ip')
-			),
-			Message.auditCopy(message),
-			req.headers
-		);
+	// Publish message
+	messageService.publishMessage(message);
 
-		// Publish message
-		sendMessage(message);
-	});
+	// Audit creation of messages
+	await auditService.audit(
+		'message created',
+		'message',
+		'create',
+		req,
+		Message.auditCopy(message)
+	);
+
+	res.status(200).json(message);
 };
 
 // Read
-exports.read = function (req, res) {
+exports.read = (req, res) => {
 	res.status(200).json(req.message);
 };
 
 // Update
-exports.update = function (req, res) {
-	// Retrieve the message from persistence
-	const message = req.message;
+module.exports.update = async (req, res) => {
+	// Make a copy of the original message for auditing purposes
+	const originalMessage = Message.auditCopy(req.message);
 
-	// Make a copy of the original deck for a "before" snapshot
-	const originalMessage = Message.auditCopy(message);
+	const message = messageService.update(req.message, req.body);
 
-	// Update the updated date
-	message.updated = Date.now();
-
-	copyMutableFields(message, req.body);
-
-	// Save
-	save(message, req.user, res, () => {
-		// Audit the save action
-		auditService.audit(
-			'message updated',
-			'message',
-			'update',
-			TeamMember.auditCopy(
-				req.user,
-				util.getHeaderField(req.headers, 'x-real-ip')
-			),
-			{ before: originalMessage, after: Message.auditCopy(message) },
-			req.headers
-		);
+	// Audit the save action
+	await auditService.audit('message updated', 'message', 'update', req, {
+		before: originalMessage,
+		after: Message.auditCopy(message)
 	});
+
+	res.status(200).json(message);
 };
 
 // Delete
-exports.delete = async function (req, res) {
-	try {
-		const message = req.message;
-		await Message.deleteOne({ _id: message._id }).exec();
+module.exports.delete = async (req, res) => {
+	await messageService.delete(req.message);
 
-		// Audit the message delete attempt
-		auditService.audit(
-			'message deleted',
-			'message',
-			'delete',
-			TeamMember.auditCopy(
-				req.user,
-				util.getHeaderField(req.headers, 'x-real-ip')
-			),
-			Message.auditCopy(req.message),
-			req.headers
-		);
+	// Audit the message delete attempt
+	await auditService.audit(
+		'message deleted',
+		'message',
+		'delete',
+		req,
+		Message.auditCopy(req.message)
+	);
 
-		res.status(200).json(message);
-	} catch (err) {
-		util.handleErrorResponse(res, err);
-	}
+	res.status(200).json(req.message);
 };
 
 // Search - with paging and sorting
-exports.search = async (req, res) => {
-	const page = util.getPage(req.query);
-	const limit = util.getLimit(req.query);
-	const sort = util.getSortObj(req.query, 'DESC');
+module.exports.search = async (req, res) => {
+	const results = await messageService.search(
+		req.query,
+		req.body.s,
+		req.body.q
+	);
 
-	try {
-		const result = await Message.find(req.body.q)
-			.textSearch(req.body.s)
-			.sort(sort)
-			.paginate(limit, page);
+	// Create the return copy of the messages
+	results.elements = results.elements.map((element) =>
+		Message.fullCopy(element)
+	);
 
-		// Create the return copy of the messages
-		result.elements = result.elements.map((element) =>
-			Message.fullCopy(element)
-		);
-
-		res.status(200).json(result);
-	} catch (error) {
-		// failure
-		logger.error(error);
-		return util.send400Error(res, error);
-	}
-};
-
-// Search - with paging and sorting
-exports.searchTest = function (req, res) {
-	let query = req.body.q || {};
-	const search = req.body.s;
-
-	if (search) {
-		query = { $and: [query, { title_lowercase: new RegExp(search, 'i') }] };
-	}
-
-	const page = util.getPage(req.query);
-	const limit = util.getLimit(req.query);
-	const sort = req.query.sort;
-	let dir = req.query.dir;
-
-	// Sort can be null, but if it's non-null, dir defaults to DESC
-	if (null != sort && dir == null) {
-		dir = 'ASC';
-	}
-
-	// Create the variables to the search call
-	const offset = page * limit;
-	let sortParams;
-	if (null != sort) {
-		sortParams = {};
-		sortParams[sort] = dir === 'ASC' ? 1 : -1;
-	}
-
-	const doSearch = function (_query) {
-		const getSearchCount = Message.find(_query).countDocuments();
-		const getSearchInfo = Message.find(_query)
-			.sort(sortParams)
-			.skip(offset)
-			.limit(limit);
-
-		return Promise.all([getSearchCount.exec(), getSearchInfo.exec()]).then(
-			(results) => {
-				return util.getPagingResults(limit, page, results[0], results[1]);
-			}
-		);
-	};
-
-	// If we aren't an admin, we need to constrain the results
-	const searchPromise = doSearch(query);
-
-	// Now execute the search promise
-	searchPromise
-		.then((results) => {
-			res.status(200).json(results);
-		})
-		.catch((err) => {
-			logger.error({ err: err, req: req }, 'Error searching for messages');
-			return util.handleErrorResponse(res, err);
-		});
+	res.status(200).json(results);
 };
 
 /**
  * Message middleware
  */
-exports.messageById = function (req, res, next, id) {
-	Message.findOne({ _id: id }).exec((err, message) => {
-		if (err) return next(err);
-		if (!message) return next(new Error(`Failed to load message ${id}`));
-		req.message = message;
-		next();
-	});
+module.exports.messageById = async (req, res, next, id) => {
+	const message = await messageService.read(id);
+	if (!message) {
+		return next(new Error(`Failed to load message: ${id}`));
+	}
+	req.message = message;
+	return next();
 };
 
 /**
  * Gets recent messages from the past week that have not been dismissed
  */
-module.exports.getRecentMessages = function (req, res) {
-	messageService
-		.getRecentMessages(req.user._id)
-		.then((result) => {
-			res.status(200).json(result);
-		})
-		.catch((err) => {
-			util.handleErrorResponse(res, err);
-		});
+module.exports.getRecentMessages = async (req, res) => {
+	const result = await messageService.getRecentMessages(req.user._id);
+	res.status(200).json(result);
 };
 
 /**
@@ -266,15 +102,22 @@ module.exports.getRecentMessages = function (req, res) {
  * @param req
  * @param res
  */
-exports.dismissMessage = function (req, res) {
-	messageService
-		.dismissMessage(req.body.messageIds, req.user, req.headers)
-		.then((result) => {
-			res.status(200).json(result);
-		})
-		.catch((err) => {
-			util.handleErrorResponse(res, err);
-		});
-};
+exports.dismissMessage = async (req, res) => {
+	const dismissedMessages = await messageService.dismissMessages(
+		req.body['messageIds'],
+		req.user
+	);
 
-module.exports.sendMessage = sendMessage;
+	// Audit dismissal of messages
+	for (const dismissedMessage of dismissedMessages) {
+		auditService.audit(
+			'message dismissed',
+			'message',
+			'dismissed',
+			req,
+			DismissedMessage.auditCopy(dismissedMessage)
+		);
+	}
+
+	res.status(200).json(dismissedMessages);
+};

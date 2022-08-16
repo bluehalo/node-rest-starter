@@ -4,7 +4,6 @@ const mongoose = require('mongoose'),
 	getterPlugin = require('../../../common/mongoose/getter.plugin'),
 	paginatePlugin = require('../../../common/mongoose/paginate.plugin'),
 	containsSearchPlugin = require('../../../common/mongoose/contains-search.plugin'),
-	textSearchPlugin = require('../../../common/mongoose/text-search.plugin'),
 	deps = require('../../../../dependencies'),
 	util = deps.utilService;
 
@@ -39,12 +38,10 @@ CacheEntrySchema.plugin(paginatePlugin);
 CacheEntrySchema.plugin(containsSearchPlugin, {
 	fields: ['key', 'valueString']
 });
-CacheEntrySchema.plugin(textSearchPlugin);
 
 /**
  * Index declarations
  */
-
 CacheEntrySchema.index({ ts: -1 });
 CacheEntrySchema.index({ key: 1 });
 

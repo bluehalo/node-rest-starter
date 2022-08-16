@@ -1,8 +1,7 @@
 'use strict';
 
 const should = require('should'),
-	deps = require('../../../dependencies'),
-	dbs = deps.dbs,
+	{ dbs } = require('../../../dependencies'),
 	Audit = dbs.admin.model('Audit'),
 	auditService = require('./audit.service');
 
@@ -44,7 +43,7 @@ describe('Audit Service:', () => {
 				'some message',
 				'eventType',
 				'eventAction',
-				'eventActor',
+				{ name: 'eventActor', username: 'eventActor' },
 				'eventObject'
 			);
 		});
@@ -55,6 +54,7 @@ describe('Audit Service:', () => {
 				.then((results) => {
 					should(results).be.an.Array();
 					should(results).have.length(1);
+
 					/*
 					 * Audit's created date should be after the unit tests started,
 					 * but may be the same time since ISO Date strips off the milliseconds,
@@ -64,7 +64,10 @@ describe('Audit Service:', () => {
 					should(results[0].message).equal('some message');
 					should(results[0].audit.auditType).equal('eventType');
 					should(results[0].audit.action).equal('eventAction');
-					should(results[0].audit.actor).equal('eventActor');
+					should(results[0].audit.actor).eql({
+						name: 'eventActor',
+						username: 'eventActor'
+					});
 					should(results[0].audit.object).equal('eventObject');
 				});
 		});

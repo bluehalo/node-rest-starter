@@ -47,6 +47,7 @@ const saveToCache = (id, value) => {
 	}
 
 	// Upsert the cache entry
+	deps.logger.info('saving cache...');
 	return CacheEntry.findOneAndUpdate(
 		{ key: id },
 		{ value: value, valueString: valueString, ts: Date.now() },

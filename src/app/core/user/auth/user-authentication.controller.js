@@ -1,14 +1,10 @@
 'use strict';
 
-const deps = require('../../../../dependencies'),
-	dbs = deps.dbs,
-	config = deps.config,
-	util = deps.utilService,
-	auditService = deps.auditService,
+const { dbs, config, auditService } = require('../../../../dependencies'),
 	userAuthService = require('./user-authentication.service'),
 	userAuthorizationService = require('./user-authorization.service'),
 	userEmailService = require('../user-email.service'),
-	TeamMember = dbs.admin.model('TeamUser'),
+	teamService = require('../../teams/teams.service'),
 	User = dbs.admin.model('User');
 
 /**
@@ -16,82 +12,43 @@ const deps = require('../../../../dependencies'),
  * Private methods
  * ==========================================================
  */
-
-// Login the user
-async function login(user, req, res) {
-	try {
-		const result = await userAuthService.login(user, req);
-		userAuthorizationService.updateRoles(result);
-		res.status(200).json(result);
-	} catch (err) {
-		util.handleErrorResponse(res, err);
-	}
-}
-
-//Authenticate and login the user. Passport handles authentication.
-async function authenticateAndLogin(req, res, next) {
-	try {
-		const result = await userAuthService.authenticateAndLogin(req, res, next);
-		userAuthorizationService.updateRoles(result);
-		res.status(200).json(result);
-	} catch (err) {
-		util.handleErrorResponse(res, err);
-	}
-}
-
 // Admin creates a user
 async function adminCreateUser(user, req, res) {
 	// Initialize the user
-	try {
-		const result = await userAuthService.initializeNewUser(user);
-		await result.save();
-		await auditService.audit(
-			'admin user create',
-			'user',
-			'admin user create',
-			TeamMember.auditCopy(
-				req.user,
-				util.getHeaderField(req.headers, 'x-real-ip')
-			),
-			User.auditCopy(result),
-			req.headers
-		);
-		res.status(200).json(User.fullCopy(result));
-	} catch (err) {
-		util.handleErrorResponse(res, err);
-	}
+	const result = await userAuthService.initializeNewUser(user);
+	await result.save();
+
+	auditService.audit(
+		'admin user create',
+		'user',
+		'admin user create',
+		req,
+		User.auditCopy(result)
+	);
+	res.status(200).json(User.fullCopy(result));
 }
 
 // Signup the user - creates the user object and logs in the user
-const signup = (user, req, res) => {
+const signup = async (user, req, res) => {
 	// Initialize the user
-	userAuthService
-		.initializeNewUser(user)
-		.then(() => {
-			return user.save();
-		})
-		.then((newUser) => {
-			// Send email for new user if enabled, no reason to wait for success
-			userEmailService.signupEmail(user, req);
-			userEmailService.welcomeNoAccessEmail(user, req);
+	const newUser = await userAuthService.initializeNewUser(user);
+	await newUser.save();
 
-			return auditService
-				.audit(
-					'user signup',
-					'user',
-					'user signup',
-					{},
-					User.auditCopy(newUser),
-					req.headers
-				)
-				.then(() => newUser);
-		})
-		.then((newUser) => {
-			login(newUser, req, res);
-		})
-		.catch((err) => {
-			util.handleErrorResponse(res, err);
-		});
+	userEmailService.signupEmail(newUser, req);
+	userEmailService.welcomeNoAccessEmail(newUser, req);
+
+	auditService.audit(
+		'user signup',
+		'user',
+		'user signup',
+		req,
+		User.auditCopy(newUser)
+	);
+
+	const result = await userAuthService.login(user, req);
+	userAuthorizationService.updateRoles(result);
+	await teamService.updateTeams(result);
+	res.status(200).json(result);
 };
 
 /**
@@ -138,7 +95,7 @@ exports.proxyPkiSignup = (req, res) => {
 /**
  * Admin Create a User (Local Strategy)
  */
-exports.adminCreateUser = (req, res) => {
+exports.adminCreateUser = async (req, res) => {
 	const user = new User(User.createCopy(req.body));
 	user.bypassAccessCheck = req.body.bypassAccessCheck;
 	user.roles = req.body.roles;
@@ -149,13 +106,13 @@ exports.adminCreateUser = (req, res) => {
 		user.password = '';
 	}
 
-	adminCreateUser(user, req, res);
+	await adminCreateUser(user, req, res);
 };
 
 /**
  * Admin Create a User (Pki Strategy)
  */
-exports.adminCreateUserPki = (req, res) => {
+exports.adminCreateUserPki = async (req, res) => {
 	const user = new User(User.createCopy(req.body));
 	user.bypassAccessCheck = req.body.bypassAccessCheck;
 	user.roles = req.body.roles;
@@ -169,14 +126,17 @@ exports.adminCreateUserPki = (req, res) => {
 	}
 	user.provider = 'pki';
 
-	adminCreateUser(user, req, res);
+	await adminCreateUser(user, req, res);
 };
 
 /**
  * Local Signin
  */
-exports.signin = (req, res, next) => {
-	authenticateAndLogin(req, res, next);
+exports.signin = async (req, res, next) => {
+	const result = await userAuthService.authenticateAndLogin(req, res, next);
+	userAuthorizationService.updateRoles(result);
+	await teamService.updateTeams(result);
+	res.status(200).json(result);
 };
 
 /**

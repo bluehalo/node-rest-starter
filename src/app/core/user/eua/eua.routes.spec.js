@@ -1,8 +1,10 @@
 'use strict';
 
-const bodyParser = require('body-parser'),
-	express = require('express'),
-	mock = require('mock-require'),
+const express = require('express');
+// Patches express to support async/await.  Should be called immediately after express.
+require('express-async-errors');
+
+const mock = require('mock-require'),
 	request = require('supertest'),
 	should = require('should'),
 	{
@@ -42,7 +44,7 @@ describe('EUA Routes:', () => {
 
 	before(() => {
 		app = express();
-		app.use(bodyParser.json());
+		app.use(express.json());
 
 		userCtrl = mock.reRequire('../user.controller');
 
@@ -70,6 +72,9 @@ describe('EUA Routes:', () => {
 
 		router.use(mock.reRequire('./eua.routes'));
 		app.use(router);
+		app.use(
+			require('../../../common/express/error-handlers').defaultErrorHandler
+		);
 	});
 
 	beforeEach(async () => {

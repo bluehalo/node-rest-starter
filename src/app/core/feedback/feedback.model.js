@@ -7,8 +7,20 @@ const mongoose = require('mongoose'),
 	deps = require('../../../dependencies'),
 	util = deps.utilService;
 
+const Statuses = Object.freeze({
+	new: 'New',
+	open: 'Open',
+	closed: 'Closed'
+});
+
 /**
- * Schema Declaration
+ * Import types for reference below
+ * @typedef {import('./types').FeedbackDocument} FeedbackDocument
+ * @typedef {import('./types').FeedbackModel} FeedbackModel
+ */
+
+/**
+ * @type {mongoose.Schema<FeedbackDocument, FeedbackModel>}
  */
 const FeedbackSchema = new mongoose.Schema({
 	created: {
@@ -28,8 +40,8 @@ const FeedbackSchema = new mongoose.Schema({
 	classification: { type: String },
 	status: {
 		type: String,
-		default: 'New',
-		enum: ['New', 'Open', 'Closed'],
+		default: Statuses.new,
+		enum: Object.values(Statuses),
 		required: true
 	},
 	assignee: { type: String },
@@ -71,7 +83,13 @@ FeedbackSchema.index({ body: 'text' });
  * Static Methods
  *****************/
 
+Object.assign(FeedbackSchema.statics, {
+	Statuses
+});
+
 /**
  * Register the Schema with Mongoose
  */
-mongoose.model('Feedback', FeedbackSchema, 'feedback');
+const Feedback = mongoose.model('Feedback', FeedbackSchema, 'feedback');
+
+module.exports = Feedback;

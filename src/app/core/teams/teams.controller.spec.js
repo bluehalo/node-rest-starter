@@ -48,30 +48,6 @@ describe('Teams Controller:', () => {
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
 		});
-
-		it('error thrown on create', async () => {
-			const req = {
-				body: {},
-				user: {
-					toObject: () => {
-						return {};
-					}
-				}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(teamsService, 'createTeam').throws('error');
-
-			await teamsController.create(req, res);
-
-			sinon.assert.calledOnce(teamsService.createTeam);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
-		});
 	});
 
 	describe('read', () => {
@@ -95,21 +71,6 @@ describe('Teams Controller:', () => {
 	});
 
 	describe('update', () => {
-		it('team not found', async () => {
-			const req = {};
-			await teamsController.update(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'Could not find team'
-				})
-			);
-		});
-
 		it('team found', async () => {
 			const req = {
 				team: { _id: '12345' },
@@ -131,54 +92,9 @@ describe('Teams Controller:', () => {
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
 		});
-
-		it('team found, error thrown on update', async () => {
-			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
-				body: {
-					title: 'text eua title',
-					text: 'test eua content'
-				}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(teamsService, 'updateTeam').throws('error');
-
-			await teamsController.update(req, res);
-
-			sinon.assert.calledOnce(teamsService.updateTeam);
-			sinon.assert.notCalled(deps.auditService.audit);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
-		});
 	});
 
 	describe('delete', () => {
-		it('team not found', async () => {
-			const req = {};
-			await teamsController.delete(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'Could not find team'
-				})
-			);
-		});
-
 		it('team found', async () => {
 			const req = {
 				team: { _id: '12345' },
@@ -201,32 +117,6 @@ describe('Teams Controller:', () => {
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
 		});
-
-		it('team found, error thrown on remove', async () => {
-			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(teamsService, 'deleteTeam').throws('error');
-
-			await teamsController.delete(req, res);
-
-			sinon.assert.calledOnce(teamsService.deleteTeam);
-			sinon.assert.notCalled(deps.auditService.audit);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
-		});
 	});
 
 	describe('search', () => {
@@ -243,25 +133,6 @@ describe('Teams Controller:', () => {
 
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
-		});
-
-		it('search throws error', async () => {
-			const req = {
-				body: {}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(teamsService, 'searchTeams').throws('error');
-
-			await teamsController.search(req, res);
-
-			sinon.assert.calledOnce(teamsService.searchTeams);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
 		});
 	});
 
@@ -290,51 +161,9 @@ describe('Teams Controller:', () => {
 			sinon.assert.called(res.end);
 			sinon.assert.notCalled(res.json);
 		});
-
-		it('error thrown handling request', async () => {
-			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
-				body: {}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(teamsService, 'requestNewTeam').throws('error');
-
-			await teamsController.requestNewTeam(req, res);
-
-			sinon.assert.calledOnce(teamsService.requestNewTeam);
-			sinon.assert.notCalled(deps.auditService.audit);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
-		});
 	});
 
 	describe('requestAccess', () => {
-		it('team not found', async () => {
-			const req = {};
-			await teamsController.requestAccess(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'Could not find team'
-				})
-			);
-		});
-
 		it('request handled', async () => {
 			const req = {
 				team: { _id: '12345' },
@@ -357,31 +186,6 @@ describe('Teams Controller:', () => {
 			sinon.assert.called(res.end);
 			sinon.assert.notCalled(res.json);
 		});
-
-		it('error thrown handling request', async () => {
-			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
-				body: {}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(teamsService, 'requestAccessToTeam').throws('error');
-
-			await teamsController.requestAccess(req, res);
-
-			sinon.assert.calledOnce(teamsService.requestAccessToTeam);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
-		});
 	});
 
 	describe('searchMembers', () => {
@@ -399,43 +203,9 @@ describe('Teams Controller:', () => {
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
 		});
-
-		it('search throws error', async () => {
-			const req = {
-				body: {}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(teamsService, 'searchTeamMembers').throws('error');
-
-			await teamsController.searchMembers(req, res);
-
-			sinon.assert.calledOnce(teamsService.searchTeamMembers);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
-		});
 	});
 
 	describe('addMember', () => {
-		it('team not found', async () => {
-			const req = {};
-			await teamsController.addMember(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'Could not find team'
-				})
-			);
-		});
-
 		it('request handled', async () => {
 			const req = {
 				team: { _id: '12345' },
@@ -460,93 +230,9 @@ describe('Teams Controller:', () => {
 			sinon.assert.called(res.end);
 			sinon.assert.notCalled(res.json);
 		});
-
-		it('error thrown handling request', async () => {
-			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
-				body: {}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(teamsService, 'addMemberToTeam').throws('error');
-
-			await teamsController.addMember(req, res);
-
-			sinon.assert.notCalled(deps.auditService.audit);
-			sinon.assert.calledOnce(teamsService.addMemberToTeam);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
-		});
 	});
 
 	describe('addMembers', () => {
-		it('team not found', async () => {
-			const req = {};
-			await teamsController.addMembers(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'Could not find team'
-				})
-			);
-		});
-
-		it('team members not found', async () => {
-			const req = {
-				team: { _id: '12345' },
-				body: {}
-			};
-			await teamsController.addMembers(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'New team members not specified'
-				})
-			);
-		});
-
-		it('team members empty array', async () => {
-			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
-				body: { newMembers: [] }
-			};
-
-			await teamsController.addMembers(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'New team members not specified'
-				})
-			);
-		});
-
 		it('request handled', async () => {
 			const req = {
 				team: { _id: '12345' },
@@ -585,59 +271,9 @@ describe('Teams Controller:', () => {
 			sinon.assert.called(res.end);
 			sinon.assert.notCalled(res.json);
 		});
-
-		it('error thrown handling request', async () => {
-			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
-				body: {
-					newMembers: [
-						{
-							_id: '12345',
-							role: 'admin'
-						}
-					]
-				}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(teamsService, 'readTeamMember').resolves({});
-			sandbox.stub(teamsService, 'addMemberToTeam').throws('error');
-
-			await teamsController.addMembers(req, res);
-
-			sinon.assert.notCalled(deps.auditService.audit);
-			sinon.assert.calledOnce(teamsService.addMemberToTeam);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
-		});
 	});
 
 	describe('removeMember', () => {
-		it('team not found', async () => {
-			const req = {};
-			await teamsController.removeMember(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'Could not find team'
-				})
-			);
-		});
-
 		it('request handled', async () => {
 			const req = {
 				team: { _id: '12345' },
@@ -662,51 +298,9 @@ describe('Teams Controller:', () => {
 			sinon.assert.called(res.end);
 			sinon.assert.notCalled(res.json);
 		});
-
-		it('error thrown handling request', async () => {
-			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
-				body: {}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(teamsService, 'removeMemberFromTeam').throws('error');
-
-			await teamsController.removeMember(req, res);
-
-			sinon.assert.notCalled(deps.auditService.audit);
-			sinon.assert.calledOnce(teamsService.removeMemberFromTeam);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
-		});
 	});
 
 	describe('updateMemberRole', () => {
-		it('team not found', async () => {
-			const req = {};
-			await teamsController.updateMemberRole(req, res);
-
-			sinon.assert.calledWith(res.status, 400);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({
-					status: 400,
-					type: 'error',
-					message: 'Could not find team'
-				})
-			);
-		});
-
 		it('request handled', async () => {
 			const req = {
 				team: { _id: '12345' },
@@ -730,33 +324,6 @@ describe('Teams Controller:', () => {
 			sinon.assert.calledWith(res.status, 204);
 			sinon.assert.called(res.end);
 			sinon.assert.notCalled(res.json);
-		});
-
-		it('error thrown handling request', async () => {
-			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
-				body: {}
-			};
-
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(teamsService, 'updateMemberRole').throws('error');
-
-			await teamsController.updateMemberRole(req, res);
-
-			sinon.assert.notCalled(deps.auditService.audit);
-			sinon.assert.calledOnce(teamsService.updateMemberRole);
-
-			sinon.assert.calledWith(res.status, 500);
-			sinon.assert.calledWith(
-				res.json,
-				sinon.match({ status: 500, type: 'server-error' })
-			);
 		});
 	});
 

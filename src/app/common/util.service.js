@@ -28,6 +28,9 @@ function getValidationErrors(err) {
 	return errors;
 }
 
+/**
+ * @deprecated
+ */
 module.exports.getErrorMessage = function (err) {
 	if (typeof err === 'string') {
 		return err;
@@ -47,6 +50,9 @@ module.exports.getErrorMessage = function (err) {
 	return msg;
 };
 
+/**
+ * @deprecated
+ */
 module.exports.getClientErrorMessage = function (err) {
 	if (config.exposeServerErrors) {
 		return module.exports.getErrorMessage(err);
@@ -55,6 +61,9 @@ module.exports.getClientErrorMessage = function (err) {
 	}
 };
 
+/**
+ * @deprecated
+ */
 module.exports.handleErrorResponse = function (res, errorResult) {
 	// Return the error state to the client, defaulting to 500
 	errorResult = errorResult || {};
