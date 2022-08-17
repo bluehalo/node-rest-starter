@@ -2,6 +2,7 @@
 .nyc_output/
 build
 coverage
+dist
 
 # Configs
 config

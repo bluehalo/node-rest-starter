@@ -64,5 +64,30 @@
 		"prettier/prettier": ["error"]
 	},
 
-	"globals": {}
+	"globals": {},
+
+	"overrides": [
+		{
+			"files": ["**/*.ts"],
+
+			"parser": "@typescript-eslint/parser",
+
+			"plugins": [
+				"jsdoc",
+				"prettier",
+				"@typescript-eslint"
+			],
+
+			"extends": [
+				"eslint:recommended",
+				"prettier",
+				"plugin:@typescript-eslint/recommended"
+			],
+			
+			"rules": {
+				"@typescript-eslint/ban-types": ["warn"],
+				"@typescript-eslint/no-empty-interface": ["warn"]
+			}
+		}
+	]
 }

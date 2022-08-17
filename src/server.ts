@@ -1,10 +1,8 @@
-'use strict';
+import config from './config';
+import startupFn from './startup';
+import { logger } from './lib/bunyan';
 
-const config = require('./config'),
-	startupPromise = require('./startup')(),
-	logger = require('./lib/bunyan').logger;
-
-startupPromise
+startupFn()
 	.then((server) => {
 		// Start the app
 		server.listen(config.port);
