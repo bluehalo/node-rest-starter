@@ -14,7 +14,7 @@ const router = express.Router();
 /**
  * @swagger
  * /team:
- *   put:
+ *   post:
  *     tags: [Team]
  *     description: Creates a new Team
  *     requestBody:
@@ -23,7 +23,7 @@ const router = express.Router();
  *       '200':
  *         $ref: '#/components/responses/CreatedTeam'
  */
-router.route('/team').put(user.hasEditorAccess, teams.create);
+router.route('/team').post(user.hasEditorAccess, teams.create);
 
 /**
  * @swagger
