@@ -60,14 +60,17 @@ const TeamSchema = new mongoose.Schema({
 	created: {
 		type: Date,
 		default: Date.now,
-		get: util.dateParse
+		get: util.dateParse,
+		immutable: true
 	},
 	creator: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: 'User'
+		ref: 'User',
+		immutable: true
 	},
 	creatorName: {
-		type: String
+		type: String,
+		immutable: true
 	},
 	implicitMembers: {
 		type: Boolean,

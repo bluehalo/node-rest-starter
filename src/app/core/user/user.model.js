@@ -200,7 +200,8 @@ const UserSchema = new mongoose.Schema({
 	created: {
 		type: Date,
 		default: Date.now,
-		get: util.dateParse
+		get: util.dateParse,
+		immutable: true
 	},
 	messagesAcknowledged: {
 		type: Date,

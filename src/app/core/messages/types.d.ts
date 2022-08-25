@@ -13,6 +13,8 @@ interface IMessage extends Document {
 
 export interface MessageDocument extends IMessage {}
 
+export type LeanMessageDocument = LeanDocument<MessageDocument>;
+
 type QueryHelpers<T> = TextSearchPlugin & PaginatePlugin<T>;
 
 export interface MessageModel
@@ -27,7 +29,9 @@ interface IDismissedMessage extends Document {
 	created: number;
 }
 
-export interface DismissedMessageDocument extends IMessage {}
+export interface DismissedMessageDocument extends IDismissedMessage {}
+
+export type LeanDismissedMessageDocument = LeanDocument<DismissedMessageDocument>;
 
 export interface DismissedMessageModel
 	extends Model<DismissedMessageDocument, QueryHelpers<MessageDocument>> {
