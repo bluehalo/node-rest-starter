@@ -189,7 +189,13 @@ module.exports = {
 
 	feedback: {
 		showFlyout: true,
-		showInSidebar: true
+		showInSidebar: true,
+
+		classificationOpts: [
+			{ level: 'LEVEL-1', prefix: '(L1)' },
+			{ level: 'LEVEL-2', prefix: '(L2)' },
+			{ level: 'LEVEL-3', prefix: '(L3)' }
+		]
 	},
 
 	coreEmails: {
