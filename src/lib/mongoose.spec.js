@@ -17,7 +17,7 @@ describe('Mongoose', () => {
 		return mongooseLib.connect();
 	});
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		sandbox = sinon.createSandbox();
 	});
 
