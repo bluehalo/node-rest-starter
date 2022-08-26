@@ -1,7 +1,6 @@
 'use strict';
 
-const mongoose = require('mongoose'),
-	should = require('should'),
+const should = require('should'),
 	euaService = require('./eua.service'),
 	deps = require('../../../../dependencies'),
 	User = deps.dbs.admin.model('User'),

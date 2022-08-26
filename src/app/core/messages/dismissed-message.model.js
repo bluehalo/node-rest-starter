@@ -1,7 +1,6 @@
 'use strict';
 
-const _ = require('lodash'),
-	mongoose = require('mongoose'),
+const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	deps = require('../../../dependencies'),
 	config = deps.config,
