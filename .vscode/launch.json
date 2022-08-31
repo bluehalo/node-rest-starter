@@ -2,12 +2,20 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "env": {
+        "NODE_ENV": "development"
+      },
       "type": "node",
-      "request": "attach",
-      "name": "Node: Nodemon",
-      "processId": "${command:PickProcess}",
-      "restart": true,
-      "protocol": "inspector"
+      "request": "launch",
+      "name": "Launch Program",
+      "outputCapture": "std",
+      "runtimeArgs": [
+        "-r",
+        "@swc-node/register"
+      ],
+      "args": [
+        "${workspaceFolder}/src/server.ts"
+      ]
     }
   ]
 }
