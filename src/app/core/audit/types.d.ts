@@ -6,8 +6,8 @@ interface IAudit extends Document {
 	audit: {
 		auditType: string;
 		action: string;
-		actor: Object;
-		object: string | Object;
+		actor: Record<string, unknown>;
+		object: string | Record<string, unknown>;
 		userSpec: {
 			browser: string;
 			os: string;
