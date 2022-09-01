@@ -9,11 +9,11 @@ interface IUserAgreement extends Document {
 	created: Date | number;
 }
 
-export interface UserAgreementDocument extends IUserAgreement {}
+export type UserAgreementDocument = IUserAgreement;
 
 type QueryHelpers<T> = TextSearchPlugin & PaginatePlugin<T> & PagedStreamPlugin;
 
 export interface UserAgreementModel
 	extends Model<UserAgreementDocument, QueryHelpers<UserAgreementDocument>> {
-	auditCopy(eua: Object): Object;
+	auditCopy(eua: Record<string, unknown>): Record<string, unknown>;
 }

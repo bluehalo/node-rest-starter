@@ -1,9 +1,9 @@
 'use strict';
 
-const config = require('./config'),
-	startupPromise = require('./startup')(),
-	sticky = require('socketio-sticky-session'),
-	logger = require('./lib/bunyan').logger;
+import config from './config';
+import startupFn from './startup';
+import sticky from 'socketio-sticky-session';
+import { logger } from './lib/bunyan';
 
 const defaultOptions = {
 	proxy: true, //activate layer 4 patching
@@ -15,7 +15,7 @@ const defaultOptions = {
 const options = config.clusterConfig || defaultOptions;
 logger.info(`Cluster confg: ${JSON.stringify(options)}`);
 
-startupPromise
+startupFn()
 	.then((app) => {
 		sticky(options, () => app).listen(config.port, () => {
 			logger.info(`server started on ${config.port} port`);

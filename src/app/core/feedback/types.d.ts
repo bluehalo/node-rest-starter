@@ -23,7 +23,7 @@ interface IFeedback extends Document {
 	updated: Date | number;
 }
 
-export interface FeedbackDocument extends IFeedback {}
+export type FeedbackDocument = IFeedback;
 
 type QueryHelpers<T> = TextSearchPlugin & PaginatePlugin<T>;
 

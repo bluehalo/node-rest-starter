@@ -6,8 +6,8 @@ interface IAudit extends Document {
 	audit: {
 		auditType: string;
 		action: string;
-		actor: Object;
-		object: string | Object;
+		actor: Record<string, unknown>;
+		object: string | Record<string, unknown>;
 		userSpec: {
 			browser: string;
 			os: string;
@@ -16,6 +16,6 @@ interface IAudit extends Document {
 	};
 }
 
-export interface AuditDocument extends IAudit {}
+export type AuditDocument = IAudit;
 
-export interface AuditModel extends Model<AuditDocument> {}
+export type AuditModel = Model<AuditDocument>;

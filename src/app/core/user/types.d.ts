@@ -16,14 +16,14 @@ interface IUser extends Document {
 	name: string;
 
 	organization: string;
-	organizationLevels: Object;
+	organizationLevels: Record<string, unknown>;
 	email: string;
 	phone: string;
 	username: string;
 	password: string;
 	provider: string;
-	providerData: Object;
-	additionalProvidersData: Object;
+	providerData: Record<string, unknown>;
+	additionalProvidersData: Record<string, unknown>;
 	roles: UserRoles;
 	canProxy: boolean;
 	externalGroups: string[];
@@ -39,7 +39,7 @@ interface IUser extends Document {
 	lastLogin: Date | number;
 	lastLoginWithAccess: Date | number;
 	newFeatureDismissed: Date;
-	preferences: Object;
+	preferences: Record<string, unknown>;
 	salt: BinaryLike;
 }
 
@@ -54,6 +54,9 @@ type QueryHelpers<T> = ContainsSearchPlugin &
 
 export interface UserModel
 	extends Model<UserDocument, QueryHelpers<UserDocument>> {
-	createCopy(user: Object): Object;
-	auditCopy(user: Object, userIP?: string): Object;
+	createCopy(user: Record<string, unknown>): Record<string, unknown>;
+	auditCopy(
+		user: Record<string, unknown>,
+		userIP?: string
+	): Record<string, unknown>;
 }

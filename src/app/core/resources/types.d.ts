@@ -1,13 +1,4 @@
-import {
-	Document,
-	Model,
-	model,
-	Types,
-	Schema,
-	Query,
-	Mongoose
-} from 'mongoose';
-import { BinaryLike } from 'crypto';
+import { Document, Model } from 'mongoose';
 
 interface IResource extends Document {
 	_id: string;
@@ -19,6 +10,6 @@ interface IResource extends Document {
 	tags: string[];
 }
 
-export interface ResourceDocument extends IResource {}
+export type ResourceDocument = IResource;
 
-export interface ResourceModel extends Model<ResourceDocument> {}
+export type ResourceModel = Model<ResourceDocument>;
