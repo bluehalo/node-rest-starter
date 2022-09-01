@@ -19,6 +19,6 @@ interface IResource extends Document {
 	tags: string[];
 }
 
-export interface ResourceDocument extends IResource {}
+export type ResourceDocument = IResource;
 
-export interface ResourceModel extends Model<ResourceDocument> {}
+export type ResourceModel = Model<ResourceDocument>;

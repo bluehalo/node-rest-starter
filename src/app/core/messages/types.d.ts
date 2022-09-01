@@ -11,7 +11,7 @@ interface IMessage extends Document {
 	updated: Date | number;
 }
 
-export interface MessageDocument extends IMessage {}
+export type MessageDocument = IMessage;
 
 export type LeanMessageDocument = LeanDocument<MessageDocument>;
 
@@ -29,7 +29,7 @@ interface IDismissedMessage extends Document {
 	created: number;
 }
 
-export interface DismissedMessageDocument extends IDismissedMessage {}
+export type DismissedMessageDocument = IDismissedMessage;
 
 export type LeanDismissedMessageDocument = LeanDocument<DismissedMessageDocument>;
 

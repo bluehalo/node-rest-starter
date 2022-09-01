@@ -16,6 +16,6 @@ interface IAudit extends Document {
 	};
 }
 
-export interface AuditDocument extends IAudit {}
+export type AuditDocument = IAudit;
 
-export interface AuditModel extends Model<AuditDocument> {}
+export type AuditModel = Model<AuditDocument>;

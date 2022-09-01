@@ -18,7 +18,7 @@ interface ITeam extends Document {
 	ancestors: MongooseTypes.ObjectId[];
 }
 
-export interface TeamDocument extends ITeam {}
+export type TeamDocument = ITeam;
 
 type QueryHelpers<T> = ContainsSearchPlugin & PaginatePlugin<T>;
 
