@@ -55,7 +55,7 @@
     "csv-stringify": "4.0",
     "express": "4.16",
     "express-async-errors": "^3.1.1",
-    "express-handlebars": "3.1.0",
+    "express-handlebars": "5.3.1",
     "express-json-validator-middleware": "^2.2.1",
     "express-session": "1.15",
     "glob": "7.1",
