@@ -22,7 +22,6 @@ class MessageSocket extends socketProvider {
 	}
 
 	/**
-	 * @override
 	 *
 	 */
 	getEmitMessageKey() {

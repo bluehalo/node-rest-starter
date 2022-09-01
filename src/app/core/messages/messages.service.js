@@ -131,6 +131,7 @@ class MessagesService {
 
 		const filteredMessages = allMessages.filter((message) => {
 			const isDismissed = dismissedMessages.some((dismissed) =>
+				/* @ts-ignore: Error due to mongo/mongoose type mismatch, need to upgrade mongoose to correct */
 				dismissed.messageId.equals(message._id)
 			);
 			return !isDismissed;
