@@ -1,0 +1,10 @@
+{
+    "watch": [
+        "src",
+        "config"
+    ],
+    "execMap": {
+        "ts": "node -r @swc-node/register"
+    },
+    "ext": "js,ts"
+}

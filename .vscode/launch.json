@@ -5,14 +5,17 @@
       "env": {
         "NODE_ENV": "development"
       },
-      "name": "Debug Server",
-      "outputCapture": "std",
-      "program": "${workspaceFolder}/src/server.js",
+      "type": "node",
       "request": "launch",
-      "skipFiles": [
-        "<node_internals>/**"
+      "name": "Launch Program",
+      "outputCapture": "std",
+      "runtimeArgs": [
+        "-r",
+        "@swc-node/register"
       ],
-      "type": "node"
+      "args": [
+        "${workspaceFolder}/src/server.ts"
+      ]
     }
   ]
 }

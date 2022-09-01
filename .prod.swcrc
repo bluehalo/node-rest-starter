@@ -1,0 +1,20 @@
+{
+    "$schema": "https://json.schemastore.org/swcrc",
+    "minify": false,
+    "jsc": {
+        "target": "es2020",
+        "parser": {
+            "syntax": "typescript",
+            "tsx": false,
+            "decorators": false,
+            "dynamicImport": false
+        }
+    },
+    "module": {
+        "type": "commonjs"
+    },
+    "env": {
+        "targets": "node 14"
+    },
+    "exclude": [".d.ts"]
+}

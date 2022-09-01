@@ -134,7 +134,7 @@ module.exports.connect = async () => {
 //Disconnect from Mongoose
 module.exports.disconnect = () => {
 	// Create defers for mongoose connections
-	const promises = _.values(this.dbs).map((d) => {
+	const promises = _.values(dbs).map((d) => {
 		if (d.disconnect) {
 			return d.disconnect().catch(() => Promise.resolve());
 		}
