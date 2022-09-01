@@ -16,21 +16,23 @@ const verify = (username, password, done) => {
 
 	User.findOne({ username: username })
 		.exec()
-		.then((
-			/** @type {import('../../app/core/user/types').UserDocument} */ user
-		) => {
-			// The user wasn't found or the password was wrong
-			if (!user || !user.authenticate(password)) {
-				return done(null, false, {
-					status: 401,
-					type: 'invalid-credentials',
-					message: 'Incorrect username or password'
-				});
-			}
+		.then(
+			(
+				/** @type {import('../../app/core/user/types').UserDocument} */ user
+			) => {
+				// The user wasn't found or the password was wrong
+				if (!user || !user.authenticate(password)) {
+					return done(null, false, {
+						status: 401,
+						type: 'invalid-credentials',
+						message: 'Incorrect username or password'
+					});
+				}
 
-			// Return the user
-			return done(null, user);
-		})
+				// Return the user
+				return done(null, user);
+			}
+		)
 		.catch((err) => done(err));
 };
 
