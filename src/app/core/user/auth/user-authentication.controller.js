@@ -143,6 +143,7 @@ exports.signin = async (req, res, next) => {
  * Signout - logs the user out and redirects them
  */
 exports.signout = (req, res) => {
-	req.logout();
-	res.redirect('/');
+	req.logout(() => {
+		res.redirect('/');
+	});
 };
