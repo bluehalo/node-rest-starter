@@ -71,6 +71,26 @@ describe('User Auth Controller:', () => {
 		return clearDatabase();
 	});
 
+	describe('signout', () => {
+		it('should successfully redirect after logout', (done) => {
+			const req = {
+				logout: (cb) => {
+					if (cb) {
+						cb();
+					}
+				}
+			};
+			const res = {
+				redirect: (path) => {
+					should(path).equal('/');
+					done();
+				}
+			};
+
+			userAuthenticationController.signout(req, res);
+		});
+	});
+
 	describe("'local' Strategy", () => {
 		const spec = { user: localUserSpec('user1') };
 		let user;
