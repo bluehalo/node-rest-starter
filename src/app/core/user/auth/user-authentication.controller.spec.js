@@ -71,6 +71,26 @@ describe('User Auth Controller:', () => {
 		return clearDatabase();
 	});
 
+	describe('signout', () => {
+		it('should successfully redirect after logout', (done) => {
+			const req = {
+				logout: (cb) => {
+					if (cb) {
+						cb();
+					}
+				}
+			};
+			const res = {
+				redirect: (path) => {
+					should(path).equal('/');
+					done();
+				}
+			};
+
+			userAuthenticationController.signout(req, res);
+		});
+	});
+
 	describe("'local' Strategy", () => {
 		const spec = { user: localUserSpec('user1') };
 		let user;
@@ -100,7 +120,7 @@ describe('User Auth Controller:', () => {
 					password: spec.user.password
 				};
 				req.headers = {};
-				req.login = (u, cb) => {
+				req.logIn = (u, cb) => {
 					return cb && cb();
 				};
 
@@ -130,7 +150,7 @@ describe('User Auth Controller:', () => {
 				const req = {};
 				req.body = { username: user.username, password: 'wrong' };
 				req.headers = {};
-				req.login = (u, cb) => {
+				req.logIn = (u, cb) => {
 					return cb && cb();
 				};
 
@@ -149,7 +169,7 @@ describe('User Auth Controller:', () => {
 				const req = {};
 				req.body = { username: user.username, password: undefined };
 				req.headers = {};
-				req.login = (_user, cb) => {
+				req.logIn = (_user, cb) => {
 					return cb && cb();
 				};
 
@@ -185,7 +205,7 @@ describe('User Auth Controller:', () => {
 				const req = {};
 				req.body = { username: 'totally doesnt exist', password: 'asdfasdf' };
 				req.headers = {};
-				req.login = (_user, cb) => {
+				req.logIn = (_user, cb) => {
 					return cb && cb();
 				};
 
@@ -299,8 +319,7 @@ describe('User Auth Controller:', () => {
 					config.auth.strategy = 'proxy-pki';
 					config.auth.accessChecker = {
 						provider: {
-							file:
-								'src/app/core/access-checker/providers/example-provider.service.js',
+							file: 'src/app/core/access-checker/providers/example-provider.service.js',
 							config: accessCheckerConfig
 						}
 					};
@@ -319,7 +338,7 @@ describe('User Auth Controller:', () => {
 		 */
 		describe('basic login', () => {
 			const req = {};
-			req.login = (_user, cb) => {
+			req.logIn = (_user, cb) => {
 				return cb && cb();
 			};
 
@@ -390,7 +409,7 @@ describe('User Auth Controller:', () => {
 		 */
 		describe('syncing with access checker', () => {
 			const req = {};
-			req.login = (_user, cb) => {
+			req.logIn = (_user, cb) => {
 				return cb && cb();
 			};
 
@@ -460,7 +479,7 @@ describe('User Auth Controller:', () => {
 
 		describe('missing or expired cache entries with no bypass', () => {
 			const req = {};
-			req.login = (_user, cb) => {
+			req.logIn = (_user, cb) => {
 				return cb && cb();
 			};
 
@@ -533,7 +552,7 @@ describe('User Auth Controller:', () => {
 
 		describe('missing cache entries with bypass access checker enabled', () => {
 			const req = {};
-			req.login = (_user, cb) => {
+			req.logIn = (_user, cb) => {
 				return cb && cb();
 			};
 
@@ -585,7 +604,7 @@ describe('User Auth Controller:', () => {
 
 		describe('in cache, access checker enabled, but with fields modified locally', () => {
 			const req = {};
-			req.login = (_user, cb) => {
+			req.logIn = (_user, cb) => {
 				return cb && cb();
 			};
 
@@ -625,7 +644,7 @@ describe('User Auth Controller:', () => {
 
 		describe('auto create accounts', () => {
 			const req = {};
-			req.login = (_user, cb) => {
+			req.logIn = (_user, cb) => {
 				return cb && cb();
 			};
 
@@ -679,7 +698,7 @@ describe('User Auth Controller:', () => {
 
 		describe('proxy for other users', () => {
 			const req = {};
-			req.login = (_user, cb) => {
+			req.logIn = (_user, cb) => {
 				return cb && cb();
 			};
 

@@ -676,8 +676,7 @@ describe('Utils:', () => {
 			},
 			{
 				input: ['foo'],
-				name:
-					'should leave original list as is and return empty list if no strings ending in wildcard',
+				name: 'should leave original list as is and return empty list if no strings ending in wildcard',
 				expected: {
 					input: ['foo'],
 					output: []
@@ -685,8 +684,7 @@ describe('Utils:', () => {
 			},
 			{
 				input: ['foo*', 'bar'],
-				name:
-					'should remove strings ending with wildcard from input and add them to output list',
+				name: 'should remove strings ending with wildcard from input and add them to output list',
 				expected: {
 					input: ['bar'],
 					output: ['foo*']

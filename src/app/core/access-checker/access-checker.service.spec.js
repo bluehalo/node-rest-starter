@@ -109,8 +109,7 @@ describe('Access Checker Service:', () => {
 			// All of the data is loaded, so initialize proxy-pki
 			config.auth.accessChecker = {
 				provider: {
-					file:
-						'src/app/core/access-checker/providers/failure-provider.service.js',
+					file: 'src/app/core/access-checker/providers/failure-provider.service.js',
 					config: {}
 				}
 			};
@@ -171,8 +170,7 @@ describe('Access Checker Service:', () => {
 			// All of the data is loaded, so initialize proxy-pki
 			config.auth.accessChecker = {
 				provider: {
-					file:
-						'src/app/core/access-checker/providers/example-provider.service.js',
+					file: 'src/app/core/access-checker/providers/example-provider.service.js',
 					config: provider
 				}
 			};

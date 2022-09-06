@@ -8,10 +8,15 @@ const mongoose = require('mongoose'),
 	util = deps.utilService;
 
 /**
+ * Import types for reference below
+ * @typedef {import('./types').AuditDocument} AuditDocument
+ * @typedef {import('./types').AuditModel} AuditModel
+ */
+
+/**
  * Schema Declaration
  *
- * @typed {mongoose.Schema<import('./types').AuditDocument, import('./types').AuditModel>}
- * @type {mongoose.Schema}
+ * @type {mongoose.Schema<AuditDocument, AuditModel>}
  */
 const AuditSchema = new mongoose.Schema({
 	created: {
@@ -44,6 +49,8 @@ AuditSchema.plugin(containsSearchPlugin, {
  */
 
 // Created datetime index, expires after 180 days
+
+/* @ts-ignore: Error due to mongo/mongoose type mismatch, need to upgrade mongoose to correct */
 AuditSchema.index({ created: -1 }, { expireAfterSeconds: 15552000 });
 
 // Audit Type index

@@ -8,6 +8,12 @@ const _ = require('lodash'),
 	getterPlugin = require('../../common/mongoose/getter.plugin');
 
 /**
+ * Import types for reference below
+ * @typedef {import('./types').ResourceDocument} ResourceDocument
+ * @typedef {import('./types').ResourceModel} ResourceModel
+ */
+
+/**
  * Owner Schema
  */
 
@@ -37,6 +43,9 @@ OwnerSchema.index({ name: 1 });
  */
 module.exports.resourceOptions = { discriminatorKey: 'resourceType' };
 
+/**
+ * @type {mongoose.Schema<ResourceDocument, ResourceModel>}
+ */
 const ResourceSchema = new mongoose.Schema(
 	{
 		_id: {
@@ -106,6 +115,8 @@ const preSave = function (next) {
 	resource.title_lowercase = resource.title;
 	next();
 };
+
+/* @ts-ignore */
 ResourceSchema.pre('save', preSave);
 
 /**

@@ -8,7 +8,7 @@ const passport = require('passport'),
 module.exports.init = function () {
 	// Serialize sessions
 	passport.serializeUser((user, done) => {
-		done(null, user.id);
+		done(null, user['id']);
 	});
 
 	// Deserialize sessions

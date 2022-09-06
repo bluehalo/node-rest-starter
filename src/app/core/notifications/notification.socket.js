@@ -25,7 +25,6 @@ class NotificationSocket extends socketProvider {
 	}
 
 	/**
-	 * @override
 	 *
 	 */
 	getEmitNotificationKey() {

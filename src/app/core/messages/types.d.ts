@@ -31,7 +31,8 @@ interface IDismissedMessage extends Document {
 
 export type DismissedMessageDocument = IDismissedMessage;
 
-export type LeanDismissedMessageDocument = LeanDocument<DismissedMessageDocument>;
+export type LeanDismissedMessageDocument =
+	LeanDocument<DismissedMessageDocument>;
 
 export interface DismissedMessageModel
 	extends Model<DismissedMessageDocument, QueryHelpers<MessageDocument>> {

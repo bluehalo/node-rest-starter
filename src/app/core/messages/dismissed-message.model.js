@@ -38,6 +38,8 @@ DismissedMessageSchema.plugin(getterPlugin);
  */
 
 const expireAfterSeconds = config?.messages?.expireSeconds ?? 2592000; // default to 30 days
+
+/* @ts-ignore: Error due to mongo/mongoose type mismatch, need to upgrade mongoose to correct */
 DismissedMessageSchema.index({ created: -1 }, { expireAfterSeconds });
 DismissedMessageSchema.index({ userId: 1 });
 
