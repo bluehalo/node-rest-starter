@@ -293,7 +293,7 @@ function propToMongoose(prop, nonMongoFunction) {
 		prop.$obj != null &&
 		typeof prop.$obj === 'string'
 	) {
-		return mongoose.Types.ObjectId(prop.$obj);
+		return new mongoose.Types.ObjectId(prop.$obj);
 	}
 
 	if (null != nonMongoFunction) {

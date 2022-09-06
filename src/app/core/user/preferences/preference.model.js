@@ -15,16 +15,16 @@ const PreferenceSchema = new mongoose.Schema(
 		user: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
-			required: 'User is required'
+			required: [true, 'User is required']
 		},
 		created: {
 			type: Date,
-			default: Date.now,
+			default: () => Date.now(),
 			get: util.dateParse
 		},
 		updated: {
 			type: Date,
-			default: Date.now,
+			default: () => Date.now(),
 			get: util.dateParse
 		}
 	},

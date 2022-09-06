@@ -25,7 +25,7 @@ const Statuses = Object.freeze({
 const FeedbackSchema = new mongoose.Schema({
 	created: {
 		type: Date,
-		default: Date.now,
+		default: () => Date.now(),
 		get: util.dateParse
 	},
 	creator: {
@@ -47,7 +47,7 @@ const FeedbackSchema = new mongoose.Schema({
 	assignee: { type: String },
 	updated: {
 		type: Date,
-		default: Date.now,
+		default: () => Date.now(),
 		get: util.dateParse,
 		required: true
 	}
@@ -63,9 +63,7 @@ FeedbackSchema.plugin(textSearchPlugin);
 
 // Created datetime index, expires after 180 days
 
-/* @ts-ignore: Error due to mongo/mongoose type mismatch, need to upgrade mongoose to correct */
 FeedbackSchema.index({ created: -1 }, { expireAfterSeconds: 15552000 });
-
 FeedbackSchema.index({ type: 1 });
 FeedbackSchema.index({ creator: 1 });
 FeedbackSchema.index({ url: 1 });

@@ -4,6 +4,7 @@
 const textSearchPlugin = (schema) => {
 	/**
 	 * @param {string} search
+	 * @param {boolean} [sortByTextScore]
 	 * @returns {*}
 	 */
 	schema.query.textSearch = function (search, sortByTextScore = false) {

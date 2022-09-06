@@ -56,7 +56,9 @@ class MessagesService {
 	 * @returns {Promise<MessageDocument | null>}
 	 */
 	read(id, populate = []) {
-		return Message.findById(id).populate(populate).exec();
+		return Message.findById(id)
+			.populate(/** @type {string} */ (populate))
+			.exec();
 	}
 
 	/**
@@ -131,7 +133,6 @@ class MessagesService {
 
 		const filteredMessages = allMessages.filter((message) => {
 			const isDismissed = dismissedMessages.some((dismissed) =>
-				/* @ts-ignore: Error due to mongo/mongoose type mismatch, need to upgrade mongoose to correct */
 				dismissed.messageId.equals(message._id)
 			);
 			return !isDismissed;

@@ -34,7 +34,7 @@ describe('Utils:', () => {
 			output.date.getTime().should.equal(1435708800000);
 		});
 
-		it('should convert $obj : {""} to mongoose.Types.ObjectId("")', () => {
+		it('should convert $obj : {""} to new mongoose.Types.ObjectId("")', () => {
 			const input = {
 				hello: {
 					there: 'you are',

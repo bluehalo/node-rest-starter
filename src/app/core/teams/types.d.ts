@@ -1,7 +1,7 @@
-import { Document, Model, Types as MongooseTypes } from 'mongoose';
+import { HydratedDocument, Model, Types as MongooseTypes } from 'mongoose';
 import { ContainsSearchPlugin } from '../../common/mongoose/types';
 
-interface ITeam extends Document {
+interface ITeam {
 	name: string;
 	description: string;
 	created: Date | number;
@@ -15,11 +15,12 @@ interface ITeam extends Document {
 	ancestors: MongooseTypes.ObjectId[];
 }
 
-export type TeamDocument = ITeam;
-
-type QueryHelpers<T> = ContainsSearchPlugin & PaginatePlugin<T>;
+export type TeamDocument = HydratedDocument<ITeam>;
 
 export interface TeamModel
-	extends Model<TeamDocument, QueryHelpers<TeamDocument>> {
+	extends Model<
+		TeamDocument,
+		ContainsSearchPlugin & PaginatePlugin<TeamDocument>
+	> {
 	auditCopy(team: Record<string, unknown>): Record<string, unknown>;
 }

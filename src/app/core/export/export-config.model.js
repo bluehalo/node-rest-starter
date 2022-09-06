@@ -11,20 +11,20 @@ const ExportConfigSchema = new mongoose.Schema({
 		type: String,
 		trim: true,
 		default: '',
-		required: 'Type is required'
+		required: [true, 'Type is required']
 	},
 
 	config: {
 		type: {},
-		required: 'Configuration is required'
+		required: [true, 'Configuration is required']
 	},
 
 	created: {
 		type: Date,
 		expires: 300,
-		default: Date.now,
+		default: () => Date.now(),
 		get: utilService.dateParse,
-		required: 'Created date is required'
+		required: [true, 'Created date is required']
 	}
 });
 ExportConfigSchema.plugin(getterPlugin);

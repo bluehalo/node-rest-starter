@@ -101,7 +101,7 @@ class TeamsService {
 	}
 
 	/**
-	 * @param {string} id
+	 * @param {string | mongoose.Types.ObjectId} id
 	 * @param {string | PopulateOptions | Array<string | PopulateOptions>} [populate]
 	 * @returns {Promise<TeamDocument>}
 	 */
@@ -632,7 +632,7 @@ class TeamsService {
 		const admins = await TeamMember.find({
 			teams: {
 				$elemMatch: {
-					_id: mongoose.Types.ObjectId(team._id),
+					_id: new mongoose.Types.ObjectId(team._id),
 					role: 'admin'
 				}
 			}
