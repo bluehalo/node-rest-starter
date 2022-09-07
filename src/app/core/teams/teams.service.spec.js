@@ -331,7 +331,7 @@ describe('Team Service:', () => {
 
 		it('read returns null when no team found', async () => {
 			const t = await teamsService.readTeamMember(
-				mongoose.Types.ObjectId('012345678912')
+				new mongoose.Types.ObjectId('012345678912')
 			);
 			should.not.exist(t);
 		});
@@ -1062,7 +1062,7 @@ FOOTER
 			const requesterCount = await TeamMember.count({
 				teams: {
 					$elemMatch: {
-						_id: mongoose.Types.ObjectId(team.teamWithNoExternalTeam2._id),
+						_id: new mongoose.Types.ObjectId(team.teamWithNoExternalTeam2._id),
 						role: 'requester'
 					}
 				}
@@ -1078,7 +1078,7 @@ FOOTER
 			const requesterCount = await TeamMember.count({
 				teams: {
 					$elemMatch: {
-						_id: mongoose.Types.ObjectId(team.teamWithNoExternalTeam._id),
+						_id: new mongoose.Types.ObjectId(team.teamWithNoExternalTeam._id),
 						role: 'requester'
 					}
 				}
@@ -1709,23 +1709,23 @@ FOOTER
 		const _user = {
 			teams: [
 				{
-					_id: mongoose.Types.ObjectId('000000000000000000000001'),
+					_id: new mongoose.Types.ObjectId('000000000000000000000001'),
 					role: 'member'
 				},
 				{
-					_id: mongoose.Types.ObjectId('000000000000000000000002'),
+					_id: new mongoose.Types.ObjectId('000000000000000000000002'),
 					role: 'member'
 				},
 				{
-					_id: mongoose.Types.ObjectId('000000000000000000000003'),
+					_id: new mongoose.Types.ObjectId('000000000000000000000003'),
 					role: 'editor'
 				},
 				{
-					_id: mongoose.Types.ObjectId('000000000000000000000004'),
+					_id: new mongoose.Types.ObjectId('000000000000000000000004'),
 					role: 'admin'
 				},
 				{
-					_id: mongoose.Types.ObjectId('000000000000000000000005'),
+					_id: new mongoose.Types.ObjectId('000000000000000000000005'),
 					role: 'editor'
 				}
 			]
@@ -1733,7 +1733,7 @@ FOOTER
 
 		it('should filter teamIds for membership (basic)', async () => {
 			const teamIds = await teamsService.filterTeamIds(_user, [
-				mongoose.Types.ObjectId('000000000000000000000001')
+				new mongoose.Types.ObjectId('000000000000000000000001')
 			]);
 			should.exist(teamIds);
 			teamIds.should.have.length(1);
@@ -1742,8 +1742,8 @@ FOOTER
 
 		it('should filter teamIds for membership (advanced)', async () => {
 			const teamIds = await teamsService.filterTeamIds(_user, [
-				mongoose.Types.ObjectId('000000000000000000000001'),
-				mongoose.Types.ObjectId('000000000000000000000002')
+				new mongoose.Types.ObjectId('000000000000000000000001'),
+				new mongoose.Types.ObjectId('000000000000000000000002')
 			]);
 			should.exist(teamIds);
 			teamIds.should.have.length(2);
@@ -1753,7 +1753,7 @@ FOOTER
 
 		it('should filter teamIds for membership when no access', async () => {
 			const teamIds = await teamsService.filterTeamIds(_user, [
-				mongoose.Types.ObjectId('000000000000000000000006')
+				new mongoose.Types.ObjectId('000000000000000000000006')
 			]);
 			should.exist(teamIds);
 			teamIds.should.have.length(0);

@@ -5,13 +5,10 @@ const should = require('should'),
 const PaginateExampleSchema = new mongoose.Schema({ field: String });
 PaginateExampleSchema.plugin(paginatePlugin);
 
-/**
- * @type {mongoose.Model<mongoose.Document<any, import('./types').PaginatePlugin>>}
- */
-const PaginateExample = mongoose.model(
-	'PaginateExample',
-	PaginateExampleSchema
-);
+const PaginateExample =
+	/** @type {mongoose.Model<any, import('./types').PaginatePlugin>} */ (
+		mongoose.model('PaginateExample', PaginateExampleSchema)
+	);
 
 /**
  * Unit tests

@@ -66,7 +66,7 @@ module.exports.login = (user, req) => {
 					}
 					return resolve(User.fullCopy(_user));
 				}
-			).exec();
+			);
 
 			// Audit the login
 			auditService.audit(

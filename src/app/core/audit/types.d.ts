@@ -1,6 +1,6 @@
-import { Document, Model } from 'mongoose';
+import { HydratedDocument, Model } from 'mongoose';
 
-interface IAudit extends Document {
+interface IAudit {
 	created: Date;
 	message: string;
 	audit: {
@@ -16,6 +16,6 @@ interface IAudit extends Document {
 	};
 }
 
-export type AuditDocument = IAudit;
+export type AuditDocument = HydratedDocument<IAudit>;
 
 export type AuditModel = Model<AuditDocument>;

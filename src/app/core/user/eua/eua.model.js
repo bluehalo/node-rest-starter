@@ -33,7 +33,7 @@ const UserAgreementSchema = new mongoose.Schema({
 	},
 	created: {
 		type: Date,
-		default: Date.now,
+		default: () => Date.now(),
 		get: util.dateParse,
 		immutable: true
 	}

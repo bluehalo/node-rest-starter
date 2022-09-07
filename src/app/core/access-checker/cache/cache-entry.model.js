@@ -20,7 +20,7 @@ const CacheEntrySchema = new mongoose.Schema({
 	// The actual ts this entry was entered into the cache
 	ts: {
 		type: Date,
-		default: Date.now,
+		default: () => Date.now(),
 		get: util.dateParse
 	},
 

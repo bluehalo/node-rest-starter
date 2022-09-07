@@ -22,7 +22,7 @@ module.exports.init = function () {
 			(err, user) => {
 				done(err, user);
 			}
-		).exec();
+		);
 	});
 
 	// Initialize strategies

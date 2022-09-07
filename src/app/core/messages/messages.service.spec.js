@@ -42,7 +42,7 @@ const createMessages = async (count) => {
 describe('Messages Service:', () => {
 	let sandbox;
 
-	const user = new User({ _id: mongoose.Types.ObjectId() });
+	const user = new User({ _id: new mongoose.Types.ObjectId() });
 
 	beforeEach(async () => {
 		sandbox = sinon.createSandbox();

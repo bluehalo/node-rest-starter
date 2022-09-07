@@ -22,17 +22,17 @@ const MessageSchema = new mongoose.Schema({
 	title: {
 		type: String,
 		trim: true,
-		required: 'Title is required'
+		required: [true, 'Title is required']
 	},
 	type: {
 		type: String,
 		enum: ['INFO', 'WARN', 'ERROR', 'MOTD'],
-		default: null
+		default: 'INFO'
 	},
 	body: {
 		type: String,
 		trim: true,
-		required: 'Message is required'
+		required: [true, 'Message is required']
 	},
 	ackRequired: {
 		type: Boolean,
@@ -44,7 +44,7 @@ const MessageSchema = new mongoose.Schema({
 	},
 	created: {
 		type: Date,
-		default: Date.now,
+		default: () => Date.now(),
 		get: util.dateParse
 	},
 	creator: {

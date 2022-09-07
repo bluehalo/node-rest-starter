@@ -2,8 +2,14 @@
 
 const passport = require('passport'),
 	mongoose = require('mongoose'),
-	LocalStrategy = require('passport-local').Strategy,
-	User = mongoose.model('User');
+	LocalStrategy = require('passport-local').Strategy;
+
+/**
+ * Import types for reference below
+ * @typedef {import('../../app/core/user/types').UserModel} UserModel
+ */
+
+const User = /** @type {UserModel} */ (mongoose.model('User'));
 
 const verify = (username, password, done) => {
 	if (!username) {
@@ -16,23 +22,19 @@ const verify = (username, password, done) => {
 
 	User.findOne({ username: username })
 		.exec()
-		.then(
-			(
-				/** @type {import('../../app/core/user/types').UserDocument} */ user
-			) => {
-				// The user wasn't found or the password was wrong
-				if (!user || !user.authenticate(password)) {
-					return done(null, false, {
-						status: 401,
-						type: 'invalid-credentials',
-						message: 'Incorrect username or password'
-					});
-				}
-
-				// Return the user
-				return done(null, user);
+		.then((user) => {
+			// The user wasn't found or the password was wrong
+			if (!user || !user.authenticate(password)) {
+				return done(null, false, {
+					status: 401,
+					type: 'invalid-credentials',
+					message: 'Incorrect username or password'
+				});
 			}
-		)
+
+			// Return the user
+			return done(null, user);
+		})
 		.catch((err) => done(err));
 };
 

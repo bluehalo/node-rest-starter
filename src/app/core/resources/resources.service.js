@@ -19,7 +19,7 @@ function populateOwnerAndCreatorInfo(search) {
 		ownerPromise = Promise.resolve(search);
 	} else {
 		const ownerId = _.isString(search.owner.id)
-			? mongoose.Types.ObjectId(search.owner.id)
+			? new mongoose.Types.ObjectId(search.owner.id)
 			: search.owner.id;
 		ownerPromise = Team.findOne({ _id: ownerId })
 			.exec()
@@ -36,7 +36,7 @@ function populateOwnerAndCreatorInfo(search) {
 			return Promise.resolve(s);
 		} else {
 			const creatorId = _.isString(s.creator)
-				? mongoose.Types.ObjectId(s.creator)
+				? new mongoose.Types.ObjectId(s.creator)
 				: s.creator;
 			return User.findOne({ _id: creatorId })
 				.exec()
@@ -129,7 +129,7 @@ function doSearchTags(countAggregation, resultAggregation, page, limit) {
 
 async function constrainTagResults(teamId, user) {
 	if (null != teamId) {
-		const teamQuery = { 'owner._id': mongoose.Types.ObjectId(teamId) };
+		const teamQuery = { 'owner._id': new mongoose.Types.ObjectId(teamId) };
 		// Constrain to specific team
 		return teamQuery;
 	}

@@ -1,8 +1,14 @@
-import { Document, LeanDocument, Model, Types } from 'mongoose';
+import {
+	Document,
+	HydratedDocument,
+	LeanDocument,
+	Model,
+	Types
+} from 'mongoose';
 import { PaginatePlugin, TextSearchPlugin } from '../../common/mongoose/types';
 
-interface IMessage extends Document {
-	_id: Types.ObjectId;
+interface IMessage {
+	type: string;
 	title: string;
 	body: string;
 	ackRequired: boolean;
@@ -11,30 +17,34 @@ interface IMessage extends Document {
 	updated: Date | number;
 }
 
-export type MessageDocument = IMessage;
+export type MessageDocument = HydratedDocument<IMessage>;
 
 export type LeanMessageDocument = LeanDocument<MessageDocument>;
 
-type QueryHelpers<T> = TextSearchPlugin & PaginatePlugin<T>;
-
 export interface MessageModel
-	extends Model<MessageDocument, QueryHelpers<MessageDocument>> {
+	extends Model<
+		MessageDocument,
+		TextSearchPlugin & PaginatePlugin<MessageDocument>
+	> {
 	auditCopy(src: MessageDocument);
 	fullCopy(src: MessageDocument);
 }
 
-interface IDismissedMessage extends Document {
+interface IDismissedMessage {
 	messageId: Types.ObjectId;
 	userId: Types.ObjectId;
-	created: number;
+	created: Date | number;
 }
 
-export type DismissedMessageDocument = IDismissedMessage;
+export type DismissedMessageDocument = HydratedDocument<IDismissedMessage>;
 
 export type LeanDismissedMessageDocument =
 	LeanDocument<DismissedMessageDocument>;
 
 export interface DismissedMessageModel
-	extends Model<DismissedMessageDocument, QueryHelpers<MessageDocument>> {
+	extends Model<
+		DismissedMessageDocument,
+		TextSearchPlugin & PaginatePlugin<DismissedMessageDocument>
+	> {
 	auditCopy(src: DismissedMessageDocument);
 }
