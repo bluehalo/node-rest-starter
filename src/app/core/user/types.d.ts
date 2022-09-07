@@ -1,5 +1,5 @@
-import { HydratedDocument, Model } from 'mongoose';
 import { BinaryLike } from 'crypto';
+import { HydratedDocument, Model, Model } from 'mongoose';
 import {
 	ContainsSearchPlugin,
 	TextSearchPlugin

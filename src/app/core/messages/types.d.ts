@@ -1,10 +1,4 @@
-import {
-	Document,
-	HydratedDocument,
-	LeanDocument,
-	Model,
-	Types
-} from 'mongoose';
+import { HydratedDocument, LeanDocument, Model, Types } from 'mongoose';
 import { PaginatePlugin, TextSearchPlugin } from '../../common/mongoose/types';
 
 interface IMessage {
