@@ -3,7 +3,7 @@
 const should = require('should'),
 	sinon = require('sinon'),
 	deps = require('../../../dependencies'),
-	feedbackService = require('./feedback.service'),
+	feedbackService = require('./feedback.service').default,
 	User = deps.dbs.admin.model('User'),
 	Feedback = deps.dbs.admin.model('Feedback'),
 	config = deps.config;

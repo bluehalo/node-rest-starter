@@ -1,11 +1,11 @@
 'use strict';
 
-const mongoose = require('mongoose'),
-	getterPlugin = require('../../common/mongoose/getter.plugin'),
-	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
-	textSearchPlugin = require('../../common/mongoose/text-search.plugin'),
-	deps = require('../../../dependencies'),
-	util = deps.utilService;
+import { HydratedDocument, model, Model, Schema, Types } from 'mongoose';
+import { PaginatePlugin, TextSearchPlugin } from '../../common/mongoose/types';
+import getterPlugin from '../../common/mongoose/getter.plugin';
+import paginatePlugin from '../../common/mongoose/paginate.plugin';
+import textSearchPlugin from '../../common/mongoose/text-search.plugin';
+import { utilService } from '../../../dependencies';
 
 const Statuses = Object.freeze({
 	new: 'New',
@@ -13,23 +13,40 @@ const Statuses = Object.freeze({
 	closed: 'Closed'
 });
 
-/**
- * Import types for reference below
- * @typedef {import('./types').FeedbackDocument} FeedbackDocument
- * @typedef {import('./types').FeedbackModel} FeedbackModel
- */
+export interface IFeedback {
+	_id: string;
+	body: string;
+	type: string;
+	url: string;
+	os: string;
+	browser: string;
+	classification: string;
+	status: typeof Statuses[keyof typeof Statuses];
+	assignee: string;
 
-/**
- * @type {mongoose.Schema<FeedbackDocument, FeedbackModel>}
- */
-const FeedbackSchema = new mongoose.Schema({
+	creator: Types.ObjectId;
+	created: Date;
+	updated: Date | number;
+}
+
+export type FeedbackDocument = HydratedDocument<IFeedback>;
+
+export interface FeedbackModel
+	extends Model<
+		IFeedback,
+		TextSearchPlugin & PaginatePlugin<FeedbackDocument>
+	> {
+	auditCopy(src: Partial<IFeedback>);
+}
+
+const FeedbackSchema = new Schema<IFeedback, FeedbackModel>({
 	created: {
 		type: Date,
 		default: () => Date.now(),
-		get: util.dateParse
+		get: utilService.dateParse
 	},
 	creator: {
-		type: mongoose.Schema.Types.ObjectId,
+		type: Schema.Types.ObjectId,
 		ref: 'User'
 	},
 	body: { type: String },
@@ -48,7 +65,7 @@ const FeedbackSchema = new mongoose.Schema({
 	updated: {
 		type: Date,
 		default: () => Date.now(),
-		get: util.dateParse,
+		get: utilService.dateParse,
 		required: true
 	}
 });
@@ -83,13 +100,13 @@ FeedbackSchema.index({ body: 'text' });
  * Static Methods
  *****************/
 
-Object.assign(FeedbackSchema.statics, {
-	Statuses
-});
-
 /**
  * Register the Schema with Mongoose
  */
-const Feedback = mongoose.model('Feedback', FeedbackSchema, 'feedback');
+const Feedback = model<IFeedback, FeedbackModel>(
+	'Feedback',
+	FeedbackSchema,
+	'feedback'
+);
 
-module.exports = Feedback;
+export { Feedback };

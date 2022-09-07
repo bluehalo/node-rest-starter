@@ -5,7 +5,7 @@ const should = require('should'),
 	mongoose = require('mongoose'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
-	messagesService = require('./messages.service');
+	messagesService = require('./messages.service').default;
 
 const User = dbs.admin.model('User');
 const Message = dbs.admin.model('Message');

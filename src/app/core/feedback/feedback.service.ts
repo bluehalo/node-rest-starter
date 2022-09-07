@@ -1,38 +1,27 @@
-'use strict';
-
-const mongoose = require('mongoose'),
-	{
-		dbs,
-		config,
-		emailService,
-		logger,
-		utilService
-	} = require('../../../dependencies');
-
-/**
- * Import types for reference below
- *
- * @typedef {import('mongoose').PopulateOptions} PopulateOptions
- * @typedef {import('./types').FeedbackDocument} FeedbackDocument
- * @typedef {import('./types').FeedbackModel} FeedbackModel
- * @typedef {import('../user/types').UserDocument} UserDocument
- */
+import { FilterQuery, PopulateOptions, Types } from 'mongoose';
+import {
+	dbs,
+	config,
+	emailService,
+	logger,
+	utilService
+} from '../../../dependencies';
+import { PagingResults } from '../../common/mongoose/types';
+import { UserDocument } from '../user/types';
+import { FeedbackDocument, FeedbackModel } from './feedback.model';
 
 class FeedbackService {
+	model: FeedbackModel;
+
 	constructor() {
-		/**
-		 * @type {FeedbackModel}
-		 */
 		this.model = dbs.admin.model('Feedback');
 	}
 
-	/**
-	 * @param {UserDocument} user
-	 * @param {*} doc
-	 * @param {*} userSpec
-	 * @returns {Promise<FeedbackDocument>}
-	 */
-	async create(user, doc, userSpec) {
+	create(
+		user: UserDocument,
+		doc: Record<string, unknown>,
+		userSpec: Record<string, unknown>
+	): Promise<FeedbackDocument> {
 		const feedback = new this.model({
 			body: doc.body,
 			type: doc.type,
@@ -44,7 +33,7 @@ class FeedbackService {
 		});
 
 		try {
-			return await feedback.save();
+			return feedback.save();
 		} catch (err) {
 			// Log and continue the error
 			logger.error(
@@ -55,28 +44,28 @@ class FeedbackService {
 		}
 	}
 
-	/**
-	 * @param {string} id
-	 * @param {string | PopulateOptions | Array<string | PopulateOptions>} [populate]
-	 * @returns {Promise<FeedbackDocument | null>}
-	 */
-	read(id, populate = []) {
-		if (!mongoose.Types.ObjectId.isValid(id)) {
+	read(
+		id: string | Types.ObjectId,
+		populate:
+			| string
+			| string[]
+			| PopulateOptions
+			| Array<string | PopulateOptions> = []
+	): Promise<FeedbackDocument | null> {
+		if (!Types.ObjectId.isValid(id)) {
 			throw { status: 400, type: 'validation', message: 'Invalid feedback ID' };
 		}
 		return this.model
 			.findById(id)
-			.populate(/** @type {string} */ (populate))
+			.populate(populate as string[])
 			.exec();
 	}
 
-	/**
-	 * @param [queryParams]
-	 * @param {string} [search]
-	 * @param {import('mongoose').FilterQuery<FeedbackDocument>} [query]
-	 * @returns {Promise<import('../../common/mongoose/types').PagingResults<FeedbackDocument>>}
-	 */
-	search(queryParams = {}, search = '', query = {}) {
+	search(
+		queryParams = {},
+		search = '',
+		query: FilterQuery<FeedbackDocument> = {}
+	): Promise<PagingResults<FeedbackDocument>> {
 		const page = utilService.getPage(queryParams);
 		const limit = utilService.getLimit(queryParams, 100);
 		const sort = utilService.getSortObj(queryParams);
@@ -93,13 +82,11 @@ class FeedbackService {
 			.paginate(limit, page);
 	}
 
-	/**
-	 * @param {UserDocument} user
-	 * @param {FeedbackDocument} feedback
-	 * @param req
-	 * @returns {Promise<void>}
-	 */
-	async sendFeedbackEmail(user, feedback, req) {
+	async sendFeedbackEmail(
+		user: UserDocument,
+		feedback: FeedbackDocument,
+		req: unknown
+	): Promise<void> {
 		if (
 			null == user ||
 			null == feedback.body ||
@@ -128,27 +115,23 @@ class FeedbackService {
 		}
 	}
 
-	/**
-	 * @param {FeedbackDocument} feedback
-	 * @param {string} assignee
-	 * @returns {Promise<FeedbackDocument>}
-	 */
-	updateFeedbackAssignee(feedback, assignee) {
+	updateFeedbackAssignee(
+		feedback: FeedbackDocument,
+		assignee: string
+	): Promise<FeedbackDocument> {
 		feedback.assignee = assignee;
 		feedback.updated = Date.now();
 		return feedback.save();
 	}
 
-	/**
-	 * @param {FeedbackDocument} feedback
-	 * @param {'New' | 'Open' | 'Closed'} status
-	 * @returns {Promise<FeedbackDocument>}
-	 */
-	updateFeedbackStatus(feedback, status) {
+	updateFeedbackStatus(
+		feedback: FeedbackDocument,
+		status: 'New' | 'Open' | 'Closed'
+	): Promise<FeedbackDocument> {
 		feedback.status = status;
 		feedback.updated = Date.now();
 		return feedback.save();
 	}
 }
 
-module.exports = new FeedbackService();
+export default new FeedbackService();

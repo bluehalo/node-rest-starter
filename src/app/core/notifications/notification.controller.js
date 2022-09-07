@@ -1,11 +1,14 @@
 'use strict';
 
-const notificationsService = require('./notification.service');
+const notificationsService = require('./notification.service').default;
 
 module.exports.search = async (req, res) => {
 	// Get search and query parameters
 	const query = req.body.q ?? {};
 
-	const result = await notificationsService.search(query, req.query, req.user);
+	// Always need to filter by user making the service call
+	query.user = req.user._id;
+
+	const result = await notificationsService.search(req.query, query);
 	res.status(200).json(result);
 };

@@ -8,7 +8,7 @@ const {
 	} = require('../../../dependencies'),
 	exportConfigController = require('../export/export-config.controller'),
 	exportConfigService = require('../export/export-config.service'),
-	feedbackService = require('./feedback.service'),
+	feedbackService = require('./feedback.service').default,
 	Feedback = dbs.admin.model('Feedback'),
 	ExportConfig = dbs.admin.model('ExportConfig');
 
