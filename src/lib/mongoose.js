@@ -32,11 +32,7 @@ function getDbSpec(dbSpecName, dbConfigs) {
 	const dbSpec = dbConfigs[dbSpecName];
 
 	const connectionString = _.has(dbSpec, 'uri') ? dbSpec.uri : dbSpec;
-	const options = {
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-		useFindAndModify: false
-	};
+	const options = {};
 	if (_.has(dbSpec, 'options')) {
 		Object.assign(options, dbSpec.options);
 	}
@@ -81,27 +77,15 @@ module.exports.connect = async () => {
 
 			// Connect to the rest of the dbs
 			await Promise.all(
-				dbSpecs.map(
-					(spec) =>
-						new Promise((resolve, reject) => {
-							// Create the secondary connection
-							const conn = mongoose.createConnection(
-								spec.connectionString,
-								spec.options
-							);
-							dbs[spec.name] = conn;
-							conn.on('connected', () => {
-								logger.debug(`Connected to ${spec.name}`);
-								resolve();
-							});
-							conn.on('error', () => {
-								reject();
-							});
-						})
-				)
+				dbSpecs.map(async (spec) => {
+					// Create the secondary connection
+					const conn = await mongoose
+						.createConnection(spec.connectionString, spec.options)
+						.asPromise();
+					dbs[spec.name] = conn;
+					logger.info(`Mongoose: Connected to "${spec.name}" db`);
+				})
 			);
-
-			mongoose.set('useCreateIndex', true);
 
 			logger.debug('Loading mongoose models...');
 			// Since all the db connections worked, we will load the mongoose models

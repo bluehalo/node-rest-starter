@@ -75,7 +75,7 @@ describe('EUA Service:', () => {
 		it('read returns null for invalid id', async () => {
 			// Read eua
 			const eua = await euaService.read(
-				// mongoose.Types.ObjectId('012345678912')
+				// new mongoose.Types.ObjectId('012345678912')
 				'012345678912'
 			);
 			should.not.exist(eua);

@@ -1,7 +1,11 @@
-import { Document, Model } from 'mongoose';
-import { TextSearchPlugin } from '../../../common/mongoose/types';
+import { HydratedDocument, Model, Types } from 'mongoose';
+import {
+	PaginatePlugin,
+	TextSearchPlugin
+} from '../../../common/mongoose/types';
 
-interface IUserAgreement extends Document {
+interface IUserAgreement {
+	_id: Types.ObjectId;
 	title: string;
 	text: string;
 	published: Date | number;
@@ -9,11 +13,12 @@ interface IUserAgreement extends Document {
 	created: Date | number;
 }
 
-export type UserAgreementDocument = IUserAgreement;
-
-type QueryHelpers<T> = TextSearchPlugin & PaginatePlugin<T> & PagedStreamPlugin;
+export type UserAgreementDocument = HydratedDocument<IUserAgreement>;
 
 export interface UserAgreementModel
-	extends Model<UserAgreementDocument, QueryHelpers<UserAgreementDocument>> {
+	extends Model<
+		IUserAgreement,
+		TextSearchPlugin & PaginatePlugin<UserAgreementDocument>
+	> {
 	auditCopy(eua: Record<string, unknown>): Record<string, unknown>;
 }

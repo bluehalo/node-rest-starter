@@ -41,6 +41,7 @@ const TeamRoleSchema = new mongoose.Schema({
 TeamRoleSchema.plugin(getterPlugin);
 
 UserSchema.add({
+	// @ts-ignore: Proper fix for this is probably to merge these changes to the User Schema/Model to user.model.js vs. modifying them here
 	teams: {
 		type: [TeamRoleSchema]
 	}
@@ -59,7 +60,7 @@ const TeamSchema = new mongoose.Schema({
 	},
 	created: {
 		type: Date,
-		default: Date.now,
+		default: () => Date.now(),
 		get: util.dateParse,
 		immutable: true
 	},
@@ -157,6 +158,7 @@ TeamSchema.statics.auditCopyTeamMember = function (
 mongoose.model('Team', TeamSchema, 'teams');
 
 // Team Copy of a User ( has team roles for the team )
+// @ts-ignore: Proper fix for this is probably to merge these changes to the User Schema/Model to user.model.js vs. modifying them here
 const userAuditCopy = UserModel.auditCopy;
 UserSchema.statics.auditCopy = (user = {}) => {
 	/**

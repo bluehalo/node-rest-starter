@@ -64,7 +64,10 @@ class FeedbackService {
 		if (!mongoose.Types.ObjectId.isValid(id)) {
 			throw { status: 400, type: 'validation', message: 'Invalid feedback ID' };
 		}
-		return this.model.findById(id).populate(populate).exec();
+		return this.model
+			.findById(id)
+			.populate(/** @type {string} */ (populate))
+			.exec();
 	}
 
 	/**

@@ -76,7 +76,7 @@ describe('User Auth Controller:', () => {
 			const req = {
 				logout: (cb) => {
 					if (cb) {
-						cb();
+						return cb();
 					}
 				}
 			};

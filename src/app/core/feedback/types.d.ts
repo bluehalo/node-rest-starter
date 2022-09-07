@@ -1,4 +1,4 @@
-import { Document, Model, Types } from 'mongoose';
+import { HydratedDocument, Model, Types } from 'mongoose';
 import { PaginatePlugin, TextSearchPlugin } from '../../common/mongoose/types';
 
 type Statuses = {
@@ -7,7 +7,7 @@ type Statuses = {
 	Closed: 'Closed';
 };
 
-interface IFeedback extends Document {
+interface IFeedback {
 	_id: string;
 	body: string;
 	type: string;
@@ -23,12 +23,13 @@ interface IFeedback extends Document {
 	updated: Date | number;
 }
 
-export type FeedbackDocument = IFeedback;
-
-type QueryHelpers<T> = TextSearchPlugin & PaginatePlugin<T>;
+export type FeedbackDocument = HydratedDocument<IFeedback>;
 
 export interface FeedbackModel
-	extends Model<FeedbackDocument, QueryHelpers<FeedbackDocument>> {
+	extends Model<
+		FeedbackDocument,
+		TextSearchPlugin & PaginatePlugin<FeedbackDocument>
+	> {
 	readonly Statuses: Statuses;
 
 	auditCopy(src: FeedbackDocument);

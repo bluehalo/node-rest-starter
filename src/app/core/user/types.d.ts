@@ -1,4 +1,4 @@
-import { Document, Model } from 'mongoose';
+import { HydratedDocument, Model } from 'mongoose';
 import { BinaryLike } from 'crypto';
 import {
 	ContainsSearchPlugin,
@@ -12,7 +12,7 @@ type UserRoles = {
 	admin?: boolean;
 };
 
-interface IUser extends Document {
+export interface IUser {
 	name: string;
 
 	organization: string;
@@ -34,7 +34,7 @@ interface IUser extends Document {
 	messagesAcknowledged: Date;
 	alertsViewed: Date;
 	resetPasswordToken: string;
-	resetPasswordExpires: string;
+	resetPasswordExpires: Date | number;
 	acceptedEua: Date | number;
 	lastLogin: Date | number;
 	lastLoginWithAccess: Date | number;
@@ -43,17 +43,19 @@ interface IUser extends Document {
 	salt: BinaryLike;
 }
 
-export interface UserDocument extends IUser {
+interface IUserMethods {
 	authenticate(password: string): boolean;
 	hashPassword(password: string): string;
 }
 
-type QueryHelpers<T> = ContainsSearchPlugin &
-	TextSearchPlugin &
-	PaginatePlugin<T>;
+export type UserDocument = HydratedDocument<IUser, IUserMethods>;
 
 export interface UserModel
-	extends Model<UserDocument, QueryHelpers<UserDocument>> {
+	extends Model<
+		IUser,
+		ContainsSearchPlugin & TextSearchPlugin & PaginatePlugin<IUser>,
+		IUserMethods
+	> {
 	createCopy(user: Record<string, unknown>): Record<string, unknown>;
 	auditCopy(
 		user: Record<string, unknown>,

@@ -22,11 +22,11 @@ const OwnerSchema = new mongoose.Schema({
 		type: String,
 		default: 'team',
 		enum: ['team', 'user', 'system'],
-		required: 'Owner type is required'
+		required: [true, 'Owner type is required']
 	},
 	_id: {
 		type: mongoose.Schema.Types.ObjectId,
-		required: 'Owner ID is required'
+		required: [true, 'Owner ID is required']
 	},
 	name: {
 		type: String,
@@ -50,12 +50,12 @@ const ResourceSchema = new mongoose.Schema(
 	{
 		_id: {
 			type: String,
-			default: uuid.v4
+			default: () => uuid.v4()
 		},
 		title: {
 			type: String,
 			trim: true,
-			required: 'Title is required'
+			required: [true, 'Title is required']
 		},
 		title_lowercase: {
 			type: String,
@@ -68,12 +68,12 @@ const ResourceSchema = new mongoose.Schema(
 		},
 		created: {
 			type: Date,
-			default: Date.now,
+			default: () => Date.now(),
 			get: util.dateParse
 		},
 		updated: {
 			type: Date,
-			default: Date.now,
+			default: () => Date.now(),
 			get: util.dateParse
 		},
 		tags: [
@@ -89,7 +89,7 @@ const ResourceSchema = new mongoose.Schema(
 		},
 		owner: {
 			type: OwnerSchema,
-			required: 'Owner is required'
+			required: [true, 'Owner is required']
 		}
 	},
 	module.exports.resourceOptions

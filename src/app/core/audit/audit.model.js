@@ -21,7 +21,7 @@ const mongoose = require('mongoose'),
 const AuditSchema = new mongoose.Schema({
 	created: {
 		type: Date,
-		default: Date.now,
+		default: () => Date.now(),
 		get: util.dateParse
 	},
 	message: { type: String },
@@ -49,8 +49,6 @@ AuditSchema.plugin(containsSearchPlugin, {
  */
 
 // Created datetime index, expires after 180 days
-
-/* @ts-ignore: Error due to mongo/mongoose type mismatch, need to upgrade mongoose to correct */
 AuditSchema.index({ created: -1 }, { expireAfterSeconds: 15552000 });
 
 // Audit Type index

@@ -13,6 +13,13 @@ const _ = require('lodash'),
 	textSearchPlugin = require('../../common/mongoose/text-search.plugin');
 
 /**
+ * Import types for reference below
+ * @typedef {import('./types').IUser} IUser
+ * @typedef {import('./types').UserDocument} UserDocument
+ * @typedef {import('./types').UserModel} UserModel
+ */
+
+/**
  * Validation
  */
 
@@ -119,19 +126,16 @@ const roleSchemaDef = {
  *         preferences:
  *           type: object
  */
-/**
- * @type {mongoose.Schema<import('./types').UserDocument, import('./types').UserModel>}
- */
 const UserSchema = new mongoose.Schema({
 	name: {
 		type: String,
 		trim: true,
-		required: 'Name is required'
+		required: [true, 'Name is required']
 	},
 	organization: {
 		type: String,
 		trim: true,
-		required: 'Organization is required'
+		required: [true, 'Organization is required']
 	},
 	organizationLevels: {
 		type: Object
@@ -139,7 +143,7 @@ const UserSchema = new mongoose.Schema({
 	email: {
 		type: String,
 		trim: true,
-		required: 'Email is required',
+		required: [true, 'Email is required'],
 		match: [util.emailMatcher, 'A valid email address is required']
 	},
 	phone: {
@@ -154,9 +158,9 @@ const UserSchema = new mongoose.Schema({
 	},
 	username: {
 		type: String,
-		unique: 'This username is already taken',
-		required: 'Username is required',
-		trim: true
+		trim: true,
+		unique: true,
+		required: [true, 'Username is required']
 	},
 	password: {
 		type: String,
@@ -168,7 +172,7 @@ const UserSchema = new mongoose.Schema({
 	},
 	provider: {
 		type: String,
-		required: 'Provider is required'
+		required: [true, 'Provider is required']
 	},
 	providerData: {},
 	additionalProvidersData: {},
@@ -199,7 +203,7 @@ const UserSchema = new mongoose.Schema({
 	},
 	created: {
 		type: Date,
-		default: Date.now,
+		default: () => Date.now(),
 		get: util.dateParse,
 		immutable: true
 	},
@@ -210,7 +214,7 @@ const UserSchema = new mongoose.Schema({
 	},
 	alertsViewed: {
 		type: Date,
-		default: Date.now,
+		default: () => Date.now(),
 		get: util.dateParse
 	},
 	/* For reset password */
@@ -256,7 +260,6 @@ UserSchema.plugin(textSearchPlugin);
 /**
  * Index declarations
  */
-
 // Text-search index
 UserSchema.index({ name: 'text', email: 'text', username: 'text' });
 
@@ -264,7 +267,7 @@ UserSchema.index({ name: 'text', email: 'text', username: 'text' });
  * Lifecycle Hooks
  */
 UserSchema.pre('save', function (next) {
-	const user = this;
+	const user = /** @type {UserDocument} */ (/** @type {?} */ (this));
 
 	// If the password is modified and it is valid, then re- salt/hash it
 	if (
@@ -292,7 +295,7 @@ UserSchema.pre('save', function (next) {
  * @returns {string} An SHA1 hash of the password.
  */
 UserSchema.methods.hashPassword = function (password) {
-	const user = this;
+	const user = /** @type {UserDocument} */ (this);
 
 	if (user.salt && password) {
 		return crypto
@@ -310,7 +313,7 @@ UserSchema.methods.hashPassword = function (password) {
  * @returns {boolean} Whether or not the password is correct.
  */
 UserSchema.methods.authenticate = function (password) {
-	const user = this;
+	const user = /** @type {UserDocument} */ (this);
 	return user.password === user.hashPassword(password);
 };
 
@@ -451,9 +454,6 @@ UserSchema.statics.auditCopy = function (user, userIP) {
 
 UserSchema.statics.roles = roles;
 
-/**
- * @type {import('./types').UserModel}
- */
 const User = mongoose.model('User', UserSchema);
 
 /**

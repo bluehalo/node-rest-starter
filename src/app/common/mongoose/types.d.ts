@@ -1,22 +1,22 @@
-import { Document } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
-export interface PagingResults<DocType extends Document = Document> {
+export interface PagingResults<DocType> {
 	pageNumber: number;
 	pageSize: number;
 	totalPages: number;
 	totalSize: number;
-	elements: DocType[];
+	elements: HydratedDocument<DocType>[];
 }
 
 export interface TextSearchPlugin {
-	textSearch(search: string): this;
+	textSearch(search: string, sortByTextScore?: boolean): this;
 }
 
 export interface ContainsSearchPlugin {
 	containsSearch(search: string, fields?: string[]): this;
 }
 
-export interface PaginatePlugin<DocType extends Document> {
+export interface PaginatePlugin<DocType> {
 	paginate(
 		pageSize: number,
 		pageNumber: number,

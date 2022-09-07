@@ -242,8 +242,8 @@ describe('User authorization service:', () => {
 	});
 
 	describe('validateAccessToPersonalResource', () => {
-		const id1 = mongoose.Types.ObjectId();
-		const id2 = mongoose.Types.ObjectId();
+		const id1 = new mongoose.Types.ObjectId();
+		const id2 = new mongoose.Types.ObjectId();
 
 		it('test user (not admin) access own resource', () => {
 			const user = { roles: { admin: false }, _id: id1 };

@@ -35,7 +35,10 @@ class EuaService {
 	 * @returns {Promise<UserAgreementDocument | null>}
 	 */
 	read(id, populate = []) {
-		return this.model.findById(id).populate(populate).exec();
+		return this.model
+			.findById(id)
+			.populate(/** @type {string} */ (populate))
+			.exec();
 	}
 
 	/**
