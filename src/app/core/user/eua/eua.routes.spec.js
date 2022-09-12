@@ -11,7 +11,8 @@ const mock = require('mock-require'),
 		dbs: { admin }
 	} = require('../../../../dependencies'),
 	User = admin.model('User'),
-	UserAgreement = admin.model('UserAgreement');
+	UserAgreement = admin.model('UserAgreement'),
+	{ isISOString } = require('../../../../spec/helpers');
 
 const matchesAnyString = (val) => {
 	return typeof val === 'string';
@@ -20,6 +21,11 @@ const matchesAnyString = (val) => {
 const matchesAnyNumber = (val) => {
 	return typeof val === 'number';
 };
+
+// const isISOString = val => {
+//   const d = new Date(val);
+//   return !Number.isNaN(d.valueOf()) && d.toISOString() === val;
+// };
 
 /**
  * Integration tests for the Express Routes and Mongoose Models
@@ -104,9 +110,9 @@ describe('EUA Routes:', () => {
 					__v: matchesAnyNumber,
 					_id: matchesAnyString,
 					id: matchesAnyString,
-					published: matchesAnyNumber,
+					published: isISOString,
 					updated: null,
-					created: matchesAnyNumber,
+					created: isISOString,
 					title: 'test title',
 					text: 'some text'
 				});
@@ -132,7 +138,7 @@ describe('EUA Routes:', () => {
 								id: matchesAnyString,
 								published: null,
 								updated: null,
-								created: matchesAnyNumber,
+								created: isISOString,
 								title: 'test title',
 								text: 'some text'
 							}
@@ -163,8 +169,8 @@ describe('EUA Routes:', () => {
 						_id: matchesAnyString,
 						id: matchesAnyString,
 						published: null,
-						updated: matchesAnyNumber,
-						created: matchesAnyNumber,
+						updated: isISOString,
+						created: isISOString,
 						title: 'EUA Title',
 						text: 'This is EUA text.'
 					});

@@ -9,7 +9,8 @@ const request = require('supertest'),
 	mock = require('mock-require'),
 	deps = require('../../../dependencies'),
 	Feedback = deps.dbs.admin.model('Feedback'),
-	User = deps.dbs.admin.model('User');
+	User = deps.dbs.admin.model('User'),
+	{ parsedJSON } = require('../../../spec/helpers');
 
 describe('Feedback Controller', () => {
 	let app;
@@ -126,13 +127,15 @@ describe('Feedback Controller', () => {
 							const expected = savedFeedback.toJSON();
 							expected._id = expected._id.toString();
 
-							should(res.body).eql({
-								elements: [expected],
-								pageNumber: 0,
-								pageSize: 20,
-								totalPages: 1,
-								totalSize: 1
-							});
+							should(parsedJSON(res.body)).eql(
+								parsedJSON({
+									elements: [expected],
+									pageNumber: 0,
+									pageSize: 20,
+									totalPages: 1,
+									totalSize: 1
+								})
+							);
 						} else {
 							should(res.body).eql({
 								message: 'This is a fake error message'
@@ -177,10 +180,10 @@ describe('Feedback Controller', () => {
 							expected._id = expected._id.toString();
 							expected.status = updatedStatus;
 							// Verify that the 'updated' field was updated
-							should(res.body.updated).greaterThan(expected.updated);
+							should(new Date(res.body.updated)).greaterThan(expected.updated);
 							// Set the expected 'updated' value to be the received value so the match can be performed
 							expected.updated = res.body.updated;
-							should(res.body).match(expected);
+							should(res.body).match(parsedJSON(expected));
 						} else {
 							should(res.body).eql({
 								message: 'This is a fake error message'
@@ -260,10 +263,10 @@ describe('Feedback Controller', () => {
 							expected.assignee = updatedAssignee;
 
 							// Verify that the 'updated' field was updated
-							should(res.body.updated).greaterThan(expected.updated);
+							should(new Date(res.body.updated)).greaterThan(expected.updated);
 							// Set the expected 'updated' value to be the received value so the match can be performed
 							expected.updated = res.body.updated;
-							should(res.body).match(expected);
+							should(res.body).match(parsedJSON(expected));
 						} else {
 							should(res.body).eql({
 								message: 'This is a fake error message'

@@ -210,7 +210,9 @@ const UserSchema = new mongoose.Schema({
 	},
 	messagesAcknowledged: {
 		type: Date,
-		default: 0
+		// TODO: either change the default to null or leave dateParse?
+		default: 0,
+		get: util.dateParse
 	},
 	alertsViewed: {
 		type: Date,

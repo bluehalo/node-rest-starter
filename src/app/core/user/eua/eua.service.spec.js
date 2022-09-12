@@ -40,7 +40,7 @@ describe('EUA Service:', () => {
 			should.exist(eua.created);
 			should.exist(eua.updated);
 			(eua.created === eua.updated).should.be.true(
-				'expected eua.created} to be equal to eua.updated'
+				'expected eua.created to be equal to eua.updated on create'
 			);
 
 			// Re-query created eua and verify properties
@@ -50,8 +50,8 @@ describe('EUA Service:', () => {
 			eua.text.should.equal('Text');
 			should.exist(eua.created);
 			should.exist(eua.updated);
-			(eua.created === eua.updated).should.be.true(
-				'expected eua.created} to be equal to eua.updated'
+			(eua.created.toString() === eua.updated.toString()).should.be.true(
+				'expected eua.created to be equal to eua.updated on find'
 			);
 		});
 	});
