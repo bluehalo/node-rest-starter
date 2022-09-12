@@ -6,23 +6,36 @@
 
 ## Getting Started
 
-1. Install Node module dependencies via: `npm install`
-1. Use the default configuration in `./config/env/default.js` or override with your own configuration that matches the `NODE_ENV` environment variable by copying the `./config/env/development.template.js` file and renaming it to match the value of `$NODE_ENV`
+### Prereqs
+
+#### Required
+
+- nodejs 14.x, 16.x
+- mongodb 4.0, 4.2
+
+#### Recommended
+
+- docker - [Start Up](#start-up) contains instructions for installing mongo via docker
+
+### Start Up
+
+1. To get started run `npm run init`(if you already have mongo running use `npm run init:nomongo`)
+   - This will install the dependencies, setup the `development.js` environment from the template and run docker using mongo
 1. Start the application via `npm start`
 
 ## API Documentation
 
 Endpoint Documentation for this application is generated from the `*.routes.js` files in each module.  
-Model/Schema documentation should be included in with each model and will be compiled from any file matching `*.model.js`.  
+Model/Schema documentation should be included in with each model and will be compiled from any file matching `*.model.js`.
 
-When the application is started, Swagger provides an interface for this API that is available by default at <http://localhost:3000/api-docs>  
+When the application is started, Swagger provides an interface for this API that is available by default at <http://localhost:3000/api-docs>
 
 The existence and path for this Swagger page is configurable via the `apiDocs` parameter, which defaults to:
 
 ```json
 {
-  enabled: true,
-  path: '/api-docs'
+	"enabled": true,
+	"path": "/api-docs"
 }
 ```
 
@@ -52,28 +65,40 @@ Since Mongoose suggests not automatically creating Mongo indices on-the-fly, the
 
 ```js
 db.audit.createIndex({ created: -1 }, { background: true });
-db.audit.createIndex({
-    'message': 'text',
-    'audit.auditType': 'text',
-    'audit.action': 'text',
-    'audit.object': 'text'
-}, { background: true });
+db.audit.createIndex(
+	{
+		message: 'text',
+		'audit.auditType': 'text',
+		'audit.action': 'text',
+		'audit.object': 'text'
+	},
+	{ background: true }
+);
 
 db.cache.entry.createIndex({ ts: 1 }, { background: true });
 db.cache.entry.createIndex({ key: 1 }, { background: true });
 
 db.exportconfigs.createIndex({ created: 1 }, { background: true });
 
-db.feedback.createIndex({ 'created': -1 }, { background: true, expireAfterSeconds: 15552000 });
-db.feedback.createIndex({ 'type': 1 }, { background: true });
-db.feedback.createIndex({ 'creator': 1 }), { background: true };
-db.feedback.createIndex({ 'url': 1 }, { background: true });
-db.feedback.createIndex({ 'os': 1 }, { background: true });
-db.feedback.createIndex({ 'browser': 1 }, { background: true });
-db.feedback.createIndex({ 'body': 'text' }, { background: true });
+db.feedback.createIndex(
+	{ created: -1 },
+	{ background: true, expireAfterSeconds: 15552000 }
+);
+db.feedback.createIndex({ type: 1 }, { background: true });
+db.feedback.createIndex({ creator: 1 }), { background: true };
+db.feedback.createIndex({ url: 1 }, { background: true });
+db.feedback.createIndex({ os: 1 }, { background: true });
+db.feedback.createIndex({ browser: 1 }, { background: true });
+db.feedback.createIndex({ body: 'text' }, { background: true });
 
-db.messages.createIndex({ title: 'text', body: 'text', type: 'text' }, { background: true });
-db.messages.dismissed.createIndex({ created: -1 }, { expireAfterSeconds: 2592000, background: true });
+db.messages.createIndex(
+	{ title: 'text', body: 'text', type: 'text' },
+	{ background: true }
+);
+db.messages.dismissed.createIndex(
+	{ created: -1 },
+	{ expireAfterSeconds: 2592000, background: true }
+);
 db.messages.dismissed.createIndex({ userId: 1 }, { background: true });
 
 db.notifications.createIndex({ user: 1, created: -1 }, { background: true });
@@ -81,17 +106,32 @@ db.notifications.createIndex({ created: 1 }, { background: true });
 
 db.owners.createIndex({ name: 1 }, { background: true });
 
-db.preferences.createIndex({ 'user' : 1, 'updated' : -1 }, { background: true });
-db.preferences.createIndex({ 'user' : 1, 'preferenceType' : 1, 'updated' : -1 }, { background: true });
+db.preferences.createIndex({ user: 1, updated: -1 }, { background: true });
+db.preferences.createIndex(
+	{ user: 1, preferenceType: 1, updated: -1 },
+	{ background: true }
+);
 
-db.resources.createIndex({ 'created' : 1, 'updated' : -1 }, { background: true });
-db.resources.createIndex({ 'owner.name' : 1 }, { background: true });
-db.resources.createIndex({ 'title_lowercase': 'text', 'description': 'text' }, { background: true });
+db.resources.createIndex({ created: 1, updated: -1 }, { background: true });
+db.resources.createIndex({ 'owner.name': 1 }, { background: true });
+db.resources.createIndex(
+	{ title_lowercase: 'text', description: 'text' },
+	{ background: true }
+);
 
-db.teams.createIndex({ name: 'text', description: 'text' }, { background: true });
+db.teams.createIndex(
+	{ name: 'text', description: 'text' },
+	{ background: true }
+);
 
-db.useragreements.createIndex({ title: 'text', text: 'text' }, { background: true });
+db.useragreements.createIndex(
+	{ title: 'text', text: 'text' },
+	{ background: true }
+);
 
 db.users.createIndex({ username: 1 }, { background: true });
-db.users.createIndex({ name: 'text', email: 'text', username: 'text' }, { background: true });
+db.users.createIndex(
+	{ name: 'text', email: 'text', username: 'text' },
+	{ background: true }
+);
 ```
