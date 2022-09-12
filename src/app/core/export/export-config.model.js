@@ -2,8 +2,6 @@
 
 const _ = require('lodash'),
 	mongoose = require('mongoose'),
-	deps = require('../../../dependencies'),
-	utilService = deps.utilService,
 	getterPlugin = require('../../common/mongoose/getter.plugin');
 
 const ExportConfigSchema = new mongoose.Schema({
@@ -23,7 +21,6 @@ const ExportConfigSchema = new mongoose.Schema({
 		type: Date,
 		expires: 300,
 		default: () => Date.now(),
-		get: utilService.dateParse,
 		required: [true, 'Created date is required']
 	}
 });

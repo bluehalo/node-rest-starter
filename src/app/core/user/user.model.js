@@ -201,52 +201,43 @@ const UserSchema = new mongoose.Schema({
 		default: false
 	},
 	updated: {
-		type: Date,
-		get: util.dateParse
+		type: Date
 	},
 	created: {
 		type: Date,
 		default: () => Date.now(),
-		get: util.dateParse,
 		immutable: true
 	},
 	messagesAcknowledged: {
 		type: Date,
-		default: 0,
-		get: util.dateParse
+		default: 0
 	},
 	alertsViewed: {
 		type: Date,
-		default: () => Date.now(),
-		get: util.dateParse
+		default: () => Date.now()
 	},
 	/* For reset password */
 	resetPasswordToken: {
 		type: String
 	},
 	resetPasswordExpires: {
-		type: Date,
-		get: util.dateParse
+		type: Date
 	},
 	acceptedEua: {
 		type: Date,
-		default: null,
-		get: util.dateParse
+		default: null
 	},
 	lastLogin: {
 		type: Date,
-		default: null,
-		get: util.dateParse
+		default: null
 	},
 	lastLoginWithAccess: {
 		type: Date,
-		default: null,
-		get: util.dateParse
+		default: null
 	},
 	newFeatureDismissed: {
 		type: Date,
-		default: null,
-		get: util.dateParse
+		default: null
 	},
 	preferences: {
 		type: {}

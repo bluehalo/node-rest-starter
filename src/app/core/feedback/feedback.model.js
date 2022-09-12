@@ -3,9 +3,7 @@
 const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
-	textSearchPlugin = require('../../common/mongoose/text-search.plugin'),
-	deps = require('../../../dependencies'),
-	util = deps.utilService;
+	textSearchPlugin = require('../../common/mongoose/text-search.plugin');
 
 const Statuses = Object.freeze({
 	new: 'New',
@@ -25,8 +23,7 @@ const Statuses = Object.freeze({
 const FeedbackSchema = new mongoose.Schema({
 	created: {
 		type: Date,
-		default: () => Date.now(),
-		get: util.dateParse
+		default: () => Date.now()
 	},
 	creator: {
 		type: mongoose.Schema.Types.ObjectId,
@@ -48,7 +45,6 @@ const FeedbackSchema = new mongoose.Schema({
 	updated: {
 		type: Date,
 		default: () => Date.now(),
-		get: util.dateParse,
 		required: true
 	}
 });

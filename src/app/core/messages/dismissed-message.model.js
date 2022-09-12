@@ -3,8 +3,7 @@
 const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	deps = require('../../../dependencies'),
-	config = deps.config,
-	util = deps.utilService;
+	config = deps.config;
 
 /**
  * Import types for reference below
@@ -26,8 +25,7 @@ const DismissedMessageSchema = new mongoose.Schema({
 	},
 	created: {
 		type: Date,
-		default: () => Date.now(),
-		get: util.dateParse
+		default: () => Date.now()
 	}
 });
 

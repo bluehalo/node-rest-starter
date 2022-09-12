@@ -61,7 +61,6 @@ const TeamSchema = new mongoose.Schema({
 	created: {
 		type: Date,
 		default: () => Date.now(),
-		get: util.dateParse,
 		immutable: true
 	},
 	creator: {

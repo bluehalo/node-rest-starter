@@ -3,9 +3,7 @@
 const mongoose = require('mongoose'),
 	getterPlugin = require('../../../common/mongoose/getter.plugin'),
 	paginatePlugin = require('../../../common/mongoose/paginate.plugin'),
-	containsSearchPlugin = require('../../../common/mongoose/contains-search.plugin'),
-	deps = require('../../../../dependencies'),
-	util = deps.utilService;
+	containsSearchPlugin = require('../../../common/mongoose/contains-search.plugin');
 
 /**
  * Schema Declaration
@@ -20,8 +18,7 @@ const CacheEntrySchema = new mongoose.Schema({
 	// The actual ts this entry was entered into the cache
 	ts: {
 		type: Date,
-		default: () => Date.now(),
-		get: util.dateParse
+		default: () => Date.now()
 	},
 
 	// The value of the entry

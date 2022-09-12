@@ -68,13 +68,11 @@ const ResourceSchema = new mongoose.Schema(
 		},
 		created: {
 			type: Date,
-			default: () => Date.now(),
-			get: util.dateParse
+			default: () => Date.now()
 		},
 		updated: {
 			type: Date,
-			default: () => Date.now(),
-			get: util.dateParse
+			default: () => Date.now()
 		},
 		tags: [
 			{

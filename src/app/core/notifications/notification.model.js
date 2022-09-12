@@ -2,8 +2,7 @@
 
 const mongoose = require('mongoose'),
 	deps = require('../../../dependencies'),
-	config = deps.config,
-	util = deps.utilService;
+	config = deps.config;
 
 /**
  * Notification Schema
@@ -20,7 +19,6 @@ const NotificationSchema = new mongoose.Schema(
 		created: {
 			type: Date,
 			default: () => Date.now(),
-			get: util.dateParse,
 			expires: config.notificationExpires
 		}
 	},

@@ -3,9 +3,7 @@
 const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
-	textSearchPlugin = require('../../common/mongoose/text-search.plugin'),
-	deps = require('../../../dependencies'),
-	util = deps.utilService;
+	textSearchPlugin = require('../../common/mongoose/text-search.plugin');
 
 /**
  * Import types for reference below
@@ -39,13 +37,11 @@ const MessageSchema = new mongoose.Schema({
 		default: false
 	},
 	updated: {
-		type: Date,
-		get: util.dateParse
+		type: Date
 	},
 	created: {
 		type: Date,
-		default: () => Date.now(),
-		get: util.dateParse
+		default: () => Date.now()
 	},
 	creator: {
 		type: mongoose.Schema.Types.ObjectId,

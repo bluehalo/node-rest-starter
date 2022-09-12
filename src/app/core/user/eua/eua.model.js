@@ -24,17 +24,14 @@ const UserAgreementSchema = new mongoose.Schema({
 		validate: [util.validateNonEmpty, 'Please provide text']
 	},
 	published: {
-		type: Date,
-		get: util.dateParse
+		type: Date
 	},
 	updated: {
-		type: Date,
-		get: util.dateParse
+		type: Date
 	},
 	created: {
 		type: Date,
 		default: () => Date.now(),
-		get: util.dateParse,
 		immutable: true
 	}
 });

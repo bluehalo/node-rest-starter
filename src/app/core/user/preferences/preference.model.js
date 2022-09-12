@@ -1,8 +1,6 @@
 'use strict';
 
 const mongoose = require('mongoose'),
-	deps = require('../../../../dependencies'),
-	util = deps.utilService,
 	paginatePlugin = require('../../../common/mongoose/paginate.plugin');
 
 /**
@@ -19,13 +17,11 @@ const PreferenceSchema = new mongoose.Schema(
 		},
 		created: {
 			type: Date,
-			default: () => Date.now(),
-			get: util.dateParse
+			default: () => Date.now()
 		},
 		updated: {
 			type: Date,
-			default: () => Date.now(),
-			get: util.dateParse
+			default: () => Date.now()
 		}
 	},
 	module.exports.preferenceOptions
