@@ -28,8 +28,8 @@
     "link:prod": "ln -s ../config ./dist/config && ln -s ../node_modules ./dist/node_modules && ln -s ../package.json ./dist/package.json && ln -s ../package-lock.json ./dist/package-lock.json",
     "lint": "npm run lint:eslint",
     "lint:fix": "npm run lint:eslint:fix",
-    "lint:eslint": "eslint \"./**/*.{js, ts}\"",
-    "lint:eslint:fix": "eslint \"./**/*.{js, ts}\" --fix",
+    "lint:eslint": "eslint \"./**/*.js\" \"./**/*.ts\"",
+    "lint:eslint:fix": "eslint \"./**/*.js\" \"./**/*.ts\" --fix",
     "tsc:check": "tsc --project tsconfig.json --noEmit",
     "tsc:watch": "tsc --watch --noEmit",
     "prepare": "husky install"
@@ -97,6 +97,7 @@
     "@typescript-eslint/parser": "^5.33.1",
     "eslint": "^7.31.0",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-jsdoc": "^35.5.0",
     "eslint-plugin-prettier": "^3.4.0",
     "husky": "^7.0.0",

@@ -1,8 +1,8 @@
 'use strict';
 
+import sticky from 'socketio-sticky-session';
 import config from './config';
 import startupFn from './startup';
-import sticky from 'socketio-sticky-session';
 import { logger } from './lib/bunyan';
 
 const defaultOptions = {

@@ -1,5 +1,5 @@
-import { logger } from './lib/bunyan';
 import http from 'http';
+import { logger } from './lib/bunyan';
 import agenda from './lib/agenda';
 import express from './lib/express';
 import mongoose from './lib/mongoose';
