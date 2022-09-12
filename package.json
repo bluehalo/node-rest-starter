@@ -63,7 +63,6 @@
     "lodash": "4.17.21",
     "luxon": "^1.27.0",
     "method-override": "3.0",
-    "moment": "^2.29.2",
     "mongoose": "^6.5.4",
     "mongoose-unique-validator": "3.1.0",
     "morgan": "1.9",
