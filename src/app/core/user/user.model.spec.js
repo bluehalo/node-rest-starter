@@ -36,6 +36,50 @@ describe('User Model:', () => {
 	});
 
 	describe('Static Methods', () => {
+		describe('create', () => {
+			beforeEach(async () => {
+				await clearDatabase();
+			});
+
+			afterEach(async () => {
+				await clearDatabase();
+			});
+
+			it('creates with defaults', async () => {
+				const user = new User(userSpec('valid'));
+				await user.save();
+				['user', 'editor', 'auditor', 'admin'].forEach((role) => {
+					should(user.roles[role]).be.false('roles all default to false');
+				});
+				should(user.phone).eql('', 'phone defaults to empty');
+				should(user.canProxy).be.false('canProxy defaults to false');
+				should(user.canMasquerade).be.false('canMasquerade defaults to false');
+				should(user.externalGroups).eql(
+					[],
+					'externalGroups defaults to blank array'
+				);
+				should(user.externalRoles).eql(
+					[],
+					'externalRoles defaults to blank array'
+				);
+				should(user.bypassAccessCheck).be.false(
+					'bypassAccessCheck defaults to false'
+				);
+				should(user.messagesAcknowledged).eql(
+					0,
+					'messagesAcknowledged defaults to 0'
+				);
+				should(user.acceptedEua).be.null();
+				should(user.lastLogin).be.null();
+				should(user.lastLoginWithAccess).be.null();
+				should(user.newFeatureDismissed).be.null();
+
+				should(user.providerData).be.undefined();
+				should(user.additionalProvidersData).be.undefined();
+				should(user.preferences).be.undefined();
+			});
+		});
+
 		describe('hasRoles', () => {
 			it('should return false if the user has no roles', () => {
 				const noRoleUser = { name: 'hi' };
