@@ -10,7 +10,7 @@
 
 #### Required
 
-- nodejs 14.x, 16.x
+- nodejs 14.x, 16.x - this project supports `.tool-versions` via [asdf](https://asdf-vm.com/)
 - mongodb 4.0, 4.2
 
 #### Recommended
