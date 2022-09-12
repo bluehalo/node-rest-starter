@@ -13,13 +13,12 @@
     "yarn": ">=1.5.1"
   },
   "scripts": {
-    "init": "npm run init:nomongo && npm run init:db",
-    "init:nomongo": "npm run init:install && npm run init:env:dev",
-    "init:install": "npm ci",
+    "init": "npm ci && npm run init:env:dev",
+    "init:mongo": "npm run init && npm run init:mongo:up",
     "init:env:dev": "cp config/env/development.template.js config/env/development.js",
-    "init:db": "docker compose -p node-rest-starter -f dev/mongo.yml up -d",
-    "init:db:express": "docker compose -p node-rest-starter -f dev/mongo-express.yml up -d",
-    "init:db:down": "docker compose -p node-rest-starter -f dev/mongo.yml down",
+    "init:mongo:up": "docker compose -p node-rest-starter -f dev/mongo.yml up -d",
+    "init:mongo:express": "docker compose -p node-rest-starter -f dev/mongo-express.yml up -d",
+    "init:mongo:down": "docker compose -p node-rest-starter -f dev/mongo.yml down",
     "clean": "rm -rf dist",
     "start": "nodemon ./src/server.ts --exec 'npm run lint && node -r @swc-node/register' | bunyan",
     "start:dev": "export NODE_ENV=development && npm run start",

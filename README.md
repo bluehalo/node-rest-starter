@@ -19,9 +19,21 @@
 
 ### Start Up
 
-1. To get started run `npm run init`(if you already have mongo running use `npm run init:nomongo`)
-   - This will install the dependencies, setup the `development.js` environment from the template and run docker using mongo
+1. To get started run `npm run init`(if you do not have mongo running use `npm run init:mongo`)
+   - This will install the dependencies and setup the `development.js` environment from the template
 1. Start the application via `npm start`
+
+### Related Commands
+
+- `init` - initalizes project
+- `init:mongo` - initalizes project and runs mongodb via docker
+- `init:env:dev` - copies development environment config template to usable location
+- `init:mongo:up` - uses docker compose to run containerized mongodb
+- `init:mongo:express` - uses docker compose to run mongo express at http://localhost:8081 for mongo debugging
+- `init:mongo:down` - removes node-rest-starter docker container group
+- `start` - runs project and watches for changes and reloads
+- `start:dev` - runs with node_env set to development
+- `start:prod` - runs compiled version of project
 
 ## API Documentation
 
