@@ -4,26 +4,31 @@ const _ = require('lodash'),
 	mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin');
 
-const ExportConfigSchema = new mongoose.Schema({
-	type: {
-		type: String,
-		trim: true,
-		default: '',
-		required: [true, 'Type is required']
+const ExportConfigSchema = new mongoose.Schema(
+	{
+		type: {
+			type: String,
+			trim: true,
+			default: '',
+			required: [true, 'Type is required']
+		},
+		config: {
+			type: {},
+			required: [true, 'Configuration is required']
+		},
+		created: {
+			type: Date,
+			expires: 300,
+			required: [true, 'Created date is required']
+		}
 	},
-
-	config: {
-		type: {},
-		required: [true, 'Configuration is required']
-	},
-
-	created: {
-		type: Date,
-		expires: 300,
-		default: () => Date.now(),
-		required: [true, 'Created date is required']
+	{
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: 'updated'
+		}
 	}
-});
+);
 ExportConfigSchema.plugin(getterPlugin);
 
 ExportConfigSchema.statics.auditCopy = (exportConfig) => {

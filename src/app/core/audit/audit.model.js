@@ -16,24 +16,28 @@ const mongoose = require('mongoose'),
  *
  * @type {mongoose.Schema<AuditDocument, AuditModel>}
  */
-const AuditSchema = new mongoose.Schema({
-	created: {
-		type: Date,
-		default: () => Date.now()
+const AuditSchema = new mongoose.Schema(
+	{
+		message: { type: String },
+		audit: {
+			auditType: { type: String },
+			action: { type: String },
+			actor: { type: Object },
+			object: { type: mongoose.Schema.Types.Mixed },
+			userSpec: {
+				browser: { type: String },
+				os: { type: String }
+			},
+			masqueradingUser: { type: String }
+		}
 	},
-	message: { type: String },
-	audit: {
-		auditType: { type: String },
-		action: { type: String },
-		actor: { type: Object },
-		object: { type: mongoose.Schema.Types.Mixed },
-		userSpec: {
-			browser: { type: String },
-			os: { type: String }
-		},
-		masqueradingUser: { type: String }
+	{
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: 'updated'
+		}
 	}
-});
+);
 
 AuditSchema.plugin(getterPlugin);
 AuditSchema.plugin(paginatePlugin);

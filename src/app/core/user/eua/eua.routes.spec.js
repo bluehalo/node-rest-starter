@@ -22,11 +22,6 @@ const matchesAnyNumber = (val) => {
 	return typeof val === 'number';
 };
 
-// const isISOString = val => {
-//   const d = new Date(val);
-//   return !Number.isNaN(d.valueOf()) && d.toISOString() === val;
-// };
-
 /**
  * Integration tests for the Express Routes and Mongoose Models
  */

@@ -7,7 +7,13 @@ const mongoose = require('mongoose'),
 /**
  * Notification Schema
  */
-module.exports.notificationOptions = { discriminatorKey: 'notificationType' };
+module.exports.notificationOptions = {
+	discriminatorKey: 'notificationType',
+	timestamps: {
+		createdAt: 'created',
+		updatedAt: 'updated'
+	}
+};
 
 const NotificationSchema = new mongoose.Schema(
 	{
@@ -18,7 +24,6 @@ const NotificationSchema = new mongoose.Schema(
 		},
 		created: {
 			type: Date,
-			default: () => Date.now(),
 			expires: config.notificationExpires
 		}
 	},

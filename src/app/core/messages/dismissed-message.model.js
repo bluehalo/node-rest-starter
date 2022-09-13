@@ -14,20 +14,24 @@ const mongoose = require('mongoose'),
 /**
  * @type {mongoose.Schema<DismissedMessageDocument, DismissedMessageModel>}
  */
-const DismissedMessageSchema = new mongoose.Schema({
-	messageId: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'Message'
+const DismissedMessageSchema = new mongoose.Schema(
+	{
+		messageId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Message'
+		},
+		userId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User'
+		}
 	},
-	userId: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'User'
-	},
-	created: {
-		type: Date,
-		default: () => Date.now()
+	{
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: 'updated'
+		}
 	}
-});
+);
 
 DismissedMessageSchema.plugin(getterPlugin);
 
