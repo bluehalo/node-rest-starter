@@ -41,7 +41,13 @@ OwnerSchema.index({ name: 1 });
 /**
  * Resource Schema
  */
-module.exports.resourceOptions = { discriminatorKey: 'resourceType' };
+module.exports.resourceOptions = {
+	discriminatorKey: 'resourceType',
+	timestamps: {
+		createdAt: 'created',
+		updatedAt: 'updated'
+	}
+};
 
 /**
  * @type {mongoose.Schema<ResourceDocument, ResourceModel>}
@@ -65,14 +71,6 @@ const ResourceSchema = new mongoose.Schema(
 			type: String,
 			trim: true,
 			default: ''
-		},
-		created: {
-			type: Date,
-			default: () => Date.now()
-		},
-		updated: {
-			type: Date,
-			default: () => Date.now()
 		},
 		tags: [
 			{

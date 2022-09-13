@@ -6,7 +6,13 @@ const mongoose = require('mongoose'),
 /**
  * Preference Schema
  */
-module.exports.preferenceOptions = { discriminatorKey: 'preferenceType' };
+module.exports.preferenceOptions = {
+	discriminatorKey: 'preferenceType',
+	timestamps: {
+		createdAt: 'created',
+		updatedAt: 'updated'
+	}
+};
 
 const PreferenceSchema = new mongoose.Schema(
 	{
@@ -14,14 +20,6 @@ const PreferenceSchema = new mongoose.Schema(
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
 			required: [true, 'User is required']
-		},
-		created: {
-			type: Date,
-			default: () => Date.now()
-		},
-		updated: {
-			type: Date,
-			default: () => Date.now()
 		}
 	},
 	module.exports.preferenceOptions

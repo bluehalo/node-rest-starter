@@ -111,7 +111,7 @@ describe('EUA Routes:', () => {
 					_id: matchesAnyString,
 					id: matchesAnyString,
 					published: isISOString,
-					updated: null,
+					updated: isISOString,
 					created: isISOString,
 					title: 'test title',
 					text: 'some text'
@@ -137,7 +137,7 @@ describe('EUA Routes:', () => {
 								_id: matchesAnyString,
 								id: matchesAnyString,
 								published: null,
-								updated: null,
+								updated: isISOString,
 								created: isISOString,
 								title: 'test title',
 								text: 'some text'

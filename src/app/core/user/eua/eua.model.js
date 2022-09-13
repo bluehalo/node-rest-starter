@@ -10,33 +10,32 @@ const mongoose = require('mongoose'),
 /**
  * User Schema
  */
-const UserAgreementSchema = new mongoose.Schema({
-	title: {
-		type: String,
-		trim: true,
-		default: '',
-		validate: [util.validateNonEmpty, 'Please provide a title']
+const UserAgreementSchema = new mongoose.Schema(
+	{
+		title: {
+			type: String,
+			trim: true,
+			default: '',
+			validate: [util.validateNonEmpty, 'Please provide a title']
+		},
+		text: {
+			type: String,
+			trim: true,
+			default: '',
+			validate: [util.validateNonEmpty, 'Please provide text']
+		},
+		published: {
+			type: Date,
+			default: null
+		}
 	},
-	text: {
-		type: String,
-		trim: true,
-		default: '',
-		validate: [util.validateNonEmpty, 'Please provide text']
-	},
-	published: {
-		type: Date,
-		default: null
-	},
-	updated: {
-		type: Date,
-		default: null
-	},
-	created: {
-		type: Date,
-		default: () => Date.now(),
-		immutable: true
+	{
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: 'updated'
+		}
 	}
-});
+);
 UserAgreementSchema.plugin(getterPlugin);
 UserAgreementSchema.plugin(paginatePlugin);
 UserAgreementSchema.plugin(textSearchPlugin);

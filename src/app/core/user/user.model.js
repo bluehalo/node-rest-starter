@@ -126,125 +126,125 @@ const roleSchemaDef = new mongoose.Schema(roleObject);
  *         preferences:
  *           type: object
  */
-const UserSchema = new mongoose.Schema({
-	name: {
-		type: String,
-		trim: true,
-		required: [true, 'Name is required']
+const UserSchema = new mongoose.Schema(
+	{
+		name: {
+			type: String,
+			trim: true,
+			required: [true, 'Name is required']
+		},
+		organization: {
+			type: String,
+			trim: true,
+			required: [true, 'Organization is required']
+		},
+		organizationLevels: {
+			type: Object
+		},
+		email: {
+			type: String,
+			trim: true,
+			required: [true, 'Email is required'],
+			match: [util.emailMatcher, 'A valid email address is required']
+		},
+		phone: {
+			type: String,
+			trim: true,
+			default: '',
+			match: [
+				/.+@.+\..+/,
+				'A valid phone number and cellular provider is required'
+			],
+			required: false
+		},
+		username: {
+			type: String,
+			trim: true,
+			unique: true,
+			required: [true, 'Username is required']
+		},
+		password: {
+			type: String,
+			default: '',
+			validate: [validatePassword, passwordMessage]
+		},
+		salt: {
+			type: String
+		},
+		provider: {
+			type: String,
+			required: [true, 'Provider is required']
+		},
+		providerData: {},
+		additionalProvidersData: {},
+		roles: {
+			type: roleSchemaDef,
+			default: () => ({})
+		},
+		canProxy: {
+			type: Boolean,
+			default: false
+		},
+		canMasquerade: {
+			type: Boolean,
+			default: false
+		},
+		externalGroups: {
+			type: [],
+			default: []
+		},
+		externalRoles: {
+			type: [],
+			default: []
+		},
+		bypassAccessCheck: {
+			type: Boolean,
+			default: false
+		},
+		messagesAcknowledged: {
+			type: Date,
+			// TODO: either change the default to null or leave dateParse?
+			default: 0,
+			get: util.dateParse
+		},
+		alertsViewed: {
+			type: Date,
+			default: () => Date.now()
+		},
+		/* For reset password */
+		resetPasswordToken: {
+			type: String
+		},
+		resetPasswordExpires: {
+			type: Date
+		},
+		acceptedEua: {
+			type: Date,
+			default: null
+		},
+		lastLogin: {
+			type: Date,
+			default: null
+		},
+		lastLoginWithAccess: {
+			type: Date,
+			default: null
+		},
+		newFeatureDismissed: {
+			type: Date,
+			default: null
+		},
+		preferences: {
+			type: {}
+		}
 	},
-	organization: {
-		type: String,
-		trim: true,
-		required: [true, 'Organization is required']
-	},
-	organizationLevels: {
-		type: Object
-	},
-	email: {
-		type: String,
-		trim: true,
-		required: [true, 'Email is required'],
-		match: [util.emailMatcher, 'A valid email address is required']
-	},
-	phone: {
-		type: String,
-		trim: true,
-		default: '',
-		match: [
-			/.+@.+\..+/,
-			'A valid phone number and cellular provider is required'
-		],
-		required: false
-	},
-	username: {
-		type: String,
-		trim: true,
-		unique: true,
-		required: [true, 'Username is required']
-	},
-	password: {
-		type: String,
-		default: '',
-		validate: [validatePassword, passwordMessage]
-	},
-	salt: {
-		type: String
-	},
-	provider: {
-		type: String,
-		required: [true, 'Provider is required']
-	},
-	providerData: {},
-	additionalProvidersData: {},
-	roles: {
-		type: roleSchemaDef,
-		default: () => ({})
-	},
-	canProxy: {
-		type: Boolean,
-		default: false
-	},
-	canMasquerade: {
-		type: Boolean,
-		default: false
-	},
-	externalGroups: {
-		type: [],
-		default: []
-	},
-	externalRoles: {
-		type: [],
-		default: []
-	},
-	bypassAccessCheck: {
-		type: Boolean,
-		default: false
-	},
-	updated: {
-		type: Date
-	},
-	created: {
-		type: Date,
-		default: () => Date.now(),
-		immutable: true
-	},
-	messagesAcknowledged: {
-		type: Date,
-		// TODO: either change the default to null or leave dateParse?
-		default: 0,
-		get: util.dateParse
-	},
-	alertsViewed: {
-		type: Date,
-		default: () => Date.now()
-	},
-	/* For reset password */
-	resetPasswordToken: {
-		type: String
-	},
-	resetPasswordExpires: {
-		type: Date
-	},
-	acceptedEua: {
-		type: Date,
-		default: null
-	},
-	lastLogin: {
-		type: Date,
-		default: null
-	},
-	lastLoginWithAccess: {
-		type: Date,
-		default: null
-	},
-	newFeatureDismissed: {
-		type: Date,
-		default: null
-	},
-	preferences: {
-		type: {}
+	{
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: 'updated'
+		}
 	}
-});
+);
 UserSchema.plugin(getterPlugin);
 UserSchema.plugin(uniqueValidator);
 UserSchema.plugin(paginatePlugin);
