@@ -1,14 +1,19 @@
-const should = require('should'),
-	mongoose = require('mongoose'),
-	paginatePlugin = require('./paginate.plugin');
+import should from 'should';
+import { HydratedDocument, model, Model, Schema } from 'mongoose';
+import { Paginateable, paginatePlugin } from './paginate.plugin';
 
-const PaginateExampleSchema = new mongoose.Schema({ field: String });
+interface IExample {}
+type ExampleModel = Model<IExample, Paginateable<HydratedDocument<IExample>>>;
+
+const PaginateExampleSchema = new Schema<IExample, ExampleModel>({
+	field: String
+});
 PaginateExampleSchema.plugin(paginatePlugin);
 
-const PaginateExample =
-	/** @type {mongoose.Model<any, import('./types').PaginatePlugin>} */ (
-		mongoose.model('PaginateExample', PaginateExampleSchema)
-	);
+const PaginateExample = model<IExample, ExampleModel>(
+	'PaginateExample',
+	PaginateExampleSchema
+);
 
 /**
  * Unit tests

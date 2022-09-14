@@ -1,8 +1,6 @@
 import { HydratedDocument, Model, Types } from 'mongoose';
-import {
-	PaginatePlugin,
-	TextSearchPlugin
-} from '../../../common/mongoose/types';
+import { Paginateable } from '../../../common/mongoose/paginate.plugin';
+import { TextSearchable } from '../../../common/mongoose/text-search.plugin';
 
 interface IUserAgreement {
 	_id: Types.ObjectId;
@@ -18,7 +16,7 @@ export type UserAgreementDocument = HydratedDocument<IUserAgreement>;
 export interface UserAgreementModel
 	extends Model<
 		IUserAgreement,
-		TextSearchPlugin & PaginatePlugin<UserAgreementDocument>
+		TextSearchable & Paginateable<UserAgreementDocument>
 	> {
 	auditCopy(eua: Record<string, unknown>): Record<string, unknown>;
 }

@@ -1,9 +1,8 @@
 import { BinaryLike } from 'crypto';
-import { HydratedDocument, Model, Model } from 'mongoose';
-import {
-	ContainsSearchPlugin,
-	TextSearchPlugin
-} from '../../common/mongoose/types';
+import { HydratedDocument, Model } from 'mongoose';
+import { Paginateable } from '../../common/mongoose/paginate.plugin';
+import { TextSearchable } from '../../common/mongoose/text-search.plugin';
+import { ContainsSearchable } from '../../common/mongoose/contains-search.plugin';
 
 type UserRoles = {
 	user?: boolean;
@@ -53,12 +52,9 @@ export type UserDocument = HydratedDocument<IUser, IUserMethods>;
 export interface UserModel
 	extends Model<
 		IUser,
-		ContainsSearchPlugin & TextSearchPlugin & PaginatePlugin<IUser>,
+		ContainsSearchable & TextSearchable & Paginateable<UserDocument>,
 		IUserMethods
 	> {
-	createCopy(user: Record<string, unknown>): Record<string, unknown>;
-	auditCopy(
-		user: Record<string, unknown>,
-		userIP?: string
-	): Record<string, unknown>;
+	createCopy(user: Partial<IUser>): Record<string, unknown>;
+	auditCopy(user: Partial<IUser>, userIP?: string): Record<string, unknown>;
 }

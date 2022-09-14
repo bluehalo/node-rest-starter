@@ -4,7 +4,7 @@ import path from 'path';
 import { FilterQuery, PopulateOptions, Types } from 'mongoose';
 import { dbs, config, utilService } from '../../../dependencies';
 import { UserDocument } from '../user/types';
-import { PagingResults } from '../../common/mongoose/types';
+import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import {
 	LeanMessageDocument,
 	MessageDocument,

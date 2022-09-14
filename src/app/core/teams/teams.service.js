@@ -156,7 +156,7 @@ class TeamsService {
 	 * @param {import('mongoose').FilterQuery<TeamDocument>} query
 	 * @param {string} search
 	 * @param {UserDocument} user
-	 * @returns {Promise<import('../../common/mongoose/types').PagingResults<any>>}
+	 * @returns {Promise<import('../../common/mongoose/paginate.plugin').PagingResults<any>>}
 	 */
 	async search(queryParams, query, search, user) {
 		const page = utilService.getPage(queryParams);

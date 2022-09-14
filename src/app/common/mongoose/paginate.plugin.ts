@@ -1,34 +1,33 @@
-const deps = require('../../../dependencies'),
-	config = deps.config;
+import { HydratedDocument, Schema } from 'mongoose';
+
+import { config } from '../../../dependencies';
 
 const MONGO_TIMEOUT_ERROR_CODE = 50;
 
-/**
- * @typedef {Object} PagingResult
- * @property {number} pageSize
- * @property {number} pageNumber
- * @property {number} totalSize
- * @property {number} totalPages
- * @property {*[]} elements
- */
+export interface PagingResults<DocType> {
+	pageNumber: number;
+	pageSize: number;
+	totalPages: number;
+	totalSize: number;
+	elements: HydratedDocument<DocType>[];
+}
 
-/**
- * @param schema
- */
-const paginatePlugin = (schema) => {
-	/**
-	 * @param {number} pageSize
-	 * @param {number} pageNumber
-	 * @param {boolean} runCount
-	 * @param {number} countTimeout
-	 * @returns {Promise<PagingResult>}
-	 */
-	schema.query.paginate = async function (
-		pageSize,
-		pageNumber,
+export interface Paginateable<DocType> {
+	paginate(
+		pageSize: number,
+		pageNumber: number,
+		runCount?: boolean,
+		countTimeout?: number
+	): Promise<PagingResults<DocType>>;
+}
+
+export function paginatePlugin(schema: Schema) {
+	schema.query['paginate'] = async function <DocType>(
+		pageSize: number,
+		pageNumber: number,
 		runCount = true,
 		countTimeout = config.maxCountTimeMS
-	) {
+	): Promise<PagingResults<DocType>> {
 		const countPromise = runCount
 			? this.model
 					.find(this.getFilter())
@@ -64,6 +63,4 @@ const paginatePlugin = (schema) => {
 			elements
 		};
 	};
-};
-
-module.exports = paginatePlugin;
+}

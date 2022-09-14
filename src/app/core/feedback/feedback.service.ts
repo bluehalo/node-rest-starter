@@ -6,7 +6,7 @@ import {
 	logger,
 	utilService
 } from '../../../dependencies';
-import { PagingResults } from '../../common/mongoose/types';
+import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { UserDocument } from '../user/types';
 import { FeedbackDocument, FeedbackModel } from './feedback.model';
 

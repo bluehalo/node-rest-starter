@@ -3,7 +3,7 @@
 const mongoose = require('mongoose'),
 	deps = require('../../../../dependencies'),
 	util = deps.utilService,
-	paginatePlugin = require('../../../common/mongoose/paginate.plugin');
+	{ paginatePlugin } = require('../../../common/mongoose/paginate.plugin');
 
 /**
  * Preference Schema

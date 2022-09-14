@@ -9,10 +9,15 @@ import {
 	Model
 } from 'mongoose';
 import getterPlugin from '../../common/mongoose/getter.plugin';
-import paginatePlugin from '../../common/mongoose/paginate.plugin';
-import textSearchPlugin from '../../common/mongoose/text-search.plugin';
+import {
+	paginatePlugin,
+	Paginateable
+} from '../../common/mongoose/paginate.plugin';
+import {
+	textSearchPlugin,
+	TextSearchable
+} from '../../common/mongoose/text-search.plugin';
 import { utilService } from '../../../dependencies';
-import { PaginatePlugin, TextSearchPlugin } from '../../common/mongoose/types';
 
 interface IMessage {
 	_id: Types.ObjectId;
@@ -30,7 +35,7 @@ export type MessageDocument = HydratedDocument<IMessage>;
 export type LeanMessageDocument = LeanDocument<MessageDocument>;
 
 export interface MessageModel
-	extends Model<IMessage, TextSearchPlugin & PaginatePlugin<MessageDocument>> {
+	extends Model<IMessage, TextSearchable & Paginateable<MessageDocument>> {
 	auditCopy(src: Partial<IMessage>);
 	fullCopy(src: Partial<IMessage>);
 }

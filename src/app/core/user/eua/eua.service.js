@@ -69,7 +69,7 @@ class EuaService {
 	 * @param [queryParams]
 	 * @param {import('mongoose').FilterQuery<UserAgreementDocument>} [query]
 	 * @param {string} [search]
-	 * @returns {Promise<import('../../../common/mongoose/types').PagingResults<UserAgreementDocument>>}
+	 * @returns {Promise<import('../../../common/mongoose/paginate.plugin').PagingResults<UserAgreementDocument>>}
 	 */
 	search(queryParams, query, search) {
 		query = query || {};

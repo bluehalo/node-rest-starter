@@ -2,8 +2,8 @@
 
 const mongoose = require('mongoose'),
 	getterPlugin = require('../../../common/mongoose/getter.plugin'),
-	paginatePlugin = require('../../../common/mongoose/paginate.plugin'),
-	textSearchPlugin = require('../../../common/mongoose/text-search.plugin'),
+	{ paginatePlugin } = require('../../../common/mongoose/paginate.plugin'),
+	{ textSearchPlugin } = require('../../../common/mongoose/text-search.plugin'),
 	deps = require('../../../../dependencies'),
 	util = deps.utilService;
 

@@ -1,10 +1,15 @@
 'use strict';
 
 import { HydratedDocument, model, Model, Schema, Types } from 'mongoose';
-import { PaginatePlugin, TextSearchPlugin } from '../../common/mongoose/types';
 import getterPlugin from '../../common/mongoose/getter.plugin';
-import paginatePlugin from '../../common/mongoose/paginate.plugin';
-import textSearchPlugin from '../../common/mongoose/text-search.plugin';
+import {
+	paginatePlugin,
+	Paginateable
+} from '../../common/mongoose/paginate.plugin';
+import {
+	textSearchPlugin,
+	TextSearchable
+} from '../../common/mongoose/text-search.plugin';
 import { utilService } from '../../../dependencies';
 
 const Statuses = Object.freeze({
@@ -32,10 +37,7 @@ export interface IFeedback {
 export type FeedbackDocument = HydratedDocument<IFeedback>;
 
 export interface FeedbackModel
-	extends Model<
-		IFeedback,
-		TextSearchPlugin & PaginatePlugin<FeedbackDocument>
-	> {
+	extends Model<IFeedback, TextSearchable & Paginateable<FeedbackDocument>> {
 	auditCopy(src: Partial<IFeedback>);
 }
 

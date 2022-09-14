@@ -2,7 +2,7 @@
 
 import { FilterQuery } from 'mongoose';
 import { dbs, utilService } from '../../../dependencies';
-import { PagingResults } from '../../common/mongoose/types';
+import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { NotificationDocument, NotificationModel } from './notification.model';
 
 class NotificationService {

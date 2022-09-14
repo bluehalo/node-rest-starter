@@ -2,7 +2,7 @@
 
 module.exports = {
 	// Test specific source files
-	tests: ['src/**/*.spec.js'],
+	tests: ['src/**/*.spec.js', 'src/**/*.spec.ts'],
 	e2e: ['e2e/**/*.spec.js'],
 
 	models: ['src/**/*.model!(.spec).js', 'src/**/*.model!(.spec).ts'],

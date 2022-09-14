@@ -1,8 +1,10 @@
 import { HydratedDocument, model, Model, Schema, Types } from 'mongoose';
 import { config, utilService } from '../../../dependencies';
 import getterPlugin from '../../common/mongoose/getter.plugin';
-import paginatePlugin from '../../common/mongoose/paginate.plugin';
-import { PaginatePlugin } from '../../common/mongoose/types';
+import {
+	paginatePlugin,
+	Paginateable
+} from '../../common/mongoose/paginate.plugin';
 
 /**
  * Notification Schema
@@ -18,7 +20,7 @@ export interface INotification {
 export type NotificationDocument = HydratedDocument<INotification>;
 
 export interface NotificationModel
-	extends Model<INotification, PaginatePlugin<NotificationDocument>> {
+	extends Model<INotification, Paginateable<NotificationDocument>> {
 	auditCopy(src: Partial<INotification>);
 }
 

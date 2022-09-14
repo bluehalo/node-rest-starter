@@ -23,7 +23,10 @@ class UserService {
 	 * @returns {Promise<UserDocument | null>}
 	 */
 	read(id, populate = []) {
-		return this.model.findById(id).populate(populate).exec();
+		return this.model
+			.findById(id)
+			.populate(/** @type {string} */ (populate))
+			.exec();
 	}
 
 	/**
@@ -52,7 +55,7 @@ class UserService {
 	 * @param {import('mongoose').FilterQuery<UserDocument>} query
 	 * @param {string} search
 	 * @param {string[]} searchFields
-	 * @returns {Promise<import('../../common/mongoose/types').PagingResults<UserDocument>>}
+	 * @returns {Promise<import('../../common/mongoose/paginate.plugin').PagingResults<UserDocument>>}
 	 */
 	searchUsers(queryParams, query, search, searchFields = []) {
 		query = query || {};

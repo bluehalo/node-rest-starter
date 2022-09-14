@@ -1,13 +1,14 @@
-/**
- * @param schema
- */
-const textSearchPlugin = (schema) => {
-	/**
-	 * @param {string} search
-	 * @param {boolean} [sortByTextScore]
-	 * @returns {*}
-	 */
-	schema.query.textSearch = function (search, sortByTextScore = false) {
+import { Schema } from 'mongoose';
+
+export interface TextSearchable {
+	textSearch(search: string, sortByTextScore?: boolean): this;
+}
+
+export function textSearchPlugin(schema: Schema) {
+	schema.query['textSearch'] = function (
+		search: string,
+		sortByTextScore = false
+	) {
 		if (null == search || '' === search) {
 			return this;
 		}
@@ -24,6 +25,4 @@ const textSearchPlugin = (schema) => {
 		}
 		return query;
 	};
-};
-
-module.exports = textSearchPlugin;
+}

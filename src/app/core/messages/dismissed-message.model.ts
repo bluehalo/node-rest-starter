@@ -8,9 +8,10 @@ import {
 	Schema,
 	Types
 } from 'mongoose';
-import { PaginatePlugin, TextSearchPlugin } from '../../common/mongoose/types';
+import { Paginateable } from '../../common/mongoose/paginate.plugin';
 import getterPlugin from '../../common/mongoose/getter.plugin';
 import { config, utilService } from '../../../dependencies';
+import { TextSearchable } from '../../common/mongoose/text-search.plugin';
 
 interface IDismissedMessage {
 	_id: Types.ObjectId;
@@ -27,7 +28,7 @@ export type LeanDismissedMessageDocument =
 export interface DismissedMessageModel
 	extends Model<
 		IDismissedMessage,
-		TextSearchPlugin & PaginatePlugin<DismissedMessageDocument>
+		TextSearchable & Paginateable<DismissedMessageDocument>
 	> {
 	auditCopy(src: Partial<IDismissedMessage>);
 }
