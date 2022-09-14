@@ -6,6 +6,8 @@
  * @returns
  */
 module.exports.parsedJSON = (json) => {
+	if (json === null) return null;
+	if (typeof json === 'undefined') return undefined;
 	return JSON.parse(JSON.stringify(json));
 };
 
