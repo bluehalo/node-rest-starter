@@ -28,7 +28,7 @@ const DismissedMessageSchema = new mongoose.Schema(
 	{
 		timestamps: {
 			createdAt: 'created',
-			updatedAt: 'updated'
+			updatedAt: false
 		}
 	}
 );

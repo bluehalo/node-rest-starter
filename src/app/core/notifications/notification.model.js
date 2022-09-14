@@ -11,7 +11,7 @@ module.exports.notificationOptions = {
 	discriminatorKey: 'notificationType',
 	timestamps: {
 		createdAt: 'created',
-		updatedAt: 'updated'
+		updatedAt: false
 	}
 };
 

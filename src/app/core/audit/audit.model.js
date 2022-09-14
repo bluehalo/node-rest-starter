@@ -34,7 +34,7 @@ const AuditSchema = new mongoose.Schema(
 	{
 		timestamps: {
 			createdAt: 'created',
-			updatedAt: 'updated'
+			updatedAt: false
 		}
 	}
 );
