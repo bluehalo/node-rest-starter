@@ -58,7 +58,8 @@ const verify = async (
 			// in by updating their lastLogin time.
 			if (
 				!secondaryUser.lastLogin ||
-				secondaryUser.lastLogin + config.auth.sessionCookie.maxAge < Date.now()
+				secondaryUser.lastLogin.getTime() + config.auth.sessionCookie.maxAge <
+					Date.now()
 			) {
 				userService.updateLastLogin(secondaryUser);
 			}
@@ -86,7 +87,8 @@ const verify = async (
 			// in by updating their lastLogin time.
 			if (
 				!secondaryUser.lastLogin ||
-				secondaryUser.lastLogin + config.auth.sessionCookie.maxAge < Date.now()
+				secondaryUser.lastLogin.getTime() + config.auth.sessionCookie.maxAge <
+					Date.now()
 			) {
 				userService.updateLastLogin(secondaryUser);
 			}

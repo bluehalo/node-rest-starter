@@ -62,9 +62,6 @@ exports.updateCurrentUser = async (req, res) => {
 	user.openSidebar = req.body.openSidebar;
 	user.newFeatureDismissed = req.body.newFeatureDismissed;
 
-	// Update the updated date
-	user.updated = Date.now();
-
 	// If they are changing the password, verify the current password
 	if (_.isString(req.body.password) && !_.isEmpty(req.body.password)) {
 		if (!user.authenticate(req.body.currentPassword)) {

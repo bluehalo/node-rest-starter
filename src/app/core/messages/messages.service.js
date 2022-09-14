@@ -44,8 +44,6 @@ class MessagesService {
 	create(user, doc) {
 		const message = new Message(doc);
 		message.creator = user._id;
-		message.created = Date.now();
-		message.updated = Date.now();
 
 		return message.save();
 	}
@@ -68,7 +66,6 @@ class MessagesService {
 	 */
 	update(document, obj) {
 		copyMutableFields(document, obj);
-		document.updated = Date.now();
 		return document.save();
 	}
 
