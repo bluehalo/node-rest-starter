@@ -3,9 +3,7 @@
 const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
-	textSearchPlugin = require('../../common/mongoose/text-search.plugin'),
-	deps = require('../../../dependencies'),
-	util = deps.utilService;
+	textSearchPlugin = require('../../common/mongoose/text-search.plugin');
 
 const Statuses = Object.freeze({
 	new: 'New',
@@ -22,36 +20,33 @@ const Statuses = Object.freeze({
 /**
  * @type {mongoose.Schema<FeedbackDocument, FeedbackModel>}
  */
-const FeedbackSchema = new mongoose.Schema({
-	created: {
-		type: Date,
-		default: () => Date.now(),
-		get: util.dateParse
+const FeedbackSchema = new mongoose.Schema(
+	{
+		creator: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User'
+		},
+		body: { type: String },
+		type: { type: String },
+		url: { type: String },
+		os: { type: String },
+		browser: { type: String },
+		classification: { type: String },
+		status: {
+			type: String,
+			default: Statuses.new,
+			enum: Object.values(Statuses),
+			required: true
+		},
+		assignee: { type: String }
 	},
-	creator: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'User'
-	},
-	body: { type: String },
-	type: { type: String },
-	url: { type: String },
-	os: { type: String },
-	browser: { type: String },
-	classification: { type: String },
-	status: {
-		type: String,
-		default: Statuses.new,
-		enum: Object.values(Statuses),
-		required: true
-	},
-	assignee: { type: String },
-	updated: {
-		type: Date,
-		default: () => Date.now(),
-		get: util.dateParse,
-		required: true
+	{
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: 'updated'
+		}
 	}
-});
+);
 
 FeedbackSchema.plugin(getterPlugin);
 FeedbackSchema.plugin(paginatePlugin);

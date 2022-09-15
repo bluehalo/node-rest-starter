@@ -3,9 +3,7 @@
 const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
-	containsSearchPlugin = require('../../common/mongoose/contains-search.plugin'),
-	deps = require('../../../dependencies'),
-	util = deps.utilService;
+	containsSearchPlugin = require('../../common/mongoose/contains-search.plugin');
 
 /**
  * Import types for reference below
@@ -18,25 +16,28 @@ const mongoose = require('mongoose'),
  *
  * @type {mongoose.Schema<AuditDocument, AuditModel>}
  */
-const AuditSchema = new mongoose.Schema({
-	created: {
-		type: Date,
-		default: () => Date.now(),
-		get: util.dateParse
+const AuditSchema = new mongoose.Schema(
+	{
+		message: { type: String },
+		audit: {
+			auditType: { type: String },
+			action: { type: String },
+			actor: { type: Object },
+			object: { type: mongoose.Schema.Types.Mixed },
+			userSpec: {
+				browser: { type: String },
+				os: { type: String }
+			},
+			masqueradingUser: { type: String }
+		}
 	},
-	message: { type: String },
-	audit: {
-		auditType: { type: String },
-		action: { type: String },
-		actor: { type: Object },
-		object: { type: mongoose.Schema.Types.Mixed },
-		userSpec: {
-			browser: { type: String },
-			os: { type: String }
-		},
-		masqueradingUser: { type: String }
+	{
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: false
+		}
 	}
-});
+);
 
 AuditSchema.plugin(getterPlugin);
 AuditSchema.plugin(paginatePlugin);

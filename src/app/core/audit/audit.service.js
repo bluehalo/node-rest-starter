@@ -64,7 +64,6 @@ module.exports.audit = async (
 
 	// Send to Mongo
 	const newAudit = new Audit({
-		created: Date.now(),
 		message: message,
 		audit: {
 			auditType: eventType,

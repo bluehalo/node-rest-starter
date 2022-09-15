@@ -47,55 +47,57 @@ UserSchema.add({
 	}
 });
 
-const TeamSchema = new mongoose.Schema({
-	name: {
-		type: String,
-		trim: true,
-		default: '',
-		validate: [util.validateNonEmpty, 'Please provide a team name']
+const TeamSchema = new mongoose.Schema(
+	{
+		name: {
+			type: String,
+			trim: true,
+			default: '',
+			validate: [util.validateNonEmpty, 'Please provide a team name']
+		},
+		description: {
+			type: String,
+			trim: true
+		},
+		creator: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User',
+			immutable: true
+		},
+		creatorName: {
+			type: String,
+			immutable: true
+		},
+		implicitMembers: {
+			type: Boolean,
+			default: false
+		},
+		requiresExternalRoles: {
+			type: [String]
+		},
+		requiresExternalTeams: {
+			type: [String]
+		},
+		parent: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Team'
+		},
+		ancestors: {
+			type: [
+				{
+					type: mongoose.Schema.Types.ObjectId,
+					ref: 'Team'
+				}
+			]
+		}
 	},
-	description: {
-		type: String,
-		trim: true
-	},
-	created: {
-		type: Date,
-		default: () => Date.now(),
-		get: util.dateParse,
-		immutable: true
-	},
-	creator: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'User',
-		immutable: true
-	},
-	creatorName: {
-		type: String,
-		immutable: true
-	},
-	implicitMembers: {
-		type: Boolean,
-		default: false
-	},
-	requiresExternalRoles: {
-		type: [String]
-	},
-	requiresExternalTeams: {
-		type: [String]
-	},
-	parent: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'Team'
-	},
-	ancestors: {
-		type: [
-			{
-				type: mongoose.Schema.Types.ObjectId,
-				ref: 'Team'
-			}
-		]
+	{
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: 'updated'
+		}
 	}
-});
+);
 TeamSchema.plugin(getterPlugin);
 TeamSchema.plugin(paginatePlugin);
 TeamSchema.plugin(containsSearchPlugin, {

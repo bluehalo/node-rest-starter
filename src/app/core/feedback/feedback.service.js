@@ -135,7 +135,6 @@ class FeedbackService {
 	 */
 	updateFeedbackAssignee(feedback, assignee) {
 		feedback.assignee = assignee;
-		feedback.updated = Date.now();
 		return feedback.save();
 	}
 
@@ -146,7 +145,6 @@ class FeedbackService {
 	 */
 	updateFeedbackStatus(feedback, status) {
 		feedback.status = status;
-		feedback.updated = Date.now();
 		return feedback.save();
 	}
 }

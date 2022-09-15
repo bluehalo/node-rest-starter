@@ -3,9 +3,7 @@
 const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
-	textSearchPlugin = require('../../common/mongoose/text-search.plugin'),
-	deps = require('../../../dependencies'),
-	util = deps.utilService;
+	textSearchPlugin = require('../../common/mongoose/text-search.plugin');
 
 /**
  * Import types for reference below
@@ -18,40 +16,39 @@ const mongoose = require('mongoose'),
 /**
  * @type {mongoose.Schema<MessageDocument, MessageModel>}
  */
-const MessageSchema = new mongoose.Schema({
-	title: {
-		type: String,
-		trim: true,
-		required: [true, 'Title is required']
+const MessageSchema = new mongoose.Schema(
+	{
+		title: {
+			type: String,
+			trim: true,
+			required: [true, 'Title is required']
+		},
+		type: {
+			type: String,
+			enum: ['INFO', 'WARN', 'ERROR', 'MOTD'],
+			default: 'INFO'
+		},
+		body: {
+			type: String,
+			trim: true,
+			required: [true, 'Message is required']
+		},
+		ackRequired: {
+			type: Boolean,
+			default: false
+		},
+		creator: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User'
+		}
 	},
-	type: {
-		type: String,
-		enum: ['INFO', 'WARN', 'ERROR', 'MOTD'],
-		default: 'INFO'
-	},
-	body: {
-		type: String,
-		trim: true,
-		required: [true, 'Message is required']
-	},
-	ackRequired: {
-		type: Boolean,
-		default: false
-	},
-	updated: {
-		type: Date,
-		get: util.dateParse
-	},
-	created: {
-		type: Date,
-		default: () => Date.now(),
-		get: util.dateParse
-	},
-	creator: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'User'
+	{
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: 'updated'
+		}
 	}
-});
+);
 MessageSchema.plugin(getterPlugin);
 MessageSchema.plugin(paginatePlugin);
 MessageSchema.plugin(textSearchPlugin);

@@ -23,9 +23,6 @@ class EuaService {
 	 */
 	create(obj) {
 		const document = new this.model(obj);
-		document.created = Date.now();
-		document.updated = document.created;
-
 		return document.save();
 	}
 
@@ -50,9 +47,6 @@ class EuaService {
 		// Copy over the new eua properties
 		document.text = obj.text;
 		document.title = obj.title;
-
-		// Update the updated date
-		document.updated = Date.now();
 
 		return document.save();
 	}

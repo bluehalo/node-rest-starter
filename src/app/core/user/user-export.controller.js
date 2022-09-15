@@ -57,7 +57,7 @@ module.exports.adminGetCSV = async (req, res) => {
 			case 'updated':
 			case 'acceptedEua':
 				col.callback = (value) => {
-					return value ? new Date(value).toISOString() : '';
+					return value ? value.toISOString() : '';
 				};
 				break;
 			case 'teams':

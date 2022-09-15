@@ -3,8 +3,7 @@
 const mongoose = require('mongoose'),
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
 	deps = require('../../../dependencies'),
-	config = deps.config,
-	util = deps.utilService;
+	config = deps.config;
 
 /**
  * Import types for reference below
@@ -15,21 +14,24 @@ const mongoose = require('mongoose'),
 /**
  * @type {mongoose.Schema<DismissedMessageDocument, DismissedMessageModel>}
  */
-const DismissedMessageSchema = new mongoose.Schema({
-	messageId: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'Message'
+const DismissedMessageSchema = new mongoose.Schema(
+	{
+		messageId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Message'
+		},
+		userId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User'
+		}
 	},
-	userId: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'User'
-	},
-	created: {
-		type: Date,
-		default: () => Date.now(),
-		get: util.dateParse
+	{
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: false
+		}
 	}
-});
+);
 
 DismissedMessageSchema.plugin(getterPlugin);
 
