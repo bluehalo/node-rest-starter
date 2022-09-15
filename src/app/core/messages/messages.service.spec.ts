@@ -1,15 +1,16 @@
-'use strict';
+import should from 'should';
+import { createSandbox } from 'sinon';
+import mongoose from 'mongoose';
+import { dbs } from '../../../dependencies';
+import { UserModel } from '../user/types';
+import messagesService from './messages.service';
+import { MessageModel } from './message.model';
+import { DismissedMessageModel } from './dismissed-message.model';
 
-const should = require('should'),
-	sinon = require('sinon'),
-	mongoose = require('mongoose'),
-	deps = require('../../../dependencies'),
-	dbs = deps.dbs,
-	messagesService = require('./messages.service').default;
-
-const User = dbs.admin.model('User');
-const Message = dbs.admin.model('Message');
-const DismissedMessage = dbs.admin.model('DismissedMessage');
+const User: UserModel = dbs.admin.model('User');
+const Message: MessageModel = dbs.admin.model('Message');
+const DismissedMessage: DismissedMessageModel =
+	dbs.admin.model('DismissedMessage');
 
 /**
  * Helpers
@@ -45,7 +46,7 @@ describe('Messages Service:', () => {
 	const user = new User({ _id: new mongoose.Types.ObjectId() });
 
 	beforeEach(async () => {
-		sandbox = sinon.createSandbox();
+		sandbox = createSandbox();
 		await clearDatabase();
 	});
 

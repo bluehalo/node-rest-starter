@@ -2,7 +2,9 @@ import should from 'should';
 import { HydratedDocument, model, Model, Schema } from 'mongoose';
 import { Paginateable, paginatePlugin } from './paginate.plugin';
 
-interface IExample {}
+interface IExample {
+	field: string;
+}
 type ExampleModel = Model<IExample, Paginateable<HydratedDocument<IExample>>>;
 
 const PaginateExampleSchema = new Schema<IExample, ExampleModel>({

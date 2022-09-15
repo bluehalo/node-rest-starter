@@ -20,6 +20,7 @@ const _ = require('lodash'),
  *
  * @typedef {import('mongoose').PopulateOptions} PopulateOptions
  * @typedef {import('mongoose').Schema.Types.ObjectId} ObjectId
+ * @typedef {import('./types').ITeam} ITeam
  * @typedef {import('./types').TeamDocument} TeamDocument
  * @typedef {import('./types').TeamModel} TeamModel
  * @typedef {import('../user/types').UserDocument} UserDocument
@@ -102,14 +103,17 @@ class TeamsService {
 
 	/**
 	 * @param {string | mongoose.Types.ObjectId} id
-	 * @param {string | PopulateOptions | Array<string | PopulateOptions>} [populate]
+	 * @param {string | string[] | PopulateOptions | Array<string | PopulateOptions>} [populate]
 	 * @returns {Promise<TeamDocument>}
 	 */
 	read(id, populate = []) {
 		if (!mongoose.Types.ObjectId.isValid(id)) {
 			throw { status: 400, type: 'validation', message: 'Invalid team ID' };
 		}
-		return this.model.findById(id).populate(populate).exec();
+		return this.model
+			.findById(id)
+			.populate(/** @type {string[]} */ (populate))
+			.exec();
 	}
 
 	/**
@@ -192,15 +196,21 @@ class TeamsService {
 			.sort(sort)
 			.paginate(limit, page);
 
-		// append isMember field to elements if user is part of the team
-		results.elements = results.elements.map((res) => {
-			return {
-				...res.toJSON(),
-				isMember: teamIdStrings.includes(res.id)
-			};
-		});
+		const mappedResults = {
+			pageNumber: results.pageNumber,
+			pageSize: results.pageSize,
+			totalPages: results.totalPages,
+			totalSize: results.totalSize,
+			elements: results.elements.map((res) => {
+				// append isMember field to elements if user is part of the team
+				return {
+					...res.toJSON(),
+					isMember: teamIdStrings.includes(res.id)
+				};
+			})
+		};
 
-		return results;
+		return mappedResults;
 	}
 
 	/**

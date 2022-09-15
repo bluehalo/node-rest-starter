@@ -2,7 +2,9 @@ import should from 'should';
 import { model, Model, Schema } from 'mongoose';
 import { TextSearchable, textSearchPlugin } from './text-search.plugin';
 
-interface IExample {}
+interface IExample {
+	field: string;
+}
 type ExampleModel = Model<IExample, TextSearchable>;
 const TextExampleSchema = new Schema<IExample, ExampleModel>({
 	field: String

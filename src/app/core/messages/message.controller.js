@@ -1,7 +1,7 @@
 'use strict';
 
 const { dbs, auditService } = require('../../../dependencies'),
-	messageService = require('./messages.service').default,
+	messageService = require('./messages.service'),
 	Message = dbs.admin.model('Message'),
 	DismissedMessage = dbs.admin.model('DismissedMessage');
 

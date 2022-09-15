@@ -5,7 +5,9 @@ import {
 	containsSearchPlugin
 } from './contains-search.plugin';
 
-interface IExample {}
+interface IExample {
+	field: string;
+}
 type ExampleModel = Model<IExample, ContainsSearchable>;
 
 const ContainsExampleSchema = new Schema<IExample, ExampleModel>({

@@ -152,4 +152,4 @@ class MessagesService {
 	}
 }
 
-export default new MessagesService();
+export = new MessagesService();

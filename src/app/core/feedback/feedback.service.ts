@@ -134,4 +134,4 @@ class FeedbackService {
 	}
 }
 
-export default new FeedbackService();
+export = new FeedbackService();

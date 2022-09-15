@@ -1,6 +1,6 @@
 'use strict';
 
-const notificationsService = require('./notification.service').default;
+const notificationsService = require('./notification.service');
 
 module.exports.search = async (req, res) => {
 	// Get search and query parameters
