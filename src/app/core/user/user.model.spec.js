@@ -47,36 +47,39 @@ describe('User Model:', () => {
 
 			it('creates with defaults', async () => {
 				const user = new User(userSpec('valid'));
-				await user.save();
+				const userModel = await user.save();
 				['user', 'editor', 'auditor', 'admin'].forEach((role) => {
-					should(user.roles[role]).be.false('roles all default to false');
+					should(userModel.roles[role]).be.false('roles all default to false');
 				});
-				should(user.phone).eql('', 'phone defaults to empty');
-				should(user.canProxy).be.false('canProxy defaults to false');
-				should(user.canMasquerade).be.false('canMasquerade defaults to false');
-				should(user.externalGroups).eql(
+				should.exist(userModel.roles._id);
+				should(userModel.phone).eql('', 'phone defaults to empty');
+				should(userModel.canProxy).be.false('canProxy defaults to false');
+				should(userModel.canMasquerade).be.false(
+					'canMasquerade defaults to false'
+				);
+				should(userModel.externalGroups).eql(
 					[],
 					'externalGroups defaults to blank array'
 				);
-				should(user.externalRoles).eql(
+				should(userModel.externalRoles).eql(
 					[],
 					'externalRoles defaults to blank array'
 				);
-				should(user.bypassAccessCheck).be.false(
+				should(userModel.bypassAccessCheck).be.false(
 					'bypassAccessCheck defaults to false'
 				);
-				should(user.messagesAcknowledged).eql(
+				should(userModel.messagesAcknowledged).eql(
 					0,
 					'messagesAcknowledged defaults to 0'
 				);
-				should(user.acceptedEua).be.null();
-				should(user.lastLogin).be.null();
-				should(user.lastLoginWithAccess).be.null();
-				should(user.newFeatureDismissed).be.null();
+				should(userModel.acceptedEua).be.null();
+				should(userModel.lastLogin).be.null();
+				should(userModel.lastLoginWithAccess).be.null();
+				should(userModel.newFeatureDismissed).be.null();
 
-				should(user.providerData).be.undefined();
-				should(user.additionalProvidersData).be.undefined();
-				should(user.preferences).be.undefined();
+				should(userModel.providerData).be.undefined();
+				should(userModel.additionalProvidersData).be.undefined();
+				should(userModel.preferences).be.undefined();
 			});
 		});
 
