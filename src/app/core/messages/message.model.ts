@@ -1,11 +1,4 @@
-import {
-	Schema,
-	model,
-	Types,
-	HydratedDocument,
-	LeanDocument,
-	Model
-} from 'mongoose';
+import { Schema, model, Types, HydratedDocument, Model } from 'mongoose';
 import getterPlugin from '../../common/mongoose/getter.plugin';
 import {
 	paginatePlugin,
@@ -16,28 +9,31 @@ import {
 	TextSearchable
 } from '../../common/mongoose/text-search.plugin';
 
-interface IMessage {
+export interface IMessage {
 	_id: Types.ObjectId;
 	type: 'INFO' | 'WARN' | 'ERROR' | 'MOTD';
 	title: string;
 	body: string;
 	ackRequired: boolean;
 	creator: Types.ObjectId;
-	created: Date | number;
-	updated: Date | number;
+	created: Date;
+	updated: Date;
 }
 
-export type MessageDocument = HydratedDocument<IMessage>;
-
-export type LeanMessageDocument = LeanDocument<MessageDocument>;
-
-export interface MessageModel
-	extends Model<IMessage, TextSearchable & Paginateable<MessageDocument>> {
-	auditCopy(src: Partial<IMessage>);
-	fullCopy(src: Partial<IMessage>);
+export interface IMessageMethods {
+	auditCopy(): Record<string, unknown>;
+	fullCopy(): Record<string, unknown>;
 }
 
-const MessageSchema = new Schema<IMessage, MessageModel>(
+export type MessageDocument = HydratedDocument<IMessage, IMessageMethods>;
+
+export type MessageModel = Model<
+	IMessage,
+	TextSearchable & Paginateable<MessageDocument>,
+	IMessageMethods
+>;
+
+const MessageSchema = new Schema<IMessage, MessageModel, IMessageMethods>(
 	{
 		title: {
 			type: String,
@@ -91,41 +87,21 @@ MessageSchema.index({ title: 'text', body: 'text', type: 'text' });
  * Instance Methods
  */
 
-/**
- * Static Methods
- */
-MessageSchema.statics.auditCopy = function (
-	src: Partial<IMessage>
-): Record<string, unknown> {
-	const newMessage: Record<string, unknown> = {};
-	src = src || {};
-
-	newMessage.type = src.type;
-	newMessage.title = src.title;
-	newMessage.body = src.body;
-	newMessage.ackRequired = src.ackRequired;
-	newMessage.created = src.created;
-	newMessage.updated = src.updated;
-	newMessage._id = src._id;
-
-	return newMessage;
+MessageSchema.methods.auditCopy = function (): Record<string, unknown> {
+	return this.fullCopy();
 };
 
-MessageSchema.statics.fullCopy = function (
-	src: Partial<IMessage>
-): Record<string, unknown> {
-	const newMessage: Record<string, unknown> = {};
-	src = src || {};
+MessageSchema.methods.fullCopy = function () {
+	const message: Record<string, unknown> = {};
+	message.type = this.type;
+	message.title = this.title;
+	message.body = this.body;
+	message.ackRequired = this.ackRequired;
+	message.created = this.created;
+	message.updated = this.updated;
+	message._id = this._id;
 
-	newMessage.type = src.type;
-	newMessage.title = src.title;
-	newMessage.body = src.body;
-	newMessage.ackRequired = src.ackRequired;
-	newMessage.created = src.created;
-	newMessage.updated = src.updated;
-	newMessage._id = src._id;
-
-	return newMessage;
+	return message;
 };
 
 /**

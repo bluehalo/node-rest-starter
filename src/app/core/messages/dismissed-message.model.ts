@@ -1,35 +1,30 @@
-import {
-	HydratedDocument,
-	LeanDocument,
-	model,
-	Model,
-	Schema,
-	Types
-} from 'mongoose';
+import { HydratedDocument, model, Model, Schema, Types } from 'mongoose';
 import { Paginateable } from '../../common/mongoose/paginate.plugin';
 import getterPlugin from '../../common/mongoose/getter.plugin';
 import { config } from '../../../dependencies';
 import { TextSearchable } from '../../common/mongoose/text-search.plugin';
 
-interface IDismissedMessage {
+export interface IDismissedMessage {
 	_id: Types.ObjectId;
 	messageId: Types.ObjectId;
 	userId: Types.ObjectId;
-	created: Date | number;
+	created: Date;
 }
 
-export type DismissedMessageDocument = HydratedDocument<IDismissedMessage>;
-
-export type LeanDismissedMessageDocument =
-	LeanDocument<DismissedMessageDocument>;
-
-export interface DismissedMessageModel
-	extends Model<
-		IDismissedMessage,
-		TextSearchable & Paginateable<DismissedMessageDocument>
-	> {
-	auditCopy(src: Partial<IDismissedMessage>);
+export interface IDismissedMessageMethods {
+	auditCopy(): Record<string, unknown>;
 }
+
+export type DismissedMessageDocument = HydratedDocument<
+	IDismissedMessage,
+	IDismissedMessageMethods
+>;
+
+export type DismissedMessageModel = Model<
+	IDismissedMessage,
+	TextSearchable & Paginateable<DismissedMessageDocument>,
+	IDismissedMessageMethods
+>;
 
 const DismissedMessageSchema = new Schema<
 	IDismissedMessage,
@@ -71,20 +66,12 @@ DismissedMessageSchema.index({ userId: 1 });
 /**
  * Instance Methods
  */
-
-/**
- * Static Methods
- */
-DismissedMessageSchema.statics.auditCopy = function (
-	src: Partial<IDismissedMessage>
-): Record<string, unknown> {
+DismissedMessageSchema.methods.auditCopy = function () {
 	const dismissedMessage: Record<string, unknown> = {};
-	src = src || {};
-
-	dismissedMessage.messageId = src.messageId;
-	dismissedMessage.userId = src.userId;
-	dismissedMessage.created = src.created;
-	dismissedMessage._id = src._id;
+	dismissedMessage._id = this._id;
+	dismissedMessage.messageId = this.messageId;
+	dismissedMessage.userId = this.userId;
+	dismissedMessage.created = this.created;
 
 	return dismissedMessage;
 };

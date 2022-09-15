@@ -5,8 +5,8 @@ import { Paginateable } from '../../common/mongoose/paginate.plugin';
 export interface ITeam {
 	name: string;
 	description: string;
-	created: Date | number;
-	updated: Date | number;
+	created: Date;
+	updated: Date;
 	creator: MongooseTypes.ObjectId;
 	creatorName: string;
 	implicitMembers: boolean;

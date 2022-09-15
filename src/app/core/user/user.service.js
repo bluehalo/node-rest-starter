@@ -77,7 +77,7 @@ class UserService {
 	 * @returns {Promise<UserDocument>}
 	 */
 	updateLastLogin(document) {
-		document.lastLogin = Date.now();
+		document.lastLogin = new Date();
 		return document.save();
 	}
 
@@ -86,7 +86,7 @@ class UserService {
 	 * @returns {Promise<UserDocument>}
 	 */
 	updateLastLoginWithAccess(document) {
-		document.lastLoginWithAccess = Date.now();
+		document.lastLoginWithAccess = new Date();
 		return document.save();
 	}
 }

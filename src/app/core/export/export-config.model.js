@@ -15,11 +15,6 @@ const ExportConfigSchema = new mongoose.Schema(
 		config: {
 			type: {},
 			required: [true, 'Configuration is required']
-		},
-		created: {
-			type: Date,
-			expires: 300,
-			required: [true, 'Created date is required']
 		}
 	},
 	{
@@ -30,6 +25,11 @@ const ExportConfigSchema = new mongoose.Schema(
 	}
 );
 ExportConfigSchema.plugin(getterPlugin);
+
+/**
+ * Index declarations
+ */
+ExportConfigSchema.index({ created: -1 }, { expireAfterSeconds: 300 });
 
 ExportConfigSchema.statics.auditCopy = (exportConfig) => {
 	const toReturn = {};

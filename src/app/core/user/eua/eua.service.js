@@ -83,7 +83,7 @@ class EuaService {
 	 * @returns {Promise<UserAgreementDocument | null>}
 	 */
 	publishEua(document) {
-		document.published = Date.now();
+		document.published = new Date();
 		return document.save();
 	}
 
@@ -102,7 +102,7 @@ class EuaService {
 	 * @returns {Promise<UserDocument | null>}
 	 */
 	acceptEua(user) {
-		user.acceptedEua = Date.now();
+		user.acceptedEua = new Date();
 		return user.save();
 	}
 }

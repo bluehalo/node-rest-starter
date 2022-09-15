@@ -13,16 +13,24 @@ import {
 export interface INotification {
 	_id: Types.ObjectId;
 	user: Types.ObjectId;
-	created: Date | number;
+	created: Date;
 	notificationType: string;
 }
 
-export type NotificationDocument = HydratedDocument<INotification>;
-
-export interface NotificationModel
-	extends Model<INotification, Paginateable<NotificationDocument>> {
-	auditCopy(src: Partial<INotification>);
+export interface INotificationMethods {
+	auditCopy(): Record<string, unknown>;
 }
+
+export type NotificationDocument = HydratedDocument<
+	INotification,
+	INotificationMethods
+>;
+
+export type NotificationModel = Model<
+	INotification,
+	Paginateable<NotificationDocument>,
+	INotificationMethods
+>;
 
 const NotificationSchema = new Schema<INotification>(
 	{
@@ -52,23 +60,21 @@ NotificationSchema.plugin(paginatePlugin);
 /**
  * Index declarations
  */
-
+NotificationSchema.index(
+	{ created: -1 },
+	{ expireAfterSeconds: config.notificationExpires }
+);
 NotificationSchema.index({ user: 1, created: -1 });
 
 /**
- * Static Methods
+ * Instance Methods
  */
-
 // Create a filtered copy for auditing
-NotificationSchema.statics.auditCopy = function (
-	src: Partial<INotification>
-): Record<string, unknown> {
+NotificationSchema.methods.auditCopy = function (): Record<string, unknown> {
 	const toReturn: Record<string, unknown> = {};
-	src = src || {};
-
-	toReturn._id = src._id;
-	toReturn.user = src.user;
-	toReturn.notificationType = src.notificationType;
+	toReturn._id = this._id;
+	toReturn.user = this.user;
+	toReturn.notificationType = this.notificationType;
 
 	return toReturn;
 };

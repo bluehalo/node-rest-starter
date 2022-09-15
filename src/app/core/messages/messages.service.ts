@@ -3,15 +3,11 @@ import { FilterQuery, PopulateOptions, Types } from 'mongoose';
 import { dbs, config, utilService } from '../../../dependencies';
 import { UserDocument } from '../user/types';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
-import {
-	LeanMessageDocument,
-	MessageDocument,
-	MessageModel
-} from './message.model';
+import { IMessage, MessageDocument, MessageModel } from './message.model';
 import {
 	DismissedMessageDocument,
 	DismissedMessageModel,
-	LeanDismissedMessageDocument
+	IDismissedMessage
 } from './dismissed-message.model';
 
 type PublishProvider = {
@@ -75,7 +71,7 @@ class MessagesService {
 			.paginate(limit, page);
 	}
 
-	getAllMessages(): Promise<Array<LeanMessageDocument>> {
+	getAllMessages(): Promise<Array<IMessage>> {
 		const timeLimit = config['dismissedMessagesTimePeriod'] ?? 604800000;
 
 		return this.model
@@ -88,7 +84,7 @@ class MessagesService {
 
 	getDismissedMessages(
 		userId: string | Types.ObjectId
-	): Promise<Array<LeanDismissedMessageDocument>> {
+	): Promise<Array<IDismissedMessage>> {
 		return this.dismissedModel.find({ userId: userId }).lean().exec();
 	}
 
@@ -97,7 +93,7 @@ class MessagesService {
 	 */
 	async getRecentMessages(
 		userId: string | Types.ObjectId
-	): Promise<Array<LeanMessageDocument>> {
+	): Promise<Array<IMessage>> {
 		const [allMessages, dismissedMessages] = await Promise.all([
 			this.getAllMessages(),
 			this.getDismissedMessages(userId)

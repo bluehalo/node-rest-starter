@@ -6,9 +6,9 @@ interface IUserAgreement {
 	_id: Types.ObjectId;
 	title: string;
 	text: string;
-	published: Date | number;
-	updated: Date | number;
-	created: Date | number;
+	published: Date;
+	updated: Date;
+	created: Date;
 }
 
 export type UserAgreementDocument = HydratedDocument<IUserAgreement>;

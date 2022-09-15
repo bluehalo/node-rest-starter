@@ -30,40 +30,42 @@ export interface IFeedback {
 
 	creator: Types.ObjectId;
 	created: Date;
-	updated: Date | number;
+	updated: Date;
 }
 
 export type FeedbackDocument = HydratedDocument<IFeedback>;
 
-export interface FeedbackModel
-	extends Model<IFeedback, TextSearchable & Paginateable<FeedbackDocument>> {
-	auditCopy(src: Partial<IFeedback>);
-}
+export type FeedbackModel = Model<
+	IFeedback,
+	TextSearchable & Paginateable<FeedbackDocument>
+>;
 
-const FeedbackSchema = new Schema<IFeedback, FeedbackModel>({
-	creator: {
-	  type: Schema.Types.ObjectId,
-	  ref: 'User'
+const FeedbackSchema = new Schema<IFeedback, FeedbackModel>(
+	{
+		creator: {
+			type: Schema.Types.ObjectId,
+			ref: 'User'
+		},
+		body: { type: String },
+		type: { type: String },
+		url: { type: String },
+		os: { type: String },
+		browser: { type: String },
+		classification: { type: String },
+		status: {
+			type: String,
+			default: Statuses.new,
+			enum: Object.values(Statuses),
+			required: true
+		},
+		assignee: { type: String }
 	},
-	body: { type: String },
-	type: { type: String },
-	url: { type: String },
-	os: { type: String },
-	browser: { type: String },
-	classification: { type: String },
-	status: {
-	  type: String,
-	  default: Statuses.new,
-	  enum: Object.values(Statuses),
-	  required: true
-	},
-	assignee: { type: String }
-  }, {
-	timestamps: {
-	  createdAt: 'created',
-	  updatedAt: 'updated'
+	{
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: 'updated'
+		}
 	}
-  }
 );
 
 FeedbackSchema.plugin(getterPlugin);
