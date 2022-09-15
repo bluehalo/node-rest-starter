@@ -40,10 +40,12 @@ const passwordMessage = 'Password must be at least 6 characters long';
  * User Roles
  */
 const roles = config?.auth?.roles ?? ['user', 'editor', 'auditor', 'admin'];
-const roleSchemaDef = roles.reduce((obj, role) => {
+const roleObject = roles.reduce((obj, role) => {
 	obj[role] = { type: Boolean, default: false };
 	return obj;
 }, {});
+
+const roleSchemaDef = new mongoose.Schema(roleObject);
 
 /**
  * User Schema
@@ -174,7 +176,10 @@ const UserSchema = new mongoose.Schema({
 	},
 	providerData: {},
 	additionalProvidersData: {},
-	roles: roleSchemaDef,
+	roles: {
+		type: roleSchemaDef,
+		default: () => ({})
+	},
 	canProxy: {
 		type: Boolean,
 		default: false
