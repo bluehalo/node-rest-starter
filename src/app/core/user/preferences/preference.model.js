@@ -1,14 +1,18 @@
 'use strict';
 
 const mongoose = require('mongoose'),
-	deps = require('../../../../dependencies'),
-	util = deps.utilService,
 	{ paginatePlugin } = require('../../../common/mongoose/paginate.plugin');
 
 /**
  * Preference Schema
  */
-module.exports.preferenceOptions = { discriminatorKey: 'preferenceType' };
+module.exports.preferenceOptions = {
+	discriminatorKey: 'preferenceType',
+	timestamps: {
+		createdAt: 'created',
+		updatedAt: 'updated'
+	}
+};
 
 const PreferenceSchema = new mongoose.Schema(
 	{
@@ -16,16 +20,6 @@ const PreferenceSchema = new mongoose.Schema(
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
 			required: [true, 'User is required']
-		},
-		created: {
-			type: Date,
-			default: () => Date.now(),
-			get: util.dateParse
-		},
-		updated: {
-			type: Date,
-			default: () => Date.now(),
-			get: util.dateParse
 		}
 	},
 	module.exports.preferenceOptions

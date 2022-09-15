@@ -1,5 +1,3 @@
-'use strict';
-
 import path from 'path';
 import { FilterQuery, PopulateOptions, Types } from 'mongoose';
 import { dbs, config, utilService } from '../../../dependencies';
@@ -33,8 +31,6 @@ class MessagesService {
 	create(user: UserDocument, doc: unknown): Promise<MessageDocument> {
 		const message = new this.model(doc);
 		message.creator = user._id;
-		message.created = Date.now();
-		message.updated = Date.now();
 
 		return message.save();
 	}
@@ -55,7 +51,6 @@ class MessagesService {
 
 	update(document: MessageDocument, obj: unknown): Promise<MessageDocument> {
 		document.set(obj);
-		document.updated = Date.now();
 		return document.save();
 	}
 

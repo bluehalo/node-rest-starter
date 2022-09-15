@@ -10,7 +10,6 @@ import {
 	textSearchPlugin,
 	TextSearchable
 } from '../../common/mongoose/text-search.plugin';
-import { utilService } from '../../../dependencies';
 
 const Statuses = Object.freeze({
 	new: 'New',
@@ -42,14 +41,9 @@ export interface FeedbackModel
 }
 
 const FeedbackSchema = new Schema<IFeedback, FeedbackModel>({
-	created: {
-		type: Date,
-		default: () => Date.now(),
-		get: utilService.dateParse
-	},
 	creator: {
-		type: Schema.Types.ObjectId,
-		ref: 'User'
+	  type: Schema.Types.ObjectId,
+	  ref: 'User'
 	},
 	body: { type: String },
 	type: { type: String },
@@ -58,19 +52,19 @@ const FeedbackSchema = new Schema<IFeedback, FeedbackModel>({
 	browser: { type: String },
 	classification: { type: String },
 	status: {
-		type: String,
-		default: Statuses.new,
-		enum: Object.values(Statuses),
-		required: true
+	  type: String,
+	  default: Statuses.new,
+	  enum: Object.values(Statuses),
+	  required: true
 	},
-	assignee: { type: String },
-	updated: {
-		type: Date,
-		default: () => Date.now(),
-		get: utilService.dateParse,
-		required: true
+	assignee: { type: String }
+  }, {
+	timestamps: {
+	  createdAt: 'created',
+	  updatedAt: 'updated'
 	}
-});
+  }
+);
 
 FeedbackSchema.plugin(getterPlugin);
 FeedbackSchema.plugin(paginatePlugin);

@@ -120,7 +120,6 @@ class FeedbackService {
 		assignee: string
 	): Promise<FeedbackDocument> {
 		feedback.assignee = assignee;
-		feedback.updated = Date.now();
 		return feedback.save();
 	}
 
@@ -129,7 +128,6 @@ class FeedbackService {
 		status: 'New' | 'Open' | 'Closed'
 	): Promise<FeedbackDocument> {
 		feedback.status = status;
-		feedback.updated = Date.now();
 		return feedback.save();
 	}
 }

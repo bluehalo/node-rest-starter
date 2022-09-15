@@ -1,5 +1,3 @@
-'use strict';
-
 import {
 	HydratedDocument,
 	LeanDocument,
@@ -10,7 +8,7 @@ import {
 } from 'mongoose';
 import { Paginateable } from '../../common/mongoose/paginate.plugin';
 import getterPlugin from '../../common/mongoose/getter.plugin';
-import { config, utilService } from '../../../dependencies';
+import { config } from '../../../dependencies';
 import { TextSearchable } from '../../common/mongoose/text-search.plugin';
 
 interface IDismissedMessage {
@@ -36,22 +34,24 @@ export interface DismissedMessageModel
 const DismissedMessageSchema = new Schema<
 	IDismissedMessage,
 	DismissedMessageModel
->({
-	messageId: {
-		type: Schema.Types.ObjectId,
-		ref: 'Message'
+>(
+	{
+		messageId: {
+			type: Schema.Types.ObjectId,
+			ref: 'Message'
+		},
+		userId: {
+			type: Schema.Types.ObjectId,
+			ref: 'User'
+		}
 	},
-	userId: {
-		type: Schema.Types.ObjectId,
-		ref: 'User'
-	},
-	created: {
-		type: Date,
-		default: () => Date.now(),
-		get: utilService.dateParse,
-		immutable: true
+	{
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: false
+		}
 	}
-});
+);
 
 DismissedMessageSchema.plugin(getterPlugin);
 

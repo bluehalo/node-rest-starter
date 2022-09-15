@@ -1,5 +1,5 @@
 import { HydratedDocument, model, Model, Schema, Types } from 'mongoose';
-import { config, utilService } from '../../../dependencies';
+import { config } from '../../../dependencies';
 import getterPlugin from '../../common/mongoose/getter.plugin';
 import {
 	paginatePlugin,
@@ -33,13 +33,17 @@ const NotificationSchema = new Schema<INotification>(
 		},
 		created: {
 			type: Date,
-			default: () => Date.now(),
-			get: utilService.dateParse,
 			expires: config.notificationExpires,
 			immutable: true
 		}
 	},
-	{ discriminatorKey: 'notificationType' }
+	{
+		discriminatorKey: 'notificationType',
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: false
+		}
+	}
 );
 
 NotificationSchema.plugin(getterPlugin);

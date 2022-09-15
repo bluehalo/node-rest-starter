@@ -37,8 +37,6 @@ class UserService {
 	update(document, obj = {}) {
 		document.set(obj);
 
-		// Update the updated date
-		document.updated = Date.now();
 		return document.save();
 	}
 

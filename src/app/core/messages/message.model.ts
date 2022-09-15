@@ -1,5 +1,3 @@
-'use strict';
-
 import {
 	Schema,
 	model,
@@ -17,7 +15,6 @@ import {
 	textSearchPlugin,
 	TextSearchable
 } from '../../common/mongoose/text-search.plugin';
-import { utilService } from '../../../dependencies';
 
 interface IMessage {
 	_id: Types.ObjectId;
@@ -40,42 +37,39 @@ export interface MessageModel
 	fullCopy(src: Partial<IMessage>);
 }
 
-const MessageSchema = new Schema<IMessage, MessageModel>({
-	title: {
-		type: String,
-		trim: true,
-		required: [true, 'Title is required']
+const MessageSchema = new Schema<IMessage, MessageModel>(
+	{
+		title: {
+			type: String,
+			trim: true,
+			required: [true, 'Title is required']
+		},
+		type: {
+			type: String,
+			enum: ['INFO', 'WARN', 'ERROR', 'MOTD'],
+			default: 'INFO'
+		},
+		body: {
+			type: String,
+			trim: true,
+			required: [true, 'Message is required']
+		},
+		ackRequired: {
+			type: Boolean,
+			default: false
+		},
+		creator: {
+			type: Schema.Types.ObjectId,
+			ref: 'User'
+		}
 	},
-	type: {
-		type: String,
-		enum: ['INFO', 'WARN', 'ERROR', 'MOTD'],
-		default: 'INFO'
-	},
-	body: {
-		type: String,
-		trim: true,
-		required: [true, 'Message is required']
-	},
-	ackRequired: {
-		type: Boolean,
-		default: false
-	},
-	updated: {
-		type: Date,
-		get: utilService.dateParse
-	},
-	created: {
-		type: Date,
-		default: () => Date.now(),
-		get: utilService.dateParse,
-		immutable: true
-	},
-	creator: {
-		type: Schema.Types.ObjectId,
-		ref: 'User',
-		immutable: true
+	{
+		timestamps: {
+			createdAt: 'created',
+			updatedAt: 'updated'
+		}
 	}
-});
+);
 MessageSchema.plugin(getterPlugin);
 MessageSchema.plugin(paginatePlugin);
 MessageSchema.plugin(textSearchPlugin);

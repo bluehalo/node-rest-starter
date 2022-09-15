@@ -78,8 +78,6 @@ class TeamsService {
 
 		// Write the auto-generated metadata
 		newTeam.creator = creator;
-		newTeam.created = Date.now();
-		newTeam.updated = Date.now();
 		newTeam.creatorName = creator.name;
 
 		// Nested teams
@@ -124,9 +122,6 @@ class TeamsService {
 	 * @returns {Promise<TeamDocument>} Returns a promise that resolves if team is successfully updated, and rejects otherwise
 	 */
 	update(document, obj) {
-		// Update the updated date
-		document.updated = Date.now();
-
 		// Copy in the fields that can be changed by the user
 		copyMutableFields(document, obj);
 
