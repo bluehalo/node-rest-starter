@@ -1,5 +1,4 @@
 import should from 'should';
-import { createSandbox } from 'sinon';
 import mongoose from 'mongoose';
 import { dbs } from '../../../dependencies';
 import { UserModel } from '../user/types';
@@ -41,17 +40,13 @@ const createMessages = async (count) => {
  * Unit tests
  */
 describe('Messages Service:', () => {
-	let sandbox;
-
 	const user = new User({ _id: new mongoose.Types.ObjectId() });
 
 	beforeEach(async () => {
-		sandbox = createSandbox();
 		await clearDatabase();
 	});
 
 	beforeEach(async () => {
-		sandbox.restore();
 		await clearDatabase();
 	});
 
