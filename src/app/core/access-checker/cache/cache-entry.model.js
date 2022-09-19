@@ -2,8 +2,10 @@
 
 const mongoose = require('mongoose'),
 	getterPlugin = require('../../../common/mongoose/getter.plugin'),
-	paginatePlugin = require('../../../common/mongoose/paginate.plugin'),
-	containsSearchPlugin = require('../../../common/mongoose/contains-search.plugin');
+	{ paginatePlugin } = require('../../../common/mongoose/paginate.plugin'),
+	{
+		containsSearchPlugin
+	} = require('../../../common/mongoose/contains-search.plugin');
 
 /**
  * Schema Declaration

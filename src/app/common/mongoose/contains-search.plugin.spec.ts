@@ -1,24 +1,36 @@
-const should = require('should'),
-	mongoose = require('mongoose'),
-	containsSearchPlugin = require('./contains-search.plugin');
+import should from 'should';
+import { model, Model, Schema } from 'mongoose';
+import {
+	ContainsSearchable,
+	containsSearchPlugin
+} from './contains-search.plugin';
 
-const ContainsExampleSchema = new mongoose.Schema({ field: String });
+interface IExample {
+	field: string;
+}
+type ExampleModel = Model<IExample, ContainsSearchable>;
+
+const ContainsExampleSchema = new Schema<IExample, ExampleModel>({
+	field: String
+});
 ContainsExampleSchema.plugin(containsSearchPlugin);
 
-const ContainsExample =
-	/** @type {mongoose.Model<any, import('./types').ContainsSearchPlugin>} */ (
-		mongoose.model('ContainsExample', ContainsExampleSchema)
-	);
+const ContainsExample = model<IExample, ExampleModel>(
+	'ContainsExample',
+	ContainsExampleSchema
+);
 
-const ContainsExample2Schema = new mongoose.Schema({ field: String });
+const ContainsExample2Schema = new Schema<IExample, ExampleModel>({
+	field: String
+});
 ContainsExample2Schema.plugin(containsSearchPlugin, {
 	fields: ['field1', 'field2']
 });
 
-const ContainsExample2 =
-	/** @type {mongoose.Model<any, import('./types').ContainsSearchPlugin>} */ (
-		mongoose.model('ContainsExample2', ContainsExample2Schema)
-	);
+const ContainsExample2 = model<IExample, ExampleModel>(
+	'ContainsExample2',
+	ContainsExample2Schema
+);
 
 /**
  * Unit tests

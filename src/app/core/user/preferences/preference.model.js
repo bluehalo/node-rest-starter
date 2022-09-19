@@ -1,7 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose'),
-	paginatePlugin = require('../../../common/mongoose/paginate.plugin');
+	{ paginatePlugin } = require('../../../common/mongoose/paginate.plugin');
 
 /**
  * Preference Schema

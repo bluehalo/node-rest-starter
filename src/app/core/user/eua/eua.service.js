@@ -63,7 +63,7 @@ class EuaService {
 	 * @param [queryParams]
 	 * @param {import('mongoose').FilterQuery<UserAgreementDocument>} [query]
 	 * @param {string} [search]
-	 * @returns {Promise<import('../../../common/mongoose/types').PagingResults<UserAgreementDocument>>}
+	 * @returns {Promise<import('../../../common/mongoose/paginate.plugin').PagingResults<UserAgreementDocument>>}
 	 */
 	search(queryParams, query, search) {
 		query = query || {};
@@ -83,7 +83,7 @@ class EuaService {
 	 * @returns {Promise<UserAgreementDocument | null>}
 	 */
 	publishEua(document) {
-		document.published = Date.now();
+		document.published = new Date();
 		return document.save();
 	}
 
@@ -102,7 +102,7 @@ class EuaService {
 	 * @returns {Promise<UserDocument | null>}
 	 */
 	acceptEua(user) {
-		user.acceptedEua = Date.now();
+		user.acceptedEua = new Date();
 		return user.save();
 	}
 }

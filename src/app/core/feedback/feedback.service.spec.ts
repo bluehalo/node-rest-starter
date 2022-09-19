@@ -1,18 +1,18 @@
-'use strict';
+import should from 'should';
+import { assert, createSandbox } from 'sinon';
+import { auditService, emailService, config, dbs } from '../../../dependencies';
+import { UserModel } from '../user/types';
+import feedbackService from './feedback.service';
+import { FeedbackModel } from './feedback.model';
 
-const should = require('should'),
-	sinon = require('sinon'),
-	deps = require('../../../dependencies'),
-	feedbackService = require('./feedback.service'),
-	User = deps.dbs.admin.model('User'),
-	Feedback = deps.dbs.admin.model('Feedback'),
-	config = deps.config;
+const User: UserModel = dbs.admin.model('User');
+const Feedback: FeedbackModel = dbs.admin.model('Feedback');
 
 /**
  * Unit tests
  */
 describe('Feedback Service:', () => {
-	const user = User({
+	const user = new User({
 		name: 'test',
 		username: 'test',
 		email: 'test@test.test'
@@ -21,8 +21,8 @@ describe('Feedback Service:', () => {
 	let sandbox;
 
 	beforeEach(() => {
-		sandbox = sinon.createSandbox();
-		sandbox.stub(deps.auditService, 'audit').resolves();
+		sandbox = createSandbox();
+		sandbox.stub(auditService, 'audit').resolves();
 	});
 
 	afterEach(() => {
@@ -31,11 +31,9 @@ describe('Feedback Service:', () => {
 
 	describe('sendFeedback', () => {
 		it('should create mailOptions properly', async () => {
-			const sendMailStub = sandbox
-				.stub(deps.emailService, 'sendMail')
-				.resolves();
+			const sendMailStub = sandbox.stub(emailService, 'sendMail').resolves();
 
-			const feedback = Feedback({
+			const feedback = new Feedback({
 				body: 'feedback body',
 				type: 'type',
 				url: 'url'
@@ -51,7 +49,7 @@ FOOTER
 
 			await feedbackService.sendFeedbackEmail(user, feedback, {});
 
-			sinon.assert.called(sendMailStub);
+			assert.called(sendMailStub);
 			const [mailOptions] = sendMailStub.getCall(0).args;
 
 			should.exist(mailOptions, 'expected mailOptions to exist');

@@ -1,9 +1,7 @@
 'use strict';
 
-const { dbs, auditService } = require('../../../dependencies'),
-	messageService = require('./messages.service'),
-	Message = dbs.admin.model('Message'),
-	DismissedMessage = dbs.admin.model('DismissedMessage');
+const { auditService } = require('../../../dependencies'),
+	messageService = require('./messages.service');
 
 // Create
 module.exports.create = async (req, res) => {
@@ -18,7 +16,7 @@ module.exports.create = async (req, res) => {
 		'message',
 		'create',
 		req,
-		Message.auditCopy(message)
+		message.auditCopy()
 	);
 
 	res.status(200).json(message);
@@ -32,17 +30,17 @@ exports.read = (req, res) => {
 // Update
 module.exports.update = async (req, res) => {
 	// Make a copy of the original message for auditing purposes
-	const originalMessage = Message.auditCopy(req.message);
+	const originalMessage = req.message.auditCopy();
 
-	const message = messageService.update(req.message, req.body);
+	const updatedMessage = await messageService.update(req.message, req.body);
 
 	// Audit the save action
 	await auditService.audit('message updated', 'message', 'update', req, {
 		before: originalMessage,
-		after: Message.auditCopy(message)
+		after: updatedMessage.auditCopy()
 	});
 
-	res.status(200).json(message);
+	res.status(200).json(updatedMessage);
 };
 
 // Delete
@@ -55,7 +53,7 @@ module.exports.delete = async (req, res) => {
 		'message',
 		'delete',
 		req,
-		Message.auditCopy(req.message)
+		req.message.auditCopy()
 	);
 
 	res.status(200).json(req.message);
@@ -70,11 +68,15 @@ module.exports.search = async (req, res) => {
 	);
 
 	// Create the return copy of the messages
-	results.elements = results.elements.map((element) =>
-		Message.fullCopy(element)
-	);
+	const mappedResults = {
+		pageNumber: results.pageNumber,
+		pageSize: results.pageSize,
+		totalPages: results.totalPages,
+		totalSize: results.totalSize,
+		elements: results.elements.map((element) => element.fullCopy())
+	};
 
-	res.status(200).json(results);
+	res.status(200).json(mappedResults);
 };
 
 /**
@@ -115,7 +117,7 @@ exports.dismissMessage = async (req, res) => {
 			'message',
 			'dismissed',
 			req,
-			DismissedMessage.auditCopy(dismissedMessage)
+			dismissedMessage.auditCopy()
 		);
 	}
 

@@ -1,14 +1,20 @@
-const should = require('should'),
-	mongoose = require('mongoose'),
-	textSearchPlugin = require('./text-search.plugin');
+import should from 'should';
+import { model, Model, Schema } from 'mongoose';
+import { TextSearchable, textSearchPlugin } from './text-search.plugin';
 
-const TextExampleSchema = new mongoose.Schema({ field: String });
+interface IExample {
+	field: string;
+}
+type ExampleModel = Model<IExample, TextSearchable>;
+const TextExampleSchema = new Schema<IExample, ExampleModel>({
+	field: String
+});
 TextExampleSchema.plugin(textSearchPlugin);
 
-const TextExample =
-	/** @type {mongoose.Model<any, import('./types').TextSearchPlugin>} */ (
-		mongoose.model('TextExample', TextExampleSchema)
-	);
+const TextExample = model<IExample, ExampleModel>(
+	'TextExample',
+	TextExampleSchema
+);
 
 /**
  * Unit tests

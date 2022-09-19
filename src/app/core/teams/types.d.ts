@@ -1,11 +1,12 @@
 import { HydratedDocument, Model, Types as MongooseTypes } from 'mongoose';
-import { ContainsSearchPlugin } from '../../common/mongoose/types';
+import { ContainsSearchable } from '../../common/mongoose/contains-search.plugin';
+import { Paginateable } from '../../common/mongoose/paginate.plugin';
 
-interface ITeam {
+export interface ITeam {
 	name: string;
 	description: string;
-	created: Date | number;
-	updated: Date | number;
+	created: Date;
+	updated: Date;
 	creator: MongooseTypes.ObjectId;
 	creatorName: string;
 	implicitMembers: boolean;
@@ -18,9 +19,6 @@ interface ITeam {
 export type TeamDocument = HydratedDocument<ITeam>;
 
 export interface TeamModel
-	extends Model<
-		TeamDocument,
-		ContainsSearchPlugin & PaginatePlugin<TeamDocument>
-	> {
+	extends Model<ITeam, ContainsSearchable & Paginateable<TeamDocument>> {
 	auditCopy(team: Record<string, unknown>): Record<string, unknown>;
 }

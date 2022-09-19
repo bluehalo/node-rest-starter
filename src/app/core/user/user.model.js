@@ -8,9 +8,11 @@ const _ = require('lodash'),
 	config = deps.config,
 	util = deps.utilService,
 	getterPlugin = require('../../common/mongoose/getter.plugin'),
-	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
-	containsSearchPlugin = require('../../common/mongoose/contains-search.plugin'),
-	textSearchPlugin = require('../../common/mongoose/text-search.plugin');
+	{ paginatePlugin } = require('../../common/mongoose/paginate.plugin'),
+	{
+		containsSearchPlugin
+	} = require('../../common/mongoose/contains-search.plugin'),
+	{ textSearchPlugin } = require('../../common/mongoose/text-search.plugin');
 
 /**
  * Import types for reference below

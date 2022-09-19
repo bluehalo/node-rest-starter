@@ -1,29 +1,49 @@
 'use strict';
 
-const mongoose = require('mongoose'),
-	getterPlugin = require('../../common/mongoose/getter.plugin'),
-	paginatePlugin = require('../../common/mongoose/paginate.plugin'),
-	textSearchPlugin = require('../../common/mongoose/text-search.plugin');
+import { HydratedDocument, model, Model, Schema, Types } from 'mongoose';
+import getterPlugin from '../../common/mongoose/getter.plugin';
+import {
+	paginatePlugin,
+	Paginateable
+} from '../../common/mongoose/paginate.plugin';
+import {
+	textSearchPlugin,
+	TextSearchable
+} from '../../common/mongoose/text-search.plugin';
 
-const Statuses = Object.freeze({
-	new: 'New',
-	open: 'Open',
-	closed: 'Closed'
-});
+export enum Statuses {
+	New = 'New',
+	Open = 'Open',
+	Closed = 'Closed'
+}
 
-/**
- * Import types for reference below
- * @typedef {import('./types').FeedbackDocument} FeedbackDocument
- * @typedef {import('./types').FeedbackModel} FeedbackModel
- */
+export interface IFeedback {
+	_id: string;
+	body: string;
+	type: string;
+	url: string;
+	os: string;
+	browser: string;
+	classification: string;
+	status: Statuses;
+	assignee: string;
 
-/**
- * @type {mongoose.Schema<FeedbackDocument, FeedbackModel>}
- */
-const FeedbackSchema = new mongoose.Schema(
+	creator: Types.ObjectId;
+	created: Date;
+	updated: Date;
+}
+
+export type FeedbackDocument = HydratedDocument<IFeedback>;
+
+export type FeedbackModel = Model<
+	IFeedback,
+	TextSearchable & Paginateable<FeedbackDocument>
+>;
+
+const FeedbackSchema = new Schema<IFeedback, FeedbackModel>(
 	{
 		creator: {
-			type: mongoose.Schema.Types.ObjectId,
+			type: Schema.Types.ObjectId,
 			ref: 'User'
 		},
 		body: { type: String },
@@ -34,8 +54,8 @@ const FeedbackSchema = new mongoose.Schema(
 		classification: { type: String },
 		status: {
 			type: String,
-			default: Statuses.new,
-			enum: Object.values(Statuses),
+			default: Statuses.New,
+			enum: Statuses,
 			required: true
 		},
 		assignee: { type: String }
@@ -78,13 +98,13 @@ FeedbackSchema.index({ body: 'text' });
  * Static Methods
  *****************/
 
-Object.assign(FeedbackSchema.statics, {
-	Statuses
-});
-
 /**
  * Register the Schema with Mongoose
  */
-const Feedback = mongoose.model('Feedback', FeedbackSchema, 'feedback');
+const Feedback = model<IFeedback, FeedbackModel>(
+	'Feedback',
+	FeedbackSchema,
+	'feedback'
+);
 
-module.exports = Feedback;
+export { Feedback };
