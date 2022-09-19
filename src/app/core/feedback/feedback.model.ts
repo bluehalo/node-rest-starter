@@ -11,11 +11,11 @@ import {
 	TextSearchable
 } from '../../common/mongoose/text-search.plugin';
 
-const Statuses = Object.freeze({
-	new: 'New',
-	open: 'Open',
-	closed: 'Closed'
-});
+export enum Statuses {
+	New = 'New',
+	Open = 'Open',
+	Closed = 'Closed'
+}
 
 export interface IFeedback {
 	_id: string;
@@ -25,7 +25,7 @@ export interface IFeedback {
 	os: string;
 	browser: string;
 	classification: string;
-	status: typeof Statuses[keyof typeof Statuses];
+	status: Statuses;
 	assignee: string;
 
 	creator: Types.ObjectId;
@@ -54,8 +54,8 @@ const FeedbackSchema = new Schema<IFeedback, FeedbackModel>(
 		classification: { type: String },
 		status: {
 			type: String,
-			default: Statuses.new,
-			enum: Object.values(Statuses),
+			default: Statuses.New,
+			enum: Statuses,
 			required: true
 		},
 		assignee: { type: String }

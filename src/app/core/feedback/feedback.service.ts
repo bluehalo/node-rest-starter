@@ -8,7 +8,7 @@ import {
 } from '../../../dependencies';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { UserDocument } from '../user/types';
-import { FeedbackDocument, FeedbackModel } from './feedback.model';
+import { FeedbackDocument, FeedbackModel, Statuses } from './feedback.model';
 
 class FeedbackService {
 	model: FeedbackModel;
@@ -125,7 +125,7 @@ class FeedbackService {
 
 	updateFeedbackStatus(
 		feedback: FeedbackDocument,
-		status: 'New' | 'Open' | 'Closed'
+		status: Statuses
 	): Promise<FeedbackDocument> {
 		feedback.status = status;
 		return feedback.save();

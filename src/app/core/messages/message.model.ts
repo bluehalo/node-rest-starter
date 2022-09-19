@@ -9,9 +9,16 @@ import {
 	TextSearchable
 } from '../../common/mongoose/text-search.plugin';
 
+export enum MessageTypes {
+	INFO = 'INFO',
+	WARN = 'WARN',
+	ERROR = 'ERROR',
+	MOTD = 'MOTD'
+}
+
 export interface IMessage {
 	_id: Types.ObjectId;
-	type: 'INFO' | 'WARN' | 'ERROR' | 'MOTD';
+	type: MessageTypes;
 	title: string;
 	body: string;
 	ackRequired: boolean;
@@ -42,8 +49,8 @@ const MessageSchema = new Schema<IMessage, MessageModel, IMessageMethods>(
 		},
 		type: {
 			type: String,
-			enum: ['INFO', 'WARN', 'ERROR', 'MOTD'],
-			default: 'INFO'
+			enum: MessageTypes,
+			default: MessageTypes.INFO
 		},
 		body: {
 			type: String,
