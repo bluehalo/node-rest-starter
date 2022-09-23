@@ -1,6 +1,7 @@
 'use strict';
 
 import { HydratedDocument, model, Model, Schema, Types } from 'mongoose';
+
 import getterPlugin from '../../common/mongoose/getter.plugin';
 import {
 	paginatePlugin,

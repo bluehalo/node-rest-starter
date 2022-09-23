@@ -1,6 +1,7 @@
 'use strict';
 
 import { FilterQuery } from 'mongoose';
+
 import { dbs, utilService } from '../../../dependencies';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { NotificationDocument, NotificationModel } from './notification.model';

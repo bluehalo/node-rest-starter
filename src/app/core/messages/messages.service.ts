@@ -1,14 +1,16 @@
 import path from 'path';
+
 import { FilterQuery, PopulateOptions, Types } from 'mongoose';
+
 import { dbs, config, utilService } from '../../../dependencies';
-import { UserDocument } from '../user/types';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
-import { IMessage, MessageDocument, MessageModel } from './message.model';
+import { UserDocument } from '../user/types';
 import {
 	DismissedMessageDocument,
 	DismissedMessageModel,
 	IDismissedMessage
 } from './dismissed-message.model';
+import { IMessage, MessageDocument, MessageModel } from './message.model';
 
 type PublishProvider = {
 	publish: (destination: string, message: unknown, retry: boolean) => void;

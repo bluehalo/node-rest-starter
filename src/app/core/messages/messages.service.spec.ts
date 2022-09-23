@@ -1,10 +1,11 @@
-import should from 'should';
 import mongoose from 'mongoose';
+import should from 'should';
+
 import { dbs } from '../../../dependencies';
 import { UserModel } from '../user/types';
-import messagesService from './messages.service';
-import { MessageModel } from './message.model';
 import { DismissedMessageModel } from './dismissed-message.model';
+import { MessageModel } from './message.model';
+import messagesService from './messages.service';
 
 const User: UserModel = dbs.admin.model('User');
 const Message: MessageModel = dbs.admin.model('Message');

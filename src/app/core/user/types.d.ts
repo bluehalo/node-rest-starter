@@ -1,8 +1,10 @@
 import { BinaryLike } from 'crypto';
+
 import { HydratedDocument, Model } from 'mongoose';
+
+import { ContainsSearchable } from '../../common/mongoose/contains-search.plugin';
 import { Paginateable } from '../../common/mongoose/paginate.plugin';
 import { TextSearchable } from '../../common/mongoose/text-search.plugin';
-import { ContainsSearchable } from '../../common/mongoose/contains-search.plugin';
 
 type UserRoles = {
 	user?: boolean;

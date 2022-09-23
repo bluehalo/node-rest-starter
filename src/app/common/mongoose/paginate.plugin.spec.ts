@@ -1,5 +1,6 @@
-import should from 'should';
 import { HydratedDocument, model, Model, Schema } from 'mongoose';
+import should from 'should';
+
 import { Paginateable, paginatePlugin } from './paginate.plugin';
 
 interface IExample {
