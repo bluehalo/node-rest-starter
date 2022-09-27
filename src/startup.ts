@@ -1,6 +1,7 @@
 import http from 'http';
-import { logger } from './lib/bunyan';
+
 import agenda from './lib/agenda';
+import { logger } from './lib/bunyan';
 import express from './lib/express';
 import mongoose from './lib/mongoose';
 import socketio from './lib/socket.io';

@@ -1,6 +1,6 @@
 import config from './config';
-import startupFn from './startup';
 import { logger } from './lib/bunyan';
+import startupFn from './startup';
 
 startupFn()
 	.then((server) => {

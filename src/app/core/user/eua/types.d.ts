@@ -1,4 +1,5 @@
 import { HydratedDocument, Model, Types } from 'mongoose';
+
 import { Paginateable } from '../../../common/mongoose/paginate.plugin';
 import { TextSearchable } from '../../../common/mongoose/text-search.plugin';
 

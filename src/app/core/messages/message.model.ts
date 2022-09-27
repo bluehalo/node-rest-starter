@@ -1,4 +1,5 @@
 import { Schema, model, Types, HydratedDocument, Model } from 'mongoose';
+
 import getterPlugin from '../../common/mongoose/getter.plugin';
 import {
 	paginatePlugin,

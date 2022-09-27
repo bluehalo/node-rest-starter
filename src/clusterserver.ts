@@ -1,9 +1,10 @@
 'use strict';
 
 import sticky from 'socketio-sticky-session';
+
 import config from './config';
-import startupFn from './startup';
 import { logger } from './lib/bunyan';
+import startupFn from './startup';
 
 const defaultOptions = {
 	proxy: true, //activate layer 4 patching

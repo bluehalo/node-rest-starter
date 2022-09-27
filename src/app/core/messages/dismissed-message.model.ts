@@ -1,7 +1,8 @@
 import { HydratedDocument, model, Model, Schema, Types } from 'mongoose';
-import { Paginateable } from '../../common/mongoose/paginate.plugin';
-import getterPlugin from '../../common/mongoose/getter.plugin';
+
 import { config } from '../../../dependencies';
+import getterPlugin from '../../common/mongoose/getter.plugin';
+import { Paginateable } from '../../common/mongoose/paginate.plugin';
 import { TextSearchable } from '../../common/mongoose/text-search.plugin';
 
 export interface IDismissedMessage {

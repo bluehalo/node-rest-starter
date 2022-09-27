@@ -1,5 +1,6 @@
-import should from 'should';
 import { model, Model, Schema } from 'mongoose';
+import should from 'should';
+
 import { TextSearchable, textSearchPlugin } from './text-search.plugin';
 
 interface IExample {

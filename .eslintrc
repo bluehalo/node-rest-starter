@@ -85,7 +85,18 @@
 			"rules": {
 				"@typescript-eslint/ban-types": ["warn"],
 				"@typescript-eslint/no-empty-interface": ["warn"],
-				"import/order": ["error"],
+				"import/order": ["error", {
+				  "groups": [
+					["builtin"],
+					["external"],
+					["internal", "parent", "sibling"]
+				  ],
+				  "newlines-between": "always",
+				  "alphabetize": {
+					"order": "asc",
+					"caseInsensitive": true
+				  }
+				}],
 				"import/no-unresolved": ["off"]
 			}
 		}
