@@ -57,7 +57,7 @@ module.exports = {
 
 		// accessChecker: {
 		// 	provider: {
-		// 		file: 'src/app/core/access-checker/providers/example-provider.service.js',
+		// 		file: 'src/app/core/access-checker/providers/example-provider.service',
 		// 		config: {
 		// 			'user cn string': {
 		// 				name: 'User Name',
@@ -82,7 +82,7 @@ module.exports = {
 
 		externalRoles: {
 			provider: {
-				file: 'src/app/core/user/auth/external-role-map.provider.js',
+				file: 'src/app/core/user/auth/external-role-map.provider',
 				config: {
 					externalRoleMap: {
 						user: 'USER',
@@ -114,7 +114,7 @@ module.exports = {
 		enabled: true,
 		jobs: [
 			// {
-			// 	file: './src/app/core/access-checker/cache/cache-refresh.job.js',
+			// 	file: './src/app/core/access-checker/cache/cache-refresh.job',
 			// 	name: 'cache-refresh',
 			// 	interval: '12 hours',
 			// 	data: {
@@ -122,7 +122,7 @@ module.exports = {
 			// 	}
 			// },
 			// {
-			// 	file: './src/app/core/user/inactive/inactive-user.job.js',
+			// 	file: './src/app/core/user/inactive/inactive-user.job',
 			// 	name: 'inactive-user',
 			// 	interval: '1 days',
 			// 	data: {
@@ -134,7 +134,7 @@ module.exports = {
 			// 	}
 			// },
 			// {
-			// 	file: './src/app/core/user/preferences/preference-cleanup.job.js',
+			// 	file: './src/app/core/user/preferences/preference-cleanup.job',
 			// 	name: 'preference-cleanup',
 			// 	interval: '1 days'
 			// },
@@ -183,8 +183,7 @@ module.exports = {
 	// Copyright footer (shown above the system footer)
 	copyright: {
 		// HTML-enabled contents of the banner
-		html:
-			'Copyright © 2018 <a href="http://www.asymmetrik.com" target="_blank">Asymmetrik, Ltd</a>. All Rights Reserved.'
+		html: 'Copyright © 2018 <a href="http://www.asymmetrik.com" target="_blank">Asymmetrik, Ltd</a>. All Rights Reserved.'
 	},
 
 	feedback: {
@@ -276,8 +275,8 @@ module.exports = {
 	siteEmails: {},
 
 	// Use the following for local eventEmitter
-	publishProvider: './src/app/common/event/event-publish.provider.js',
-	socketProvider: './src/app/common/sockets/event-socket.provider.js',
+	publishProvider: './src/app/common/event/event-publish.provider',
+	socketProvider: './src/app/common/sockets/event-socket.provider',
 
 	messages: {
 		topic: 'message.posted'
@@ -292,7 +291,7 @@ module.exports = {
 	// Configuration for outgoing mail server / service
 	mailer: {
 		from: process.env.MAILER_FROM || 'USERNAME@GMAIL.COM',
-		provider: './src/app/core/email/providers/smtp-email.provider.js',
+		provider: './src/app/core/email/providers/smtp-email.provider',
 		options: {
 			host: process.env.MAILER_SERVICE_PROVIDER || 'gmail',
 			port: 587,
@@ -303,11 +302,11 @@ module.exports = {
 			}
 		}
 		/*
-		provider: './src/app/core/email/providers/log-email.server.provider.js',
+		provider: './src/app/core/email/providers/log-email.server.provider',
 		options: {}
 		*/
 		/*
-		provider: './src/app/core/email/providers/https-email.server.provider.js',
+		provider: './src/app/core/email/providers/https-email.server.provider',
 		options: {
 			host: '',
 			port: ,

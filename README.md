@@ -55,11 +55,13 @@ The existence and path for this Swagger page is configurable via the `apiDocs` p
 
 Several services use configurable "providers" in order to easily swap functionality in and out of the application.
 
-For example, the Email Service at `./src/app/core/email/email.service.js` can be controlled via the `mailer.provider` configuration to use any of the three out-of-the-box providers:
+For example, the Email Service at `./src/app/core/email/email.service.ts` can be controlled via the `mailer.provider` configuration to use any of the out-of-the-box providers:
 
 1. HTTPS
-1. Log
 1. SMTP
+1. Log
+1. File
+1. Noop
 
 The default provider for a service will be included in `dependencies` in NPM's `package.json`. On the other hand, any non-default providers should include their dependencies as `devDependencies` in order to reduce the inclusion of unnecessary modules in production builds.
 
