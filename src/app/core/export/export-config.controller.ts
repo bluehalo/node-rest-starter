@@ -1,55 +1,49 @@
-'use strict';
+import os from 'os';
+import { Readable, Transform } from 'stream';
 
-const os = require('os'),
-	streams = require('stream'),
-	{ dbs, logger, auditService, csvStream } = require('../../../dependencies'),
-	exportConfigService = require('./export-config.service'),
-	ExportConfig = dbs.admin.model('ExportConfig');
+import { auditService, csvStream, logger } from '../../../dependencies';
+import { ExportColumnDef } from './export-config.model';
+import exportConfigService from './export-config.service';
 
 /**
  * Request to generate an export configuration in preparation to serve a CSV download soon. The config document will
  * expire after a number of minutes (see export-config.server.service).
  */
-
-module.exports.requestExport = async (req, res) => {
+export const requestExport = async (req, res) => {
 	if (req.body.config.q) {
 		// Stringify the query JSON because '$' is reserved in Mongo.
 		req.body.config.q = JSON.stringify(req.body.config.q);
 	}
 
-	const generatedConfig = await exportConfigService.generateConfig(req);
+	const generatedConfig = await exportConfigService.create(req.body);
 
 	auditService.audit(
 		`${req.body.type} config created`,
 		'export',
 		'create',
 		req,
-		ExportConfig.auditCopy(generatedConfig)
+		generatedConfig.auditCopy()
 	);
 
 	res.status(200).json({ _id: generatedConfig._id });
 };
 
 /**
- * @callback ExportColumnCallback
- * @function
- *
- * @typedef {object} ExportColumnDef
- * @property {string} key
- * @property {string} title
- * @property {ExportColumnCallback} callback
- */
-
-/**
  * Export a CSV file with rows derived from an array of objects or a readable stream
  *
- * @param {*} req
- * @param {*} res
- * @param {string} filename the name of the exported file
- * @param {ExportColumnDef[]} columns the columns to include in the exported CSV file
- * @param {Array.<any>} data an array of objects containing data for rows, or an instance of readable
+ * @param req
+ * @param res
+ * @param filename the name of the exported file
+ * @param columns the columns to include in the exported CSV file
+ * @param data an array of objects containing data for rows, or an instance of readable
  */
-exports.exportCSV = (req, res, filename, columns, data) => {
+export const exportCSV = (
+	req,
+	res,
+	filename: string,
+	columns: ExportColumnDef[],
+	data: Array<unknown> | Readable
+) => {
 	if (null !== data) {
 		exportStream(
 			req,
@@ -59,12 +53,14 @@ exports.exportCSV = (req, res, filename, columns, data) => {
 			buildExportStream(
 				data,
 				(stream) => () => {
-					data.forEach((row) => {
-						stream.push(row);
-					});
+					if (Array.isArray(data)) {
+						data.forEach((row) => {
+							stream.push(row);
+						});
+					}
 					stream.push(null);
 				},
-				[csvStream(columns)]
+				[csvStream.streamToCsv(columns)]
 			)
 		);
 	}
@@ -72,12 +68,12 @@ exports.exportCSV = (req, res, filename, columns, data) => {
 
 /**
  * Export a plain text file with content derived from a string or a readable stream
- * @param {*} req
- * @param {*} res
- * @param {string} filename the name of the exported file
- * @param {string} text the text or readable stream to export
+ * @param req
+ * @param res
+ * @param filename the name of the exported file
+ * @param text the text or readable stream to export
  */
-exports.exportPlaintext = (req, res, filename, text) => {
+export const exportPlaintext = (req, res, filename: string, text: string) => {
 	if (null !== text) {
 		exportStream(
 			req,
@@ -97,21 +93,28 @@ exports.exportPlaintext = (req, res, filename, text) => {
 /**
  * Build a readable stream from data and pipe through a chain of transform streams
  *
- * @param {streams.Readable | *} data the data to be exported, either in the form of a readable stream or an object accompanied by a getRead function
+ * @param data the data to be exported, either in the form of a readable stream or an object accompanied by a getRead function
  * @param {Function} getRead a function that takes a readable stream and returns the _read function for the new stream if data is not a readable stream
- * @param {streams.Transform[]} [transforms] an optional array of transform streams through which to pipe the export data
+ * @param [transforms] an optional array of transform streams through which to pipe the export data
  */
-const buildExportStream = (data, getRead, transforms) => {
-	let stream = data;
+const buildExportStream = (
+	data: Readable | unknown,
+	getRead: (unknown) => () => void,
+	transforms: Transform[] = []
+) => {
+	let stream: Readable; // = data;
 
-	if (!(stream instanceof streams.Readable)) {
-		stream = new streams.Readable({ objectMode: true });
+	if (data instanceof Readable) {
+		stream = data;
+	} else {
+		stream = new Readable({ objectMode: true });
 		stream._read = getRead(stream);
 	}
 
 	if (!stream.destroy) {
 		stream.destroy = () => {
 			stream.destroyed = true;
+			return stream;
 		};
 	}
 
@@ -140,6 +143,7 @@ const buildExportStream = (data, getRead, transforms) => {
 
 					// now destroy the previous stream
 					prevStream.destroy();
+					return newStream;
 				};
 			}
 
@@ -153,13 +157,19 @@ const buildExportStream = (data, getRead, transforms) => {
 /**
  * Export to a file from a readable stream
  *
- * @param {*} req
- * @param {*} res
- * @param {string} fileName
- * @param {string} contentType
- * @param {streams.Readable} stream
+ * @param req
+ * @param res
+ * @param fileName
+ * @param contentType
+ * @param stream
  */
-const exportStream = (req, res, fileName, contentType, stream) => {
+const exportStream = (
+	req,
+	res,
+	fileName: string,
+	contentType: string,
+	stream: Readable
+) => {
 	res.set('Content-Type', `${contentType};charset=utf-8`);
 	res.set('Content-Disposition', `attachment;filename="${fileName}"`);
 	res.set('Transfer-Encoding', 'chunked');
