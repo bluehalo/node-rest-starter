@@ -9,8 +9,7 @@ const {
 	exportConfigController = require('../export/export-config.controller'),
 	exportConfigService = require('../export/export-config.service'),
 	feedbackService = require('./feedback.service'),
-	Feedback = dbs.admin.model('Feedback'),
-	ExportConfig = dbs.admin.model('ExportConfig');
+	Feedback = dbs.admin.model('Feedback');
 
 module.exports.submitFeedback = async function (req, res) {
 	const audit = await auditService.audit(
@@ -36,7 +35,7 @@ module.exports.adminGetFeedbackCSV = async function (req, res) {
 	const dateCallback = (value) => (value ? new Date(value).toISOString() : '');
 	const defaultCallback = (value) => (value ? value : '');
 
-	const result = await exportConfigService.getConfigById(exportId);
+	const result = await exportConfigService.read(exportId);
 
 	if (null == result) {
 		return Promise.reject({
@@ -53,7 +52,7 @@ module.exports.adminGetFeedbackCSV = async function (req, res) {
 		'export',
 		'export',
 		req,
-		ExportConfig.auditCopy(result)
+		result.auditCopy()
 	);
 
 	const columns = result.config.cols;

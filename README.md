@@ -75,77 +75,7 @@ In order to generate code coverage output via a single run of the test suite, `n
 
 ## Installing on Production
 
-Since Mongoose suggests not automatically creating Mongo indices on-the-fly, the following series of commands is available to run on the production Mongo instance / cluster to create all required indices.
+Since Mongoose suggests not automatically creating Mongo indices on-the-fly, the following utility script can be run, targeting the production Mongo instance / cluster, to create/sync all required indices.
 
-```js
-db.audit.createIndex({ created: -1 }, { background: true });
-db.audit.createIndex(
-	{
-		message: 'text',
-		'audit.auditType': 'text',
-		'audit.action': 'text',
-		'audit.object': 'text'
-	},
-	{ background: true }
-);
+`node ./src/sync-indexes.js`
 
-db.cache.entry.createIndex({ ts: 1 }, { background: true });
-db.cache.entry.createIndex({ key: 1 }, { background: true });
-
-db.exportconfigs.createIndex({ created: 1 }, { background: true });
-
-db.feedback.createIndex(
-	{ created: -1 },
-	{ background: true, expireAfterSeconds: 15552000 }
-);
-db.feedback.createIndex({ type: 1 }, { background: true });
-db.feedback.createIndex({ creator: 1 }), { background: true };
-db.feedback.createIndex({ url: 1 }, { background: true });
-db.feedback.createIndex({ os: 1 }, { background: true });
-db.feedback.createIndex({ browser: 1 }, { background: true });
-db.feedback.createIndex({ body: 'text' }, { background: true });
-
-db.messages.createIndex(
-	{ title: 'text', body: 'text', type: 'text' },
-	{ background: true }
-);
-db.messages.dismissed.createIndex(
-	{ created: -1 },
-	{ expireAfterSeconds: 2592000, background: true }
-);
-db.messages.dismissed.createIndex({ userId: 1 }, { background: true });
-
-db.notifications.createIndex({ user: 1, created: -1 }, { background: true });
-db.notifications.createIndex({ created: 1 }, { background: true });
-
-db.owners.createIndex({ name: 1 }, { background: true });
-
-db.preferences.createIndex({ user: 1, updated: -1 }, { background: true });
-db.preferences.createIndex(
-	{ user: 1, preferenceType: 1, updated: -1 },
-	{ background: true }
-);
-
-db.resources.createIndex({ created: 1, updated: -1 }, { background: true });
-db.resources.createIndex({ 'owner.name': 1 }, { background: true });
-db.resources.createIndex(
-	{ title_lowercase: 'text', description: 'text' },
-	{ background: true }
-);
-
-db.teams.createIndex(
-	{ name: 'text', description: 'text' },
-	{ background: true }
-);
-
-db.useragreements.createIndex(
-	{ title: 'text', text: 'text' },
-	{ background: true }
-);
-
-db.users.createIndex({ username: 1 }, { background: true });
-db.users.createIndex(
-	{ name: 'text', email: 'text', username: 'text' },
-	{ background: true }
-);
-```

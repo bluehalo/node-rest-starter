@@ -1,7 +1,6 @@
-/**
- * @type {import('json-schema').JSONSchema7}
- */
-module.exports.request = {
+import { JSONSchema7 } from 'json-schema';
+
+export const exportConfigSchema: JSONSchema7 = {
 	$schema: 'http://json-schema.org/draft-07/schema',
 	$id: 'node-rest-server/src/app/core/export-config/request',
 	type: 'object',

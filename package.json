@@ -48,7 +48,6 @@
     ]
   },
   "dependencies": {
-    "JSONPath": "0.11",
     "agenda": "^4.3.0",
     "async": "2.6",
     "bunyan": "1.8",
@@ -66,6 +65,7 @@
     "glob": "7.1",
     "handlebars": "^4.7.7",
     "helmet": "3.21.1",
+    "JSONPath": "0.11",
     "lodash": "4.17.21",
     "luxon": "^1.27.0",
     "method-override": "3.0",
@@ -98,6 +98,7 @@
     "@types/mocha": "^8.2.1",
     "@types/passport": "1.0.10",
     "@types/q": "1.5",
+    "@types/through2": "^2.0.36",
     "@types/yargs": "^17.0.10",
     "@typescript-eslint/eslint-plugin": "^5.33.1",
     "@typescript-eslint/parser": "^5.33.1",

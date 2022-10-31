@@ -4,7 +4,6 @@ const _ = require('lodash'),
 	{ config, dbs, auditService } = require('../../../dependencies'),
 	Team = dbs.admin.model('Team'),
 	TeamMember = dbs.admin.model('TeamUser'),
-	ExportConfig = dbs.admin.model('ExportConfig'),
 	exportConfigController = require('../export/export-config.controller'),
 	exportConfigService = require('../export/export-config.service');
 
@@ -12,7 +11,7 @@ const _ = require('lodash'),
 module.exports.adminGetCSV = async (req, res) => {
 	const exportId = req.params.exportId;
 
-	const result = await exportConfigService.getConfigById(exportId);
+	const result = await exportConfigService.read(exportId);
 
 	if (null == result) {
 		return Promise.reject({
@@ -27,7 +26,7 @@ module.exports.adminGetCSV = async (req, res) => {
 		'export',
 		'export',
 		req,
-		ExportConfig.auditCopy(result)
+		result.auditCopy()
 	);
 
 	const columns = result.config.cols,
@@ -56,8 +55,8 @@ module.exports.adminGetCSV = async (req, res) => {
 			case 'created':
 			case 'updated':
 			case 'acceptedEua':
-				col.callback = (value) => {
-					return value ? value.toISOString() : '';
+				col.callback = (/** @type {any} **/ value) => {
+					return value?.toISOString() ?? '';
 				};
 				break;
 			case 'teams':
