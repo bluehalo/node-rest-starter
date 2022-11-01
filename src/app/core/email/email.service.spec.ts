@@ -1,11 +1,8 @@
-'use strict';
+import should from 'should';
+import { createSandbox } from 'sinon';
+import uuid from 'uuid';
 
-const should = require('should'),
-	sinon = require('sinon'),
-	uuid = require('uuid'),
-	deps = require('../../../dependencies'),
-	emailService = deps.emailService,
-	config = deps.config;
+import deps, { config, emailService } from '../../../dependencies';
 
 /**
  * Unit tests
@@ -14,102 +11,104 @@ describe('Email Service:', () => {
 	let sandbox;
 
 	beforeEach(() => {
-		sandbox = sinon.createSandbox();
+		sandbox = createSandbox();
 	});
 
 	afterEach(() => {
 		sandbox.restore();
 	});
 
-	describe('getMissingMailOptions:', () => {
+	describe('validateMailOptions:', () => {
 		it('should find required missing fields', () => {
-			let missing = emailService.getMissingMailOptions({});
-			missing.length.should.equal(4);
-			missing[0].should.equal('("to" or "cc" or "bcc")');
-			missing[1].should.equal('"from"');
-			missing[2].should.equal('"subject"');
-			missing[3].should.equal('("text" or "html")');
-
-			missing = emailService.getMissingMailOptions({ to: null });
-			missing.length.should.equal(4);
-			missing[0].should.equal('("to" or "cc" or "bcc")');
-			missing[1].should.equal('"from"');
-			missing[2].should.equal('"subject"');
-			missing[3].should.equal('("text" or "html")');
-
-			missing = emailService.getMissingMailOptions({ to: undefined });
-			missing.length.should.equal(4);
-			missing[0].should.equal('("to" or "cc" or "bcc")');
-			missing[1].should.equal('"from"');
-			missing[2].should.equal('"subject"');
-			missing[3].should.equal('("text" or "html")');
-
-			missing = emailService.getMissingMailOptions({ to: '' });
-			missing.length.should.equal(4);
-			missing[0].should.equal('("to" or "cc" or "bcc")');
-			missing[1].should.equal('"from"');
-			missing[2].should.equal('"subject"');
-			missing[3].should.equal('("text" or "html")');
-
-			missing = emailService.getMissingMailOptions({
-				to: null,
-				from: '',
-				html: null
+			[
+				{},
+				{ to: undefined },
+				{ to: '' },
+				{
+					to: null,
+					from: '',
+					html: null
+				}
+			].forEach((options) => {
+				let error;
+				try {
+					emailService.validateMailOptions(options);
+				} catch (e) {
+					error = e;
+				}
+				error.message.should.equal(
+					'The following required values were not specified in mailOptions: ("to" or "cc" or "bcc"), "from", "subject", ("text" or "html")'
+				);
 			});
-			missing.length.should.equal(4);
-			missing[0].should.equal('("to" or "cc" or "bcc")');
-			missing[1].should.equal('"from"');
-			missing[2].should.equal('"subject"');
-			missing[3].should.equal('("text" or "html")');
 
-			missing = emailService.getMissingMailOptions({
-				to: 'recipient',
-				from: '',
-				html: null
+			[
+				{ to: 'recipient' },
+				{
+					to: 'recipient',
+					from: '',
+					html: null
+				}
+			].forEach((options) => {
+				let error;
+				try {
+					emailService.validateMailOptions(options);
+				} catch (e) {
+					error = e;
+				}
+				error.message.should.equal(
+					'The following required values were not specified in mailOptions: "from", "subject", ("text" or "html")'
+				);
 			});
-			missing.length.should.equal(3);
-			missing[0].should.equal('"from"');
-			missing[1].should.equal('"subject"');
-			missing[2].should.equal('("text" or "html")');
 
-			missing = emailService.getMissingMailOptions({ to: 'recipient' });
-			missing.length.should.equal(3);
-			missing[0].should.equal('"from"');
-			missing[1].should.equal('"subject"');
-			missing[2].should.equal('("text" or "html")');
+			let error;
+			try {
+				emailService.validateMailOptions({ from: 'sender' });
+			} catch (e) {
+				error = e;
+			}
+			error.message.should.equal(
+				'The following required values were not specified in mailOptions: ("to" or "cc" or "bcc"), "subject", ("text" or "html")'
+			);
 
-			missing = emailService.getMissingMailOptions({ from: 'sender' });
-			missing.length.should.equal(3);
-			missing[0].should.equal('("to" or "cc" or "bcc")');
-			missing[1].should.equal('"subject"');
-			missing[2].should.equal('("text" or "html")');
+			try {
+				emailService.validateMailOptions({
+					to: 'recipient',
+					from: 'sender',
+					html: '("text" or "html")'
+				});
+			} catch (e) {
+				error = e;
+			}
+			error.message.should.equal(
+				'The following required values were not specified in mailOptions: "subject"'
+			);
 
-			missing = emailService.getMissingMailOptions({
-				to: 'recipient',
-				from: 'sender',
-				html: '("text" or "html")'
-			});
-			missing.length.should.equal(1);
-			missing[0].should.equal('"subject"');
-
-			missing = emailService.getMissingMailOptions({
-				to: 'recipient',
-				from: 'sender',
-				html: '("text" or "html")',
-				subject: '"subject"'
-			});
-			missing.length.should.equal(0);
+			error = null;
+			try {
+				emailService.validateMailOptions({
+					to: 'recipient',
+					from: 'sender',
+					html: '("text" or "html")',
+					subject: 'subject'
+				});
+			} catch (e) {
+				error = e;
+			}
+			should(error).be.null();
 		});
 	});
 
 	describe('sendMail:', () => {
 		it('should fail for invalid mail provider', async () => {
+			// Need to clear cached provider from service to ensure proper test run.
+			emailService.provider = null;
+
 			sandbox.stub(deps.config, 'mailer').value({});
 
 			let error = null;
 
 			try {
-				await emailService.sendMail();
+				await emailService.sendMail({});
 			} catch (err) {
 				error = err;
 			}
@@ -163,7 +162,7 @@ describe('Email Service:', () => {
 		};
 
 		beforeEach(() => {
-			sandbox.stub(deps.config, 'coreEmails').value({
+			sandbox.stub(config, 'coreEmails').value({
 				default: {
 					header,
 					footer
@@ -209,7 +208,7 @@ ${footer}
 
 	describe('buildEmailSubject:', () => {
 		it('should build email subject', () => {
-			sandbox.stub(deps.config, 'coreEmails').value({
+			sandbox.stub(config, 'coreEmails').value({
 				default: {
 					subjectPrefix: '(pre)'
 				}
@@ -241,7 +240,7 @@ ${footer}
 		};
 
 		beforeEach(() => {
-			sandbox.stub(deps.config, 'coreEmails').value({
+			sandbox.stub(config, 'coreEmails').value({
 				default: {
 					header,
 					footer

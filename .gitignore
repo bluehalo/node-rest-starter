@@ -136,3 +136,4 @@ cobertura-coverage.xml
 
 *.mo
 *.pot
+/emails/

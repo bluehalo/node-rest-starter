@@ -1,7 +1,6 @@
 'use strict';
 
 module.exports = {
-
 	// Running in test mode
 	//mode: 'test',
 
@@ -21,7 +20,7 @@ module.exports = {
 	// Configuration for outgoing mail server / service
 	mailer: {
 		from: process.env.MAILER_FROM || 'USERNAME@GMAIL.COM',
-		provider: './src/app/core/email/providers/log-email.provider.js',
+		provider: './src/app/core/email/providers/log-email.provider.ts',
 		options: {}
 	},
 
@@ -39,5 +38,4 @@ module.exports = {
 		],
 		audit: []
 	}
-
 };
