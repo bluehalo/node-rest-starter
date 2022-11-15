@@ -18,7 +18,6 @@ module.exports.socketIO = require('./lib/socket.io');
 // Common Services
 module.exports.errorService = require('./app/common/errors.service');
 module.exports.utilService = require('./app/common/util.service');
-module.exports.schemaService = require('./app/common/schema.service');
 module.exports.csvStream = require('./app/common/csv-stream.service');
 module.exports.delayedStream = require('./app/common/delayed-stream.service');
 
