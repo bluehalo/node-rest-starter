@@ -9,7 +9,6 @@ const _ = require('lodash'),
 	dbs = deps.dbs,
 	teamsService = require('./teams.service'),
 	User = dbs.admin.model('User'),
-	Resource = dbs.admin.model('Resource'),
 	Team = dbs.admin.model('Team'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	TeamRole = dbs.admin.model('TeamRole');
@@ -434,22 +433,14 @@ describe('Team Service:', () => {
 		});
 
 		it('should reject if team has resources', async () => {
-			const resource = new Resource({
-				title: 'test resource',
-				description: 'this is a test resource',
-				owner: {
-					type: 'team',
-					_id: team.teamWithNoExternalTeam._id
-				}
-			});
-			await resource.save();
+			sandbox.stub(teamsService, 'getResourceCount').resolves(1);
 
 			await teamsService
 				.delete(team.teamWithNoExternalTeam)
 				.should.be.rejectedWith({
 					status: 400,
 					type: 'bad-request',
-					message: 'There are still resources in this group.'
+					message: 'There are still resources in this team.'
 				});
 
 			// Verify team still exists
