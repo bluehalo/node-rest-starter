@@ -1,10 +1,9 @@
-'use strict';
+import { Router } from 'express';
 
-const express = require('express'),
-	user = require('../user/user.controller'),
-	messages = require('./message.controller');
+import user from '../user/user.controller';
+import * as messages from './message.controller';
 
-const router = express.Router();
+const router = Router();
 
 // Create Message
 router.route('/admin/message').post(user.hasAdminAccess, messages.create);
@@ -24,9 +23,9 @@ router
 	.route('/admin/message/:msgId')
 	.get(user.hasAccess, messages.read)
 	.post(user.hasAdminAccess, messages.update)
-	.delete(user.hasAdminAccess, messages.delete);
+	.delete(user.hasAdminAccess, messages.deleteMessage);
 
 // Bind the message middleware
 router.param('msgId', messages.messageById);
 
-module.exports = router;
+export = router;

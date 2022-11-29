@@ -1,9 +1,12 @@
 'use strict';
 
-const _ = require('lodash'),
-	path = require('path'),
-	deps = require('../../../dependencies'),
-	config = deps.config,
+import path from 'path';
+
+import _ from 'lodash';
+
+import deps from '../../../dependencies';
+
+const config = deps.config,
 	logger = deps.logger,
 	socketIO = deps.socketIO,
 	socketProvider = require(path.posix.resolve(config.socketProvider)),

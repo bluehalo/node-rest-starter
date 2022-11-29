@@ -1,15 +1,13 @@
-'use strict';
+import { Router } from 'express';
+import { Validator } from 'express-json-validator-middleware';
 
-const express = require('express'),
-	{ Validator } = require('express-json-validator-middleware'),
-	feedback = require('./feedback.controller'),
-	user = require('../user/user.controller'),
-	feedbackSchemas = require('./feedback.schemas');
+import user from '../user/user.controller';
+import * as feedback from './feedback.controller';
+import { createFeedbackSchema } from './feedback.schemas';
 
-// @ts-ignore
-const { validate } = new Validator();
+const { validate } = new Validator({});
 
-const router = express.Router();
+const router = Router();
 
 /**
  * @swagger
@@ -49,7 +47,7 @@ router
 	.route('/feedback')
 	.post(
 		user.has(user.requiresLogin),
-		validate({ body: feedbackSchemas.create }),
+		validate({ body: createFeedbackSchema }),
 		feedback.submitFeedback
 	);
 
@@ -162,4 +160,4 @@ router
 
 router.param('feedbackId', feedback.feedbackById);
 
-module.exports = router;
+export = router;

@@ -1,7 +1,6 @@
-/**
- * @type {import('json-schema').JSONSchema7}
- */
-module.exports.create = {
+import { JSONSchema7 } from 'json-schema';
+
+export const createFeedbackSchema: JSONSchema7 = {
 	$schema: 'http://json-schema.org/draft-07/schema',
 	$id: 'node-rest-server/src/app/core/feedback/create',
 	type: 'object',

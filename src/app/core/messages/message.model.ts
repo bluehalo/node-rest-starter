@@ -115,10 +115,8 @@ MessageSchema.methods.fullCopy = function () {
 /**
  * Model Registration
  */
-const Message = model<IMessage, MessageModel>(
+export const Message = model<IMessage, MessageModel>(
 	'Message',
 	MessageSchema,
 	'messages'
 );
-
-export { Message };
