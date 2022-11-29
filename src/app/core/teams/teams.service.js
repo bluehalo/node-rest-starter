@@ -10,7 +10,6 @@ const _ = require('lodash'),
 		utilService
 	} = require('../../../dependencies'),
 	userAuthService = require('../user/auth/user-authorization.service'),
-	Resource = dbs.admin.model('Resource'),
 	TeamMember = dbs.admin.model('TeamUser'),
 	TeamRole = dbs.admin.model('TeamRole'),
 	User = dbs.admin.model('User');
@@ -373,20 +372,26 @@ class TeamsService {
 	 * @returns A promise that resolves if there are no more resources in the team, and rejects otherwise
 	 */
 	async verifyNoResourcesInTeam(team) {
-		const resources = await Resource.find({
-			'owner.type': 'team',
-			'owner._id': team._id
-		}).exec();
+		const resourceCount = await this.getResourceCount(team);
 
-		if (null != resources && resources.length > 0) {
+		if (resourceCount > 0) {
 			return Promise.reject({
 				status: 400,
 				type: 'bad-request',
-				message: 'There are still resources in this group.'
+				message: 'There are still resources in this team.'
 			});
 		}
 
 		return Promise.resolve();
+	}
+
+	/**
+	 * Stub implementation. Downstream projects can implement their own custom resource count logic to prevent team deletion.
+	 * @param team
+	 * @returns {Promise<number>}
+	 */
+	async getResourceCount(team) {
+		return Promise.resolve(0);
 	}
 
 	/**

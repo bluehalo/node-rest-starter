@@ -80,10 +80,8 @@ DismissedMessageSchema.methods.auditCopy = function () {
 /**
  * Model Registration
  */
-const DismissedMessage = model<IDismissedMessage, DismissedMessageModel>(
+export const DismissedMessage = model<IDismissedMessage, DismissedMessageModel>(
 	'DismissedMessage',
 	DismissedMessageSchema,
 	'messages.dismissed'
 );
-
-export { DismissedMessage };

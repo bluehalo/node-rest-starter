@@ -1,10 +1,8 @@
-'use strict';
-
-const { auditService } = require('../../../dependencies'),
-	messageService = require('./messages.service');
+import { auditService } from '../../../dependencies';
+import messageService from './messages.service';
 
 // Create
-module.exports.create = async (req, res) => {
+export const create = async (req, res) => {
 	const message = await messageService.create(req.user, req.body);
 
 	// Publish message
@@ -23,12 +21,12 @@ module.exports.create = async (req, res) => {
 };
 
 // Read
-exports.read = (req, res) => {
+export const read = (req, res) => {
 	res.status(200).json(req.message);
 };
 
 // Update
-module.exports.update = async (req, res) => {
+export const update = async (req, res) => {
 	// Make a copy of the original message for auditing purposes
 	const originalMessage = req.message.auditCopy();
 
@@ -44,7 +42,7 @@ module.exports.update = async (req, res) => {
 };
 
 // Delete
-module.exports.delete = async (req, res) => {
+export const deleteMessage = async (req, res) => {
 	await messageService.delete(req.message);
 
 	// Audit the message delete attempt
@@ -60,7 +58,7 @@ module.exports.delete = async (req, res) => {
 };
 
 // Search - with paging and sorting
-module.exports.search = async (req, res) => {
+export const search = async (req, res) => {
 	const results = await messageService.search(
 		req.query,
 		req.body.s,
@@ -82,7 +80,7 @@ module.exports.search = async (req, res) => {
 /**
  * Message middleware
  */
-module.exports.messageById = async (req, res, next, id) => {
+export const messageById = async (req, res, next, id) => {
 	const message = await messageService.read(id);
 	if (!message) {
 		return next(new Error(`Failed to load message: ${id}`));
@@ -94,7 +92,7 @@ module.exports.messageById = async (req, res, next, id) => {
 /**
  * Gets recent messages from the past week that have not been dismissed
  */
-module.exports.getRecentMessages = async (req, res) => {
+export const getRecentMessages = async (req, res) => {
 	const result = await messageService.getRecentMessages(req.user._id);
 	res.status(200).json(result);
 };
@@ -104,7 +102,7 @@ module.exports.getRecentMessages = async (req, res) => {
  * @param req
  * @param res
  */
-exports.dismissMessage = async (req, res) => {
+export const dismissMessage = async (req, res) => {
 	const dismissedMessages = await messageService.dismissMessages(
 		req.body['messageIds'],
 		req.user

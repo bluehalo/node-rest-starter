@@ -5,7 +5,6 @@ const sinon = require('sinon'),
 	User = deps.dbs.admin.model('User'),
 	userEmailService = require('../user-email.service'),
 	userService = require('../user.service'),
-	resourcesService = require('../../resources/resources.service'),
 	userAdminController = require('./user-admin.controller');
 
 /**
@@ -137,7 +136,6 @@ describe('User Admin Controller:', () => {
 
 			sandbox.stub(deps.auditService, 'audit').resolves();
 			sandbox.stub(userEmailService, 'emailApprovedUser').resolves();
-			sandbox.stub(resourcesService, 'deleteResourcesWithOwner').resolves();
 		});
 
 		it('user is found', async () => {
@@ -200,7 +198,6 @@ describe('User Admin Controller:', () => {
 			};
 
 			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(resourcesService, 'deleteResourcesWithOwner').resolves();
 		});
 
 		it('user is found', async () => {
@@ -212,7 +209,6 @@ describe('User Admin Controller:', () => {
 				deps.auditService.audit,
 				'admin user deleted'
 			);
-			sinon.assert.calledOnce(resourcesService.deleteResourcesWithOwner);
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
 		});

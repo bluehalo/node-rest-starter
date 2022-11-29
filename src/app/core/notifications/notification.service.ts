@@ -1,5 +1,3 @@
-'use strict';
-
 import { FilterQuery } from 'mongoose';
 
 import { dbs, utilService } from '../../../dependencies';

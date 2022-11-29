@@ -1,8 +1,6 @@
-'use strict';
+import notificationsService from './notification.service';
 
-const notificationsService = require('./notification.service');
-
-module.exports.search = async (req, res) => {
+export const search = async (req, res) => {
 	// Get search and query parameters
 	const query = req.body.q ?? {};
 

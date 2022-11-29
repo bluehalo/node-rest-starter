@@ -1,11 +1,7 @@
-const should = require('should');
-
 describe('Config Server Controller', () => {
-
 	const configController = require('./config.controller');
 
 	describe('#getSystemConfig', () => {
-
 		it('should not include the mailer configuration', () => {
 			const systemConfig = configController.getSystemConfig();
 			systemConfig.should.not.have.property('mailer');
