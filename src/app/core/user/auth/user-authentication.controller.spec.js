@@ -319,7 +319,7 @@ describe('User Auth Controller:', () => {
 					config.auth.strategy = 'proxy-pki';
 					config.auth.accessChecker = {
 						provider: {
-							file: 'src/app/core/access-checker/providers/example-provider.service.js',
+							file: 'src/app/core/access-checker/providers/example.provider',
 							config: accessCheckerConfig
 						}
 					};

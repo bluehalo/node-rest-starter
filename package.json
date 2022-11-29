@@ -44,6 +44,7 @@
     "include": "src",
     "exclude": [
       "**/*.spec.js",
+      "**/*.spec.ts",
       "src/test.js"
     ]
   },
