@@ -83,10 +83,8 @@ NotificationSchema.methods.auditCopy = function (): Record<string, unknown> {
 /**
  * Model Registration
  */
-const Notification = model<INotification, NotificationModel>(
+export const Notification = model<INotification, NotificationModel>(
 	'Notification',
 	NotificationSchema,
 	'notifications'
 );
-
-export { Notification };

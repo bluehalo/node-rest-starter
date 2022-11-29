@@ -1,10 +1,7 @@
-'use strict';
+import { config } from '../../../dependencies';
+import pkg from '../../../../package.json';
 
-const deps = require('../../../dependencies'),
-	config = deps.config,
-	pkg = require('../../../../package.json');
-
-const getSystemConfig = function () {
+export const getSystemConfig = () => {
 	const toReturn = {
 		auth: config.auth.strategy,
 		apiDocs: config.apiDocs,
@@ -31,10 +28,8 @@ const getSystemConfig = function () {
 	return toReturn;
 };
 
-exports.getSystemConfig = getSystemConfig;
-
 // Read
-exports.read = function (req, res) {
+export const read = function (req, res) {
 	/**
 	 *  Add unsecured configuration data
 	 */

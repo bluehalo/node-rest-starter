@@ -102,10 +102,8 @@ FeedbackSchema.index({ body: 'text' });
 /**
  * Register the Schema with Mongoose
  */
-const Feedback = model<IFeedback, FeedbackModel>(
+export const Feedback = model<IFeedback, FeedbackModel>(
 	'Feedback',
 	FeedbackSchema,
 	'feedback'
 );
-
-export { Feedback };

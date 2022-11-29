@@ -1,17 +1,12 @@
-'use strict';
+import { auditService, config, dbs, utilService } from '../../../dependencies';
+import * as exportConfigController from '../export/export-config.controller';
+import exportConfigService from '../export/export-config.service';
+import { FeedbackModel } from './feedback.model';
+import feedbackService from './feedback.service';
 
-const {
-		dbs,
-		config,
-		auditService,
-		utilService
-	} = require('../../../dependencies'),
-	exportConfigController = require('../export/export-config.controller'),
-	exportConfigService = require('../export/export-config.service'),
-	feedbackService = require('./feedback.service'),
-	Feedback = dbs.admin.model('Feedback');
+const Feedback: FeedbackModel = dbs.admin.model('Feedback');
 
-module.exports.submitFeedback = async function (req, res) {
+export const submitFeedback = async function (req, res) {
 	const audit = await auditService.audit(
 		'Feedback submitted',
 		'feedback',
@@ -29,7 +24,7 @@ module.exports.submitFeedback = async function (req, res) {
 	res.status(200).json(feedback);
 };
 
-module.exports.adminGetFeedbackCSV = async function (req, res) {
+export const adminGetFeedbackCSV = async function (req, res) {
 	const exportId = req.params['exportId'];
 
 	const dateCallback = (value) => (value ? new Date(value).toISOString() : '');
@@ -87,7 +82,7 @@ module.exports.adminGetFeedbackCSV = async function (req, res) {
 	);
 };
 
-module.exports.search = async (req, res) => {
+export const search = async (req, res) => {
 	const results = await feedbackService.search(
 		req.query,
 		req.body.s,
@@ -96,7 +91,7 @@ module.exports.search = async (req, res) => {
 	res.status(200).json(results);
 };
 
-module.exports.updateFeedbackAssignee = async (req, res) => {
+export const updateFeedbackAssignee = async (req, res) => {
 	// Audit feedback assignee update
 	await auditService.audit(
 		'Feedback assignee updated',
@@ -114,7 +109,7 @@ module.exports.updateFeedbackAssignee = async (req, res) => {
 	res.status(200).json(updatedFeedback);
 };
 
-module.exports.updateFeedbackStatus = async (req, res) => {
+export const updateFeedbackStatus = async (req, res) => {
 	// Audit feedback status update
 	await auditService.audit(
 		'Feedback status updated',
@@ -135,7 +130,7 @@ module.exports.updateFeedbackStatus = async (req, res) => {
 /**
  * Feedback middleware
  */
-module.exports.feedbackById = async (req, res, next, id) => {
+export const feedbackById = async (req, res, next, id) => {
 	const populate = [
 		{
 			path: 'creator',
