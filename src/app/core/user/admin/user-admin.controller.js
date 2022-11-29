@@ -9,7 +9,6 @@ const _ = require('lodash'),
 		auditService
 	} = require('../../../../dependencies'),
 	User = dbs.admin.model('User'),
-	resourcesService = require('../../resources/resources.service'),
 	userAuthorizationService = require('../auth/user-authorization.service'),
 	userService = require('../user.service'),
 	userEmailService = require('../user-email.service');
@@ -103,7 +102,6 @@ exports.adminDeleteUser = async (req, res) => {
 		req,
 		User.auditCopy(user)
 	);
-	await resourcesService.deleteResourcesWithOwner(user._id, 'user');
 	await userService.remove(user);
 	res.status(200).json(User.fullCopy(user));
 };
