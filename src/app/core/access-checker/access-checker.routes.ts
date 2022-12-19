@@ -1,17 +1,15 @@
-'use strict';
+import { Router } from 'express';
 
-const express = require('express'),
-	deps = require('../../../dependencies'),
-	logger = deps.logger,
-	user = require('../../core/user/user.controller'),
-	accessChecker = require('./access-checker.controller');
+import { logger } from '../../../dependencies';
+import user from '../../core/user/user.controller';
+import * as accessChecker from './access-checker.controller';
 
 /**
  * Routes that only apply to the 'proxy-pki' passport strategy
  */
 logger.info('Configuring proxy-pki user authentication routes.');
 
-const router = express.Router();
+const router = Router();
 
 /**
  * @swagger
@@ -52,4 +50,4 @@ router
 	.route('/access-checker/user')
 	.post(user.has(user.requiresLogin), accessChecker.refreshCurrentUser);
 
-module.exports = router;
+export = router;
