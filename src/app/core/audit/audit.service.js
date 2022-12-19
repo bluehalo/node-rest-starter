@@ -51,8 +51,8 @@ module.exports.audit = async (
 	if (requestOrEventActor.name && requestOrEventActor.username) {
 		actor = requestOrEventActor;
 	} else if (requestOrEventActor.user && requestOrEventActor.headers) {
-		const TeamMember = dbs.admin.model('TeamUser');
-		actor = await TeamMember.auditCopy(
+		const User = dbs.admin.model('User');
+		actor = await User.auditCopy(
 			requestOrEventActor.user,
 			utilService.getHeaderField(requestOrEventActor.headers, 'x-real-ip')
 		);

@@ -254,6 +254,7 @@ describe('User Model:', () => {
 					providerData: {
 						dn
 					},
+					teams: undefined,
 					roles: { test: true },
 					preferences: true
 				};

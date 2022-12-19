@@ -13,6 +13,7 @@ const _ = require('lodash'),
 		containsSearchPlugin
 	} = require('../../common/mongoose/contains-search.plugin'),
 	{ textSearchPlugin } = require('../../common/mongoose/text-search.plugin');
+const { TeamRoleSchema } = require('../teams/team-role.model');
 
 /**
  * Import types for reference below
@@ -238,7 +239,8 @@ const UserSchema = new mongoose.Schema(
 		},
 		preferences: {
 			type: {}
-		}
+		},
+		teams: [TeamRoleSchema]
 	},
 	{
 		timestamps: {
@@ -337,7 +339,7 @@ UserSchema.statics.hasRoles = function (user, roles) {
 };
 
 // Filtered Copy of a User (public)
-UserSchema.statics.filteredCopy = function (user) {
+const filteredCopy = function (user) {
 	/**
 	 * @type {Object.<string, any>}
 	 */
@@ -374,6 +376,8 @@ UserSchema.statics.filteredCopy = function (user) {
 
 	return toReturn;
 };
+
+UserSchema.statics.filteredCopy = filteredCopy;
 
 // Full Copy of a User (admin)
 UserSchema.statics.fullCopy = function (user) {
@@ -436,6 +440,7 @@ UserSchema.statics.auditCopy = function (user, userIP) {
 	if (null != userIP) {
 		toReturn.ip = userIP;
 	}
+	toReturn.teams = _.cloneDeep(user.teams);
 
 	toReturn.roles = _.cloneDeep(user.roles);
 	toReturn.bypassAccessCheck = user.bypassAccessCheck;

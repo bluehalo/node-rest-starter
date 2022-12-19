@@ -18,7 +18,7 @@ class UserService {
 	}
 
 	/**
-	 * @param {string} id
+	 * @param {string | import('mongoose').Types.ObjectId} id
 	 * @param {string | PopulateOptions | Array<string | PopulateOptions>} [populate]
 	 * @returns {Promise<UserDocument | null>}
 	 */
@@ -59,7 +59,7 @@ class UserService {
 		query = query || {};
 		const page = utilService.getPage(queryParams);
 		const limit = utilService.getLimit(queryParams);
-		const sort = utilService.getSortObj(queryParams, 'DESC');
+		const sort = utilService.getSortObj(queryParams, 'DESC', '_id');
 
 		let mQuery = this.model.find(query);
 

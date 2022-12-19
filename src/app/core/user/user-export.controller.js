@@ -3,7 +3,7 @@
 const _ = require('lodash'),
 	{ config, dbs, auditService } = require('../../../dependencies'),
 	Team = dbs.admin.model('Team'),
-	TeamMember = dbs.admin.model('TeamUser'),
+	User = dbs.admin.model('User'),
 	exportConfigController = require('../export/export-config.controller'),
 	exportConfigService = require('../export/export-config.service');
 
@@ -65,13 +65,13 @@ module.exports.adminGetCSV = async (req, res) => {
 		}
 	});
 
-	const teamResults = await TeamMember.find(query)
+	const teamResults = await User.find(query)
 		.textSearch(search)
 		.sort(sort)
 		.exec()
 		.then((userResult) => {
 			// Process user data to be usable for CSV
-			userData = (userResult || []).map((user) => TeamMember.fullCopy(user));
+			userData = (userResult || []).map((user) => User.fullCopy(user));
 
 			if (isTeamRequested) {
 				let teamIds = [];

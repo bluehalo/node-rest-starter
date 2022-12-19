@@ -1,13 +1,11 @@
-'use strict';
+import should from 'should';
 
-const should = require('should'),
-	deps = require('../../../dependencies'),
-	dbs = deps.dbs,
-	Audit = dbs.admin.model('Audit'),
-	Team = dbs.admin.model('Team'),
-	TeamMember = dbs.admin.model('TeamUser');
+import { dbs } from '../../../dependencies';
+import { TeamModel } from './team.model';
 
-const { spy } = require('sinon');
+const Audit = dbs.admin.model('Audit');
+const Team: TeamModel = dbs.admin.model('Team');
+const User = dbs.admin.model('User');
 
 /**
  * Globals
@@ -16,7 +14,7 @@ function clearDatabase() {
 	return Promise.all([
 		Audit.deleteMany({}).exec(),
 		Team.deleteMany({}).exec(),
-		TeamMember.deleteMany({}).exec()
+		User.deleteMany({}).exec()
 	]);
 }
 
@@ -86,10 +84,10 @@ describe('Team Model:', () => {
 	});
 
 	describe('User team role', () => {
-		const user1 = new TeamMember(spec.user1);
+		const user1 = new User(spec.user1);
 
 		it('should begin with no users', () => {
-			return TeamMember.find({})
+			return User.find({})
 				.exec()
 				.then((users) => {
 					users.should.have.length(0);
@@ -121,31 +119,31 @@ describe('Team Model:', () => {
 			user1.teams.push({ _id: team3.id, role: 'admin' });
 		});
 
-		describe('Static methods', () => {
-			describe('teamCopy', () => {
-				it('should return null if passed null', () => {
-					should(TeamMember.teamCopy(null)).be.null();
-				});
-				it('should defer to user filteredCopy', () => {
-					const filteredSpy = spy(dbs.admin.model('User'), 'filteredCopy');
-					const teams = [1, 2, 3];
-					const user = {
-						_id: 'test',
-						name: 'test',
-						organizationLevels: 1,
-						lastLogin: undefined,
-						username: 'test',
-						password: 'sneaky',
-						teams
-					};
-					const copy = TeamMember.teamCopy(user);
-					should(filteredSpy.calledWith(user)).be.true();
-					// Check for sensitive info & clean expectation.
-					should(copy.password).be.undefined();
-					delete user.password;
-					should(copy).be.eql(user);
-				});
-			});
-		});
+		// describe('Static methods', () => {
+		// 	describe('teamCopy', () => {
+		// 		it('should return null if passed null', () => {
+		// 			should(User.teamCopy(null)).be.null();
+		// 		});
+		// 		it('should defer to user filteredCopy', () => {
+		// 			const filteredSpy = spy(dbs.admin.model('User'), 'filteredCopy');
+		// 			const teams = [1, 2, 3];
+		// 			const user = {
+		// 				_id: 'test',
+		// 				name: 'test',
+		// 				organizationLevels: 1,
+		// 				lastLogin: undefined,
+		// 				username: 'test',
+		// 				password: 'sneaky',
+		// 				teams
+		// 			};
+		// 			const copy = User.teamCopy(user);
+		// 			should(filteredSpy.calledWith(user)).be.true();
+		// 			// Check for sensitive info & clean expectation.
+		// 			should(copy.password).be.undefined();
+		// 			delete user.password;
+		// 			should(copy).be.eql(user);
+		// 		});
+		// 	});
+		// });
 	});
 });
