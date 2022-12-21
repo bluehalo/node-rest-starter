@@ -1,3 +1,4 @@
+import { Request } from 'express';
 import {
 	dbs,
 	config,
@@ -5,28 +6,28 @@ import {
 	auditLogger,
 	utilService
 } from '../../../dependencies';
-import { AuditModel } from './types';
+import { AuditDocument, AuditModel } from './types';
 
 class AuditService {
 	/**
 	 * Creates an audit entry persisted to Mongo and the bunyan logger
 	 *
-	 * @param {string} message
-	 * @param {string} eventType
-	 * @param {string} eventAction
-	 * @param {import('express').Request | Promise<object> | object} requestOrEventActor
-	 * @param {object} eventObject
-	 * @param {*} eventMetadata
-	 * @returns {Promise<any>}
+	 * @param message Audit message
+	 * @param eventType Audit Event Type
+	 * @param eventAction Audit Action
+	 * @param requestOrEventActor Request or Event Actor Information
+	 * @param eventObject Audit Event Object
+	 * @param eventMetadata Audit Event Metadata
+	 * @returns Promise of the saved Audit Document
 	 */
-	audit = async (
-		message,
-		eventType,
-		eventAction,
-		requestOrEventActor,
-		eventObject,
+	async audit(
+		message: string,
+		eventType: string,
+		eventAction: string,
+		requestOrEventActor: Request | Promise<any> | any,
+		eventObject: any,
 		eventMetadata = null
-	) => {
+	): Promise<AuditDocument> {
 		// Delay resolving the Audit model until we can be sure it has been initialized
 		const Audit: AuditModel = dbs.admin.model('Audit');
 
@@ -82,7 +83,7 @@ class AuditService {
 			);
 			return Promise.reject(err);
 		});
-	};
+	}
 
 	/**
 	 * Creates an audit entry persisted to Mongo and the bunyan logger
