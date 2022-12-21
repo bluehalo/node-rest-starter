@@ -1,10 +1,8 @@
-'use strict';
+import { Router } from 'express';
+import user from '../user/user.controller';
+import * as audit from './audit.controller';
 
-const express = require('express'),
-	user = require('../user/user.controller'),
-	audit = require('./audit.controller');
-
-const router = express.Router();
+const router = Router();
 
 router.route('/audit').post(user.hasAuditorAccess, audit.search);
 

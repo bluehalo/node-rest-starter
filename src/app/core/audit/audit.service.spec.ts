@@ -1,9 +1,7 @@
-'use strict';
-
-const should = require('should'),
-	{ dbs } = require('../../../dependencies'),
-	Audit = dbs.admin.model('Audit'),
-	auditService = require('./audit.service');
+import should from 'should';
+import { dbs } from '../../../dependencies';
+import auditService from './audit.service';
+const Audit = dbs.admin.model('Audit');
 
 /**
  * Globals

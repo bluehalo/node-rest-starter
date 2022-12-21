@@ -1,31 +1,20 @@
-'use strict';
-
-const mongoose = require('mongoose'),
-	getterPlugin = require('../../common/mongoose/getter.plugin'),
-	{ paginatePlugin } = require('../../common/mongoose/paginate.plugin'),
-	{
-		containsSearchPlugin
-	} = require('../../common/mongoose/contains-search.plugin');
-
-/**
- * Import types for reference below
- * @typedef {import('./types').AuditDocument} AuditDocument
- * @typedef {import('./types').AuditModel} AuditModel
- */
+import { model, Schema } from 'mongoose';
+import getterPlugin from '../../common/mongoose/getter.plugin';
+import { paginatePlugin } from '../../common/mongoose/paginate.plugin';
+import { containsSearchPlugin } from '../../common/mongoose/contains-search.plugin';
+import { AuditDocument, AuditModel } from './types';
 
 /**
  * Schema Declaration
- *
- * @type {mongoose.Schema<AuditDocument, AuditModel>}
  */
-const AuditSchema = new mongoose.Schema(
+const AuditSchema = new Schema<AuditDocument, AuditModel>(
 	{
 		message: { type: String },
 		audit: {
 			auditType: { type: String },
 			action: { type: String },
 			actor: { type: Object },
-			object: { type: mongoose.Schema.Types.Mixed },
+			object: { type: Schema.Types.Mixed },
 			userSpec: {
 				browser: { type: String },
 				os: { type: String }
@@ -80,10 +69,6 @@ AuditSchema.index({ message: 1 });
 /**
  * Register the Schema with Mongoose
  */
-/**
- *
- * @type {import('./types').AuditModel}
- */
-const Audit = mongoose.model('Audit', AuditSchema, 'audit');
+const Audit = model('Audit', AuditSchema, 'audit');
 
 module.exports = Audit;
