@@ -448,5 +448,11 @@ module.exports = {
 	/*
 	 * Configurations for External Services
 	 */
-	external: {}
+	external: {},
+
+	/*
+	 * Whether the delete user functionality is enabled or disabled
+	 */
+	allowDelete: true
+
 };
