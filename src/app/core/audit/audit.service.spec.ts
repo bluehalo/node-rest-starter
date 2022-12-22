@@ -1,4 +1,5 @@
 import should from 'should';
+
 import { dbs } from '../../../dependencies';
 import auditService from './audit.service';
 const Audit = dbs.admin.model('Audit');

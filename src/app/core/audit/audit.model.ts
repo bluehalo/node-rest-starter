@@ -1,7 +1,8 @@
 import { model, Schema } from 'mongoose';
+
+import { containsSearchPlugin } from '../../common/mongoose/contains-search.plugin';
 import getterPlugin from '../../common/mongoose/getter.plugin';
 import { paginatePlugin } from '../../common/mongoose/paginate.plugin';
-import { containsSearchPlugin } from '../../common/mongoose/contains-search.plugin';
 import { AuditDocument, AuditModel } from './types';
 
 /**
