@@ -95,7 +95,7 @@ exports.adminDeleteUser = async (req, res) => {
 	// Init Variables
 	const user = req.userParam;
 
-	if (!config?.allowDelete) {
+	if (!config?.allowUserDelete) {
 		return res.status(403).json({
 			message: 'User deletion is disabled'
 		});
