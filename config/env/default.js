@@ -453,6 +453,6 @@ module.exports = {
 	/*
 	 * Whether the delete user functionality is enabled or disabled
 	 */
-	allowUserDelete: true
+	allowDeleteUser: true
 
 };
