@@ -22,7 +22,9 @@ export const getSystemConfig = () => {
 
 		masqueradeEnabled:
 			config.auth.strategy === 'proxy-pki' && config.auth.masquerade === true,
-		masqueradeUserHeader: config.masqueradeUserHeader
+		masqueradeUserHeader: config.masqueradeUserHeader,
+
+		allowDeleteUser: config.allowDeleteUser
 	};
 
 	return toReturn;
