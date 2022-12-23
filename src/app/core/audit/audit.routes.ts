@@ -11,4 +11,4 @@ router
 	.route('/audit/distinctValues')
 	.get(user.hasAuditorAccess, audit.getDistinctValues);
 
-module.exports = router;
+export = router;

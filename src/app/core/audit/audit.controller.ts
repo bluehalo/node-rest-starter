@@ -1,8 +1,9 @@
 import _ from 'lodash';
 
 import { dbs, utilService as util } from '../../../dependencies';
+import { AuditModel } from './audit.model';
 
-const Audit = dbs.admin.model('Audit');
+const Audit: AuditModel = dbs.admin.model('Audit');
 
 /**
  * Retrieves the distinct values for a field in the Audit collection

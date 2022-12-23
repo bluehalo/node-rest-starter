@@ -1,9 +1,37 @@
-import { model, Schema } from 'mongoose';
+import { HydratedDocument, Model, model, Schema } from 'mongoose';
 
-import { containsSearchPlugin } from '../../common/mongoose/contains-search.plugin';
+import {
+	ContainsSearchable,
+	containsSearchPlugin
+} from '../../common/mongoose/contains-search.plugin';
 import getterPlugin from '../../common/mongoose/getter.plugin';
-import { paginatePlugin } from '../../common/mongoose/paginate.plugin';
-import { AuditDocument, AuditModel } from './types';
+import {
+	Paginateable,
+	paginatePlugin
+} from '../../common/mongoose/paginate.plugin';
+
+interface IAudit {
+	created: Date;
+	message: string;
+	audit: {
+		auditType: string;
+		action: string;
+		actor: Record<string, unknown>;
+		object: string | Record<string, unknown>;
+		userSpec: {
+			browser: string;
+			os: string;
+		};
+		masqueradingUser?: string;
+	};
+}
+
+export type AuditDocument = HydratedDocument<IAudit>;
+
+export type AuditModel = Model<
+	AuditDocument,
+	ContainsSearchable & Paginateable<AuditDocument>
+>;
 
 /**
  * Schema Declaration
@@ -70,6 +98,4 @@ AuditSchema.index({ message: 1 });
 /**
  * Register the Schema with Mongoose
  */
-const Audit = model('Audit', AuditSchema, 'audit');
-
-module.exports = Audit;
+export const Audit = model<IAudit, AuditModel>('Audit', AuditSchema, 'audit');

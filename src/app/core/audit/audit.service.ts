@@ -7,7 +7,7 @@ import {
 	auditLogger,
 	utilService
 } from '../../../dependencies';
-import { AuditDocument, AuditModel } from './types';
+import { AuditDocument, AuditModel } from './audit.model';
 
 class AuditService {
 	/**

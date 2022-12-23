@@ -1,8 +1,10 @@
 import should from 'should';
 
 import { dbs } from '../../../dependencies';
+import { AuditModel } from './audit.model';
 import auditService from './audit.service';
-const Audit = dbs.admin.model('Audit');
+
+const Audit: AuditModel = dbs.admin.model('Audit');
 
 /**
  * Globals
