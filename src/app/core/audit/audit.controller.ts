@@ -1,20 +1,19 @@
-'use strict';
+import _ from 'lodash';
 
-const _ = require('lodash'),
-	deps = require('../../../dependencies'),
-	dbs = deps.dbs,
-	util = deps.utilService,
-	Audit = dbs.admin.model('Audit');
+import { dbs, utilService as util } from '../../../dependencies';
+import { AuditModel } from './audit.model';
+
+const Audit: AuditModel = dbs.admin.model('Audit');
 
 /**
  * Retrieves the distinct values for a field in the Audit collection
  */
-module.exports.getDistinctValues = async (req, res) => {
+export const getDistinctValues = async (req, res) => {
 	const results = await Audit.distinct(req.query.field, {});
 	res.status(200).json(results);
 };
 
-module.exports.search = async function (req, res) {
+export const search = async function (req, res) {
 	const search = req.body.s || null;
 	let query = req.body.q || {};
 	query = util.toMongoose(query);
