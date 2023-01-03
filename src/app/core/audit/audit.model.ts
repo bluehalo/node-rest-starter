@@ -1,31 +1,49 @@
-'use strict';
+import { HydratedDocument, Model, model, Schema } from 'mongoose';
 
-const mongoose = require('mongoose'),
-	getterPlugin = require('../../common/mongoose/getter.plugin'),
-	{ paginatePlugin } = require('../../common/mongoose/paginate.plugin'),
-	{
-		containsSearchPlugin
-	} = require('../../common/mongoose/contains-search.plugin');
+import {
+	ContainsSearchable,
+	containsSearchPlugin
+} from '../../common/mongoose/contains-search.plugin';
+import getterPlugin from '../../common/mongoose/getter.plugin';
+import {
+	Paginateable,
+	paginatePlugin
+} from '../../common/mongoose/paginate.plugin';
 
-/**
- * Import types for reference below
- * @typedef {import('./types').AuditDocument} AuditDocument
- * @typedef {import('./types').AuditModel} AuditModel
- */
+interface IAudit {
+	created: Date;
+	message: string;
+	audit: {
+		auditType: string;
+		action: string;
+		actor: Record<string, unknown>;
+		object: string | Record<string, unknown>;
+		userSpec: {
+			browser: string;
+			os: string;
+		};
+		masqueradingUser?: string;
+	};
+}
+
+export type AuditDocument = HydratedDocument<IAudit>;
+
+export type AuditModel = Model<
+	AuditDocument,
+	ContainsSearchable & Paginateable<AuditDocument>
+>;
 
 /**
  * Schema Declaration
- *
- * @type {mongoose.Schema<AuditDocument, AuditModel>}
  */
-const AuditSchema = new mongoose.Schema(
+const AuditSchema = new Schema<AuditDocument, AuditModel>(
 	{
 		message: { type: String },
 		audit: {
 			auditType: { type: String },
 			action: { type: String },
 			actor: { type: Object },
-			object: { type: mongoose.Schema.Types.Mixed },
+			object: { type: Schema.Types.Mixed },
 			userSpec: {
 				browser: { type: String },
 				os: { type: String }
@@ -80,10 +98,4 @@ AuditSchema.index({ message: 1 });
 /**
  * Register the Schema with Mongoose
  */
-/**
- *
- * @type {import('./types').AuditModel}
- */
-const Audit = mongoose.model('Audit', AuditSchema, 'audit');
-
-module.exports = Audit;
+export const Audit = model<IAudit, AuditModel>('Audit', AuditSchema, 'audit');

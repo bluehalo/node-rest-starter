@@ -95,6 +95,12 @@ exports.adminDeleteUser = async (req, res) => {
 	// Init Variables
 	const user = req.userParam;
 
+	if (!config?.allowDeleteUser) {
+		return res.status(403).json({
+			message: 'User deletion is disabled'
+		});
+	}
+
 	await auditService.audit(
 		'admin user deleted',
 		'user',
