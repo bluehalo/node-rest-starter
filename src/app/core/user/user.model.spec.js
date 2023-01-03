@@ -4,6 +4,7 @@ const should = require('should'),
 	deps = require('../../../dependencies'),
 	dbs = deps.dbs,
 	User = dbs.admin.model('User');
+const mongoose = require('mongoose');
 
 /**
  * Globals
@@ -254,7 +255,7 @@ describe('User Model:', () => {
 					providerData: {
 						dn
 					},
-					teams: undefined,
+					teams: [{ _id: new mongoose.Types.ObjectId(), role: 'member' }],
 					roles: { test: true },
 					preferences: true
 				};
