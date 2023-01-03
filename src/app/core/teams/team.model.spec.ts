@@ -118,32 +118,5 @@ describe('Team Model:', () => {
 			user1.teams.push({ _id: team2.id, role: 'editor' });
 			user1.teams.push({ _id: team3.id, role: 'admin' });
 		});
-
-		// describe('Static methods', () => {
-		// 	describe('teamCopy', () => {
-		// 		it('should return null if passed null', () => {
-		// 			should(User.teamCopy(null)).be.null();
-		// 		});
-		// 		it('should defer to user filteredCopy', () => {
-		// 			const filteredSpy = spy(dbs.admin.model('User'), 'filteredCopy');
-		// 			const teams = [1, 2, 3];
-		// 			const user = {
-		// 				_id: 'test',
-		// 				name: 'test',
-		// 				organizationLevels: 1,
-		// 				lastLogin: undefined,
-		// 				username: 'test',
-		// 				password: 'sneaky',
-		// 				teams
-		// 			};
-		// 			const copy = User.teamCopy(user);
-		// 			should(filteredSpy.calledWith(user)).be.true();
-		// 			// Check for sensitive info & clean expectation.
-		// 			should(copy.password).be.undefined();
-		// 			delete user.password;
-		// 			should(copy).be.eql(user);
-		// 		});
-		// 	});
-		// });
 	});
 });
