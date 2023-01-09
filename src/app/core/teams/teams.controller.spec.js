@@ -4,7 +4,11 @@ const should = require('should'),
 	sinon = require('sinon'),
 	teamsController = require('./teams.controller'),
 	teamsService = require('./teams.service'),
-	deps = require('../../../dependencies');
+	userService = require('../user/user.service'),
+	{ auditService, dbs, logger } = require('../../../dependencies');
+
+const Team = dbs.admin.model('Team');
+const User = dbs.admin.model('User');
 
 /**
  * Unit tests
@@ -31,19 +35,15 @@ describe('Teams Controller:', () => {
 		it('create successful', async () => {
 			const req = {
 				body: {},
-				user: {
-					toObject: () => {
-						return {};
-					}
-				}
+				user: new User()
 			};
-			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(teamsService, 'create').resolves(undefined);
+			sandbox.stub(auditService, 'audit').resolves();
+			sandbox.stub(teamsService, 'create').resolves(new Team());
 
 			await teamsController.create(req, res);
 
 			sinon.assert.calledOnce(teamsService.create);
-			sinon.assert.calledOnce(deps.auditService.audit);
+			sinon.assert.calledOnce(auditService.audit);
 
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
@@ -53,14 +53,8 @@ describe('Teams Controller:', () => {
 	describe('read', () => {
 		it('persona found', async () => {
 			const req = {
-				team: {
-					_id: '12345'
-				},
-				user: {
-					toObject: () => {
-						return {};
-					}
-				}
+				team: new Team(),
+				user: new User()
 			};
 
 			await teamsController.read(req, res);
@@ -73,20 +67,16 @@ describe('Teams Controller:', () => {
 	describe('update', () => {
 		it('team found', async () => {
 			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				}
+				team: new Team(),
+				user: new User()
 			};
 
-			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(teamsService, 'update').resolves();
+			sandbox.stub(auditService, 'audit').resolves();
+			sandbox.stub(teamsService, 'update').resolves(req.team);
 
 			await teamsController.update(req, res);
 
-			sinon.assert.calledOnce(deps.auditService.audit);
+			sinon.assert.calledOnce(auditService.audit);
 			sinon.assert.calledOnce(teamsService.update);
 
 			sinon.assert.calledWith(res.status, 200);
@@ -97,21 +87,17 @@ describe('Teams Controller:', () => {
 	describe('delete', () => {
 		it('team found', async () => {
 			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				}
+				team: new Team(),
+				user: new User()
 			};
 
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
+			sandbox.stub(logger, 'error').returns();
+			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(teamsService, 'delete').resolves();
 
 			await teamsController.delete(req, res);
 
-			sinon.assert.calledOnce(deps.auditService.audit);
+			sinon.assert.calledOnce(auditService.audit);
 			sinon.assert.calledOnce(teamsService.delete);
 
 			sinon.assert.calledWith(res.status, 200);
@@ -139,23 +125,19 @@ describe('Teams Controller:', () => {
 	describe('requestNewTeam', () => {
 		it('request handled', async () => {
 			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
+				team: new Team(),
+				user: new User(),
 				body: {}
 			};
 
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
+			sandbox.stub(logger, 'error').returns();
+			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(teamsService, 'requestNewTeam').resolves();
 
 			await teamsController.requestNewTeam(req, res);
 
 			sinon.assert.calledOnce(teamsService.requestNewTeam);
-			sinon.assert.calledOnce(deps.auditService.audit);
+			sinon.assert.calledOnce(auditService.audit);
 
 			sinon.assert.calledWith(res.status, 204);
 			sinon.assert.called(res.end);
@@ -166,16 +148,12 @@ describe('Teams Controller:', () => {
 	describe('requestAccess', () => {
 		it('request handled', async () => {
 			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
+				team: new Team(),
+				user: new User(),
 				body: {}
 			};
 
-			sandbox.stub(deps.logger, 'error').returns();
+			sandbox.stub(logger, 'error').returns();
 			sandbox.stub(teamsService, 'requestAccessToTeam').resolves();
 
 			await teamsController.requestAccess(req, res);
@@ -194,11 +172,12 @@ describe('Teams Controller:', () => {
 				body: {}
 			};
 
-			sandbox.stub(teamsService, 'searchTeamMembers').resolves();
+			sandbox.stub(teamsService, 'updateMemberFilter').returns({});
+			sandbox.stub(userService, 'searchUsers').resolves({ elements: [] });
 
 			await teamsController.searchMembers(req, res);
 
-			sinon.assert.calledOnce(teamsService.searchTeamMembers);
+			sinon.assert.calledOnce(userService.searchUsers);
 
 			sinon.assert.calledWith(res.status, 200);
 			sinon.assert.called(res.json);
@@ -208,22 +187,19 @@ describe('Teams Controller:', () => {
 	describe('addMember', () => {
 		it('request handled', async () => {
 			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
+				team: new Team(),
+				user: new User(),
+				userParam: new User(),
 				body: {}
 			};
 
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
+			sandbox.stub(logger, 'error').returns();
+			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(teamsService, 'addMemberToTeam').resolves();
 
 			await teamsController.addMember(req, res);
 
-			sinon.assert.calledOnce(deps.auditService.audit);
+			sinon.assert.calledOnce(auditService.audit);
 			sinon.assert.calledOnce(teamsService.addMemberToTeam);
 
 			sinon.assert.calledWith(res.status, 204);
@@ -235,12 +211,8 @@ describe('Teams Controller:', () => {
 	describe('addMembers', () => {
 		it('request handled', async () => {
 			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
+				team: new Team(),
+				user: new User(),
 				body: {
 					newMembers: [
 						{
@@ -255,16 +227,16 @@ describe('Teams Controller:', () => {
 				}
 			};
 
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
-			const readTeamMemberStub = sandbox.stub(teamsService, 'readTeamMember');
-			readTeamMemberStub.onCall(0).resolves({});
-			readTeamMemberStub.onCall(1).resolves();
+			sandbox.stub(logger, 'error').returns();
+			sandbox.stub(auditService, 'audit').resolves();
+			const readUserStub = sandbox.stub(userService, 'read');
+			readUserStub.onCall(0).resolves({});
+			readUserStub.onCall(1).resolves();
 			sandbox.stub(teamsService, 'addMemberToTeam').resolves();
 
 			await teamsController.addMembers(req, res);
 
-			sinon.assert.calledOnce(deps.auditService.audit);
+			sinon.assert.calledOnce(auditService.audit);
 			sinon.assert.calledOnce(teamsService.addMemberToTeam);
 
 			sinon.assert.calledWith(res.status, 204);
@@ -276,22 +248,19 @@ describe('Teams Controller:', () => {
 	describe('removeMember', () => {
 		it('request handled', async () => {
 			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
+				team: new Team(),
+				user: new User(),
+				userParam: new User(),
 				body: {}
 			};
 
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
+			sandbox.stub(logger, 'error').returns();
+			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(teamsService, 'removeMemberFromTeam').resolves();
 
 			await teamsController.removeMember(req, res);
 
-			sinon.assert.calledOnce(deps.auditService.audit);
+			sinon.assert.calledOnce(auditService.audit);
 			sinon.assert.calledOnce(teamsService.removeMemberFromTeam);
 
 			sinon.assert.calledWith(res.status, 204);
@@ -303,22 +272,19 @@ describe('Teams Controller:', () => {
 	describe('updateMemberRole', () => {
 		it('request handled', async () => {
 			const req = {
-				team: { _id: '12345' },
-				user: {
-					toObject: () => {
-						return {};
-					}
-				},
+				team: new Team(),
+				user: new User(),
+				userParam: new User(),
 				body: {}
 			};
 
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
+			sandbox.stub(logger, 'error').returns();
+			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(teamsService, 'updateMemberRole').resolves();
 
 			await teamsController.updateMemberRole(req, res);
 
-			sinon.assert.calledOnce(deps.auditService.audit);
+			sinon.assert.calledOnce(auditService.audit);
 			sinon.assert.calledOnce(teamsService.updateMemberRole);
 
 			sinon.assert.calledWith(res.status, 204);
@@ -367,7 +333,7 @@ describe('Teams Controller:', () => {
 
 	describe('teamMemberById', () => {
 		it('team found', async () => {
-			sandbox.stub(teamsService, 'readTeamMember').resolves({
+			sandbox.stub(userService, 'read').resolves({
 				toObject: () => {
 					return {
 						type: 'type',
@@ -386,7 +352,7 @@ describe('Teams Controller:', () => {
 		});
 
 		it('team not found', async () => {
-			sandbox.stub(teamsService, 'readTeamMember').resolves();
+			sandbox.stub(userService, 'read').resolves();
 
 			const nextFn = sinon.stub();
 			const req = { user: {} };

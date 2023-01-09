@@ -1,8 +1,10 @@
 'use strict';
 
 const { dbs, utilService, auditService } = require('../../../dependencies'),
-	Team = dbs.admin.model('Team'),
-	teamsService = require('./teams.service');
+	teamsService = require('./teams.service'),
+	userService = require('../user/user.service');
+
+const User = dbs.admin.model('User');
 
 /**
  * Create a new team. The team creator is automatically added as an admin
@@ -20,7 +22,7 @@ module.exports.create = async (req, res) => {
 		'team',
 		'create',
 		req,
-		Team.auditCopy(result)
+		result.auditCopy()
 	);
 
 	res.status(200).json(result);
@@ -38,13 +40,13 @@ module.exports.read = (req, res) => {
  */
 module.exports.update = async (req, res) => {
 	// Make a copy of the original team for auditing purposes
-	const originalTeam = Team.auditCopy(req.team);
+	const originalTeam = req.team.auditCopy();
 
 	const result = await teamsService.update(req.team, req.body);
 
 	await auditService.audit('team updated', 'team', 'update', req, {
 		before: originalTeam,
-		after: Team.auditCopy(result)
+		after: result.auditCopy()
 	});
 
 	res.status(200).json(result);
@@ -62,7 +64,7 @@ module.exports.delete = async (req, res) => {
 		'team',
 		'delete',
 		req,
-		Team.auditCopy(req.team)
+		req.team.auditCopy()
 	);
 
 	res.status(200).json(req.team);
@@ -112,16 +114,29 @@ module.exports.requestAccess = async (req, res) => {
  */
 module.exports.searchMembers = async (req, res) => {
 	// Get search and query parameters
-	const search = req.body.s ?? null;
-	const query = utilService.toMongoose(req.body.q ?? {});
-
-	const result = await teamsService.searchTeamMembers(
-		search,
-		query,
-		req.query,
+	const search = req.body.s ?? '';
+	const query = teamsService.updateMemberFilter(
+		utilService.toMongoose(req.body.q ?? {}),
 		req.team
 	);
-	res.status(200).json(result);
+
+	const results = await userService.searchUsers(req.query, query, search);
+
+	// Create the return copy of the messages
+	const mappedResults = {
+		pageNumber: results.pageNumber,
+		pageSize: results.pageSize,
+		totalPages: results.totalPages,
+		totalSize: results.totalSize,
+		elements: results.elements.map((element) => {
+			return {
+				...User.filteredCopy(element),
+				teams: element.teams.filter((team) => team._id === req.team._id)
+			};
+		})
+	};
+
+	res.status(200).json(mappedResults);
 };
 
 /**
@@ -138,7 +153,7 @@ module.exports.addMember = async (req, res) => {
 		'team-role',
 		'user add',
 		req,
-		Team.auditCopyTeamMember(req.team, req.userParam, role)
+		req.team.auditCopyTeamMember(req.userParam, role)
 	);
 
 	res.status(204).end();
@@ -152,7 +167,7 @@ module.exports.addMembers = async (req, res) => {
 		req.body.newMembers
 			.filter((member) => null != member._id)
 			.map(async (member) => {
-				const user = await teamsService.readTeamMember(member._id);
+				const user = await userService.read(member._id);
 				if (null != user) {
 					await teamsService.addMemberToTeam(user, req.team, member.role);
 					return auditService.audit(
@@ -160,7 +175,7 @@ module.exports.addMembers = async (req, res) => {
 						'team-role',
 						'user add',
 						req,
-						Team.auditCopyTeamMember(req.team, req.userParam, member.role)
+						req.team.auditCopyTeamMember(user, member.role)
 					);
 				}
 			})
@@ -180,7 +195,7 @@ module.exports.removeMember = async (req, res) => {
 		'team-role',
 		'user remove',
 		req,
-		Team.auditCopyTeamMember(req.team, req.userParam)
+		req.team.auditCopyTeamMember(req.userParam)
 	);
 
 	res.status(204).end();
@@ -197,7 +212,7 @@ module.exports.updateMemberRole = async (req, res) => {
 		'team-role',
 		'user add',
 		req,
-		Team.auditCopyTeamMember(req.team, req.userParam, role)
+		req.team.auditCopyTeamMember(req.userParam, role)
 	);
 
 	res.status(204).end();
@@ -227,7 +242,7 @@ module.exports.teamById = async (req, res, next, id) => {
 };
 
 module.exports.teamMemberById = async (req, res, next, id) => {
-	const user = await teamsService.readTeamMember(id);
+	const user = await userService.read(id);
 
 	if (null == user) {
 		return next(new Error('Failed to load team member'));

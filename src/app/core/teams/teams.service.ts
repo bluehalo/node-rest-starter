@@ -1,46 +1,21 @@
-'use strict';
+import _ from 'lodash';
+import mongoose, { FilterQuery, PopulateOptions, Types } from 'mongoose';
 
-const _ = require('lodash'),
-	mongoose = require('mongoose'),
-	{
-		config,
-		dbs,
-		emailService,
-		logger,
-		utilService
-	} = require('../../../dependencies'),
-	userAuthService = require('../user/auth/user-authorization.service'),
-	TeamMember = dbs.admin.model('TeamUser'),
-	TeamRole = dbs.admin.model('TeamRole'),
-	User = dbs.admin.model('User');
-
-/**
- * Import types for reference below
- *
- * @typedef {import('mongoose').PopulateOptions} PopulateOptions
- * @typedef {import('mongoose').Schema.Types.ObjectId} ObjectId
- * @typedef {import('./types').ITeam} ITeam
- * @typedef {import('./types').TeamDocument} TeamDocument
- * @typedef {import('./types').TeamModel} TeamModel
- * @typedef {import('../user/types').UserDocument} UserDocument
- */
-
-const teamRolesMap = {
-	blocked: { priority: -1 },
-	requester: { priority: 0 },
-	member: { priority: 1 },
-	editor: { priority: 5 },
-	admin: { priority: 7 }
-};
-
-// Array of team role keys
-const teamRoles = _.keys(teamRolesMap);
+import {
+	config,
+	dbs,
+	emailService,
+	logger,
+	utilService
+} from '../../../dependencies';
+import { PagingResults } from '../../common/mongoose/paginate.plugin';
+import userAuthService from '../user/auth/user-authorization.service';
+import { UserDocument } from '../user/types';
+import { TeamRolePriorities } from './team-role.model';
+import { ITeam, TeamDocument, TeamModel } from './team.model';
 
 /**
  * Copies the mutable fields from src to dest
- *
- * @param dest
- * @param src
  */
 const copyMutableFields = (dest, src) => {
 	dest.name = src.name;
@@ -55,39 +30,42 @@ const isObjectIdEqual = (value1, value2) => {
 };
 
 class TeamsService {
+	model: TeamModel;
+	userModel;
+
 	constructor() {
-		/**
-		 * @type TeamModel
-		 */
 		this.model = dbs.admin.model('Team');
+		this.userModel = dbs.admin.model('User');
 	}
 
 	/**
 	 * Creates a new team with the requested metadata
 	 *
-	 * @param teamInfo
 	 * @param creator The user requesting the create
-	 * @returns {Promise<TeamDocument>} Returns a promise that resolves if team is successfully created, and rejects otherwise
+	 * @returns Returns a promise that resolves if team is successfully created, and rejects otherwise
 	 */
-	async create(teamInfo, creator, firstAdmin) {
+	async create(
+		teamInfo: Partial<ITeam>,
+		creator: UserDocument,
+		firstAdmin?: string | Types.ObjectId
+	): Promise<TeamDocument> {
 		// Create the new team model
 		const newTeam = new this.model();
 
 		copyMutableFields(newTeam, teamInfo);
 
 		// Write the auto-generated metadata
-		newTeam.creator = creator;
+		newTeam.creator = creator._id;
 		newTeam.creatorName = creator.name;
 
 		// Nested teams
 		if (teamInfo.parent) {
-			const parentTeam = await this.model.findById(teamInfo.parent);
+			const parentTeam = await this.read(teamInfo.parent);
 			newTeam.parent = parentTeam._id;
 			newTeam.ancestors = [...parentTeam.ancestors, parentTeam._id];
 		}
 
-		let user = await User.findById(firstAdmin).exec();
-		user = User.filteredCopy(user);
+		const user = await this.userModel.findById(firstAdmin).exec();
 
 		// Save the new team
 		const savedTeam = await newTeam.save();
@@ -95,32 +73,34 @@ class TeamsService {
 		// Add first admin as first team member with admin role, or the creator if null
 		await this.addMemberToTeam(user || creator, newTeam, 'admin');
 
-		return this.read(savedTeam._id);
+		return savedTeam;
 	}
 
-	/**
-	 * @param {string | mongoose.Types.ObjectId} id
-	 * @param {string | string[] | PopulateOptions | Array<string | PopulateOptions>} [populate]
-	 * @returns {Promise<TeamDocument>}
-	 */
-	read(id, populate = []) {
+	read(
+		id: string | Types.ObjectId,
+		populate:
+			| string
+			| string[]
+			| PopulateOptions
+			| Array<string | PopulateOptions> = []
+	): Promise<TeamDocument | null> {
 		if (!mongoose.Types.ObjectId.isValid(id)) {
 			throw { status: 400, type: 'validation', message: 'Invalid team ID' };
 		}
 		return this.model
 			.findById(id)
-			.populate(/** @type {string[]} */ (populate))
+			.populate(populate as string[])
 			.exec();
 	}
 
 	/**
 	 * Updates an existing team with fresh metadata
 	 *
-	 * @param {TeamDocument} document The team object to update
+	 * @param document The team object to update
 	 * @param obj The obj with updated fields
-	 * @returns {Promise<TeamDocument>} Returns a promise that resolves if team is successfully updated, and rejects otherwise
+	 * @returns Returns a promise that resolves if team is successfully updated, and rejects otherwise
 	 */
-	update(document, obj) {
+	update(document: TeamDocument, obj: unknown): Promise<TeamDocument> {
 		// Copy in the fields that can be changed by the user
 		copyMutableFields(document, obj);
 
@@ -134,29 +114,29 @@ class TeamsService {
 	 * @param {TeamDocument} document The team object to delete
 	 * @returns {Promise<TeamDocument>} Returns a promise that resolves if team is successfully deleted, and rejects otherwise
 	 */
-	async delete(document) {
+	async delete(document: TeamDocument): Promise<TeamDocument> {
 		await this.verifyNoResourcesInTeam(document);
 
 		// Delete the team and update all members in the team
 		await Promise.all([
 			document.delete(),
-			TeamMember.updateMany(
-				{ 'teams._id': document._id },
-				{ $pull: { teams: { _id: document._id } } }
-			).exec()
+			this.userModel
+				.updateMany(
+					{ 'teams._id': document._id },
+					{ $pull: { teams: { _id: document._id } } }
+				)
+				.exec()
 		]);
 
 		return document;
 	}
 
-	/**
-	 * @param queryParams
-	 * @param {import('mongoose').FilterQuery<TeamDocument>} query
-	 * @param {string} search
-	 * @param {UserDocument} user
-	 * @returns {Promise<import('../../common/mongoose/paginate.plugin').PagingResults<any>>}
-	 */
-	async search(queryParams, query, search, user) {
+	async search(
+		queryParams = {},
+		query: FilterQuery<TeamDocument> = {},
+		search = '',
+		user: UserDocument
+	): Promise<PagingResults<TeamDocument>> {
 		const page = utilService.getPage(queryParams);
 		const limit = utilService.getLimit(queryParams, 1000);
 		const sort = utilService.getSortObj(queryParams, 'DESC', '_id');
@@ -190,7 +170,7 @@ class TeamsService {
 			.sort(sort)
 			.paginate(limit, page);
 
-		const mappedResults = {
+		const mappedResults: PagingResults<TeamDocument> = {
 			pageNumber: results.pageNumber,
 			pageSize: results.pageSize,
 			totalPages: results.totalPages,
@@ -200,7 +180,7 @@ class TeamsService {
 				return {
 					...res.toJSON(),
 					isMember: teamIdStrings.includes(res.id)
-				};
+				} as unknown as TeamDocument;
 			})
 		};
 
@@ -210,11 +190,9 @@ class TeamsService {
 	/**
 	 * Gets the role of this user in this team.
 	 *
-	 * @param team The team object of interest
-	 * @param user The user object of interest
 	 * @returns Returns the role of the user in the team or null if user doesn't belong to team.
 	 */
-	getTeamRole(user, team) {
+	getTeamRole(user: UserDocument, team: TeamDocument) {
 		const ndx = _.findIndex(user.teams, (t) => t._id.equals(team._id));
 
 		if (-1 !== ndx) {
@@ -224,7 +202,7 @@ class TeamsService {
 		const nestedTeamsEnabled = _.get(config, 'teams.nestedTeams', false);
 		if (nestedTeamsEnabled) {
 			for (const ancestor of team.ancestors || []) {
-				const role = this.getTeamRole(user, ancestor);
+				const role = this.getTeamRole(user, new this.model({ _id: ancestor }));
 				if (role) {
 					return role;
 				}
@@ -236,12 +214,8 @@ class TeamsService {
 	/**
 	 * Checks if the user meets the required external teams for this team
 	 * If the user is bypassed, they automatically meet the required external teams
-	 *
-	 * @param user
-	 * @param team
-	 * @returns {boolean}
 	 */
-	isImplicitMember(user, team) {
+	isImplicitMember(user: UserDocument, team: TeamDocument): boolean {
 		const strategy = config?.teams?.implicitMembers?.strategy ?? null;
 
 		if (strategy === 'roles') {
@@ -257,12 +231,8 @@ class TeamsService {
 	 * Checks if the user meets the required external teams for this team.
 	 * Requires matching only one external team.
 	 * If the user is bypassed, they automatically meet the required external teams
-	 *
-	 * @param user
-	 * @param team
-	 * @returns {boolean}
 	 */
-	meetsRequiredExternalTeams(user, team) {
+	meetsRequiredExternalTeams(user: UserDocument, team: TeamDocument): boolean {
 		if (true === user.bypassAccessCheck) {
 			return true;
 		}
@@ -275,12 +245,8 @@ class TeamsService {
 	/**
 	 * Checks if the user meets the required external roles for this team.
 	 * Requires matching all external roles.
-	 *
-	 * @param user
-	 * @param team
-	 * @returns {boolean}
 	 */
-	meetsRequiredExternalRoles(user, team) {
+	meetsRequiredExternalRoles(user: UserDocument, team: TeamDocument): boolean {
 		if ((team.requiresExternalRoles?.length ?? 0) === 0) {
 			return false;
 		}
@@ -291,7 +257,7 @@ class TeamsService {
 		);
 	}
 
-	meetsRoleRequirement(user, team, role) {
+	meetsRoleRequirement(user: UserDocument, team: TeamDocument, role: string) {
 		// Check role of the user in this team
 		const userRole = this.getActiveTeamRole(user, team);
 
@@ -309,19 +275,15 @@ class TeamsService {
 	/**
 	 * Checks if user role meets or exceeds the requestedRole according to
 	 * a pre-defined role hierarchy
-	 *
-	 * @returns {boolean}
 	 */
-	meetsOrExceedsRole(userRole, requestedRole) {
+	meetsOrExceedsRole(userRole: string, requestedRole: string): boolean {
 		if (
 			null != userRole &&
-			_.has(teamRolesMap, userRole) &&
+			_.has(TeamRolePriorities, userRole) &&
 			null != requestedRole &&
-			_.has(teamRolesMap, requestedRole)
+			_.has(TeamRolePriorities, requestedRole)
 		) {
-			return (
-				teamRolesMap[userRole].priority >= teamRolesMap[requestedRole].priority
-			);
+			return TeamRolePriorities[userRole] >= TeamRolePriorities[requestedRole];
 		}
 		return false;
 	}
@@ -333,11 +295,7 @@ class TeamsService {
 	 *
 	 * @returns Returns a role, or null if the user is not a member of the team
 	 */
-	getActiveTeamRole(user, team) {
-		if (user && user.constructor.name === 'model') {
-			user = user.toObject();
-		}
-
+	getActiveTeamRole(user: UserDocument, team: TeamDocument): string | null {
 		// No matter what, we need to get these
 		const teamRole = this.getTeamRole(user, team);
 
@@ -388,9 +346,8 @@ class TeamsService {
 	/**
 	 * Stub implementation. Downstream projects can implement their own custom resource count logic to prevent team deletion.
 	 * @param team
-	 * @returns {Promise<number>}
 	 */
-	async getResourceCount(team) {
+	async getResourceCount(team: TeamDocument): Promise<number> {
 		return Promise.resolve(0);
 	}
 
@@ -399,14 +356,19 @@ class TeamsService {
 	 *
 	 * @param user The user object of interest
 	 * @param team The team object of interest
-	 * @returns {Promise} Returns a promise that resolves if the user is not the last admin, and rejects otherwise
+	 * @returns Returns a promise that resolves if the user is not the last admin, and rejects otherwise
 	 */
-	async verifyNotLastAdmin(user, team) {
+	async verifyNotLastAdmin(
+		user: UserDocument,
+		team: TeamDocument
+	): Promise<void> {
 		// Search for all users who have the admin role set to true
-		const results = await TeamMember.find({
-			_id: { $ne: user._id },
-			teams: { $elemMatch: { _id: team._id, role: 'admin' } }
-		}).exec();
+		const results = await this.userModel
+			.find({
+				_id: { $ne: user._id },
+				teams: { $elemMatch: { _id: team._id, role: 'admin' } }
+			})
+			.exec();
 
 		// Just need to make sure we find one active admin who isn't this user
 		const adminFound = results.some((u) => {
@@ -427,8 +389,8 @@ class TeamsService {
 	/**
 	 * Validates that the roles are one of the accepted values
 	 */
-	validateTeamRole(role) {
-		if (-1 !== teamRoles.indexOf(role)) {
+	validateTeamRole(role: string) {
+		if (-1 !== Object.keys(TeamRolePriorities).indexOf(role)) {
 			return Promise.resolve();
 		}
 
@@ -439,14 +401,7 @@ class TeamsService {
 		});
 	}
 
-	readTeamMember(id, populate = []) {
-		const query = {
-			_id: id
-		};
-		return TeamMember.findOne(query).populate(populate).exec();
-	}
-
-	getImplicitMemberFilter(team) {
+	getImplicitMemberFilter(team: TeamDocument): FilterQuery<TeamDocument> {
 		const implicitTeamStrategy =
 			config?.teams?.implicitMembers?.strategy ?? null;
 		if (
@@ -473,7 +428,7 @@ class TeamsService {
 		}
 	}
 
-	updateMemberFilter(query, team) {
+	updateMemberFilter(query: FilterQuery<UserDocument>, team: TeamDocument) {
 		// Extract member types and roles for filtering
 		const types = query.$and?.find((filter) => filter.type)?.type.$in ?? [];
 		const roles = query.$and?.find((filter) => filter.role)?.role.$in ?? [];
@@ -534,49 +489,39 @@ class TeamsService {
 		return query;
 	}
 
-	async searchTeamMembers(search, query, queryParams, team) {
-		const page = utilService.getPage(queryParams);
-		const limit = utilService.getLimit(queryParams);
-		const sort = utilService.getSortObj(queryParams, 'DESC', '_id');
-
-		query = this.updateMemberFilter(query ?? {}, team);
-
-		const results = await TeamMember.find(query)
-			.containsSearch(search)
-			.sort(sort)
-			.paginate(limit, page);
-
-		// Create the return copy of the users
-		results.elements = results.elements.map((element) =>
-			TeamMember.teamCopy(element, team._id)
-		);
-
-		return results;
-	}
-
 	/**
 	 * Adds a new member to the existing team.
 	 *
 	 * @param user The user to add to the team
 	 * @param team The team object
 	 * @param role The role of the user in this team
-	 * @returns {Promise} Returns a promise that resolves if the user is successfully added to the team, and rejects otherwise
+	 * @returns Returns a promise that resolves if the user is successfully added to the team, and rejects otherwise
 	 */
-	addMemberToTeam(user, team, role) {
-		return TeamMember.updateOne(
-			{ _id: user._id },
-			{
-				$addToSet: {
-					teams: new TeamRole({
-						_id: team._id,
-						role: role
-					})
+	addMemberToTeam(
+		user: UserDocument,
+		team: TeamDocument,
+		role: string
+	): Promise<UserDocument> {
+		return this.userModel
+			.findOneAndUpdate(
+				{ _id: user._id },
+				{
+					$addToSet: {
+						teams: {
+							_id: team._id,
+							role: role
+						}
+					}
 				}
-			}
-		).exec();
+			)
+			.exec();
 	}
 
-	async updateMemberRole(user, team, role) {
+	async updateMemberRole(
+		user: UserDocument,
+		team: TeamDocument,
+		role: string
+	): Promise<UserDocument> {
 		const currentRole = this.getTeamRole(user, team);
 
 		if (currentRole === 'admin') {
@@ -585,13 +530,15 @@ class TeamsService {
 
 		await this.validateTeamRole(role);
 
-		return TeamMember.findOneAndUpdate(
-			{
-				_id: user._id,
-				'teams._id': team._id
-			},
-			{ $set: { 'teams.$.role': role } }
-		).exec();
+		return this.userModel
+			.findOneAndUpdate(
+				{
+					_id: user._id,
+					'teams._id': team._id
+				},
+				{ $set: { 'teams.$.role': role } }
+			)
+			.exec();
 	}
 
 	/**
@@ -602,28 +549,35 @@ class TeamsService {
 	 * @param team The team object
 	 * @returns {Promise} Returns a promise that resolves if the user is successfully removed from the team, and rejects otherwise
 	 */
-	async removeMemberFromTeam(user, team) {
+	async removeMemberFromTeam(user: UserDocument, team: TeamDocument) {
 		// Verify the user is not the last admin in the team
 		await this.verifyNotLastAdmin(user, team);
 
 		// Apply the update
-		return TeamMember.updateOne(
-			{ _id: user._id },
-			{ $pull: { teams: { _id: team._id } } }
-		).exec();
+		return this.userModel
+			.findOneAndUpdate(
+				{ _id: user._id },
+				{ $pull: { teams: { _id: team._id } } }
+			)
+			.exec();
 	}
 
-	async sendRequestEmail(toEmail, requester, team, req) {
+	async sendRequestEmail(
+		toEmail: string[],
+		requester: UserDocument,
+		team: TeamDocument,
+		req
+	): Promise<void> {
 		try {
 			const mailOptions = await emailService.generateMailOptions(
 				requester,
 				null,
 				config.coreEmails.teamAccessRequestEmail,
 				{
-					team: team
+					team: team.toJSON()
 				},
 				{
-					team: team
+					team: team.toJSON()
 				},
 				{
 					bcc: toEmail
@@ -637,16 +591,22 @@ class TeamsService {
 		}
 	}
 
-	async requestAccessToTeam(requester, team, req) {
+	async requestAccessToTeam(
+		requester: UserDocument,
+		team: TeamDocument,
+		req
+	): Promise<void> {
 		// Lookup the emails of all team admins
-		const admins = await TeamMember.find({
-			teams: {
-				$elemMatch: {
-					_id: new mongoose.Types.ObjectId(team._id),
-					role: 'admin'
+		const admins = await this.userModel
+			.find({
+				teams: {
+					$elemMatch: {
+						_id: new mongoose.Types.ObjectId(team._id),
+						role: 'admin'
+					}
 				}
-			}
-		}).exec();
+			})
+			.exec();
 
 		const adminEmails = admins.map((admin) => admin.email);
 
@@ -661,10 +621,16 @@ class TeamsService {
 		await this.addMemberToTeam(requester, team, 'requester');
 
 		// Email template rendering requires simple objects and not Mongo classes
-		return this.sendRequestEmail(adminEmails, requester, team.toJSON(), req);
+		return this.sendRequestEmail(adminEmails, requester, team, req);
 	}
 
-	async requestNewTeam(org, aoi, description, requester, req) {
+	async requestNewTeam(
+		org: string,
+		aoi: string,
+		description: string,
+		requester: UserDocument,
+		req
+	): Promise<void> {
 		if (null == org) {
 			return Promise.reject({
 				status: 400,
@@ -703,12 +669,10 @@ class TeamsService {
 		}
 	}
 
-	/**
-	 * @param user
-	 * @param {...string} roles
-	 * @returns {Promise<mongoose.Types.ObjectId[]>}
-	 */
-	getExplicitTeamIds(user, ...roles) {
+	getExplicitTeamIds(
+		user: UserDocument,
+		...roles: string[]
+	): Promise<Types.ObjectId[]> {
 		// Validate the user input
 		if (null == user) {
 			return Promise.reject({
@@ -716,10 +680,6 @@ class TeamsService {
 				type: 'bad-request',
 				message: 'User does not exist'
 			});
-		}
-
-		if (user.constructor.name === 'model') {
-			user = user.toObject();
 		}
 
 		let userTeams = _.isArray(user.teams) ? user.teams : [];
@@ -734,12 +694,10 @@ class TeamsService {
 		return Promise.resolve(userTeamIds);
 	}
 
-	/**
-	 * @param user
-	 * @param {...string} roles
-	 * @returns {Promise<mongoose.Types.ObjectId[]>}
-	 */
-	async getImplicitTeamIds(user, ...roles) {
+	async getImplicitTeamIds(
+		user: UserDocument,
+		...roles: string[]
+	): Promise<Types.ObjectId[]> {
 		// Validate the user input
 		if (null == user) {
 			return Promise.reject({
@@ -749,23 +707,15 @@ class TeamsService {
 			});
 		}
 
-		/**
-		 * @type {string | null}
-		 */
 		const strategy = config?.teams?.implicitMembers?.strategy ?? null;
 
 		if (strategy == null || (roles.length > 0 && !roles.includes('member'))) {
 			return Promise.resolve([]);
 		}
 
-		if (user.constructor.name === 'model') {
-			user = user.toObject();
-		}
-
-		/**
-		 * @type {import('mongoose').FilterQuery<TeamDocument>}
-		 */
-		const query = { $and: [{ implicitMembers: true }] };
+		const query: FilterQuery<TeamDocument> = {
+			$and: [{ implicitMembers: true }]
+		};
 		if (strategy === 'roles' && (user.externalRoles?.length ?? 0) > 0) {
 			query.$and.push(
 				{
@@ -817,11 +767,7 @@ class TeamsService {
 		return this.model.distinct('_id', query).exec();
 	}
 
-	/**
-	 * @param {mongoose.Types.ObjectId[]} teamIds
-	 * @returns {Promise<mongoose.Types.ObjectId[]>}
-	 */
-	getNestedTeamIds(teamIds = []) {
+	getNestedTeamIds(teamIds: Types.ObjectId[] = []): Promise<Types.ObjectId[]> {
 		const nestedTeamsEnabled = config?.teams?.nestedTeams ?? false;
 		if (!nestedTeamsEnabled || teamIds.length === 0) {
 			return Promise.resolve([]);
@@ -835,20 +781,16 @@ class TeamsService {
 			.exec();
 	}
 
-	/**
-	 * @param {mongoose.Types.ObjectId[]} teamIds
-	 * @returns {Promise<mongoose.Types.ObjectId[]>}
-	 */
-	getAncestorTeamIds(teamIds = []) {
+	getAncestorTeamIds(
+		teamIds: Types.ObjectId[] = []
+	): Promise<Types.ObjectId[]> {
 		return this.model.distinct('ancestors', { _id: { $in: teamIds } }).exec();
 	}
 
-	/**
-	 * @param user
-	 * @param {...string} roles
-	 * @returns {Promise<mongoose.Types.ObjectId[]>}
-	 */
-	async getTeamIds(user, ...roles) {
+	async getTeamIds(
+		user: UserDocument,
+		...roles: string[]
+	): Promise<Types.ObjectId[]> {
 		const explicitTeamIds = await this.getExplicitTeamIds(user, ...roles);
 		const implicitTeamIds = await this.getImplicitTeamIds(user, ...roles);
 		const nestedTeamIds = await this.getNestedTeamIds([
@@ -860,38 +802,25 @@ class TeamsService {
 		];
 	}
 
-	/**
-	 * @param user
-	 * @returns {Promise<mongoose.Types.ObjectId[]>}
-	 */
-	getMemberTeamIds(user) {
+	getMemberTeamIds(user: UserDocument): Promise<Types.ObjectId[]> {
 		return this.getTeamIds(user, 'member', 'editor', 'admin');
 	}
 
-	/**
-	 * @param user
-	 * @returns {Promise<mongoose.Types.ObjectId[]>}
-	 */
-	getEditorTeamIds(user) {
+	getEditorTeamIds(user: UserDocument): Promise<Types.ObjectId[]> {
 		return this.getTeamIds(user, 'editor', 'admin');
 	}
 
-	/**
-	 * @param user
-	 * @returns {Promise<mongoose.Types.ObjectId[]>}
-	 */
-	getAdminTeamIds(user) {
+	getAdminTeamIds(user: UserDocument): Promise<Types.ObjectId[]> {
 		return this.getTeamIds(user, 'admin');
 	}
 
 	/**
 	 * Constrain a set of teamIds provided by the user to those the user actually has access to.
-	 *
-	 * @param user
-	 * @param {mongoose.Types.ObjectId[]} [teamIds]
-	 * @returns {Promise<mongoose.Types.ObjectId[]>}
 	 */
-	async filterTeamIds(user, teamIds = []) {
+	async filterTeamIds(
+		user: UserDocument,
+		teamIds: Types.ObjectId[] = []
+	): Promise<Types.ObjectId[]> {
 		const memberTeamIds = await this.getMemberTeamIds(user);
 
 		// If there were no teamIds to filter by, return all the team ids
@@ -902,7 +831,7 @@ class TeamsService {
 		return _.intersectionWith(memberTeamIds, teamIds, isObjectIdEqual);
 	}
 
-	async updateTeams(user) {
+	async updateTeams(user: UserDocument) {
 		const strategy = config?.teams?.implicitMembers?.strategy ?? 'disabled';
 		const nestedTeamsEnabled = config?.teams?.nestedTeams ?? false;
 
@@ -937,4 +866,4 @@ class TeamsService {
 	}
 }
 
-module.exports = new TeamsService();
+export = new TeamsService();

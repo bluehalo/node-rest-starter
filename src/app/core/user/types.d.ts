@@ -1,6 +1,6 @@
 import { BinaryLike } from 'crypto';
 
-import { HydratedDocument, Model } from 'mongoose';
+import { HydratedDocument, Model, Types } from 'mongoose';
 
 import { ContainsSearchable } from '../../common/mongoose/contains-search.plugin';
 import { Paginateable } from '../../common/mongoose/paginate.plugin';
@@ -42,6 +42,7 @@ export interface IUser {
 	newFeatureDismissed: Date;
 	preferences: Record<string, unknown>;
 	salt: BinaryLike;
+	teams: { _id: Types.ObjectId; role: string }[];
 }
 
 interface IUserMethods {
