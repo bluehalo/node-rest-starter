@@ -1,7 +1,6 @@
-/**
- * @type {import('json-schema').JSONSchema7}
- */
-module.exports.addMembers = {
+import JSONSchema7 from 'json-schema';
+
+export const addMembers: JSONSchema7.JSONSchema7Object = {
 	$schema: 'http://json-schema.org/draft-07/schema',
 	$id: 'moniker-rest-server/src/app/core/team/addMembers',
 	type: 'object',

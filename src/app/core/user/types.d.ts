@@ -5,6 +5,7 @@ import { HydratedDocument, Model, Types } from 'mongoose';
 import { ContainsSearchable } from '../../common/mongoose/contains-search.plugin';
 import { Paginateable } from '../../common/mongoose/paginate.plugin';
 import { TextSearchable } from '../../common/mongoose/text-search.plugin';
+import { TeamRoles } from '../teams/team-role.model';
 
 type UserRoles = {
 	user?: boolean;
@@ -42,7 +43,7 @@ export interface IUser {
 	newFeatureDismissed: Date;
 	preferences: Record<string, unknown>;
 	salt: BinaryLike;
-	teams: { _id: Types.ObjectId; role: string }[];
+	teams: { _id: Types.ObjectId; role: TeamRoles }[];
 }
 
 interface IUserMethods {
