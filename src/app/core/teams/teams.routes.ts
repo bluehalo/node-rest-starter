@@ -209,6 +209,7 @@ router
 	.post(
 		user.hasAccess,
 		user.hasAny(user.requiresAdminRole, teams.requiresAdmin),
+		validate({ body: teamSchemas.addUpdateMemberRole }),
 		teams.addMember
 	)
 	.delete(
@@ -239,6 +240,7 @@ router
 	.post(
 		user.hasAccess,
 		user.hasAny(user.requiresAdminRole, teams.requiresAdmin),
+		validate({ body: teamSchemas.addUpdateMemberRole }),
 		teams.updateMemberRole
 	);
 

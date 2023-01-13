@@ -390,21 +390,6 @@ class TeamsService {
 		});
 	}
 
-	/**
-	 * Validates that the roles are one of the accepted values
-	 */
-	validateTeamRole(role: string) {
-		if (-1 !== Object.keys(TeamRolePriorities).indexOf(role)) {
-			return Promise.resolve();
-		}
-
-		return Promise.reject({
-			status: 400,
-			type: 'bad-argument',
-			message: 'Team role does not exist'
-		});
-	}
-
 	private getImplicitMemberFilter(
 		team: TeamDocument
 	): FilterQuery<TeamDocument> {
@@ -537,8 +522,6 @@ class TeamsService {
 		if (currentRole === 'admin') {
 			await this.verifyNotLastAdmin(user, team);
 		}
-
-		await this.validateTeamRole(role);
 
 		return this.userModel
 			.findOneAndUpdate(

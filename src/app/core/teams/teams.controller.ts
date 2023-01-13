@@ -142,7 +142,7 @@ export const searchMembers = async (req, res) => {
  * Add a member to a team, defaulting to read-only access
  */
 export const addMember = async (req, res) => {
-	const role = req.body.role ?? 'member';
+	const role: TeamRoles = req.body.role ?? TeamRoles.Member;
 
 	await TeamsService.addMemberToTeam(req.userParam, req.team, role);
 
@@ -201,7 +201,7 @@ export const removeMember = async (req, res) => {
 };
 
 export const updateMemberRole = async (req, res) => {
-	const role = req.body.role || 'member';
+	const role: TeamRoles = req.body.role || TeamRoles.Member;
 
 	await TeamsService.updateMemberRole(req.userParam, req.team, role);
 
