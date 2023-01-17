@@ -1,8 +1,8 @@
-import JSONSchema7 from 'json-schema';
+import { JSONSchema7 } from 'json-schema';
 
 import { TeamRoles } from './team-role.model';
 
-export const addMembers: JSONSchema7.JSONSchema7Object = {
+export const addMembers: JSONSchema7 = {
 	$schema: 'http://json-schema.org/draft-07/schema',
 	$id: 'node-rest-server/src/app/core/team/addMembers',
 	type: 'object',
@@ -33,7 +33,7 @@ export const addMembers: JSONSchema7.JSONSchema7Object = {
 	}
 };
 
-export const addUpdateMemberRole: JSONSchema7.JSONSchema7Object = {
+export const addUpdateMemberRole: JSONSchema7 = {
 	$schema: 'http://json-schema.org/draft-07/schema',
 	$id: 'node-rest-server/src/app/core/team/addUpdateMemberRole',
 	type: 'object',
