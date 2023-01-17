@@ -1,15 +1,13 @@
-'use strict';
+import { Router } from 'express';
+import { Validator } from 'express-json-validator-middleware';
 
-const express = require('express'),
-	{ Validator } = require('express-json-validator-middleware'),
-	teams = require('./teams.controller'),
-	user = require('../user/user.controller'),
-	teamSchemas = require('./teams.schemas');
+import * as user from '../user/user.controller';
+import * as teams from './teams.controller';
+import * as teamSchemas from './teams.schemas';
 
-// @ts-ignore
-const { validate } = new Validator();
+const { validate } = new Validator({});
 
-const router = express.Router();
+const router = Router();
 
 /**
  * @swagger
@@ -102,7 +100,7 @@ router
 	.delete(
 		user.hasAccess,
 		user.hasAny(user.requiresAdminRole, teams.requiresAdmin),
-		teams.delete
+		teams.deleteTeam
 	);
 
 /**
@@ -211,6 +209,7 @@ router
 	.post(
 		user.hasAccess,
 		user.hasAny(user.requiresAdminRole, teams.requiresAdmin),
+		validate({ body: teamSchemas.addUpdateMemberRole }),
 		teams.addMember
 	)
 	.delete(
@@ -241,6 +240,7 @@ router
 	.post(
 		user.hasAccess,
 		user.hasAny(user.requiresAdminRole, teams.requiresAdmin),
+		validate({ body: teamSchemas.addUpdateMemberRole }),
 		teams.updateMemberRole
 	);
 
@@ -248,4 +248,4 @@ router
 router.param('teamId', teams.teamById);
 router.param('memberId', teams.teamMemberById);
 
-module.exports = router;
+export = router;

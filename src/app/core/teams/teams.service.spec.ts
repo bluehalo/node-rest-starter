@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import mongoose from 'mongoose';
 import should from 'should';
-import sinon from 'sinon';
+import { assert, createSandbox } from 'sinon';
 
 import {
 	auditService,
@@ -12,6 +12,7 @@ import {
 } from '../../../dependencies';
 import { IUser, UserDocument } from '../user/types';
 import userService from '../user/user.service';
+import { TeamRoles } from './team-role.model';
 import { ITeam, TeamDocument, TeamModel } from './team.model';
 import teamsService from './teams.service';
 
@@ -108,24 +109,26 @@ describe('Team Service:', () => {
 	// User explicitly added to a group.  Group is added in before() block below
 	spec.user.explicit = proxyPkiUserSpec('explicit');
 	spec.userTeams.explicit = [
-		{ team: 'teamWithNoExternalTeam', role: 'member' }
+		{ team: 'teamWithNoExternalTeam', role: TeamRoles.Member }
 	];
 
 	// Generic test users
 	spec.user.user1 = localUserSpec('user1');
 	spec.user.user1.roles = { user: true };
 	spec.userTeams.user1 = [
-		{ team: 'teamWithNoExternalTeam', role: 'member' },
-		{ team: 'teamWithNoExternalTeam2', role: 'member' }
+		{ team: 'teamWithNoExternalTeam', role: TeamRoles.Member },
+		{ team: 'teamWithNoExternalTeam2', role: TeamRoles.Member }
 	];
 
 	spec.user.user2 = localUserSpec('user2');
 
 	spec.user.user3 = localUserSpec('user3');
 	spec.user.user3.roles = { user: true };
-	spec.userTeams.user3 = [{ team: 'teamWithNoExternalTeam', role: 'admin' }];
+	spec.userTeams.user3 = [
+		{ team: 'teamWithNoExternalTeam', role: TeamRoles.Admin }
+	];
 
-	spec.user.admin = localUserSpec('admin');
+	spec.user.admin = localUserSpec(TeamRoles.Admin);
 	spec.user.admin.roles = { user: true, admin: true };
 
 	spec.user.blocked = localUserSpec('blocked');
@@ -141,7 +144,7 @@ describe('Team Service:', () => {
 	let sandbox;
 
 	beforeEach(async () => {
-		sandbox = sinon.createSandbox();
+		sandbox = createSandbox();
 		sandbox.stub(auditService, 'audit').resolves();
 
 		await clearDatabase();
@@ -195,7 +198,7 @@ describe('Team Service:', () => {
 			);
 
 			should.exist(role);
-			role.should.equal('member');
+			role.should.equal(TeamRoles.Member);
 		});
 
 		it('return existing explicit team role for user (plain object)', () => {
@@ -205,7 +208,7 @@ describe('Team Service:', () => {
 			);
 
 			should.exist(role);
-			role.should.equal('member');
+			role.should.equal(TeamRoles.Member);
 		});
 
 		it('return null role for user not in team', () => {
@@ -228,7 +231,7 @@ describe('Team Service:', () => {
 			);
 
 			should.exist(role);
-			role.should.equal('member');
+			role.should.equal(TeamRoles.Member);
 		});
 
 		it('return null role for user not implicitly in team', () => {
@@ -255,7 +258,7 @@ describe('Team Service:', () => {
 			);
 
 			should.exist(role);
-			role.should.equal('member');
+			role.should.equal(TeamRoles.Member);
 		});
 
 		it('return null role for user implicitly in team, but implicit teams disabled', () => {
@@ -290,7 +293,7 @@ describe('Team Service:', () => {
 				.meetsRoleRequirement(
 					user.explicit,
 					team.teamWithNoExternalTeam,
-					'member'
+					TeamRoles.Member
 				)
 				.should.be.fulfilled();
 		});
@@ -300,21 +303,7 @@ describe('Team Service:', () => {
 				.meetsRoleRequirement(
 					user.explicit,
 					team.teamWithNoExternalTeam,
-					'admin'
-				)
-				.should.be.rejectedWith({
-					status: 403,
-					type: 'missing-roles',
-					message: 'The user does not have the required roles for the team'
-				});
-		});
-
-		it('should reject for invalid role in team ', async () => {
-			await teamsService
-				.meetsRoleRequirement(
-					user.explicit,
-					team.teamWithNoExternalTeam,
-					'invalid'
+					TeamRoles.Admin
 				)
 				.should.be.rejectedWith({
 					status: 403,
@@ -600,7 +589,7 @@ describe('Team Service:', () => {
 			await teamsService.addMemberToTeam(
 				user.user1,
 				team.teamWithNoExternalTeam,
-				'member'
+				TeamRoles.Member
 			);
 
 			const uResult = await User.findById(user.user1);
@@ -608,7 +597,7 @@ describe('Team Service:', () => {
 				t._id.equals(team.teamWithNoExternalTeam._id)
 			);
 			should.exist(userTeam);
-			userTeam.role.should.equal('member');
+			userTeam.role.should.equal(TeamRoles.Member);
 		});
 	});
 
@@ -617,7 +606,7 @@ describe('Team Service:', () => {
 			await teamsService.updateMemberRole(
 				user.explicit,
 				team.teamWithNoExternalTeam,
-				'admin'
+				TeamRoles.Admin
 			);
 
 			const uResult = await User.findById(user.explicit._id);
@@ -625,38 +614,36 @@ describe('Team Service:', () => {
 				t._id.equals(team.teamWithNoExternalTeam._id)
 			);
 			should.exist(userTeam);
-			userTeam.role.should.equal('admin');
+			userTeam.role.should.equal(TeamRoles.Admin);
 		});
 
 		it('downgrade admin role; succeed if team has other admins', async () => {
 			await teamsService.addMemberToTeam(
 				user.user2,
 				team.teamWithNoExternalTeam,
-				'admin'
+				TeamRoles.Admin
 			);
 
 			await teamsService
-				.updateMemberRole(user.user3, team.teamWithNoExternalTeam, 'member')
+				.updateMemberRole(
+					user.user3,
+					team.teamWithNoExternalTeam,
+					TeamRoles.Member
+				)
 				.should.be.fulfilled();
 		});
 
 		it('downgrade admin role; reject if team has no other admins', async () => {
 			await teamsService
-				.updateMemberRole(user.user3, team.teamWithNoExternalTeam, 'member')
+				.updateMemberRole(
+					user.user3,
+					team.teamWithNoExternalTeam,
+					TeamRoles.Member
+				)
 				.should.be.rejectedWith({
 					status: 400,
 					type: 'bad-request',
 					message: 'Team must have at least one admin'
-				});
-		});
-
-		it('reject for invalid team role', async () => {
-			await teamsService
-				.updateMemberRole(user.user1, team.teamWithNoExternalTeam, 'fake-role')
-				.should.be.rejectedWith({
-					status: 400,
-					type: 'bad-argument',
-					message: 'Team role does not exist'
 				});
 		});
 	});
@@ -666,7 +653,7 @@ describe('Team Service:', () => {
 			await teamsService.addMemberToTeam(
 				user.user2,
 				team.teamWithNoExternalTeam,
-				'admin'
+				TeamRoles.Admin
 			);
 
 			await teamsService
@@ -967,7 +954,7 @@ FOOTER
 
 			await teamsService.sendRequestEmail(toEmails, _user, _team, {});
 
-			sinon.assert.called(sendMailStub);
+			assert.called(sendMailStub);
 			const [mailOptions] = sendMailStub.getCall(0).args;
 
 			should.exist(mailOptions, 'expected mailOptions to exist');
@@ -999,7 +986,7 @@ FOOTER
 				{}
 			);
 
-			sinon.assert.calledOnce(logStub);
+			assert.calledOnce(logStub);
 			const [logOptions] = logStub.getCall(0).args;
 
 			should.exist(logOptions.err);
@@ -1122,7 +1109,7 @@ FOOTER
 				headers: {}
 			});
 
-			sinon.assert.called(sendMailStub);
+			assert.called(sendMailStub);
 			const [mailOptions] = sendMailStub.getCall(0).args;
 
 			should.exist(mailOptions, 'expected mailOptions to exist');
@@ -1150,7 +1137,7 @@ FOOTER
 				{ headers: {} }
 			);
 
-			sinon.assert.calledOnce(logStub);
+			assert.calledOnce(logStub);
 			const [logOptions] = logStub.getCall(0).args;
 
 			should.exist(logOptions.err);
@@ -1336,7 +1323,7 @@ FOOTER
 					team.teamWithNoExternalTeam
 				);
 				should.exist(role);
-				role.should.equal('member');
+				role.should.equal(TeamRoles.Member);
 			});
 
 			it('Should get team role for nested team when nested teams are enabled', () => {
@@ -1346,7 +1333,7 @@ FOOTER
 					team.nestedTeam2_1
 				);
 				should.exist(role);
-				role.should.equal('member');
+				role.should.equal(TeamRoles.Member);
 			});
 
 			it('Should not get team role for nested team when nested teams are disabled', () => {
@@ -1456,9 +1443,9 @@ FOOTER
 
 				const user = new User({
 					teams: [
-						{ role: 'member', _id: team.teamWithNoExternalTeam._id },
+						{ role: TeamRoles.Member, _id: team.teamWithNoExternalTeam._id },
 						{ role: 'editor', _id: team.nestedTeam1._id },
-						{ role: 'admin', _id: team.nestedTeam2._id }
+						{ role: TeamRoles.Admin, _id: team.nestedTeam2._id }
 					],
 					externalRoles: ['external-role']
 				});
@@ -1475,9 +1462,9 @@ FOOTER
 
 				const user = new User({
 					teams: [
-						{ role: 'member', _id: team.teamWithNoExternalTeam._id },
+						{ role: TeamRoles.Member, _id: team.teamWithNoExternalTeam._id },
 						{ role: 'editor', _id: team.nestedTeam1._id },
-						{ role: 'admin', _id: team.nestedTeam2._id }
+						{ role: TeamRoles.Admin, _id: team.nestedTeam2._id }
 					],
 					externalRoles: ['external-role']
 				});
@@ -1492,9 +1479,9 @@ FOOTER
 
 				const user = new User({
 					teams: [
-						{ role: 'member', _id: team.teamWithNoExternalTeam._id },
+						{ role: TeamRoles.Member, _id: team.teamWithNoExternalTeam._id },
 						{ role: 'editor', _id: team.nestedTeam1._id },
-						{ role: 'admin', _id: team.nestedTeam2._id }
+						{ role: TeamRoles.Admin, _id: team.nestedTeam2._id }
 					],
 					externalRoles: ['external-role']
 				});
@@ -1511,9 +1498,9 @@ FOOTER
 
 				const user = new User({
 					teams: [
-						{ role: 'member', _id: team.teamWithNoExternalTeam._id },
+						{ role: TeamRoles.Member, _id: team.teamWithNoExternalTeam._id },
 						{ role: 'editor', _id: team.nestedTeam1._id },
-						{ role: 'admin', _id: team.nestedTeam2._id }
+						{ role: TeamRoles.Admin, _id: team.nestedTeam2._id }
 					],
 					externalRoles: ['external-role']
 				});
@@ -1529,11 +1516,11 @@ FOOTER
 			teams: [
 				{
 					_id: '000000000000000000000001',
-					role: 'member'
+					role: TeamRoles.Member
 				},
 				{
 					_id: '000000000000000000000002',
-					role: 'member'
+					role: TeamRoles.Member
 				},
 				{
 					_id: '000000000000000000000003',
@@ -1541,7 +1528,7 @@ FOOTER
 				},
 				{
 					_id: '000000000000000000000004',
-					role: 'admin'
+					role: TeamRoles.Admin
 				},
 				{
 					_id: '000000000000000000000005',
@@ -1586,7 +1573,10 @@ FOOTER
 		});
 
 		it('should return only team ids where user is a member', async () => {
-			const teamIds = await teamsService.getExplicitTeamIds(_user, 'member');
+			const teamIds = await teamsService.getExplicitTeamIds(
+				_user,
+				TeamRoles.Member
+			);
 
 			should.exist(teamIds, 'expected teamIds to exist');
 			teamIds.length.should.equal(2);
@@ -1596,7 +1586,10 @@ FOOTER
 		});
 
 		it('should return only team ids where user is an editor', async () => {
-			const teamIds = await teamsService.getExplicitTeamIds(_user, 'editor');
+			const teamIds = await teamsService.getExplicitTeamIds(
+				_user,
+				TeamRoles.Editor
+			);
 
 			should.exist(teamIds, 'expected teamIds to exist');
 			teamIds.length.should.equal(2);
@@ -1606,7 +1599,10 @@ FOOTER
 		});
 
 		it('should return only team ids where user is an admin', async () => {
-			const teamIds = await teamsService.getExplicitTeamIds(_user, 'admin');
+			const teamIds = await teamsService.getExplicitTeamIds(
+				_user,
+				TeamRoles.Admin
+			);
 
 			should.exist(teamIds, 'expected teamIds to exist');
 			teamIds.length.should.equal(1);
@@ -1620,11 +1616,11 @@ FOOTER
 			teams: [
 				{
 					_id: '000000000000000000000001',
-					role: 'member'
+					role: TeamRoles.Member
 				},
 				{
 					_id: '000000000000000000000002',
-					role: 'member'
+					role: TeamRoles.Member
 				},
 				{
 					_id: '000000000000000000000003',
@@ -1632,7 +1628,7 @@ FOOTER
 				},
 				{
 					_id: '000000000000000000000004',
-					role: 'admin'
+					role: TeamRoles.Admin
 				},
 				{
 					_id: '000000000000000000000005',
@@ -1671,11 +1667,11 @@ FOOTER
 			teams: [
 				{
 					_id: new mongoose.Types.ObjectId('000000000000000000000001'),
-					role: 'member'
+					role: TeamRoles.Member
 				},
 				{
 					_id: new mongoose.Types.ObjectId('000000000000000000000002'),
-					role: 'member'
+					role: TeamRoles.Member
 				},
 				{
 					_id: new mongoose.Types.ObjectId('000000000000000000000003'),
@@ -1683,7 +1679,7 @@ FOOTER
 				},
 				{
 					_id: new mongoose.Types.ObjectId('000000000000000000000004'),
-					role: 'admin'
+					role: TeamRoles.Admin
 				},
 				{
 					_id: new mongoose.Types.ObjectId('000000000000000000000005'),

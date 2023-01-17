@@ -1,14 +1,17 @@
-'use strict';
+import { Request } from 'express';
+import should from 'should';
+import { assert, createSandbox, match, spy, stub } from 'sinon';
 
-const should = require('should'),
-	sinon = require('sinon'),
-	teamsController = require('./teams.controller'),
-	teamsService = require('./teams.service'),
-	userService = require('../user/user.service'),
-	{ auditService, dbs, logger } = require('../../../dependencies');
+import { auditService, dbs, logger } from '../../../dependencies';
+import { UserDocument } from '../user/types';
+import { UserModel } from '../user/user.model';
+import userService from '../user/user.service';
+import { TeamDocument, TeamModel } from './team.model';
+import * as teamsController from './teams.controller';
+import teamsService from './teams.service';
 
-const Team = dbs.admin.model('Team');
-const User = dbs.admin.model('User');
+const Team: TeamModel = dbs.admin.model('Team');
+const User: UserModel = dbs.admin.model('User');
 
 /**
  * Unit tests
@@ -18,11 +21,11 @@ describe('Teams Controller:', () => {
 	let sandbox;
 
 	beforeEach(() => {
-		sandbox = sinon.createSandbox();
+		sandbox = createSandbox();
 		res = {
-			json: sinon.spy(),
-			end: sinon.spy(),
-			status: sinon.stub()
+			json: spy(),
+			end: spy(),
+			status: stub()
 		};
 		res.status.returns(res);
 	});
@@ -42,11 +45,11 @@ describe('Teams Controller:', () => {
 
 			await teamsController.create(req, res);
 
-			sinon.assert.calledOnce(teamsService.create);
-			sinon.assert.calledOnce(auditService.audit);
+			assert.calledOnce(teamsService.create);
+			assert.calledOnce(auditService.audit);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
@@ -59,8 +62,8 @@ describe('Teams Controller:', () => {
 
 			await teamsController.read(req, res);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
@@ -76,11 +79,11 @@ describe('Teams Controller:', () => {
 
 			await teamsController.update(req, res);
 
-			sinon.assert.calledOnce(auditService.audit);
-			sinon.assert.calledOnce(teamsService.update);
+			assert.calledOnce(auditService.audit);
+			assert.calledOnce(teamsService.update);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
@@ -95,13 +98,13 @@ describe('Teams Controller:', () => {
 			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(teamsService, 'delete').resolves();
 
-			await teamsController.delete(req, res);
+			await teamsController.deleteTeam(req, res);
 
-			sinon.assert.calledOnce(auditService.audit);
-			sinon.assert.calledOnce(teamsService.delete);
+			assert.calledOnce(auditService.audit);
+			assert.calledOnce(teamsService.delete);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
@@ -115,10 +118,10 @@ describe('Teams Controller:', () => {
 
 			await teamsController.search(req, res);
 
-			sinon.assert.calledOnce(teamsService.search);
+			assert.calledOnce(teamsService.search);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
@@ -136,12 +139,12 @@ describe('Teams Controller:', () => {
 
 			await teamsController.requestNewTeam(req, res);
 
-			sinon.assert.calledOnce(teamsService.requestNewTeam);
-			sinon.assert.calledOnce(auditService.audit);
+			assert.calledOnce(teamsService.requestNewTeam);
+			assert.calledOnce(auditService.audit);
 
-			sinon.assert.calledWith(res.status, 204);
-			sinon.assert.called(res.end);
-			sinon.assert.notCalled(res.json);
+			assert.calledWith(res.status, 204);
+			assert.called(res.end);
+			assert.notCalled(res.json);
 		});
 	});
 
@@ -158,11 +161,11 @@ describe('Teams Controller:', () => {
 
 			await teamsController.requestAccess(req, res);
 
-			sinon.assert.calledOnce(teamsService.requestAccessToTeam);
+			assert.calledOnce(teamsService.requestAccessToTeam);
 
-			sinon.assert.calledWith(res.status, 204);
-			sinon.assert.called(res.end);
-			sinon.assert.notCalled(res.json);
+			assert.calledWith(res.status, 204);
+			assert.called(res.end);
+			assert.notCalled(res.json);
 		});
 	});
 
@@ -177,10 +180,10 @@ describe('Teams Controller:', () => {
 
 			await teamsController.searchMembers(req, res);
 
-			sinon.assert.calledOnce(userService.searchUsers);
+			assert.calledOnce(userService.searchUsers);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
@@ -199,12 +202,12 @@ describe('Teams Controller:', () => {
 
 			await teamsController.addMember(req, res);
 
-			sinon.assert.calledOnce(auditService.audit);
-			sinon.assert.calledOnce(teamsService.addMemberToTeam);
+			assert.calledOnce(auditService.audit);
+			assert.calledOnce(teamsService.addMemberToTeam);
 
-			sinon.assert.calledWith(res.status, 204);
-			sinon.assert.called(res.end);
-			sinon.assert.notCalled(res.json);
+			assert.calledWith(res.status, 204);
+			assert.called(res.end);
+			assert.notCalled(res.json);
 		});
 	});
 
@@ -236,12 +239,12 @@ describe('Teams Controller:', () => {
 
 			await teamsController.addMembers(req, res);
 
-			sinon.assert.calledOnce(auditService.audit);
-			sinon.assert.calledOnce(teamsService.addMemberToTeam);
+			assert.calledOnce(auditService.audit);
+			assert.calledOnce(teamsService.addMemberToTeam);
 
-			sinon.assert.calledWith(res.status, 204);
-			sinon.assert.called(res.end);
-			sinon.assert.notCalled(res.json);
+			assert.calledWith(res.status, 204);
+			assert.called(res.end);
+			assert.notCalled(res.json);
 		});
 	});
 
@@ -260,12 +263,12 @@ describe('Teams Controller:', () => {
 
 			await teamsController.removeMember(req, res);
 
-			sinon.assert.calledOnce(auditService.audit);
-			sinon.assert.calledOnce(teamsService.removeMemberFromTeam);
+			assert.calledOnce(auditService.audit);
+			assert.calledOnce(teamsService.removeMemberFromTeam);
 
-			sinon.assert.calledWith(res.status, 204);
-			sinon.assert.called(res.end);
-			sinon.assert.notCalled(res.json);
+			assert.calledWith(res.status, 204);
+			assert.called(res.end);
+			assert.notCalled(res.json);
 		});
 	});
 
@@ -284,12 +287,12 @@ describe('Teams Controller:', () => {
 
 			await teamsController.updateMemberRole(req, res);
 
-			sinon.assert.calledOnce(auditService.audit);
-			sinon.assert.calledOnce(teamsService.updateMemberRole);
+			assert.calledOnce(auditService.audit);
+			assert.calledOnce(teamsService.updateMemberRole);
 
-			sinon.assert.calledWith(res.status, 204);
-			sinon.assert.called(res.end);
-			sinon.assert.notCalled(res.json);
+			assert.calledWith(res.status, 204);
+			assert.called(res.end);
+			assert.notCalled(res.json);
 		});
 	});
 
@@ -304,29 +307,27 @@ describe('Teams Controller:', () => {
 				}
 			});
 
-			const nextFn = sinon.stub();
-			const req = { user: {}, body: {} };
+			const nextFn = stub();
+			const req = { user: {}, body: {} } as Request & { team: TeamDocument };
 
 			await teamsController.teamById(req, {}, nextFn, 'id');
 
 			should.exist(req.team);
-			sinon.assert.calledWith(nextFn);
+			assert.calledWith(nextFn);
 		});
 
 		it('team not found', async () => {
 			sandbox.stub(teamsService, 'read').resolves();
 
-			const nextFn = sinon.stub();
-			const req = { user: {} };
+			const nextFn = stub();
+			const req = { user: {} } as Request & { team: TeamDocument };
 
 			await teamsController.teamById(req, {}, nextFn, 'id');
 
 			should.not.exist(req.team);
-			sinon.assert.calledWith(
+			assert.calledWith(
 				nextFn,
-				sinon.match
-					.instanceOf(Error)
-					.and(sinon.match.has('message', 'Could not find team'))
+				match.instanceOf(Error).and(match.has('message', 'Could not find team'))
 			);
 		});
 	});
@@ -342,47 +343,49 @@ describe('Teams Controller:', () => {
 				}
 			});
 
-			const nextFn = sinon.stub();
-			const req = { user: {}, body: {} };
+			const nextFn = stub();
+			const req = { user: {}, body: {} } as Request & {
+				userParam: UserDocument;
+			};
 
 			await teamsController.teamMemberById(req, {}, nextFn, 'id');
 
 			should.exist(req.userParam);
-			sinon.assert.calledWith(nextFn);
+			assert.calledWith(nextFn);
 		});
 
 		it('team not found', async () => {
 			sandbox.stub(userService, 'read').resolves();
 
-			const nextFn = sinon.stub();
-			const req = { user: {} };
+			const nextFn = stub();
+			const req = { user: {} } as Request & { userParam: UserDocument };
 
 			await teamsController.teamMemberById(req, {}, nextFn, 'id');
 
 			should.not.exist(req.userParam);
-			sinon.assert.calledWith(
+			assert.calledWith(
 				nextFn,
-				sinon.match
+				match
 					.instanceOf(Error)
-					.and(sinon.match.has('message', 'Failed to load team member'))
+					.and(match.has('message', 'Failed to load team member'))
 			);
 		});
 	});
 
 	describe('requiresRole', () => {
-		['requiresAdmin', 'requiresEditor', 'requiresMember'].forEach((method) => {
+		const requiresRoleHelper = (method, testFunction) => {
 			describe(method, () => {
 				it('user not found', async () => {
 					sandbox.stub(teamsService, 'meetsRoleRequirement').resolves();
 
 					const req = {};
 
-					await teamsController[method](req).should.be.rejectedWith({
+					await testFunction(req).should.be.rejectedWith({
 						status: 400,
 						message: 'No user for request'
 					});
 
-					sinon.assert.notCalled(teamsService.meetsRoleRequirement);
+					assert.notCalled(teamsService.meetsRoleRequirement);
 				});
 
 				it('team not found', async () => {
@@ -390,12 +393,12 @@ describe('Teams Controller:', () => {
 
 					const req = { user: {} };
 
-					await teamsController[method](req).should.be.rejectedWith({
+					await testFunction(req).should.be.rejectedWith({
 						status: 400,
 						message: 'No team for request'
 					});
 
-					sinon.assert.notCalled(teamsService.meetsRoleRequirement);
+					assert.notCalled(teamsService.meetsRoleRequirement);
 				});
 
 				it('team not found', async () => {
@@ -403,11 +406,17 @@ describe('Teams Controller:', () => {
 
 					const req = { user: {}, team: {} };
 
-					await teamsController[method](req).should.be.fulfilled();
+					await testFunction(req).should.be.fulfilled();
 
-					sinon.assert.calledOnce(teamsService.meetsRoleRequirement);
+					assert.calledOnce(teamsService.meetsRoleRequirement);
 				});
 			});
-		});
+		};
+
+		requiresRoleHelper('requiresAdmin', teamsController.requiresAdmin);
+
+		requiresRoleHelper('requiresEditor', teamsController.requiresEditor);
+
+		requiresRoleHelper('requiresMember', teamsController.requiresMember);
 	});
 });

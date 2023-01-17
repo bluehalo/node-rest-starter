@@ -1,15 +1,14 @@
-'use strict';
-
-const { dbs, utilService, auditService } = require('../../../dependencies'),
-	teamsService = require('./teams.service'),
-	userService = require('../user/user.service');
+import { dbs, utilService, auditService } from '../../../dependencies';
+import userService from '../user/user.service';
+import { TeamRoles } from './team-role.model';
+import teamsService from './teams.service';
 
 const User = dbs.admin.model('User');
 
 /**
  * Create a new team. The team creator is automatically added as an admin
  */
-module.exports.create = async (req, res) => {
+export const create = async (req, res) => {
 	const result = await teamsService.create(
 		req.body.team,
 		req.user,
@@ -31,14 +30,14 @@ module.exports.create = async (req, res) => {
 /**
  * Read the team
  */
-module.exports.read = (req, res) => {
+export const read = (req, res) => {
 	res.status(200).json(req.team);
 };
 
 /**
  * Update the team metadata
  */
-module.exports.update = async (req, res) => {
+export const update = async (req, res) => {
 	// Make a copy of the original team for auditing purposes
 	const originalTeam = req.team.auditCopy();
 
@@ -55,7 +54,7 @@ module.exports.update = async (req, res) => {
 /**
  * Delete the team
  */
-module.exports.delete = async (req, res) => {
+export const deleteTeam = async (req, res) => {
 	await teamsService.delete(req.team);
 
 	// Audit the team delete attempt
@@ -73,7 +72,7 @@ module.exports.delete = async (req, res) => {
 /**
  * Search the teams, includes paging and sorting
  */
-module.exports.search = async (req, res) => {
+export const search = async (req, res) => {
 	// Get search and query parameters
 	const search = req.body.s ?? null;
 	const query = utilService.toMongoose(req.body.q ?? {});
@@ -82,12 +81,12 @@ module.exports.search = async (req, res) => {
 	res.status(200).json(result);
 };
 
-module.exports.getAncestorTeamIds = async (req, res) => {
+export const getAncestorTeamIds = async (req, res) => {
 	const result = await teamsService.getAncestorTeamIds(req.body.teamIds);
 	res.status(200).json(result);
 };
 
-module.exports.requestNewTeam = async (req, res) => {
+export const requestNewTeam = async (req, res) => {
 	const user = req.user;
 	const org = req.body.org ?? null;
 	const aoi = req.body.aoi ?? null;
@@ -104,7 +103,7 @@ module.exports.requestNewTeam = async (req, res) => {
 	res.status(204).end();
 };
 
-module.exports.requestAccess = async (req, res) => {
+export const requestAccess = async (req, res) => {
 	await teamsService.requestAccessToTeam(req.user, req.team, req);
 	res.status(204).end();
 };
@@ -112,7 +111,7 @@ module.exports.requestAccess = async (req, res) => {
 /**
  * Search the members of the team, includes paging and sorting
  */
-module.exports.searchMembers = async (req, res) => {
+export const searchMembers = async (req, res) => {
 	// Get search and query parameters
 	const search = req.body.s ?? '';
 	const query = teamsService.updateMemberFilter(
@@ -142,8 +141,8 @@ module.exports.searchMembers = async (req, res) => {
 /**
  * Add a member to a team, defaulting to read-only access
  */
-module.exports.addMember = async (req, res) => {
-	const role = req.body.role ?? 'member';
+export const addMember = async (req, res) => {
+	const role: TeamRoles = req.body.role ?? TeamRoles.Member;
 
 	await teamsService.addMemberToTeam(req.userParam, req.team, role);
 
@@ -162,7 +161,7 @@ module.exports.addMember = async (req, res) => {
 /**
  * Add specified members with specified roles to a team
  */
-module.exports.addMembers = async (req, res) => {
+export const addMembers = async (req, res) => {
 	await Promise.all(
 		req.body.newMembers
 			.filter((member) => null != member._id)
@@ -186,7 +185,7 @@ module.exports.addMembers = async (req, res) => {
 /**
  * Remove a member from a team
  */
-module.exports.removeMember = async (req, res) => {
+export const removeMember = async (req, res) => {
 	await teamsService.removeMemberFromTeam(req.userParam, req.team);
 
 	// Audit the user remove
@@ -201,8 +200,8 @@ module.exports.removeMember = async (req, res) => {
 	res.status(204).end();
 };
 
-module.exports.updateMemberRole = async (req, res) => {
-	const role = req.body.role || 'member';
+export const updateMemberRole = async (req, res) => {
+	const role: TeamRoles = req.body.role || TeamRoles.Member;
 
 	await teamsService.updateMemberRole(req.userParam, req.team, role);
 
@@ -221,7 +220,7 @@ module.exports.updateMemberRole = async (req, res) => {
 /**
  * Team middleware
  */
-module.exports.teamById = async (req, res, next, id) => {
+export const teamById = async (req, res, next, id: string) => {
 	const populate = [
 		{
 			path: 'parent',
@@ -241,7 +240,7 @@ module.exports.teamById = async (req, res, next, id) => {
 	return next();
 };
 
-module.exports.teamMemberById = async (req, res, next, id) => {
+export const teamMemberById = async (req, res, next, id: string) => {
 	const user = await userService.read(id);
 
 	if (null == user) {
@@ -254,7 +253,7 @@ module.exports.teamMemberById = async (req, res, next, id) => {
 /**
  * Does the user have the referenced role in the team
  */
-module.exports.requiresRole = function (role) {
+function requiresRole(role: TeamRoles): (req) => Promise<void> {
 	return function (req) {
 		// Verify that the user and team are on the request
 		const user = req.user;
@@ -276,16 +275,16 @@ module.exports.requiresRole = function (role) {
 
 		return teamsService.meetsRoleRequirement(user, team, role);
 	};
+}
+
+export const requiresAdmin = (req) => {
+	return requiresRole(TeamRoles.Admin)(req);
 };
 
-exports.requiresAdmin = function (req) {
-	return module.exports.requiresRole('admin')(req);
+export const requiresEditor = (req) => {
+	return requiresRole(TeamRoles.Editor)(req);
 };
 
-exports.requiresEditor = function (req) {
-	return module.exports.requiresRole('editor')(req);
-};
-
-exports.requiresMember = function (req) {
-	return module.exports.requiresRole('member')(req);
+export const requiresMember = (req) => {
+	return requiresRole(TeamRoles.Member)(req);
 };
