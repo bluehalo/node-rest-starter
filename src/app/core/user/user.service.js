@@ -53,9 +53,10 @@ class UserService {
 	 * @param {import('mongoose').FilterQuery<UserDocument>} query
 	 * @param {string} search
 	 * @param {string[]} searchFields
+	 * @param {string | PopulateOptions | Array<string | PopulateOptions>} [populate]
 	 * @returns {Promise<import('../../common/mongoose/paginate.plugin').PagingResults<UserDocument>>}
 	 */
-	searchUsers(queryParams, query, search, searchFields = []) {
+	searchUsers(queryParams, query, search, searchFields = [], populate = []) {
 		query = query || {};
 		const page = utilService.getPage(queryParams);
 		const limit = utilService.getLimit(queryParams);
@@ -69,7 +70,10 @@ class UserService {
 			mQuery = mQuery.textSearch(search);
 		}
 
-		return mQuery.sort(sort).paginate(limit, page);
+		return mQuery
+			.sort(sort)
+			.populate(/** @type {string} */ (populate))
+			.paginate(limit, page);
 	}
 
 	/**
