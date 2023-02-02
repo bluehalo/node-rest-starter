@@ -453,6 +453,13 @@ module.exports = {
 	/*
 	 * Whether the delete user functionality is enabled or disabled
 	 */
-	allowDeleteUser: true
+	allowDeleteUser: true,
 
+	cors: {
+		enabled: false,
+		options: {
+			credentials: true
+			// origin: 'http://example.com'
+		}
+	}
 };
