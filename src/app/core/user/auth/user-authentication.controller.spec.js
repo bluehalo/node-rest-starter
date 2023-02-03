@@ -1,6 +1,7 @@
 'use strict';
 
 const _ = require('lodash'),
+	passport = require('passport'),
 	should = require('should'),
 	deps = require('../../../../dependencies'),
 	config = deps.config,
@@ -103,7 +104,7 @@ describe('User Auth Controller:', () => {
 
 					//setup to use local passport
 					config.auth.strategy = 'local';
-					local();
+					passport.use(local);
 				});
 			});
 		});
@@ -323,7 +324,7 @@ describe('User Auth Controller:', () => {
 							config: accessCheckerConfig
 						}
 					};
-					proxyPki();
+					passport.use(proxyPki);
 				});
 			});
 		});
