@@ -1,17 +1,16 @@
-'use strict';
+import path from 'path';
 
-const path = require('path'),
-	swaggerJsDoc = require('swagger-jsdoc'),
-	swaggerParser = require('swagger-parser'),
-	deps = require('../dependencies'),
-	config = deps.config;
+import swaggerJsDoc from 'swagger-jsdoc';
+import swaggerParser from 'swagger-parser';
+
+import { config } from '../dependencies';
 
 /**
  * Unit tests
  */
 describe('Init Swagger API:', () => {
 	it('Generated Swagger API should be valid', async () => {
-		const swaggerOptions = {
+		const swaggerOptions: any = {
 			swaggerDefinition: {
 				openapi: '3.0.2',
 				info: {
@@ -23,7 +22,8 @@ describe('Init Swagger API:', () => {
 					{
 						url: 'https://api.example.com/api'
 					}
-				]
+				],
+				components: {}
 			},
 			apis: [
 				...config.files.docs.map((doc) => path.posix.resolve(doc)),
@@ -33,8 +33,6 @@ describe('Init Swagger API:', () => {
 		};
 
 		if (config.auth.strategy === 'local') {
-			swaggerOptions.swaggerDefinition.components =
-				swaggerOptions.swaggerDefinition.components || {};
 			swaggerOptions.swaggerDefinition.components.securitySchemes = {
 				basicAuth: {
 					type: 'http',

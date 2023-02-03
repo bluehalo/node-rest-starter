@@ -1,26 +1,28 @@
-'use strict';
+import path from 'path';
 
-const express = require('express');
+import compress from 'compression';
+import flash from 'connect-flash';
+import connect_mongo from 'connect-mongo';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import express from 'express';
 // Patches express to support async/await.  Should be called immediately after express.
+// Must still use require vs. import
 require('express-async-errors');
+import session from 'express-session';
+import helmet from 'helmet';
+import _ from 'lodash';
+import methodOverride from 'method-override';
+import morgan from 'morgan';
+import passport from 'passport';
+import swaggerJsDoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 
-const _ = require('lodash'),
-	path = require('path'),
-	config = require('../config'),
-	logger = require('./bunyan').logger,
-	compress = require('compression'),
-	cookieParser = require('cookie-parser'),
-	cors = require('cors'),
-	session = require('express-session'),
-	flash = require('connect-flash'),
-	helmet = require('helmet'),
-	methodOverride = require('method-override'),
-	morgan = require('morgan'),
-	passport = require('passport'),
-	swaggerJsDoc = require('swagger-jsdoc'),
-	swaggerUi = require('swagger-ui-express'),
-	MongoStore = require('connect-mongo')(session),
-	errorHandlers = require('../app/common/express/error-handlers');
+import errorHandlers from '../app/common/express/error-handlers';
+import config from '../config';
+import { logger } from './bunyan';
+
+const MongoStore = connect_mongo(session);
 
 const baseApiPath = '/api';
 
@@ -127,15 +129,20 @@ async function initPassport(app) {
 	app.use(passport.initialize());
 	app.use(passport.session());
 
-	await require('./passport').init();
+	await import('./passport').then((p) => p.init());
 }
 
 /**
  * Invoke modules server configuration
  */
-function initModulesConfiguration(app, db) {
-	config.files.configs.forEach((configPath) => {
-		require(path.posix.resolve(configPath))(app, db);
+async function initModulesConfiguration(app, db) {
+	const moduleConfigs = await Promise.all(
+		config.files.configs.map(
+			(configPath) => import(path.posix.resolve(configPath))
+		)
+	);
+	moduleConfigs.forEach((moduleConfig) => {
+		moduleConfig.default(app, db);
 	});
 }
 
@@ -160,13 +167,17 @@ function initCORS(app) {
 /**
  * Configure the modules server routes
  */
-function initModulesServerRoutes(app) {
+async function initModulesServerRoutes(app) {
 	// Init the global route prefix
 	const router = express.Router();
 
-	// Use all routes
-	config.files.routes.forEach((routePath) => {
-		router.use(require(path.posix.resolve(routePath)));
+	const routes = await Promise.all(
+		config.files.routes.map(
+			(routePath) => import(path.posix.resolve(routePath))
+		)
+	);
+	routes.forEach((route) => {
+		router.use(route.default);
 	});
 
 	// Host everything behind a single endpoint
@@ -198,7 +209,7 @@ function initSwaggerAPI(app) {
 		return;
 	}
 
-	const swaggerOptions = {
+	const swaggerOptions: any = {
 		swaggerDefinition: {
 			openapi: '3.0.2',
 			info: {
@@ -212,7 +223,8 @@ function initSwaggerAPI(app) {
 				{
 					url: baseApiPath
 				}
-			]
+			],
+			components: {}
 		},
 		apis: [
 			...config.files.docs.map((doc) => path.posix.resolve(doc)),
@@ -222,8 +234,6 @@ function initSwaggerAPI(app) {
 	};
 
 	if (config.auth.strategy === 'local') {
-		swaggerOptions.swaggerDefinition.components =
-			swaggerOptions.swaggerDefinition.components || {};
 		swaggerOptions.swaggerDefinition.components.securitySchemes = {
 			basicAuth: {
 				type: 'http',
@@ -258,10 +268,8 @@ function initSwaggerAPI(app) {
 
 /**
  * Initialize the Express application
- *
- * @returns {Promise<express.Express>}
  */
-module.exports.init = async (db) => {
+export const init = async (db): Promise<express.Express> => {
 	// Initialize express app
 	logger.info('Initializing Express');
 
@@ -286,7 +294,7 @@ module.exports.init = async (db) => {
 	await initPassport(app);
 
 	// Initialize Modules configuration
-	initModulesConfiguration(app);
+	await initModulesConfiguration(app, db);
 
 	// Initialize Helmet security headers
 	initHelmetHeaders(app);
@@ -295,7 +303,7 @@ module.exports.init = async (db) => {
 	initCORS(app);
 
 	// Initialize modules server routes
-	initModulesServerRoutes(app);
+	await initModulesServerRoutes(app);
 
 	// Initialize Swagger API
 	initSwaggerAPI(app);
