@@ -20,7 +20,7 @@ export default async function () {
 		agenda.init();
 
 		// Initialize express
-		const app = express.init(db.admin);
+		const app = await express.init(db.admin);
 
 		// Create a new HTTP server
 		logger.info('Creating HTTP Server');

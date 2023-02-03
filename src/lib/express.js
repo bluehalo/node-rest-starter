@@ -123,11 +123,11 @@ function initSession(app, db) {
 /**
  * Configure passport
  */
-function initPassport(app) {
+async function initPassport(app) {
 	app.use(passport.initialize());
 	app.use(passport.session());
 
-	require('./passport').init();
+	await require('./passport').init();
 }
 
 /**
@@ -259,9 +259,9 @@ function initSwaggerAPI(app) {
 /**
  * Initialize the Express application
  *
- * @returns {express.Express}
+ * @returns {Promise<express.Express>}
  */
-module.exports.init = function (db) {
+module.exports.init = async (db) => {
 	// Initialize express app
 	logger.info('Initializing Express');
 
@@ -283,7 +283,7 @@ module.exports.init = function (db) {
 	initSession(app, db);
 
 	// Initialize passport auth
-	initPassport(app);
+	await initPassport(app);
 
 	// Initialize Modules configuration
 	initModulesConfiguration(app);

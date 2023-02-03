@@ -8,6 +8,8 @@ const _ = require('lodash'),
 
 /**
  * Get files by glob patterns
+ * @param {string | string[]} globPatterns
+ * @param {string | string[]} [excludes]
  */
 function getGlobbedPaths(globPatterns, excludes) {
 	// URL paths regex
