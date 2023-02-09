@@ -118,7 +118,10 @@ exports.adminSearchUsers = async (req, res) => {
 	const query = userAuthorizationService.updateUserFilter(req.body.q);
 	const search = req.body.s;
 
-	const results = await userService.searchUsers(req.query, query, search);
+	const results = await userService.searchUsers(req.query, query, search, [], {
+		path: 'teams.team',
+		options: { select: { name: 1 } }
+	});
 	results.elements = results.elements.map((user) => {
 		const userCopy = User.fullCopy(user);
 		userAuthorizationService.updateRoles(userCopy);

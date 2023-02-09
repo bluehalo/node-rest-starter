@@ -1,5 +1,7 @@
 import { model, Schema, Types } from 'mongoose';
 
+import getterPlugin from '../../common/mongoose/getter.plugin';
+
 export enum TeamRoles {
 	Admin = 'admin',
 	Editor = 'editor',
@@ -44,6 +46,14 @@ export const TeamRoleSchema = new Schema<ITeamRole>({
 		default: TeamRoles.Member,
 		enum: TeamRoles
 	}
+});
+TeamRoleSchema.plugin(getterPlugin);
+
+TeamRoleSchema.virtual('team', {
+	ref: 'Team',
+	localField: '_id',
+	foreignField: '_id',
+	justOne: true
 });
 
 export const TeamRole = model<ITeamRole>('TeamRole', TeamRoleSchema);
