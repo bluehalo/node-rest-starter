@@ -10,6 +10,7 @@ const _ = require('lodash'),
 	logger = require('./bunyan').logger,
 	compress = require('compression'),
 	cookieParser = require('cookie-parser'),
+	cors = require('cors'),
 	session = require('express-session'),
 	flash = require('connect-flash'),
 	helmet = require('helmet'),
@@ -150,6 +151,12 @@ function initHelmetHeaders(app) {
 	app.disable('x-powered-by');
 }
 
+function initCORS(app) {
+	if (config.cors?.enabled) {
+		app.use(cors({ ...config.cors.options }));
+	}
+}
+
 /**
  * Configure the modules server routes
  */
@@ -283,6 +290,9 @@ module.exports.init = function (db) {
 
 	// Initialize Helmet security headers
 	initHelmetHeaders(app);
+
+	// Initialize CORS headers
+	initCORS(app);
 
 	// Initialize modules server routes
 	initModulesServerRoutes(app);
