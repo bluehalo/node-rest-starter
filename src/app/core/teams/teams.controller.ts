@@ -130,7 +130,7 @@ export const searchMembers = async (req, res) => {
 		elements: results.elements.map((element) => {
 			return {
 				...User.filteredCopy(element),
-				teams: element.teams.filter((team) => team._id === req.team._id)
+				teams: element.teams.filter((team) => team._id.equals(req.team._id))
 			};
 		})
 	};
