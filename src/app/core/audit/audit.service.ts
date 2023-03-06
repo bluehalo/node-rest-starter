@@ -7,9 +7,14 @@ import {
 	auditLogger,
 	utilService
 } from '../../../dependencies';
+import { IUser } from '../user/types';
 import { AuditDocument, AuditModel } from './audit.model';
 
 class AuditService {
+	isUser = (obj: unknown): obj is IUser => {
+		return typeof obj === 'object' && 'name' in obj && 'username' in obj;
+	};
+
 	/**
 	 * Creates an audit entry persisted to Mongo and the bunyan logger
 	 *
@@ -25,8 +30,8 @@ class AuditService {
 		message: string,
 		eventType: string,
 		eventAction: string,
-		requestOrEventActor: Request | Promise<any> | any,
-		eventObject: any,
+		requestOrEventActor: Request | Promise<IUser> | IUser,
+		eventObject: unknown,
 		eventMetadata = null
 	): Promise<AuditDocument> {
 		// Delay resolving the Audit model until we can be sure it has been initialized
@@ -35,7 +40,7 @@ class AuditService {
 		requestOrEventActor = await requestOrEventActor;
 
 		let actor = {};
-		if (requestOrEventActor.name && requestOrEventActor.username) {
+		if (this.isUser(requestOrEventActor)) {
 			actor = requestOrEventActor;
 		} else if (requestOrEventActor.user && requestOrEventActor.headers) {
 			const User = dbs.admin.model('User');
