@@ -8,6 +8,7 @@ const should = require('should'),
 	userProfileService = require('./user-profile.service'),
 	User = deps.dbs.admin.model('User'),
 	userProfileController = require('./user-profile.controller');
+const { logger } = require('../../../../dependencies');
 
 /**
  * Unit tests
@@ -18,6 +19,7 @@ describe('User Profile Controller:', () => {
 
 	beforeEach(() => {
 		sandbox = sinon.createSandbox();
+		sandbox.stub(logger, 'error').returns();
 		res = {
 			json: sinon.spy(),
 			status: sinon.stub()

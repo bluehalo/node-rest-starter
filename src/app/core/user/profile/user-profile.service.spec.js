@@ -39,7 +39,7 @@ describe('User Profile Service:', () => {
 			await user.save();
 			should.not.exist(user.preferences);
 
-			await userProfileService.updatePreferences(user._id, {
+			await userProfileService.updatePreferences(user, {
 				userPref1: 'value',
 				userPref2: 'otherValue'
 			});
@@ -67,7 +67,7 @@ describe('User Profile Service:', () => {
 			user.preferences.userPref1.should.equal('oldValue');
 			user.preferences.userPref3.should.equal('oldValue');
 
-			await userProfileService.updatePreferences(user._id, {
+			await userProfileService.updatePreferences(user, {
 				userPref1: 'value',
 				userPref2: 'otherValue'
 			});
@@ -95,7 +95,7 @@ describe('User Profile Service:', () => {
 			await user.save();
 			should.not.exist(user.organizationLevels);
 
-			await userProfileService.updateRequiredOrgs(user._id, { org1: 'value' });
+			await userProfileService.updateRequiredOrgs(user, { org1: 'value' });
 
 			user = await User.findById(user._id);
 

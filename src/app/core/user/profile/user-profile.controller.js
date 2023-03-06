@@ -111,12 +111,12 @@ exports.updateCurrentUser = async (req, res) => {
 };
 
 exports.updatePreferences = async (req, res) => {
-	await userProfileService.updatePreferences(req.user._id, req.body);
+	await userProfileService.updatePreferences(req.user, req.body);
 	res.status(200).json({});
 };
 
 exports.updateRequiredOrgs = async (req, res) => {
-	await userProfileService.updateRequiredOrgs(req.user._id, req.body);
+	await userProfileService.updateRequiredOrgs(req.user, req.body);
 	res.status(200).json({});
 };
 
