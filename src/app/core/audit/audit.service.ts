@@ -11,7 +11,7 @@ import { IUser } from '../user/types';
 import { AuditDocument, AuditModel } from './audit.model';
 
 class AuditService {
-	isUser = (obj: unknown): obj is IUser => {
+	isUser = (obj: unknown): obj is Partial<IUser> => {
 		return typeof obj === 'object' && 'name' in obj && 'username' in obj;
 	};
 
@@ -30,7 +30,7 @@ class AuditService {
 		message: string,
 		eventType: string,
 		eventAction: string,
-		requestOrEventActor: Request | Promise<IUser> | IUser,
+		requestOrEventActor: Request | Promise<Partial<IUser>> | Partial<IUser>,
 		eventObject: unknown,
 		eventMetadata = null
 	): Promise<AuditDocument> {

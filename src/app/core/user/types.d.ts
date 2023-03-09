@@ -60,5 +60,5 @@ export interface UserModel
 		IUserMethods
 	> {
 	createCopy(user: Partial<IUser>): Record<string, unknown>;
-	auditCopy(user: Partial<IUser>, userIP?: string): Record<string, unknown>;
+	auditCopy(user: Partial<IUser>, userIP?: string): Partial<IUser>;
 }
