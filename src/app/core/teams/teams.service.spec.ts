@@ -550,7 +550,13 @@ describe('Team Service:', () => {
 			result.elements.should.be.an.Array();
 			result.elements.length.should.be.equal(2);
 
-			const isMemberResults = (result.elements as any[])
+			const isMemberResults = (
+				result.elements as unknown as Array<
+					TeamDocument & {
+						isMember: boolean;
+					}
+				>
+			)
 				.filter((element) => element.isMember)
 				.map((team) => team.name);
 
@@ -574,7 +580,13 @@ describe('Team Service:', () => {
 			result2.elements.should.be.an.Array();
 			result2.elements.length.should.be.equal(1);
 
-			const isMemberResults2 = (result2.elements as any[])
+			const isMemberResults2 = (
+				result2.elements as unknown as Array<
+					TeamDocument & {
+						isMember: boolean;
+					}
+				>
+			)
 				.filter((element) => element.isMember)
 				.map((team) => team.name);
 

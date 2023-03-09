@@ -1,6 +1,7 @@
 import should from 'should';
 
 import { dbs } from '../../../dependencies';
+import { IUser } from '../user/types';
 import { AuditModel } from './audit.model';
 import auditService from './audit.service';
 
@@ -44,7 +45,7 @@ describe('Audit Service:', () => {
 				'some message',
 				'eventType',
 				'eventAction',
-				{ name: 'eventActor', username: 'eventActor' },
+				{ name: 'eventActor', username: 'eventActor' } as IUser,
 				'eventObject'
 			);
 		});

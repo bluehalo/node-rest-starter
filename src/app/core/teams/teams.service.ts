@@ -351,7 +351,10 @@ class TeamsService {
 	 * Stub implementation. Downstream projects can implement their own custom resource count logic to prevent team deletion.
 	 * @param team
 	 */
-	async getResourceCount(team: TeamDocument): Promise<number> {
+	getResourceCount(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		team: TeamDocument
+	): Promise<number> {
 		return Promise.resolve(0);
 	}
 
