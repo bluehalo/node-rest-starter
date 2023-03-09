@@ -16,20 +16,15 @@ const deps = require('../../../../dependencies'),
  * ==========================================================
  */
 
-const updatePreferences = async (_id, pref) => {
-	const user = await User.findById(_id).exec();
+const updatePreferences = async (user, pref) => {
+	user.preferences = { ...user.preferences, ...pref };
 
-	const preferences = user.preferences || {};
-	Object.assign(preferences, pref);
-
-	return user.update({ $set: { preferences: preferences } }).exec();
+	return user.save();
 };
 
-const updateRequiredOrgs = (_id, requiredOrgs) => {
-	return User.updateOne(
-		{ _id },
-		{ $set: { organizationLevels: requiredOrgs } }
-	).exec();
+const updateRequiredOrgs = (user, requiredOrgs) => {
+	user.organizationLevels = requiredOrgs;
+	return user.save();
 };
 
 module.exports = {

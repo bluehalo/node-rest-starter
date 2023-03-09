@@ -11,9 +11,12 @@ const request = require('supertest'),
 	Feedback = deps.dbs.admin.model('Feedback'),
 	User = deps.dbs.admin.model('User'),
 	{ parsedJSON } = require('../../../spec/helpers');
+const { logger } = require('../../../dependencies');
+const sinon = require('sinon');
 
 describe('Feedback Controller', () => {
 	let app;
+	let sandbox;
 	const router = express.Router();
 
 	const fakeUser = new User({
@@ -59,6 +62,15 @@ describe('Feedback Controller', () => {
 	after(() => {
 		// Stop mocking the User Controller
 		mock.stopAll();
+	});
+
+	beforeEach(() => {
+		sandbox = sinon.createSandbox();
+		sandbox.stub(logger, 'error').returns();
+	});
+
+	afterEach(() => {
+		sandbox.restore();
 	});
 
 	const setAdmin = (isAdmin) => {
