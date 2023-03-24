@@ -1,6 +1,6 @@
 import http from 'http';
 
-import agenda from './lib/agenda';
+import * as agenda from './lib/agenda';
 import { logger } from './lib/bunyan';
 import * as express from './lib/express';
 import mongoose from './lib/mongoose';
@@ -16,8 +16,8 @@ export default async function () {
 			'Mongoose connected, proceeding with application configuration'
 		);
 
-		// Init agenda.js scheduler
-		agenda.init();
+		// Init agenda.ts scheduler
+		await agenda.init();
 
 		// Initialize express
 		const app = await express.init(db.admin);

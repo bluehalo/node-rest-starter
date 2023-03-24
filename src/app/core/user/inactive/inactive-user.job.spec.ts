@@ -1,15 +1,14 @@
-'use strict';
+import { DateTime } from 'luxon';
+import { assert, createSandbox } from 'sinon';
 
-const { DateTime } = require('luxon'),
-	sinon = require('sinon'),
-	deps = require('../../../../dependencies'),
-	config = deps.config,
-	inactiveUserJob = require('./inactive-user.job');
+import { config, emailService, logger } from '../../../../dependencies';
+import InactiveUsersJobService from './inactive-user.job';
 
 /**
  * Unit tests
  */
 describe('User Email Service:', () => {
+	const inactiveUsersJobService = new InactiveUsersJobService();
 	const daysAgo = 90;
 
 	const user = {
@@ -22,8 +21,8 @@ describe('User Email Service:', () => {
 	let sandbox;
 
 	beforeEach(() => {
-		sandbox = sinon.createSandbox();
-		sandbox.stub(deps.logger, 'error').returns();
+		sandbox = createSandbox();
+		sandbox.stub(logger, 'error').returns();
 	});
 
 	afterEach(() => {
@@ -44,11 +43,14 @@ describe('User Email Service:', () => {
 <p>The ${config.app.title} Support Team</p>
 FOOTER`;
 
-			sandbox.stub(deps.emailService, 'sendMail').resolves();
+			sandbox.stub(emailService, 'sendMail').resolves();
 
-			await inactiveUserJob.sendEmail(user, config.coreEmails.userDeactivate);
+			await inactiveUsersJobService.sendEmail(
+				user,
+				config.coreEmails.userDeactivate
+			);
 
-			sinon.assert.calledWithMatch(deps.emailService.sendMail, {
+			assert.calledWithMatch(emailService.sendMail, {
 				to: user.email,
 				from: config.coreEmails.default.from,
 				replyTo: config.coreEmails.default.replyTo,
@@ -56,7 +58,7 @@ FOOTER`;
 				html: expectedEmailContent
 			});
 
-			sinon.assert.notCalled(deps.logger.error);
+			assert.notCalled(logger.error);
 		});
 
 		it('should create mailOptions properly for inactivity template', async () => {
@@ -74,11 +76,14 @@ FOOTER`;
 <p>The ${config.app.title} Support Team</p>
 FOOTER`;
 
-			sandbox.stub(deps.emailService, 'sendMail').resolves();
+			sandbox.stub(emailService, 'sendMail').resolves();
 
-			await inactiveUserJob.sendEmail(user, config.coreEmails.userInactivity);
+			await inactiveUsersJobService.sendEmail(
+				user,
+				config.coreEmails.userInactivity
+			);
 
-			sinon.assert.calledWithMatch(deps.emailService.sendMail, {
+			assert.calledWithMatch(emailService.sendMail, {
 				to: user.email,
 				from: config.coreEmails.default.from,
 				replyTo: config.coreEmails.default.replyTo,
@@ -86,7 +91,7 @@ FOOTER`;
 				html: expectedEmailContent
 			});
 
-			sinon.assert.notCalled(deps.logger.error);
+			assert.notCalled(logger.error);
 		});
 	});
 });
