@@ -1,10 +1,11 @@
-'use strict';
+import { Request } from 'express';
+import should from 'should';
+import { assert, createSandbox, match, spy, stub } from 'sinon';
 
-const should = require('should'),
-	sinon = require('sinon'),
-	euaController = require('./eua.controller'),
-	euaService = require('./eua.service'),
-	deps = require('../../../../dependencies');
+import deps from '../../../../dependencies';
+import * as euaController from './eua.controller';
+import { UserAgreement, UserAgreementDocument } from './eua.model';
+import euaService from './eua.service';
 
 /**
  * Unit tests
@@ -14,10 +15,10 @@ describe('EUA Controller:', () => {
 	let sandbox;
 
 	beforeEach(() => {
-		sandbox = sinon.createSandbox();
+		sandbox = createSandbox();
 		res = {
-			json: sinon.spy(),
-			status: sinon.stub()
+			json: spy(),
+			status: stub()
 		};
 		res.status.returns(res);
 	});
@@ -36,10 +37,10 @@ describe('EUA Controller:', () => {
 
 			await euaController.searchEuas(req, res);
 
-			sinon.assert.calledOnce(euaService.search);
+			assert.calledOnce(euaService.search);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
@@ -57,17 +58,17 @@ describe('EUA Controller:', () => {
 
 			await euaController.acceptEua(req, res);
 
-			sinon.assert.calledOnce(euaService.acceptEua);
+			assert.calledOnce(euaService.acceptEua);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
 	describe('publishEua', () => {
 		it('eua found', async () => {
 			const req = {
-				euaParam: { _id: '12345' },
+				euaParam: new UserAgreement({ _id: '12345' }),
 				user: {
 					toObject: () => {
 						return {};
@@ -76,15 +77,14 @@ describe('EUA Controller:', () => {
 			};
 
 			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(euaService, 'publishEua').resolves();
+			sandbox.stub(euaService, 'publishEua').resolves(req.euaParam);
 
 			await euaController.publishEua(req, res);
 
-			// sinon.assert.calledOnce(deps.auditService.audit);
-			sinon.assert.calledOnce(euaService.publishEua);
+			assert.calledOnce(euaService.publishEua);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
@@ -99,15 +99,15 @@ describe('EUA Controller:', () => {
 				}
 			};
 			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(euaService, 'create').resolves(null);
+			sandbox.stub(euaService, 'create').resolves(new UserAgreement());
 
 			await euaController.createEua(req, res);
 
-			sinon.assert.calledOnce(euaService.create);
-			sinon.assert.calledOnce(deps.auditService.audit);
+			assert.calledOnce(euaService.create);
+			assert.calledOnce(deps.auditService.audit);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
@@ -120,15 +120,15 @@ describe('EUA Controller:', () => {
 
 			await euaController.getCurrentEua(req, res);
 
-			sinon.assert.calledOnce(euaService.getCurrentEua);
+			assert.calledOnce(euaService.getCurrentEua);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 
 		it('current eua found', async () => {
 			const req = {
-				euaParam: { _id: '12345' },
+				euaParam: new UserAgreement({ _id: '12345' }),
 				user: {
 					toObject: () => {
 						return {};
@@ -140,17 +140,17 @@ describe('EUA Controller:', () => {
 
 			await euaController.getCurrentEua(req, res);
 
-			sinon.assert.calledOnce(euaService.getCurrentEua);
+			assert.calledOnce(euaService.getCurrentEua);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
 	describe('read', () => {
 		it('eua found', async () => {
 			const req = {
-				euaParam: { _id: '12345' },
+				euaParam: new UserAgreement({ _id: '12345' }),
 				user: {
 					toObject: () => {
 						return {};
@@ -160,15 +160,15 @@ describe('EUA Controller:', () => {
 
 			await euaController.read(req, res);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
 	describe('updateEua', () => {
 		it('eua found', async () => {
 			const req = {
-				euaParam: { _id: '12345' },
+				euaParam: new UserAgreement({ _id: '12345' }),
 				user: {
 					toObject: () => {
 						return {};
@@ -177,22 +177,22 @@ describe('EUA Controller:', () => {
 			};
 
 			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(euaService, 'update').resolves();
+			sandbox.stub(euaService, 'update').resolves(req.euaParam);
 
 			await euaController.updateEua(req, res);
 
-			sinon.assert.calledOnce(deps.auditService.audit);
-			sinon.assert.calledOnce(euaService.update);
+			assert.calledOnce(deps.auditService.audit);
+			assert.calledOnce(euaService.update);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
 	describe('deleteEua', () => {
 		it('eua found', async () => {
 			const req = {
-				euaParam: { _id: '12345' },
+				euaParam: new UserAgreement({ _id: '12345' }),
 				user: {
 					toObject: () => {
 						return {};
@@ -202,15 +202,15 @@ describe('EUA Controller:', () => {
 
 			sandbox.stub(deps.logger, 'error').returns();
 			sandbox.stub(deps.auditService, 'audit').resolves();
-			sandbox.stub(euaService, 'remove').resolves();
+			sandbox.stub(euaService, 'delete').resolves(req.euaParam);
 
 			await euaController.deleteEua(req, res);
 
-			sinon.assert.calledOnce(deps.auditService.audit);
-			sinon.assert.calledOnce(euaService.remove);
+			assert.calledOnce(deps.auditService.audit);
+			assert.calledOnce(euaService.delete);
 
-			sinon.assert.calledWith(res.status, 200);
-			sinon.assert.called(res.json);
+			assert.calledWith(res.status, 200);
+			assert.called(res.json);
 		});
 	});
 
@@ -218,29 +218,33 @@ describe('EUA Controller:', () => {
 		it('eua found', async () => {
 			sandbox.stub(euaService, 'read').resolves({});
 
-			const nextFn = sinon.stub();
-			const req = {};
+			const nextFn = stub();
+			const req = {} as Request & {
+				euaParam: UserAgreementDocument;
+			};
 
 			await euaController.euaById(req, {}, nextFn, 'id');
 
 			should.exist(req.euaParam);
-			sinon.assert.calledWith(nextFn);
+			assert.calledWith(nextFn);
 		});
 
 		it('eua not found', async () => {
 			sandbox.stub(euaService, 'read').resolves();
 
-			const nextFn = sinon.stub();
-			const req = {};
+			const nextFn = stub();
+			const req = {} as Request & {
+				euaParam: UserAgreementDocument;
+			};
 
 			await euaController.euaById(req, {}, nextFn, 'id');
 
 			should.not.exist(req.euaParam);
-			sinon.assert.calledWith(
+			assert.calledWith(
 				nextFn,
-				sinon.match
+				match
 					.instanceOf(Error)
-					.and(sinon.match.has('message', 'Failed to load User Agreement id'))
+					.and(match.has('message', 'Failed to load User Agreement id'))
 			);
 		});
 	});

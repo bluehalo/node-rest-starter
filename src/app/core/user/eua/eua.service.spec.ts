@@ -1,10 +1,12 @@
-'use strict';
+import should from 'should';
 
-const should = require('should'),
-	euaService = require('./eua.service'),
-	deps = require('../../../../dependencies'),
-	User = deps.dbs.admin.model('User'),
-	UserAgreement = deps.dbs.admin.model('UserAgreement');
+import { dbs } from '../../../../dependencies';
+import { UserModel } from '../types';
+import { UserAgreementModel } from './eua.model';
+import euaService from './eua.service';
+
+const User: UserModel = dbs.admin.model('User');
+const UserAgreement: UserAgreementModel = dbs.admin.model('UserAgreement');
 
 /**
  * Unit tests
@@ -105,8 +107,8 @@ describe('EUA Service:', () => {
 		});
 	});
 
-	describe('remove', () => {
-		it('eua is removed', async () => {
+	describe('delete', () => {
+		it('eua is deleted', async () => {
 			// Create eua
 			let eua = new UserAgreement({
 				title: 'Title',
@@ -119,7 +121,7 @@ describe('EUA Service:', () => {
 			should.exist(eua);
 
 			// Remove eua
-			await euaService.remove(eua);
+			await euaService.delete(eua);
 
 			// Verify eua is no longer in db
 			eua = await UserAgreement.findById(eua._id);
@@ -143,7 +145,7 @@ describe('EUA Service:', () => {
 			const queryParams = { size: 10 };
 			const query = null;
 			const search = '';
-			const result = await euaService.search(queryParams, query, search);
+			const result = await euaService.search(queryParams, search, query);
 
 			should.exist(result);
 			result.totalSize.should.equal(100);

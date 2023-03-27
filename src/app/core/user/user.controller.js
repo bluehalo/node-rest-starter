@@ -2,6 +2,8 @@
 
 const _ = require('lodash');
 
+const euas = require('./eua/eua.controller');
+
 /**
  * Extend user's controller
  */
@@ -11,7 +13,6 @@ module.exports = _.extend(
 	require('./auth/user-password.controller'),
 	require('./profile/user-profile.controller'),
 	require('./admin/user-admin.controller'),
-	require('./eua/eua.controller'),
 	require('./user-export.controller')
 );
 
@@ -121,7 +122,7 @@ module.exports.hasAccess = (req, res, next) => {
 		module.exports.requiresOrganizationLevels,
 		module.exports.requiresUserRole,
 		module.exports.requiresExternalRoles,
-		module.exports.requiresEua
+		euas.requiresEua
 	)(req, res, next);
 };
 
@@ -137,7 +138,7 @@ module.exports.hasEditorAccess = (req, res, next) => {
 		module.exports.requiresUserRole,
 		module.exports.requiresExternalRoles,
 		module.exports.requiresEditorRole,
-		module.exports.requiresEua
+		euas.requiresEua
 	)(req, res, next);
 };
 
@@ -153,7 +154,7 @@ module.exports.hasAuditorAccess = (req, res, next) => {
 		module.exports.requiresUserRole,
 		module.exports.requiresExternalRoles,
 		module.exports.requiresAuditorRole,
-		module.exports.requiresEua
+		euas.requiresEua
 	)(req, res, next);
 };
 

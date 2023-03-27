@@ -1,22 +1,21 @@
-'use strict';
+import { auditService, dbs } from '../../../../dependencies';
+import { UserModel } from '../types';
+import euaService from './eua.service';
 
-const { dbs, auditService } = require('../../../../dependencies'),
-	euaService = require('./eua.service'),
-	User = dbs.admin.model('User'),
-	UserAgreement = dbs.admin.model('UserAgreement');
+const User: UserModel = dbs.admin.model('User');
 
 // Search (Retrieve) all user Agreements
-module.exports.searchEuas = async (req, res) => {
+export const searchEuas = async (req, res) => {
 	// Handle the query/search
 	const query = req.body.q ?? {};
 	const search = req.body.s ?? null;
 
-	const results = await euaService.search(req.query, query, search);
+	const results = await euaService.search(req.query, search, query);
 	res.status(200).json(results);
 };
 
 // Publish the EUA
-module.exports.publishEua = async (req, res) => {
+export const publishEua = async (req, res) => {
 	// The eua is placed into this parameter by the middleware
 	const eua = req.euaParam;
 
@@ -28,14 +27,14 @@ module.exports.publishEua = async (req, res) => {
 		'eua',
 		'published',
 		req,
-		UserAgreement.auditCopy(result)
+		result.auditCopy()
 	);
 
 	res.status(200).json(result);
 };
 
 // Accept the current EUA
-module.exports.acceptEua = async (req, res) => {
+export const acceptEua = async (req, res) => {
 	const user = await euaService.acceptEua(req.user);
 
 	// Audit accepted eua
@@ -45,7 +44,7 @@ module.exports.acceptEua = async (req, res) => {
 };
 
 // Create a new User Agreement
-module.exports.createEua = async (req, res) => {
+export const createEua = async (req, res) => {
 	const result = await euaService.create(req.body);
 
 	// Audit eua create
@@ -54,45 +53,45 @@ module.exports.createEua = async (req, res) => {
 		'eua',
 		'create',
 		req,
-		UserAgreement.auditCopy(result)
+		result.auditCopy()
 	);
 
 	res.status(200).json(result);
 };
 
 // Retrieve the Current User Agreement
-module.exports.getCurrentEua = async (req, res) => {
+export const getCurrentEua = async (req, res) => {
 	const results = await euaService.getCurrentEua();
 	res.status(200).json(results);
 };
 
 // Retrieve the arbitrary User Agreement
-module.exports.read = (req, res) => {
+export const read = (req, res) => {
 	res.status(200).json(req.euaParam);
 };
 
 // Update a User Agreement
-module.exports.updateEua = async (req, res) => {
+export const updateEua = async (req, res) => {
 	// A copy of the original eua for auditing purposes
-	const originalEua = UserAgreement.auditCopy(req.euaParam);
+	const originalEua = req.euaParam.auditCopy();
 
 	const results = await euaService.update(req.euaParam, req.body);
 
 	// Audit user update
 	await auditService.audit('end user agreement updated', 'eua', 'update', req, {
 		before: originalEua,
-		after: UserAgreement.auditCopy(results)
+		after: results.auditCopy()
 	});
 
 	res.status(200).json(results);
 };
 
 // Delete a User Agreement
-module.exports.deleteEua = async (req, res) => {
+export const deleteEua = async (req, res) => {
 	// The eua is placed into this parameter by the middleware
 	const eua = req.euaParam;
 
-	const results = await euaService.remove(eua);
+	const results = await euaService.delete(eua);
 
 	// Audit eua delete
 	await auditService.audit(
@@ -100,14 +99,14 @@ module.exports.deleteEua = async (req, res) => {
 		'eua',
 		'delete',
 		req,
-		UserAgreement.auditCopy(eua)
+		eua.auditCopy()
 	);
 
 	res.status(200).json(results);
 };
 
 // EUA middleware - stores user corresponding to id in 'euaParam'
-module.exports.euaById = async (req, res, next, id) => {
+export const euaById = async (req, res, next, id) => {
 	const eua = await euaService.read(id);
 	if (null == eua) {
 		return next(new Error(`Failed to load User Agreement ${id}`));
@@ -119,7 +118,7 @@ module.exports.euaById = async (req, res, next, id) => {
 /**
  * Check the state of the EUA
  */
-module.exports.requiresEua = async (req) => {
+export const requiresEua = async (req) => {
 	let result;
 	try {
 		result = await euaService.getCurrentEua();
