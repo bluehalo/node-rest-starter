@@ -3,8 +3,7 @@ import should from 'should';
 import { assert, createSandbox, match, spy, stub } from 'sinon';
 
 import { auditService, dbs, logger } from '../../../dependencies';
-import { UserDocument } from '../user/types';
-import { UserModel } from '../user/user.model';
+import { UserDocument, UserModel } from '../user/user.model';
 import userService from '../user/user.service';
 import { TeamDocument, TeamModel } from './team.model';
 import * as teamsController from './teams.controller';

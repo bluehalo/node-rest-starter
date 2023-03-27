@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import { logger } from '../../../dependencies';
-import user from '../../core/user/user.controller';
+import { hasAdminAccess, hasLogin } from '../user/user-auth.middleware';
 import * as accessChecker from './access-checker.controller';
 
 /**
@@ -38,16 +38,16 @@ const router = Router();
  */
 router
 	.route('/access-checker/entry/:key')
-	.post(user.hasAdminAccess, accessChecker.refreshEntry)
-	.delete(user.hasAdminAccess, accessChecker.deleteEntry);
+	.post(hasAdminAccess, accessChecker.refreshEntry)
+	.delete(hasAdminAccess, accessChecker.deleteEntry);
 
 router
 	.route('/access-checker/entries/match')
-	.post(user.hasAdminAccess, accessChecker.matchEntries);
+	.post(hasAdminAccess, accessChecker.matchEntries);
 
 // Refresh current user
 router
 	.route('/access-checker/user')
-	.post(user.has(user.requiresLogin), accessChecker.refreshCurrentUser);
+	.post(hasLogin, accessChecker.refreshCurrentUser);
 
 export = router;

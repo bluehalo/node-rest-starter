@@ -1,4 +1,4 @@
-import { Schema, model, HydratedDocument, Model } from 'mongoose';
+import { Schema, model, HydratedDocument, Model, Types } from 'mongoose';
 
 import {
 	ContainsSearchable,
@@ -11,6 +11,7 @@ import {
 } from '../../../common/mongoose/paginate.plugin';
 
 export interface ICacheEntry {
+	_id: Types.ObjectId;
 	key: string;
 	ts: Date;
 	value: Record<string, unknown>;

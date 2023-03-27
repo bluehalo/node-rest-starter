@@ -78,7 +78,8 @@ class ProxyPkiStrategy extends TrustedHeadersStrategy {
 				// in by updating their lastLogin time.
 				if (
 					!secondaryUser.lastLogin ||
-					secondaryUser.lastLogin.getTime() + config.auth.sessionCookie.maxAge <
+					secondaryUser.lastLogin.getTime() +
+						(config.auth?.sessionCookie?.maxAge ?? 0) <
 						Date.now()
 				) {
 					await userService.updateLastLogin(secondaryUser);

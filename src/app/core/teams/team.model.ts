@@ -16,7 +16,7 @@ import {
 	Paginateable,
 	paginatePlugin
 } from '../../common/mongoose/paginate.plugin';
-import { UserDocument } from '../user/types';
+import { UserDocument } from '../user/user.model';
 
 export interface ITeam {
 	name: string;

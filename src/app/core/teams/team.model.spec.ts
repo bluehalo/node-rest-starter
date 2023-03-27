@@ -1,11 +1,14 @@
 import should from 'should';
 
 import { dbs } from '../../../dependencies';
+import { AuditModel } from '../audit/audit.model';
+import { UserModel } from '../user/user.model';
+import { TeamRoles } from './team-role.model';
 import { TeamModel } from './team.model';
 
-const Audit = dbs.admin.model('Audit');
+const Audit: AuditModel = dbs.admin.model('Audit');
 const Team: TeamModel = dbs.admin.model('Team');
-const User = dbs.admin.model('User');
+const User: UserModel = dbs.admin.model('User');
 
 /**
  * Globals
@@ -114,9 +117,9 @@ describe('Team Model:', () => {
 
 			// Set some teams on the users
 			user1.teams = [];
-			user1.teams.push({ _id: team1.id, role: 'member' });
-			user1.teams.push({ _id: team2.id, role: 'editor' });
-			user1.teams.push({ _id: team3.id, role: 'admin' });
+			user1.teams.push({ _id: team1.id, role: TeamRoles.Member });
+			user1.teams.push({ _id: team2.id, role: TeamRoles.Editor });
+			user1.teams.push({ _id: team3.id, role: TeamRoles.Admin });
 		});
 	});
 });

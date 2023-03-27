@@ -5,10 +5,10 @@ import { createSandbox } from 'sinon';
 
 import { config, dbs } from '../../../dependencies';
 import accessChecker from './access-checker.service';
-import { ICacheEntry } from './cache/cache-entry.model';
+import { CacheEntryModel, ICacheEntry } from './cache/cache-entry.model';
 import cacheEntryService from './cache/cache-entry.service';
 
-const CacheEntry = dbs.admin.model('CacheEntry');
+const CacheEntry: CacheEntryModel = dbs.admin.model('CacheEntry');
 
 /**
  * Helpers
@@ -98,7 +98,7 @@ describe('Access Checker Service:', () => {
 	// Entry is only in the provider
 	provider.provideronly = providerSpec('provideronly');
 
-	const cache: { [key: string]: Record<string, unknown> } = {};
+	const cache: { [key: string]: ICacheEntry } = {};
 
 	beforeEach(async () => {
 		sandbox = createSandbox();

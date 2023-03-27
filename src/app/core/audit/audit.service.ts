@@ -7,7 +7,7 @@ import {
 	auditLogger,
 	utilService
 } from '../../../dependencies';
-import { IUser } from '../user/types';
+import { IUser, UserDocument } from '../user/user.model';
 import { AuditDocument, AuditModel } from './audit.model';
 
 class AuditService {
@@ -43,9 +43,8 @@ class AuditService {
 		if (this.isUser(requestOrEventActor)) {
 			actor = requestOrEventActor;
 		} else if (requestOrEventActor.user && requestOrEventActor.headers) {
-			const User = dbs.admin.model('User');
-			actor = await User.auditCopy(
-				requestOrEventActor.user,
+			const user = requestOrEventActor.user as UserDocument;
+			actor = await user.auditCopy(
 				utilService.getHeaderField(requestOrEventActor.headers, 'x-real-ip')
 			);
 			eventMetadata = requestOrEventActor.headers;

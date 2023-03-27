@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import should from 'should';
 
 import { dbs } from '../../../dependencies';
-import { UserModel } from '../user/types';
+import { UserModel } from '../user/user.model';
 import { DismissedMessageModel } from './dismissed-message.model';
 import { MessageModel } from './message.model';
 import messagesService from './messages.service';

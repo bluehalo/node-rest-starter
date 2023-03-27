@@ -2,7 +2,7 @@
 
 module.exports = {
 	// Running in test mode
-	//mode: 'test',
+	// mode: 'test',
 
 	// Use a test db so we don't modify the real DB
 	db: {

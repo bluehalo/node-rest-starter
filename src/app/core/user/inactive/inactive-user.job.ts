@@ -13,7 +13,7 @@ import {
 	logger
 } from '../../../../dependencies';
 import { JobService } from '../../../common/agenda/job-service';
-import { UserDocument, UserModel } from '../types';
+import { UserDocument, UserModel } from '../user.model';
 
 const User: UserModel = dbs.admin.model('User');
 
@@ -51,7 +51,7 @@ export default class InactiveUsersJobService implements JobService {
 		const deactivatedUsers = await User.find(dQuery).exec();
 		if (_.isArray(deactivatedUsers)) {
 			const promises = deactivatedUsers.map(async (user) => {
-				const originalUser = User.auditCopy(user);
+				const originalUser = user.auditCopy();
 
 				user.roles.admin = false;
 				user.roles.user = false;
@@ -65,7 +65,7 @@ export default class InactiveUsersJobService implements JobService {
 					'user',
 					'deactivation',
 					null,
-					{ before: originalUser, after: User.auditCopy(user) },
+					{ before: originalUser, after: user.auditCopy() },
 					null
 				);
 			});

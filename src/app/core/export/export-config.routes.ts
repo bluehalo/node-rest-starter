@@ -1,7 +1,7 @@
 import express from 'express';
 import { Validator } from 'express-json-validator-middleware';
 
-import user from '../user/user.controller';
+import { hasAccess } from '../user/user-auth.middleware';
 import * as exportConfig from './export-config.controller';
 import { exportConfigSchema } from './export-config.schemas';
 
@@ -13,7 +13,7 @@ const router = express.Router();
 router
 	.route('/requestExport')
 	.post(
-		user.hasAccess,
+		hasAccess,
 		validate({ body: exportConfigSchema }),
 		exportConfig.requestExport
 	);

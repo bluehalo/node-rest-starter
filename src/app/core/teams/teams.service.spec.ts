@@ -10,13 +10,13 @@ import {
 	emailService,
 	logger
 } from '../../../dependencies';
-import { IUser, UserDocument } from '../user/types';
+import { IUser, UserDocument, UserModel } from '../user/user.model';
 import userService from '../user/user.service';
 import { TeamRoles } from './team-role.model';
 import { ITeam, TeamDocument, TeamModel } from './team.model';
 import teamsService from './teams.service';
 
-const User = dbs.admin.model('User');
+const User: UserModel = dbs.admin.model('User');
 const Team: TeamModel = dbs.admin.model('Team');
 
 /**
@@ -347,7 +347,7 @@ describe('Team Service:', () => {
 			const creator = await User.findOne({ name: 'user1 Name' }).exec();
 			const admin = await User.findOne({ name: 'user2 Name' }).exec();
 
-			await teamsService.create(teamSpec('test-create-2'), creator, admin);
+			await teamsService.create(teamSpec('test-create-2'), creator, admin._id);
 			const _team = await Team.findOne({ name: 'test-create-2' }).exec();
 			const members = await userService.searchUsers(
 				queryParams,
