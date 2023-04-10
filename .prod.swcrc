@@ -14,7 +14,7 @@
         "type": "commonjs"
     },
     "env": {
-        "targets": "node 14"
+        "targets": "node 16"
     },
-    "exclude": [".d.ts"]
+    "exclude": [".*\\.d\\.ts"]
 }
