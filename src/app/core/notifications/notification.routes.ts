@@ -1,10 +1,10 @@
 import { Router } from 'express';
 
-import user from '../user/user.controller';
+import { hasAccess } from '../user/user-auth.middleware';
 import * as notifications from './notification.controller';
 
 const router = Router();
 
-router.route('/notifications').post(user.hasAccess, notifications.search);
+router.route('/notifications').post(hasAccess, notifications.search);
 
 export = router;

@@ -1,13 +1,11 @@
 'use strict';
 
 const path = require('path'),
-	deps = require('../../../dependencies'),
-	config = deps.config,
-	logger = deps.logger,
-	socketIO = deps.socketIO,
+	{ config, logger, socketIO } = require('../../../dependencies'),
 	socketProvider = require(path.posix.resolve(config.socketProvider)),
-	users = require('../user/user.controller'),
-	emitName = 'message';
+	{ hasAccess } = require('../user/user-auth.middleware');
+
+const emitName = 'message';
 
 /**
  * MessageSocket Socket Controller that overrides Base Socket Controller
@@ -69,7 +67,7 @@ class MessageSocket extends socketProvider {
 
 		// Check that the user account has access
 		self
-			.applyMiddleware([users.hasAccess])
+			.applyMiddleware([hasAccess])
 			.then(() => {
 				// Subscribe to the user's message topic
 				const topic = self.getTopic();

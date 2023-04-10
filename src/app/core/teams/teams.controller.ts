@@ -1,9 +1,7 @@
-import { dbs, utilService, auditService } from '../../../dependencies';
+import { utilService, auditService } from '../../../dependencies';
 import userService from '../user/user.service';
 import { TeamRoles } from './team-role.model';
 import teamsService from './teams.service';
-
-const User = dbs.admin.model('User');
 
 /**
  * Create a new team. The team creator is automatically added as an admin
@@ -129,7 +127,7 @@ export const searchMembers = async (req, res) => {
 		totalSize: results.totalSize,
 		elements: results.elements.map((element) => {
 			return {
-				...User.filteredCopy(element),
+				...element.filteredCopy(),
 				teams: element.teams.filter((team) => team._id.equals(req.team._id))
 			};
 		})

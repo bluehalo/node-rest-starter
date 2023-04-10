@@ -82,7 +82,7 @@ module.exports = {
 
 		externalRoles: {
 			provider: {
-				file: 'src/app/core/user/auth/external-role-map.provider',
+				file: 'src/app/core/user/auth/default-external-role-map.provider',
 				config: {
 					externalRoleMap: {
 						user: 'USER',
@@ -132,11 +132,6 @@ module.exports = {
 			// 		],
 			// 		deactivateAfter: 90 * 86400000 // 90 days
 			// 	}
-			// },
-			// {
-			// 	file: './src/app/core/user/preferences/preference-cleanup.job',
-			// 	name: 'preference-cleanup',
-			// 	interval: '1 days'
 			// },
 			// {
 			// 	file: 'path/to/job/definition',

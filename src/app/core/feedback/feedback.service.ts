@@ -8,7 +8,7 @@ import {
 	utilService
 } from '../../../dependencies';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
-import { UserDocument } from '../user/types';
+import { UserDocument } from '../user/user.model';
 import { FeedbackDocument, FeedbackModel, Statuses } from './feedback.model';
 
 class FeedbackService {

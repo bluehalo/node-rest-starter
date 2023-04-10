@@ -10,7 +10,7 @@ import {
 } from '../../../dependencies';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import userAuthService from '../user/auth/user-authorization.service';
-import { UserDocument } from '../user/types';
+import { IUser, UserDocument, UserModel } from '../user/user.model';
 import { TeamRolePriorities, TeamRoles } from './team-role.model';
 import { ITeam, TeamDocument, TeamModel } from './team.model';
 
@@ -31,7 +31,7 @@ const isObjectIdEqual = (value1, value2) => {
 
 class TeamsService {
 	model: TeamModel;
-	userModel;
+	userModel: UserModel;
 
 	constructor() {
 		this.model = dbs.admin.model('Team');
@@ -666,7 +666,7 @@ class TeamsService {
 	}
 
 	getExplicitTeamIds(
-		user: UserDocument,
+		user: IUser,
 		...roles: TeamRoles[]
 	): Promise<Types.ObjectId[]> {
 		// Validate the user input
@@ -691,7 +691,7 @@ class TeamsService {
 	}
 
 	async getImplicitTeamIds(
-		user: UserDocument,
+		user: IUser,
 		...roles: TeamRoles[]
 	): Promise<Types.ObjectId[]> {
 		// Validate the user input
@@ -790,7 +790,7 @@ class TeamsService {
 	}
 
 	async getTeamIds(
-		user: UserDocument,
+		user: IUser,
 		...roles: TeamRoles[]
 	): Promise<Types.ObjectId[]> {
 		const explicitTeamIds = await this.getExplicitTeamIds(user, ...roles);
@@ -838,7 +838,7 @@ class TeamsService {
 		return _.intersectionWith(memberTeamIds, teamIds, isObjectIdEqual);
 	}
 
-	async updateTeams(user: UserDocument) {
+	async updateTeams(user: IUser) {
 		const strategy = config?.teams?.implicitMembers?.strategy ?? 'disabled';
 		const nestedTeamsEnabled = config?.teams?.nestedTeams ?? false;
 

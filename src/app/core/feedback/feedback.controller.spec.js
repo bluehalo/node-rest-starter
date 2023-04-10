@@ -33,12 +33,10 @@ describe('Feedback Controller', () => {
 		app.use(express.json());
 
 		// Mock access for the User Controller method that adds authentication to these endpoints
-		mock('../user/user.controller', {
-			has: () => {
-				return (req, res, next) => {
-					req.user = fakeUser;
-					next();
-				};
+		mock('../user/user-auth.middleware', {
+			hasLogin: (req, res, next) => {
+				req.user = fakeUser;
+				next();
 			},
 			hasAccess: (req, res, next) => {
 				req.user = fakeUser;

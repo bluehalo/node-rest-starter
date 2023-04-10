@@ -18,7 +18,7 @@ import passport from 'passport';
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
-import errorHandlers from '../app/common/express/error-handlers';
+import * as errorHandlers from '../app/common/express/error-handlers';
 import config from '../config';
 import { logger } from './bunyan';
 

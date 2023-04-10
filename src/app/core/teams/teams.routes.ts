@@ -1,7 +1,12 @@
 import { Router } from 'express';
 import { Validator } from 'express-json-validator-middleware';
 
-import * as user from '../user/user.controller';
+import { hasAny } from '../../common/express/auth-middleware';
+import {
+	hasAccess,
+	hasEditorAccess,
+	requiresAdminRole
+} from '../user/user-auth.middleware';
 import * as teams from './teams.controller';
 import * as teamSchemas from './teams.schemas';
 
@@ -21,7 +26,7 @@ const router = Router();
  *       '200':
  *         $ref: '#/components/responses/CreatedTeam'
  */
-router.route('/team').post(user.hasEditorAccess, teams.create);
+router.route('/team').post(hasEditorAccess, teams.create);
 
 /**
  * @swagger
@@ -35,7 +40,7 @@ router.route('/team').post(user.hasEditorAccess, teams.create);
  *       '200':
  *         $ref: '#/components/responses/TeamListing'
  */
-router.route('/teams').post(user.hasAccess, teams.search);
+router.route('/teams').post(hasAccess, teams.search);
 
 /**
  * @swagger
@@ -49,7 +54,7 @@ router.route('/teams').post(user.hasAccess, teams.search);
  *       '200':
  *         $ref: '#/components/responses/TeamIds'
  */
-router.route('/team/ancestors').post(user.hasAccess, teams.getAncestorTeamIds);
+router.route('/team/ancestors').post(hasAccess, teams.getAncestorTeamIds);
 
 /**
  * @swagger
@@ -87,19 +92,11 @@ router.route('/team/ancestors').post(user.hasAccess, teams.getAncestorTeamIds);
  */
 router
 	.route('/team/:teamId')
-	.get(
-		user.hasAccess,
-		user.hasAny(user.requiresAdminRole, teams.requiresMember),
-		teams.read
-	)
-	.post(
-		user.hasAccess,
-		user.hasAny(user.requiresAdminRole, teams.requiresAdmin),
-		teams.update
-	)
+	.get(hasAccess, hasAny(requiresAdminRole, teams.requiresMember), teams.read)
+	.post(hasAccess, hasAny(requiresAdminRole, teams.requiresAdmin), teams.update)
 	.delete(
-		user.hasAccess,
-		user.hasAny(user.requiresAdminRole, teams.requiresAdmin),
+		hasAccess,
+		hasAny(requiresAdminRole, teams.requiresAdmin),
 		teams.deleteTeam
 	);
 
@@ -117,7 +114,7 @@ router
  *       '400':
  *         description: Request for team access unsuccessful. Could not find team.
  */
-router.route('/team/:teamId/request').post(user.hasAccess, teams.requestAccess);
+router.route('/team/:teamId/request').post(hasAccess, teams.requestAccess);
 
 /**
  * @swagger
@@ -131,7 +128,7 @@ router.route('/team/:teamId/request').post(user.hasAccess, teams.requestAccess);
  *       '204':
  *         $ref: '#/components/responses/RequestNewTeam'
  */
-router.route('/team-request').post(user.hasAccess, teams.requestNewTeam);
+router.route('/team-request').post(hasAccess, teams.requestNewTeam);
 
 /**
  * Team editors Routes (requires team admin role)
@@ -165,14 +162,14 @@ router.route('/team-request').post(user.hasAccess, teams.requestNewTeam);
 router
 	.route('/team/:teamId/members')
 	.put(
-		user.hasAccess,
-		user.hasAny(user.requiresAdminRole, teams.requiresAdmin),
+		hasAccess,
+		hasAny(requiresAdminRole, teams.requiresAdmin),
 		validate({ body: teamSchemas.addMembers }),
 		teams.addMembers
 	)
 	.post(
-		user.hasAccess,
-		user.hasAny(user.requiresAdminRole, teams.requiresMember),
+		hasAccess,
+		hasAny(requiresAdminRole, teams.requiresMember),
 		teams.searchMembers
 	);
 
@@ -207,14 +204,14 @@ router
 router
 	.route('/team/:teamId/member/:memberId')
 	.post(
-		user.hasAccess,
-		user.hasAny(user.requiresAdminRole, teams.requiresAdmin),
+		hasAccess,
+		hasAny(requiresAdminRole, teams.requiresAdmin),
 		validate({ body: teamSchemas.addUpdateMemberRole }),
 		teams.addMember
 	)
 	.delete(
-		user.hasAccess,
-		user.hasAny(user.requiresAdminRole, teams.requiresAdmin),
+		hasAccess,
+		hasAny(requiresAdminRole, teams.requiresAdmin),
 		teams.removeMember
 	);
 
@@ -238,8 +235,8 @@ router
 router
 	.route('/team/:teamId/member/:memberId/role')
 	.post(
-		user.hasAccess,
-		user.hasAny(user.requiresAdminRole, teams.requiresAdmin),
+		hasAccess,
+		hasAny(requiresAdminRole, teams.requiresAdmin),
 		validate({ body: teamSchemas.addUpdateMemberRole }),
 		teams.updateMemberRole
 	);

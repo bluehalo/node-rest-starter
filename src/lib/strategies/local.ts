@@ -1,6 +1,6 @@
 import { Strategy as LocalStrategy } from 'passport-local';
 
-import { UserModel } from '../../app/core/user/types';
+import { UserModel } from '../../app/core/user/user.model';
 import { dbs } from '../../dependencies';
 
 const User: UserModel = dbs.admin.model('User');

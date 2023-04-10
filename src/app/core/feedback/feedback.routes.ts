@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { Validator } from 'express-json-validator-middleware';
 
-import user from '../user/user.controller';
+import { hasAdminAccess, hasLogin } from '../user/user-auth.middleware';
 import * as feedback from './feedback.controller';
 import { createFeedbackSchema } from './feedback.schemas';
 
@@ -46,7 +46,7 @@ const router = Router();
 router
 	.route('/feedback')
 	.post(
-		user.has(user.requiresLogin),
+		hasLogin,
 		validate({ body: createFeedbackSchema }),
 		feedback.submitFeedback
 	);
@@ -75,7 +75,7 @@ router
  *       '400':
  *         $ref: '#/components/responses/NotAuthenticated'
  */
-router.route('/admin/feedback').post(user.hasAdminAccess, feedback.search);
+router.route('/admin/feedback').post(hasAdminAccess, feedback.search);
 
 /**
  * @swagger
@@ -114,7 +114,7 @@ router.route('/admin/feedback').post(user.hasAdminAccess, feedback.search);
  */
 router
 	.route('/admin/feedback/:feedbackId/status')
-	.patch(user.hasAdminAccess, feedback.updateFeedbackStatus);
+	.patch(hasAdminAccess, feedback.updateFeedbackStatus);
 
 /**
  * @swagger
@@ -152,11 +152,11 @@ router
  */
 router
 	.route('/admin/feedback/:feedbackId/assignee')
-	.patch(user.hasAdminAccess, feedback.updateFeedbackAssignee);
+	.patch(hasAdminAccess, feedback.updateFeedbackAssignee);
 
 router
 	.route('/admin/feedback/csv/:exportId')
-	.get(user.hasAdminAccess, feedback.adminGetFeedbackCSV);
+	.get(hasAdminAccess, feedback.adminGetFeedbackCSV);
 
 router.param('feedbackId', feedback.feedbackById);
 

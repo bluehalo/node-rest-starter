@@ -2,7 +2,7 @@ import should from 'should';
 import { assert, createSandbox } from 'sinon';
 
 import { auditService, emailService, config, dbs } from '../../../dependencies';
-import { UserModel } from '../user/types';
+import { UserModel } from '../user/user.model';
 import { FeedbackModel } from './feedback.model';
 import feedbackService from './feedback.service';
 

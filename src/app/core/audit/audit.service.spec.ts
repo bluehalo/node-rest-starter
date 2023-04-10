@@ -1,7 +1,7 @@
 import should from 'should';
 
 import { dbs } from '../../../dependencies';
-import { IUser } from '../user/types';
+import { IUser } from '../user/user.model';
 import { AuditModel } from './audit.model';
 import auditService from './audit.service';
 

@@ -2,7 +2,7 @@ import path from 'path';
 
 import passport from 'passport';
 
-import { UserModel } from '../app/core/user/types';
+import { UserModel } from '../app/core/user/user.model';
 import { dbs, config } from '../dependencies';
 
 const User: UserModel = dbs.admin.model('User');

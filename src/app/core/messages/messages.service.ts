@@ -4,7 +4,7 @@ import { FilterQuery, PopulateOptions, Types } from 'mongoose';
 
 import { dbs, config, utilService } from '../../../dependencies';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
-import { UserDocument } from '../user/types';
+import { UserDocument } from '../user/user.model';
 import {
 	DismissedMessageDocument,
 	DismissedMessageModel,
