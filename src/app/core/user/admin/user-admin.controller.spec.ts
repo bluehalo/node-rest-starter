@@ -2,13 +2,13 @@
 
 import { assert, createSandbox, spy, stub } from 'sinon';
 
-import deps, { dbs } from '../../../../dependencies';
+import { auditService, config, dbs } from '../../../../dependencies';
 import userEmailService from '../user-email.service';
 import { UserModel } from '../user.model';
 import userService from '../user.service';
 import * as userAdminController from './user-admin.controller';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Helpers
@@ -137,7 +137,7 @@ describe('User Admin Controller:', () => {
 				userParam: userSpec('user1')
 			};
 
-			sandbox.stub(deps.auditService, 'audit').resolves();
+			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(userEmailService, 'emailApprovedUser').resolves();
 		});
 
@@ -145,11 +145,11 @@ describe('User Admin Controller:', () => {
 			sandbox.stub(userService, 'update').resolves(req.user);
 
 			sandbox
-				.stub(deps.config, 'coreEmails')
+				.stub(config, 'coreEmails')
 				.value({ approvedUserEmail: { enabled: true } });
 			await userAdminController.adminUpdateUser(req, res);
 
-			assert.calledWithMatch(deps.auditService.audit, 'admin user updated');
+			assert.calledWithMatch(auditService.audit, 'admin user updated');
 			assert.notCalled(userEmailService.emailApprovedUser);
 			assert.calledWith(res.status, 200);
 			assert.called(res.json);
@@ -162,7 +162,7 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminUpdateUser(req, res);
 
-			assert.calledWithMatch(deps.auditService.audit, 'admin user updated');
+			assert.calledWithMatch(auditService.audit, 'admin user updated');
 			assert.notCalled(userEmailService.emailApprovedUser);
 			assert.calledWith(res.status, 200);
 			assert.called(res.json);
@@ -175,7 +175,7 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminUpdateUser(req, res);
 
-			assert.calledWithMatch(deps.auditService.audit, 'admin user updated');
+			assert.calledWithMatch(auditService.audit, 'admin user updated');
 			assert.calledOnce(userEmailService.emailApprovedUser);
 			assert.calledWith(res.status, 200);
 			assert.called(res.json);
@@ -191,7 +191,7 @@ describe('User Admin Controller:', () => {
 				userParam: userSpec('user1')
 			};
 
-			sandbox.stub(deps.auditService, 'audit').resolves();
+			sandbox.stub(auditService, 'audit').resolves();
 		});
 
 		it('user is found', async () => {
@@ -199,7 +199,7 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminDeleteUser(req, res);
 
-			assert.calledWithMatch(deps.auditService.audit, 'admin user deleted');
+			assert.calledWithMatch(auditService.audit, 'admin user deleted');
 			assert.calledWith(res.status, 200);
 			assert.called(res.json);
 		});
@@ -234,7 +234,7 @@ describe('User Admin Controller:', () => {
 
 			['external', 'hybrid'].forEach((strategy) => {
 				it(`strategy = ${strategy}`, () => {
-					sandbox.stub(deps.config.auth, 'roleStrategy').value(strategy);
+					sandbox.stub(config.auth, 'roleStrategy').value(strategy);
 				});
 			});
 

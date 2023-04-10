@@ -5,7 +5,7 @@ import { UserDocument, UserModel } from '../user.model';
 import userAuthService from './user-authentication.service';
 import userAuthorizationService from './user-authorization.service';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 /**
  * ==========================================================

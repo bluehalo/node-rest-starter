@@ -16,7 +16,7 @@ import userEmailService from '../user-email.service';
 import { UserDocument, UserModel } from '../user.model';
 import userService from '../user.service';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Standard User Operations

@@ -5,7 +5,7 @@ import passport from 'passport';
 import { UserModel } from '../app/core/user/user.model';
 import { dbs, config } from '../dependencies';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 export const init = async () => {
 	// Serialize sessions

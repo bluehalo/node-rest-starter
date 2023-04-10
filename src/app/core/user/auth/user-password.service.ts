@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 import { config, dbs, emailService, logger } from '../../../../dependencies';
 import { UserDocument, UserModel } from '../user.model';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 class UserPasswordService {
 	findUserForActiveToken(token: string) {

@@ -8,7 +8,7 @@ import accessChecker from './access-checker.service';
 import { CacheEntryModel, ICacheEntry } from './cache/cache-entry.model';
 import cacheEntryService from './cache/cache-entry.service';
 
-const CacheEntry: CacheEntryModel = dbs.admin.model('CacheEntry');
+const CacheEntry = dbs.admin.model('CacheEntry') as CacheEntryModel;
 
 /**
  * Helpers

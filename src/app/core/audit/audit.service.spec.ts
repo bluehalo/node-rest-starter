@@ -5,7 +5,7 @@ import { IUser } from '../user/user.model';
 import { AuditModel } from './audit.model';
 import auditService from './audit.service';
 
-const Audit: AuditModel = dbs.admin.model('Audit');
+const Audit = dbs.admin.model('Audit') as AuditModel;
 
 /**
  * Globals

@@ -1,14 +1,11 @@
-'use strict';
+import http from 'http';
+import https from 'https';
 
-const _ = require('lodash'),
-	http = require('http'),
-	https = require('https'),
-	mongoose = require('mongoose'),
-	platform = require('platform'),
-	deps = require('../../dependencies'),
-	config = deps.config,
-	errorService = deps.errorService,
-	logger = deps.logger;
+import _ from 'lodash';
+import mongoose, { SortOrder } from 'mongoose';
+import platform from 'platform';
+
+import { config, errorService, logger } from '../../dependencies';
 
 function getValidationErrors(err) {
 	const errors = [];
@@ -31,7 +28,7 @@ function getValidationErrors(err) {
 /**
  * @deprecated
  */
-module.exports.getErrorMessage = function (err) {
+export const getErrorMessage = function (err) {
 	if (typeof err === 'string') {
 		return err;
 	}
@@ -53,9 +50,9 @@ module.exports.getErrorMessage = function (err) {
 /**
  * @deprecated
  */
-module.exports.getClientErrorMessage = function (err) {
+export const getClientErrorMessage = function (err) {
 	if (config.exposeServerErrors) {
-		return module.exports.getErrorMessage(err);
+		return getErrorMessage(err);
 	} else {
 		return 'A server error has occurred.';
 	}
@@ -64,7 +61,7 @@ module.exports.getClientErrorMessage = function (err) {
 /**
  * @deprecated
  */
-module.exports.handleErrorResponse = function (res, errorResult) {
+export const handleErrorResponse = function (res, errorResult) {
 	// Return the error state to the client, defaulting to 500
 	errorResult = errorResult || {};
 
@@ -96,7 +93,7 @@ module.exports.handleErrorResponse = function (res, errorResult) {
 		errorResult = {
 			status: errorResult.status,
 			type: 'server-error',
-			message: module.exports.getClientErrorMessage(errorResult)
+			message: getClientErrorMessage(errorResult)
 		};
 	}
 
@@ -104,47 +101,47 @@ module.exports.handleErrorResponse = function (res, errorResult) {
 	res.status(errorResult.status).json(errorResult);
 };
 
-module.exports.catchError = function (res, err, callback) {
+export const catchError = (res, err, callback = null) => {
 	if (err) {
 		logger.error(err);
-		return this.send400Error(res, err);
+		return send400Error(res, err);
 	} else if (null != callback) {
 		return callback();
 	}
 };
 
-module.exports.send400Error = function (res, err) {
+export const send400Error = (res, err) => {
 	return res.status(400).json({
 		message: errorService.getErrorMessage(err)
 	});
 };
 
-module.exports.send403Error = function (res) {
+export const send403Error = (res) => {
 	return res.status(403).json({
 		message: 'User is not authorized'
 	});
 };
 
-module.exports.validateNumber = function (property) {
+export const validateNumber = (property: unknown) => {
 	return null != property && _.isNumber(property);
 };
 
-module.exports.validatePositiveNumber = function (property) {
+export const validatePositiveNumber = function (property: unknown) {
 	if (null != property && property !== 0) {
 		return _.isNumber(property) && property > 0;
 	}
 	return true;
 };
 
-module.exports.validateNonEmpty = function (property) {
+export const validateNonEmpty = function (property) {
 	return null != property && property.length > 0;
 };
 
-module.exports.validateArray = function (property) {
+export const validateArray = function (property: unknown) {
 	return null != property && _.isArray(property) && property.length > 0;
 };
 
-module.exports.toLowerCase = function (v) {
+export const toLowerCase = function (v: string | null) {
 	return null != v ? v.toLowerCase() : undefined;
 };
 
@@ -152,10 +149,13 @@ module.exports.toLowerCase = function (v) {
  * Parse an input as a date. Handles various types
  * of inputs, such as Strings, Date objects, and Numbers.
  *
- * @param {(string | number | Date | Array | Function | Object)} date The input representing a date / timestamp
+ * @param date The input representing a date / timestamp
  * @returns The timestamp in milliseconds since the Unix epoch
  */
-module.exports.dateParse = function (date) {
+export const dateParse = function (
+	// eslint-disable-next-line @typescript-eslint/ban-types
+	date: string | number | Date | Array<unknown> | Function | Object
+) {
 	// Handle nil values, arrays, and functions by simply returning null
 	if (_.isNil(date) || _.isArray(date) || _.isFunction(date)) {
 		return null;
@@ -172,12 +172,12 @@ module.exports.dateParse = function (date) {
 	}
 
 	// Handle number string
-	if (!isNaN(date)) {
+	if (!isNaN(date as number)) {
 		return +date;
 	}
 
 	// Handle String, Object, etc.
-	const parsed = Date.parse(date);
+	const parsed = Date.parse(date as string);
 
 	// A string that cannot be parsed returns NaN
 	if (isNaN(parsed)) {
@@ -196,7 +196,7 @@ module.exports.dateParse = function (date) {
  * @param maxSize (optional) default: 100
  * @returns {number}
  */
-module.exports.getLimit = function (queryParams, maxSize = 100) {
+export const getLimit = function (queryParams, maxSize = 100) {
 	const limit = queryParams?.size ?? 20;
 	return isNaN(limit) ? 20 : Math.max(1, Math.min(maxSize, Math.floor(limit)));
 };
@@ -206,7 +206,7 @@ module.exports.getLimit = function (queryParams, maxSize = 100) {
  * @param queryParams
  * @returns {number}
  */
-module.exports.getPage = function (queryParams) {
+export const getPage = function (queryParams) {
 	const page = queryParams?.page ?? 0;
 	return isNaN(page) ? 0 : Math.max(0, page);
 };
@@ -221,7 +221,7 @@ module.exports.getPage = function (queryParams) {
  * @param defaultSort (optional)
  * @returns {Array}
  */
-module.exports.getSort = function (
+export const getSort = function (
 	queryParams,
 	defaultDir = 'ASC',
 	defaultSort = undefined
@@ -236,17 +236,12 @@ module.exports.getSort = function (
 
 /**
  * Get the sort provided by the user, if there is one.
- *
- * @param {Object} queryParams
- * @param {'ASC' | 'DESC'} [defaultDir=ASC] (optional) default: ASC
- * @param {string} [defaultSort=undefined] (optional)
- * @returns {Object|null}
  */
-module.exports.getSortObj = function (
-	queryParams,
-	defaultDir = 'ASC',
-	defaultSort = undefined
-) {
+export const getSortObj = function (
+	queryParams: { sort?: string; dir?: string | 1 | -1 },
+	defaultDir: 'ASC' | 'DESC' = 'ASC',
+	defaultSort?: string
+): { [key: string]: SortOrder } | null {
 	const sort = queryParams?.sort ?? defaultSort;
 	const dir = queryParams?.dir ?? defaultDir;
 	if (!sort) {
@@ -259,14 +254,14 @@ module.exports.getSortObj = function (
 /**
  * Extract given field from request header
  */
-module.exports.getHeaderField = function (header, fieldName) {
+export const getHeaderField = function (header, fieldName) {
 	return header?.[fieldName] ?? null;
 };
 
 /**
  * Parses user agent information from request header
  */
-module.exports.getUserAgentFromHeader = function (header) {
+export const getUserAgentFromHeader = function (header) {
 	const userAgent = this.getHeaderField(header, 'user-agent');
 
 	let data = {};
@@ -303,7 +298,7 @@ function propToMongoose(prop, nonMongoFunction) {
 	return null;
 }
 
-function toMongoose(obj) {
+export const toMongoose = (obj) => {
 	if (null != obj) {
 		if (typeof obj === 'object') {
 			if (Array.isArray(obj)) {
@@ -327,9 +322,7 @@ function toMongoose(obj) {
 	}
 
 	return obj;
-}
-
-exports.toMongoose = toMongoose;
+};
 
 /**
  * Determine if an array contains a given element by doing a deep comparison.
@@ -337,7 +330,7 @@ exports.toMongoose = toMongoose;
  * @param element
  * @returns {boolean} True if the array contains the given element, false otherwise.
  */
-module.exports.contains = function (arr, element) {
+export const contains = function (arr, element) {
 	for (let i = 0; i < arr.length; i++) {
 		if (_.isEqual(element, arr[i])) {
 			return true;
@@ -346,7 +339,7 @@ module.exports.contains = function (arr, element) {
 	return false;
 };
 
-module.exports.toProvenance = function (user) {
+export const toProvenance = function (user) {
 	const now = new Date();
 	return {
 		username: user.username,
@@ -356,9 +349,9 @@ module.exports.toProvenance = function (user) {
 	};
 };
 
-module.exports.emailMatcher = /.+@.+\..+/;
+export const emailMatcher = /.+@.+\..+/;
 
-module.exports.submitRequest = (httpOpts) => {
+export const submitRequest = (httpOpts) => {
 	return new Promise((resolve, reject) => {
 		let responseBody = '';
 
@@ -383,7 +376,7 @@ module.exports.submitRequest = (httpOpts) => {
 	});
 };
 
-module.exports.submitPostRequest = (httpOpts, postBody) => {
+export const submitPostRequest = (httpOpts, postBody) => {
 	return new Promise((resolve, reject) => {
 		let responseBody = '';
 
@@ -412,7 +405,7 @@ module.exports.submitPostRequest = (httpOpts, postBody) => {
 /**
  * @deprecated
  */
-module.exports.getPagingResults = (
+export const getPagingResults = (
 	pageSize = 20,
 	pageNumber = 0,
 	totalSize = 0,
@@ -432,10 +425,10 @@ module.exports.getPagingResults = (
 
 /**
  * Given an array of values, remove the values ending with a wildcard character (*)
- * @param stringArray {Array} - an array of string values
- * @return {Array} - an array of the strings removed from the input list because they end with a '*' character
+ * @param stringArray - an array of string values
+ * @return an array of the strings removed from the input list because they end with a '*' character
  */
-module.exports.removeStringsEndingWithWildcard = (stringArray) => {
+export const removeStringsEndingWithWildcard = (stringArray: string[]) => {
 	return _.remove(stringArray, (value) => {
 		return _.endsWith(value, '*');
 	});
@@ -443,8 +436,7 @@ module.exports.removeStringsEndingWithWildcard = (stringArray) => {
 
 /**
  * Escapes regex-specific characters in a given string
- * @param {string} str
  */
-module.exports.escapeRegex = (str) => {
+export const escapeRegex = (str: string) => {
 	return `${str}`.replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&');
 };

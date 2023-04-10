@@ -6,9 +6,9 @@ import { UserModel } from '../user/user.model';
 import { TeamRoles } from './team-role.model';
 import { TeamModel } from './team.model';
 
-const Audit: AuditModel = dbs.admin.model('Audit');
-const Team: TeamModel = dbs.admin.model('Team');
-const User: UserModel = dbs.admin.model('User');
+const Audit = dbs.admin.model('Audit') as AuditModel;
+const Team = dbs.admin.model('Team') as TeamModel;
+const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Globals

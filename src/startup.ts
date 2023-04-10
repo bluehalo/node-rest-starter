@@ -3,7 +3,7 @@ import http from 'http';
 import * as agenda from './lib/agenda';
 import { logger } from './lib/bunyan';
 import * as express from './lib/express';
-import mongoose from './lib/mongoose';
+import * as mongoose from './lib/mongoose';
 import socketio from './lib/socket.io';
 
 export default async function () {
@@ -28,14 +28,6 @@ export default async function () {
 
 		// Initialize socket.io
 		socketio.init(server, db.admin);
-
-		// Init task scheduler
-		const scheduler = await import('./scheduler');
-		scheduler.start();
-
-		// Init dispatcher
-		const dispatcher = await import('./dispatcher');
-		dispatcher.start();
 
 		return server;
 	} catch (err) {

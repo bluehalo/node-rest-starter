@@ -6,7 +6,7 @@ import should from 'should';
 import { dbs } from '../../../dependencies';
 import { UserModel } from './user.model';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Globals

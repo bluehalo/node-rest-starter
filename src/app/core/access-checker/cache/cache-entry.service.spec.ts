@@ -4,7 +4,7 @@ import { dbs } from '../../../../dependencies';
 import { CacheEntryModel } from './cache-entry.model';
 import cacheEntryService from './cache-entry.service';
 
-const CacheEntry: CacheEntryModel = dbs.admin.model('CacheEntry');
+const CacheEntry = dbs.admin.model('CacheEntry') as CacheEntryModel;
 
 /**
  * Unit tests

@@ -1,6 +1,6 @@
-describe('Config Server Controller', () => {
-	const configController = require('./config.controller');
+import * as configController from './config.controller';
 
+describe('Config Server Controller', () => {
 	describe('#getSystemConfig', () => {
 		it('should not include the mailer configuration', () => {
 			const systemConfig = configController.getSystemConfig();

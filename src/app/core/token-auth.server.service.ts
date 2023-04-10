@@ -1,9 +1,6 @@
-'use strict';
+import { config } from '../../dependencies';
 
-const deps = require('../../dependencies'),
-	config = deps.config;
-
-module.exports.verify = function (role) {
+export const verify = (role) => {
 	return function (req, res, next) {
 		// Grab the Authentication header
 		const authentication = req.headers.authentication;

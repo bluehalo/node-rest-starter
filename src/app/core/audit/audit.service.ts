@@ -35,7 +35,7 @@ class AuditService {
 		eventMetadata = null
 	): Promise<AuditDocument> {
 		// Delay resolving the Audit model until we can be sure it has been initialized
-		const Audit: AuditModel = dbs.admin.model('Audit');
+		const Audit = dbs.admin.model('Audit') as AuditModel;
 
 		requestOrEventActor = await requestOrEventActor;
 

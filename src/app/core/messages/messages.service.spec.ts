@@ -7,10 +7,11 @@ import { DismissedMessageModel } from './dismissed-message.model';
 import { MessageModel } from './message.model';
 import messagesService from './messages.service';
 
-const User: UserModel = dbs.admin.model('User');
-const Message: MessageModel = dbs.admin.model('Message');
-const DismissedMessage: DismissedMessageModel =
-	dbs.admin.model('DismissedMessage');
+const User = dbs.admin.model('User') as UserModel;
+const Message = dbs.admin.model('Message') as MessageModel;
+const DismissedMessage = dbs.admin.model(
+	'DismissedMessage'
+) as DismissedMessageModel;
 
 /**
  * Helpers

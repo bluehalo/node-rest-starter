@@ -13,7 +13,7 @@ class EuaService {
 	model: UserAgreementModel;
 
 	constructor() {
-		this.model = dbs.admin.model('UserAgreement');
+		this.model = dbs.admin.model('UserAgreement') as UserAgreementModel;
 	}
 
 	create(doc: unknown): Promise<UserAgreementDocument> {

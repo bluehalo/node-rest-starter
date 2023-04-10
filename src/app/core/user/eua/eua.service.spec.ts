@@ -5,8 +5,8 @@ import { UserModel } from '../user.model';
 import { UserAgreementModel } from './eua.model';
 import euaService from './eua.service';
 
-const User: UserModel = dbs.admin.model('User');
-const UserAgreement: UserAgreementModel = dbs.admin.model('UserAgreement');
+const User = dbs.admin.model('User') as UserModel;
+const UserAgreement = dbs.admin.model('UserAgreement') as UserAgreementModel;
 
 /**
  * Unit tests

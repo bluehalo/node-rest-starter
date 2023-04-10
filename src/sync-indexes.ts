@@ -1,7 +1,7 @@
 import { models } from 'mongoose';
 
 import { logger } from './lib/bunyan';
-import mongoose from './lib/mongoose';
+import * as mongoose from './lib/mongoose';
 
 const syncIndex = async () => {
 	logger.info('Started index sync...');

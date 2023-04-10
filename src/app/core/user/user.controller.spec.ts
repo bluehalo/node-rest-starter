@@ -1,19 +1,13 @@
 import should from 'should';
 import { assert, createSandbox, spy, stub } from 'sinon';
 
-import {
-	auditService,
-	config,
-	dbs,
-	logger,
-	utilService
-} from '../../../dependencies';
+import { auditService, config, dbs, logger } from '../../../dependencies';
 import userAuthorizationService from './auth/user-authorization.service';
 import * as userController from './user.controller';
 import { UserModel } from './user.model';
 import userService from './user.service';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Unit tests
@@ -87,7 +81,6 @@ describe('User Profile Controller:', () => {
 				exec: () => Promise.resolve(user)
 			});
 			sandbox.stub(auditService, 'audit').resolves();
-			sandbox.stub(utilService, 'send400Error').resolves();
 
 			await userController.updateCurrentUser(req, res);
 
@@ -95,8 +88,6 @@ describe('User Profile Controller:', () => {
 			assert.calledWithMatch(res.json, { id: user.id });
 
 			assert.calledWithMatch(auditService.audit, 'user updated');
-
-			assert.notCalled(utilService.send400Error);
 		});
 
 		it('user is logged in; success w/ password change', async () => {
@@ -171,15 +162,13 @@ describe('User Profile Controller:', () => {
 				exec: () => Promise.resolve(user)
 			});
 			sandbox.stub(auditService, 'audit').resolves();
-			sandbox.stub(utilService, 'send400Error').resolves();
 
 			await userController.updateCurrentUser(req, res);
 
-			assert.notCalled(res.status);
-			assert.notCalled(res.json);
+			assert.calledWith(res.status, 400);
+			assert.calledWithMatch(res.json, { message: 'error' });
 
 			assert.notCalled(auditService.audit);
-			assert.calledOnce(utilService.send400Error);
 		});
 
 		it('user is logged in; login returns error', async () => {
@@ -201,7 +190,6 @@ describe('User Profile Controller:', () => {
 				exec: () => Promise.resolve(user)
 			});
 			sandbox.stub(auditService, 'audit').resolves();
-			sandbox.stub(utilService, 'send400Error').resolves();
 
 			await userController.updateCurrentUser(req, res);
 
@@ -209,8 +197,6 @@ describe('User Profile Controller:', () => {
 			assert.calledWithMatch(res.json, 'error');
 
 			assert.calledWithMatch(auditService.audit, 'user updated');
-
-			assert.notCalled(utilService.send400Error);
 		});
 
 		it('user is not logged in', async () => {

@@ -10,6 +10,7 @@ import { config } from '../dependencies';
  */
 describe('Init Swagger API:', () => {
 	it('Generated Swagger API should be valid', async () => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const swaggerOptions: any = {
 			swaggerDefinition: {
 				openapi: '3.0.2',

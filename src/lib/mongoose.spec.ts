@@ -1,6 +1,8 @@
-const sinon = require('sinon'),
-	config = require('../config.js'),
-	mongooseLib = require('./mongoose');
+import { Connection, Mongoose } from 'mongoose';
+import { createSandbox } from 'sinon';
+
+import config from '../config.js';
+import * as mongooseLib from './mongoose';
 
 describe('Mongoose', () => {
 	const mongoHost = config?.test?.mongoHost ?? 'localhost';
@@ -18,7 +20,7 @@ describe('Mongoose', () => {
 	});
 
 	beforeEach(() => {
-		sandbox = sinon.createSandbox();
+		sandbox = createSandbox();
 	});
 
 	afterEach(() => {
@@ -37,8 +39,10 @@ describe('Mongoose', () => {
 			const dbs = await mongooseLib.connect();
 			dbs.should.have.property('admin');
 			dbs.admin.should.have.property('connection');
-			dbs.admin.connection.name.should.eql(adminDatabaseName);
-			dbs.admin.connection.readyState.should.eql(1);
+
+			const admin = dbs.admin as Mongoose;
+			admin.connection.name.should.eql(adminDatabaseName);
+			admin.connection.readyState.should.eql(1);
 		});
 	});
 
@@ -54,15 +58,19 @@ describe('Mongoose', () => {
 			const dbs = await mongooseLib.connect();
 			dbs.should.have.property('admin');
 			dbs.admin.should.have.property('connection');
-			dbs.admin.connection.name.should.eql(adminDatabaseName);
-			dbs.admin.connection.readyState.should.eql(1);
+
+			const admin = dbs.admin as Mongoose;
+			admin.connection.name.should.eql(adminDatabaseName);
+			admin.connection.readyState.should.eql(1);
 		});
 
 		it('connects to other databases', async () => {
 			const dbs = await mongooseLib.connect();
 			dbs.should.have.property('other');
-			dbs.other.name.should.eql(otherDatabaseName);
-			dbs.other.readyState.should.eql(1);
+
+			const other = dbs.other as Connection;
+			other.name.should.eql(otherDatabaseName);
+			other.readyState.should.eql(1);
 		});
 	});
 });

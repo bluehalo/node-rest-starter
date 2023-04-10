@@ -3,7 +3,7 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import { UserModel } from '../../app/core/user/user.model';
 import { dbs } from '../../dependencies';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 const verify = (username: string, password: string, done) => {
 	if (!username) {

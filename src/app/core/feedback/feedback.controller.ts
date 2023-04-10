@@ -4,7 +4,7 @@ import exportConfigService from '../export/export-config.service';
 import { FeedbackModel } from './feedback.model';
 import feedbackService from './feedback.service';
 
-const Feedback: FeedbackModel = dbs.admin.model('Feedback');
+const Feedback = dbs.admin.model('Feedback') as FeedbackModel;
 
 export const submitFeedback = async function (req, res) {
 	const audit = await auditService.audit(

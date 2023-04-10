@@ -9,8 +9,8 @@ import { TeamDocument, TeamModel } from './team.model';
 import * as teamsController from './teams.controller';
 import teamsService from './teams.service';
 
-const Team: TeamModel = dbs.admin.model('Team');
-const User: UserModel = dbs.admin.model('User');
+const Team = dbs.admin.model('Team') as TeamModel;
+const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Unit tests

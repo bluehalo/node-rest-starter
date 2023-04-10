@@ -1,25 +1,26 @@
-'use strict';
+import path from 'path';
 
-const _ = require('lodash'),
-	mongoose = require('mongoose'),
-	path = require('path'),
-	config = require('../config'),
-	logger = require('./bunyan').logger;
+import _ from 'lodash';
+import mongoose, { Connection, ConnectOptions, Mongoose } from 'mongoose';
+
+import config from '../config';
+import { logger } from './bunyan';
 
 // Set the mongoose debugging option based on the configuration, defaulting to false
-const mongooseDebug = config.mongooseLogging || false;
+const mongooseDebug = config.mongooseLogging ?? false;
+
 logger.info(`Mongoose: Setting debug to ${mongooseDebug}`);
 mongoose.set('debug', mongooseDebug);
 
 // Load the mongoose models
-function loadModels() {
+export const loadModels = async () => {
 	// Globbing model files
-	config.files.models.forEach((modelPath) => {
+	for (const modelPath of config.files.models) {
 		logger.debug(`Mongoose: Loading ${modelPath}`);
-		require(path.posix.resolve(modelPath));
-	});
-}
-module.exports.loadModels = loadModels;
+		// eslint-disable-next-line no-await-in-loop
+		await import(path.posix.resolve(modelPath));
+	}
+};
 
 /**
  * Gets a database connection specification from the configured parameters, allowing for both simple
@@ -45,12 +46,15 @@ function getDbSpec(dbSpecName, dbConfigs) {
 }
 
 // This is the set of db connections
-const dbs = {};
-module.exports.dbs = dbs;
+export const dbs: Record<string, Connection | Mongoose> = {};
 
 // Initialize Mongoose, returns a promise
-module.exports.connect = async () => {
-	const dbSpecs = [];
+export const connect = async () => {
+	const dbSpecs: Array<{
+		name: string;
+		connectionString: string;
+		options: ConnectOptions;
+	}> = [];
 	let defaultDbSpec;
 
 	// Organize the dbs we need to connect
@@ -79,17 +83,16 @@ module.exports.connect = async () => {
 			await Promise.all(
 				dbSpecs.map(async (spec) => {
 					// Create the secondary connection
-					const conn = await mongoose
+					dbs[spec.name] = await mongoose
 						.createConnection(spec.connectionString, spec.options)
 						.asPromise();
-					dbs[spec.name] = conn;
 					logger.info(`Mongoose: Connected to "${spec.name}" db`);
 				})
 			);
 
 			logger.debug('Loading mongoose models...');
 			// Since all the db connections worked, we will load the mongoose models
-			loadModels();
+			await loadModels();
 			logger.debug('Loaded all mongoose models!');
 
 			// Ensure that all mongoose models are initialized
@@ -116,10 +119,10 @@ module.exports.connect = async () => {
 };
 
 //Disconnect from Mongoose
-module.exports.disconnect = () => {
+export const disconnect = () => {
 	// Create defers for mongoose connections
 	const promises = _.values(dbs).map((d) => {
-		if (d.disconnect) {
+		if (isMongoose(d) && d.disconnect) {
 			return d.disconnect().catch(() => Promise.resolve());
 		}
 		return Promise.resolve();
@@ -128,3 +131,7 @@ module.exports.disconnect = () => {
 	// Wait for all to finish, successful or not
 	return Promise.all(promises);
 };
+
+function isMongoose(connection: Mongoose | Connection): connection is Mongoose {
+	return (connection as Mongoose).disconnect !== undefined;
+}
