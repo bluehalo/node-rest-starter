@@ -7,7 +7,7 @@ import { config, dbs, emailService, logger } from '../../../../dependencies';
 import { UserModel } from '../user.model';
 import userPasswordService from './user-password.service';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Unit tests

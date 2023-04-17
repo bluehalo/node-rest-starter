@@ -22,8 +22,10 @@ class MessagesService {
 	publishProvider: PublishProvider;
 
 	constructor() {
-		this.model = dbs.admin.model('Message');
-		this.dismissedModel = dbs.admin.model('DismissedMessage');
+		this.model = dbs.admin.model('Message') as MessageModel;
+		this.dismissedModel = dbs.admin.model(
+			'DismissedMessage'
+		) as DismissedMessageModel;
 	}
 
 	create(user: UserDocument, doc: unknown): Promise<MessageDocument> {

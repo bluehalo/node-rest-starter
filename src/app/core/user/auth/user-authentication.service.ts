@@ -5,7 +5,7 @@ import accessChecker from '../../access-checker/access-checker.service';
 import userEmailService from '../user-email.service';
 import { IUser, UserDocument, UserModel } from '../user.model';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 class UserAuthenticationService {
 	/**

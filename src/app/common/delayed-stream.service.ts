@@ -1,10 +1,6 @@
-'use strict';
+import through2 from 'through2';
 
-const through2 = require('through2');
-
-module.exports = function (delay) {
-	delay = delay || 10;
-
+export = function (delay = 10) {
 	// Store all the active timeouts
 	let timeouts = [];
 

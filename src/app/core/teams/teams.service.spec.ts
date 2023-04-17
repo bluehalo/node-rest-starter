@@ -16,8 +16,8 @@ import { TeamRoles } from './team-role.model';
 import { ITeam, TeamDocument, TeamModel } from './team.model';
 import teamsService from './teams.service';
 
-const User: UserModel = dbs.admin.model('User');
-const Team: TeamModel = dbs.admin.model('Team');
+const User = dbs.admin.model('User') as UserModel;
+const Team = dbs.admin.model('Team') as TeamModel;
 
 /**
  * Helpers

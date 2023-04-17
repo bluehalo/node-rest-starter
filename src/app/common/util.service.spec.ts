@@ -1,12 +1,13 @@
-'use strict';
+import should from 'should';
 
-const should = require('should'),
-	deps = require('../../dependencies'),
-	util = deps.utilService;
+import { config, utilService } from '../../dependencies';
 
 /**
  * Globals
  */
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const emptyFn = () => {};
 
 /**
  * Unit tests
@@ -22,7 +23,7 @@ describe('Utils:', () => {
 				date: { $date: '2015-07-01T00:00:00.000Z' }
 			};
 
-			const output = util.toMongoose(input);
+			const output = utilService.toMongoose(input);
 			(typeof output.hello).should.equal('object');
 			output.hello.there.should.equal('you are');
 			Array.isArray(output.hello.when).should.equal(true);
@@ -43,7 +44,7 @@ describe('Utils:', () => {
 				obj: { $obj: '000000000000000000000001' }
 			};
 
-			const output = util.toMongoose(input);
+			const output = utilService.toMongoose(input);
 			(typeof output.hello).should.equal('object');
 			output.hello.there.should.equal('you are');
 			Array.isArray(output.hello.when).should.equal(true);
@@ -62,56 +63,56 @@ describe('Utils:', () => {
 
 	describe('Date Parse:', () => {
 		it('returns null if null', () => {
-			should.equal(util.dateParse(null), null);
+			should.equal(utilService.dateParse(null), null);
 		});
 
 		it('returns null if undefined', () => {
-			should.equal(util.dateParse(undefined), null);
+			should.equal(utilService.dateParse(undefined), null);
 		});
 
 		it('returns null if object', () => {
-			should.equal(util.dateParse({}), null);
+			should.equal(utilService.dateParse({ test: 'test' }), null);
 		});
 
 		it('returns null if array', () => {
-			should.equal(util.dateParse([]), null);
+			should.equal(utilService.dateParse([]), null);
 		});
 
 		it('returns null if function', () => {
-			should.equal(
-				util.dateParse(() => {}),
-				null
-			);
+			should.equal(utilService.dateParse(emptyFn), null);
 		});
 
 		it('returns number if number', () => {
-			should.equal(util.dateParse(0), 0);
-			should.equal(util.dateParse(12345), 12345);
-			should.equal(util.dateParse(-12345), -12345);
+			should.equal(utilService.dateParse(0), 0);
+			should.equal(utilService.dateParse(12345), 12345);
+			should.equal(utilService.dateParse(-12345), -12345);
 		});
 
 		it('returns number if string is a number', () => {
-			should.equal(util.dateParse('0'), 0);
-			should.equal(util.dateParse('12345'), 12345);
-			should.equal(util.dateParse('-12345'), -12345);
+			should.equal(utilService.dateParse('0'), 0);
+			should.equal(utilService.dateParse('12345'), 12345);
+			should.equal(utilService.dateParse('-12345'), -12345);
 		});
 
 		it('returns null if string is bad', () => {
-			should.equal(util.dateParse('2017-0000000000000'), null);
-			should.equal(util.dateParse('Hello'), null);
+			should.equal(utilService.dateParse('2017-0000000000000'), null);
+			should.equal(utilService.dateParse('Hello'), null);
 		});
 
 		it('returns number if string is a date', () => {
-			should.equal(util.dateParse('1970-01-01'), 0);
-			should.equal(util.dateParse('1970-01-01T00:00:00.000Z'), 0);
-			should.equal(util.dateParse('2017-06-19T20:41:45.000Z'), 1497904905000);
+			should.equal(utilService.dateParse('1970-01-01'), 0);
+			should.equal(utilService.dateParse('1970-01-01T00:00:00.000Z'), 0);
+			should.equal(
+				utilService.dateParse('2017-06-19T20:41:45.000Z'),
+				1497904905000
+			);
 		});
 
 		it('returns number if date', () => {
-			should.equal(util.dateParse(new Date(0)), 0);
-			should.equal(util.dateParse(new Date(12345)), 12345);
+			should.equal(utilService.dateParse(new Date(0)), 0);
+			should.equal(utilService.dateParse(new Date(12345)), 12345);
 			const now = new Date();
-			should.equal(util.dateParse(now), now.getTime());
+			should.equal(utilService.dateParse(now), now.getTime());
 		});
 	});
 
@@ -164,7 +165,7 @@ describe('Utils:', () => {
 			}
 		].forEach((test) => {
 			it(test.name, () => {
-				const actual = util.getPage(test.input);
+				const actual = utilService.getPage(test.input);
 				should(actual).equal(test.expected);
 			});
 		});
@@ -218,7 +219,10 @@ describe('Utils:', () => {
 			}
 		].forEach((test) => {
 			it(test.name, () => {
-				const actual = util.getLimit(test.inputQueryParams, test.inputMaxSize);
+				const actual = utilService.getLimit(
+					test.inputQueryParams,
+					test.inputMaxSize
+				);
 				should(actual).equal(test.expected);
 			});
 		});
@@ -238,7 +242,7 @@ describe('Utils:', () => {
 			}
 		].forEach((test) => {
 			it(test.name, () => {
-				const actual = util.getSort(test.input);
+				const actual = utilService.getSort(test.input);
 				should(actual).equal(test.expected);
 			});
 		});
@@ -275,7 +279,7 @@ describe('Utils:', () => {
 			}
 		].forEach((test) => {
 			it(test.name, () => {
-				const actual = util.getSort(
+				const actual = utilService.getSort(
 					test.input,
 					test.defaultDir,
 					test.defaultSort
@@ -304,7 +308,7 @@ describe('Utils:', () => {
 			}
 		].forEach((test) => {
 			it(test.name, () => {
-				const actual = util.getSortObj(test.input);
+				const actual = utilService.getSortObj(test.input);
 				should(actual).equal(test.expected);
 			});
 		});
@@ -348,8 +352,9 @@ describe('Utils:', () => {
 			}
 		].forEach((test) => {
 			it(test.name, () => {
-				const actual = util.getSortObj(
+				const actual = utilService.getSortObj(
 					test.input,
+					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 					// @ts-ignore
 					test.defaultDir,
 					test.defaultSort
@@ -412,7 +417,7 @@ describe('Utils:', () => {
 			}
 		].forEach((test) => {
 			it(test.name, () => {
-				const actual = util.contains(test.inputArray, test.inputElement);
+				const actual = utilService.contains(test.inputArray, test.inputElement);
 				should(actual).equal(test.expected);
 			});
 		});
@@ -427,7 +432,7 @@ describe('Utils:', () => {
 				name: 'should return false for undefined'
 			},
 			{
-				input: () => {},
+				input: emptyFn,
 				expected: false,
 				name: 'should return false for function'
 			},
@@ -442,7 +447,7 @@ describe('Utils:', () => {
 			{ input: 1, expected: true, name: 'should return true for number' }
 		].forEach((test) => {
 			it(test.name, () => {
-				const actual = util.validateNumber(test.input);
+				const actual = utilService.validateNumber(test.input);
 				should(actual).equal(test.expected);
 			});
 		});
@@ -457,7 +462,7 @@ describe('Utils:', () => {
 				name: 'should return false for undefined'
 			},
 			{
-				input: () => {},
+				input: emptyFn,
 				expected: false,
 				name: 'should return false for function'
 			},
@@ -476,7 +481,7 @@ describe('Utils:', () => {
 			{ input: 1, expected: false, name: 'should return false for number' }
 		].forEach((test) => {
 			it(test.name, () => {
-				const actual = util.validateNonEmpty(test.input);
+				const actual = utilService.validateNonEmpty(test.input);
 				should(actual).equal(test.expected);
 			});
 		});
@@ -491,7 +496,7 @@ describe('Utils:', () => {
 				name: 'should return false for undefined'
 			},
 			{
-				input: () => {},
+				input: emptyFn,
 				expected: false,
 				name: 'should return false for function'
 			},
@@ -529,7 +534,7 @@ describe('Utils:', () => {
 			{ input: 1, expected: false, name: 'should return false for number' }
 		].forEach((test) => {
 			it(test.name, () => {
-				const actual = util.validateArray(test.input);
+				const actual = utilService.validateArray(test.input);
 				should(actual).equal(test.expected);
 			});
 		});
@@ -539,12 +544,12 @@ describe('Utils:', () => {
 		let originalExposeServerErrors;
 
 		before(() => {
-			originalExposeServerErrors = deps.config.exposeServerErrors;
+			originalExposeServerErrors = config.exposeServerErrors;
 		});
 
 		after(() => {
 			// Restore the original exposeServerErrors config
-			deps.config.exposeServerErrors = originalExposeServerErrors;
+			config.exposeServerErrors = originalExposeServerErrors;
 		});
 
 		const defaultResponse = 'A server error has occurred.';
@@ -590,16 +595,16 @@ describe('Utils:', () => {
 
 		errorTests.forEach((test) => {
 			it(`should return default error message when config is false: ${test.testName}`, () => {
-				deps.config.exposeServerErrors = false;
-				const actual = util.getClientErrorMessage(test.error);
+				config.exposeServerErrors = false;
+				const actual = utilService.getClientErrorMessage(test.error);
 				should(actual).equal(defaultResponse);
 			});
 		});
 
 		errorTests.forEach((test) => {
 			it(`should return contextual error message when config is true: ${test.testName}`, () => {
-				deps.config.exposeServerErrors = true;
-				const actual = util.getClientErrorMessage(test.error);
+				config.exposeServerErrors = true;
+				const actual = utilService.getClientErrorMessage(test.error);
 				should(actual).equal(test.expected);
 			});
 		});
@@ -647,7 +652,7 @@ describe('Utils:', () => {
 			}
 		].forEach((test) => {
 			it(test.name, () => {
-				const actual = util.getPagingResults(
+				const actual = utilService.getPagingResults(
 					test.pageSize,
 					test.pageNumber,
 					test.totalSize,
@@ -692,7 +697,7 @@ describe('Utils:', () => {
 			}
 		].forEach((test) => {
 			it(test.name, () => {
-				const actual = util.removeStringsEndingWithWildcard(test.input);
+				const actual = utilService.removeStringsEndingWithWildcard(test.input);
 				should(test.input).containDeep(test.expected.input);
 				should(actual).containDeep(test.expected.output);
 			});
@@ -715,7 +720,7 @@ describe('Utils:', () => {
 
 		tests.forEach((test) => {
 			it(test.description, () => {
-				const result = util.escapeRegex(test.input);
+				const result = utilService.escapeRegex(test.input);
 				should(result).equal(test.expected);
 			});
 		});

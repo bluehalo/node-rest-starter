@@ -99,6 +99,7 @@ function initMiddleware(app) {
 /**
  * Configure view engine
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function initViewEngine(app) {
 	// Not using server rendering for views
 }
@@ -209,6 +210,7 @@ function initSwaggerAPI(app) {
 		return;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const swaggerOptions: any = {
 		swaggerDefinition: {
 			openapi: '3.0.2',

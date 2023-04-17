@@ -8,7 +8,7 @@ const path = require('path'),
 	expressSession = require('express-session'),
 	MongoStore = require('connect-mongo')(expressSession),
 	config = require('../config'),
-	logger = require('./bunyan.js').logger;
+	{ logger } = require('./bunyan');
 
 /**
  * Controllers created outside of this class will register

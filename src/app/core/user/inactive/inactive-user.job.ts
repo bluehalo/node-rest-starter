@@ -15,7 +15,7 @@ import {
 import { JobService } from '../../../common/agenda/job-service';
 import { UserDocument, UserModel } from '../user.model';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 /**
  * alert users whose accounts have been inactive for 30-89 days. Remove accounts that have been inactive for 90+ days

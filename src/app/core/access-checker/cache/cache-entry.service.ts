@@ -8,7 +8,7 @@ class CacheEntryService {
 	model: CacheEntryModel;
 
 	constructor() {
-		this.model = dbs.admin.model('CacheEntry');
+		this.model = dbs.admin.model('CacheEntry') as CacheEntryModel;
 	}
 
 	/**

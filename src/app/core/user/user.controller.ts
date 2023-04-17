@@ -6,7 +6,7 @@ import userAuthorizationService from './auth/user-authorization.service';
 import { UserModel } from './user.model';
 import userService from './user.service';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Standard User Operations

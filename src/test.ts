@@ -1,24 +1,24 @@
 /* eslint-disable no-console */
-'use strict';
+import Mocha, { MochaOptions } from 'mocha';
+import { hideBin } from 'yargs/helpers';
+import yargs from 'yargs/yargs';
 
-const { hideBin } = require('yargs/helpers');
+import config from './config.js';
+import * as mongoose from './lib/mongoose';
 
-const Mocha = require('mocha'),
-	yargs = require('yargs/yargs')(hideBin(process.argv)).option({
-		ci: { type: 'boolean' },
-		bail: { type: 'boolean' },
-		filter: { type: 'string' }
-	}),
-	config = require('./config.js'),
-	mongoose = require('./lib/mongoose.js');
+const args = yargs(hideBin(process.argv)).option({
+	ci: { type: 'boolean' },
+	bail: { type: 'boolean' },
+	filter: { type: 'string' }
+});
 
 /**
- * @type {any}
  * This coercion is required due to yarg's unfortunate split {} | Promise<{}> typing.
  * TSC tries to reconcile the two types and is unable to do so.
  * @see https://github.com/yargs/yargs/issues/2175ß
  */
-const argv = yargs.argv;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const argv: any = args.argv;
 
 console.info('Starting initialization of tests');
 
@@ -33,7 +33,7 @@ mongoose
 		});
 
 		// Create the mocha instance
-		const options = argv.ci
+		const options: MochaOptions = argv.ci
 			? {
 					reporter: 'xunit',
 					reporterOptions: {

@@ -1,5 +1,3 @@
-'use strict';
-
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 import passport from 'passport';
@@ -15,8 +13,8 @@ import {
 import { IUser, UserModel } from '../user.model';
 import * as userAuthenticationController from './user-authentication.controller';
 
-const User: UserModel = dbs.admin.model('User');
-const CacheEntry: CacheEntryModel = dbs.admin.model('CacheEntry');
+const User = dbs.admin.model('User') as UserModel;
+const CacheEntry = dbs.admin.model('CacheEntry') as CacheEntryModel;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const emptyFn = () => {};

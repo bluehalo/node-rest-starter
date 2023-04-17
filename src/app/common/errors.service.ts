@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * Get unique error field name
  */
@@ -24,7 +22,7 @@ function getUniqueErrorMessage(err) {
 /**
  * Get the error message from error object
  */
-module.exports.getErrorMessage = function (err) {
+export const getErrorMessage = function (err) {
 	let message = '';
 
 	if (null == err || typeof err === 'string') {

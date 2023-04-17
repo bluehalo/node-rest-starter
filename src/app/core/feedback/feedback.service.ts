@@ -15,7 +15,7 @@ class FeedbackService {
 	model: FeedbackModel;
 
 	constructor() {
-		this.model = dbs.admin.model('Feedback');
+		this.model = dbs.admin.model('Feedback') as FeedbackModel;
 	}
 
 	create(

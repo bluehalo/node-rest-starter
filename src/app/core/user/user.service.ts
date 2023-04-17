@@ -8,7 +8,7 @@ class UserService {
 	model: UserModel;
 
 	constructor() {
-		this.model = dbs.admin.model('User');
+		this.model = dbs.admin.model('User') as UserModel;
 	}
 
 	read(

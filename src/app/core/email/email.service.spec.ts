@@ -2,7 +2,7 @@ import should from 'should';
 import { createSandbox } from 'sinon';
 import uuid from 'uuid';
 
-import deps, { config, emailService, logger } from '../../../dependencies';
+import { config, emailService, logger } from '../../../dependencies';
 
 /**
  * Unit tests
@@ -104,7 +104,7 @@ describe('Email Service:', () => {
 			// Need to clear cached provider from service to ensure proper test run.
 			emailService.provider = null;
 
-			sandbox.stub(deps.config, 'mailer').value({});
+			sandbox.stub(config, 'mailer').value({});
 
 			let error = null;
 

@@ -2,13 +2,13 @@ import { Request } from 'express';
 import should from 'should';
 import { assert, createSandbox, match, spy, stub } from 'sinon';
 
-import deps, { dbs } from '../../../../dependencies';
+import { auditService, dbs, logger } from '../../../../dependencies';
 import { UserModel } from '../user.model';
 import * as euaController from './eua.controller';
 import { UserAgreement, UserAgreementDocument } from './eua.model';
 import euaService from './eua.service';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Unit tests
@@ -71,7 +71,7 @@ describe('EUA Controller:', () => {
 				user: new User({})
 			};
 
-			sandbox.stub(deps.auditService, 'audit').resolves();
+			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(euaService, 'publishEua').resolves(req.euaParam);
 
 			await euaController.publishEua(req, res);
@@ -89,13 +89,13 @@ describe('EUA Controller:', () => {
 				body: {},
 				user: new User({})
 			};
-			sandbox.stub(deps.auditService, 'audit').resolves();
+			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(euaService, 'create').resolves(new UserAgreement());
 
 			await euaController.createEua(req, res);
 
 			assert.calledOnce(euaService.create);
-			assert.calledOnce(deps.auditService.audit);
+			assert.calledOnce(auditService.audit);
 
 			assert.calledWith(res.status, 200);
 			assert.called(res.json);
@@ -155,12 +155,12 @@ describe('EUA Controller:', () => {
 				user: new User({})
 			};
 
-			sandbox.stub(deps.auditService, 'audit').resolves();
+			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(euaService, 'update').resolves(req.euaParam);
 
 			await euaController.updateEua(req, res);
 
-			assert.calledOnce(deps.auditService.audit);
+			assert.calledOnce(auditService.audit);
 			assert.calledOnce(euaService.update);
 
 			assert.calledWith(res.status, 200);
@@ -175,13 +175,13 @@ describe('EUA Controller:', () => {
 				user: new User({})
 			};
 
-			sandbox.stub(deps.logger, 'error').returns();
-			sandbox.stub(deps.auditService, 'audit').resolves();
+			sandbox.stub(logger, 'error').returns();
+			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(euaService, 'delete').resolves(req.euaParam);
 
 			await euaController.deleteEua(req, res);
 
-			assert.calledOnce(deps.auditService.audit);
+			assert.calledOnce(auditService.audit);
 			assert.calledOnce(euaService.delete);
 
 			assert.calledWith(res.status, 200);

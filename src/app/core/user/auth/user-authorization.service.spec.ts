@@ -6,7 +6,7 @@ import { config, dbs } from '../../../../dependencies';
 import { IUser, UserModel } from '../user.model';
 import userAuthorizationService from './user-authorization.service';
 
-const User: UserModel = dbs.admin.model('User');
+const User = dbs.admin.model('User') as UserModel;
 
 function userSpec(key) {
 	return {

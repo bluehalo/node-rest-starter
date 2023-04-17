@@ -13,6 +13,7 @@ export abstract class TrustedHeadersStrategy extends passport.Strategy {
 	 *
 	 * @api protected
 	 */
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	authenticate(req: Request, options) {
 		const headers = this.trustedHeaders.map((header) => req.headers[header]);
 

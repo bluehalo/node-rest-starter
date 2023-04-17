@@ -8,7 +8,7 @@ class NotificationService {
 	model: NotificationModel;
 
 	constructor() {
-		this.model = dbs.admin.model('Notification');
+		this.model = dbs.admin.model('Notification') as NotificationModel;
 	}
 
 	search(

@@ -5,7 +5,7 @@
  * @param {*} json
  * @returns
  */
-module.exports.parsedJSON = (json) => {
+export const parsedJSON = (json) => {
 	if (json === null) return null;
 	if (typeof json === 'undefined') return undefined;
 	return JSON.parse(JSON.stringify(json));
@@ -17,7 +17,7 @@ module.exports.parsedJSON = (json) => {
  * @param {*} val
  * @returns
  */
-module.exports.isISOString = (val) => {
+export const isISOString = (val) => {
 	const d = new Date(val);
 	return !Number.isNaN(d.valueOf()) && d.toISOString() === val;
 };

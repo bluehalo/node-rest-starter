@@ -34,8 +34,8 @@ class TeamsService {
 	userModel: UserModel;
 
 	constructor() {
-		this.model = dbs.admin.model('Team');
-		this.userModel = dbs.admin.model('User');
+		this.model = dbs.admin.model('Team') as TeamModel;
+		this.userModel = dbs.admin.model('User') as UserModel;
 	}
 
 	/**

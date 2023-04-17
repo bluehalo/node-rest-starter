@@ -1,7 +1,6 @@
-'use strict';
+import bunyan from 'bunyan';
 
-const bunyan = require('bunyan'),
-	config = require('../config');
+import config from '../config';
 
 /**
  * Initialize the log configuration object
@@ -13,24 +12,26 @@ const bunyan = require('bunyan'),
  */
 function initializeConfig(c) {
 	// Initialize the log config to empty if it doesn't exist
-	c = c || {};
+	c = c ?? {};
 
 	// Initialize the app log config (defaults to console warn)
 	if (null == c.application) {
-		c.application = [];
-		c.application.push({
-			stream: process.stdout,
-			level: 'warn'
-		});
+		c.application = [
+			{
+				stream: process.stdout,
+				level: 'warn'
+			}
+		];
 	}
 
 	// Initialize the audit log config (should always be info)
 	if (null == c.audit) {
-		c.audit = [];
-		c.audit.push({
-			stream: process.stdout,
-			level: 'info'
-		});
+		c.audit = [
+			{
+				stream: process.stdout,
+				level: 'info'
+			}
+		];
 	}
 
 	return c;
@@ -45,7 +46,7 @@ function initializeConfig(c) {
  */
 function reqSerializer(req) {
 	const output = bunyan.stdSerializers.req(req);
-	if (null != req && null != req.session && null != req.session.passport) {
+	if (req?.session?.passport) {
 		output.user = req.session.passport.user;
 	}
 
@@ -64,7 +65,7 @@ const appLogger = bunyan.createLogger({
 	}
 });
 
-const auditLogger = bunyan.createLogger({
+const _auditLogger = bunyan.createLogger({
 	name: 'audit',
 	streams: loggerConfig.audit,
 	serializers: {
@@ -73,7 +74,7 @@ const auditLogger = bunyan.createLogger({
 	}
 });
 
-const metricsLogger = bunyan.createLogger({
+const _metricsLogger = bunyan.createLogger({
 	name: 'metrics',
 	streams: loggerConfig.metrics
 });
@@ -81,16 +82,16 @@ const metricsLogger = bunyan.createLogger({
 /*
  * Public API
  */
-module.exports.logger = appLogger;
-module.exports.auditLogger = {
-	audit: function (
+export const logger = appLogger;
+export const auditLogger = {
+	audit: (
 		message,
 		eventType,
 		eventAction,
 		eventActor,
 		eventObject,
 		userAgentObject
-	) {
+	) => {
 		const a = {
 			audit: {
 				type: eventType,
@@ -101,12 +102,11 @@ module.exports.auditLogger = {
 			}
 		};
 
-		auditLogger.info(a, message);
+		_auditLogger.info(a, message);
 	}
 };
-
-module.exports.metricsLogger = {
-	log: function (payload) {
-		metricsLogger.info({ metricsEvent: payload });
+export const metricsLogger = {
+	log: (payload: unknown) => {
+		_metricsLogger.info({ metricsEvent: payload });
 	}
 };

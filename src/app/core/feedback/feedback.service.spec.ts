@@ -6,8 +6,8 @@ import { UserModel } from '../user/user.model';
 import { FeedbackModel } from './feedback.model';
 import feedbackService from './feedback.service';
 
-const User: UserModel = dbs.admin.model('User');
-const Feedback: FeedbackModel = dbs.admin.model('Feedback');
+const User = dbs.admin.model('User') as UserModel;
+const Feedback = dbs.admin.model('Feedback') as FeedbackModel;
 
 /**
  * Unit tests
