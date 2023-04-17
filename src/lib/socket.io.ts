@@ -1,0 +1,129 @@
+import path from 'path';
+
+import connect_mongo from 'connect-mongo';
+import cookieParser from 'cookie-parser';
+import expressSession from 'express-session';
+import passport from 'passport';
+import { Server, Socket } from 'socket.io';
+
+import {
+	BaseSocket,
+	BaseSocketSubclass
+} from '../app/common/sockets/base-socket.provider';
+import config from '../config';
+import { logger } from './bunyan';
+
+const MongoStore = connect_mongo(expressSession);
+
+/**
+ * Adapt express middleware to work with Socket.IO
+ */
+function expressToIO(expressMiddleware) {
+	return (socket, next) =>
+		expressMiddleware(socket.request, socket.request.res, next);
+}
+
+class SocketIo {
+	/**
+	 * Controllers created outside this class will register
+	 * themselves as socket listeners, with function definitions
+	 * stored here.
+	 */
+	registeredSocketListeners: BaseSocketSubclass[] = [];
+
+	SocketProvider: typeof BaseSocket;
+
+	onConnect(socket: Socket) {
+		logger.debug('SocketIO: New client connection');
+
+		/**
+		 * Setup Socket Event Handlers
+		 */
+		this.registeredSocketListeners.forEach((SocketListener) => {
+			new SocketListener(socket, {});
+		});
+	}
+
+	/**
+	 * Configure the modules sockets by simply including the files.
+	 * Do not instantiate the modules.
+	 */
+	async initModulesServerSockets() {
+		// Globbing socket files
+		for (const socketPath of config.files.sockets) {
+			// eslint-disable-next-line no-await-in-loop
+			await import(path.posix.resolve(socketPath));
+		}
+	}
+
+	async loadSocketProvider() {
+		this.SocketProvider = (
+			await import(path.posix.resolve(config.socketProvider))
+		).default;
+	}
+
+	/**
+	 * Define the Socket.io configuration method
+	 *
+	 * @param {import('http').Server} server
+	 * @param db
+	 */
+	async init(server, db) {
+		// Load configured Socket Provider implementation
+		await this.loadSocketProvider();
+
+		// Initialize modules sockets
+		await this.initModulesServerSockets();
+
+		// Create a new Socket.io server
+		logger.info('Creating SocketIO Server');
+		const io = new Server(server, {
+			allowEIO3: true // @FIXME: Set to true for client compatibility. Fix when UI is updated.
+		});
+
+		io.use(expressToIO(cookieParser(config.auth.sessionSecret)));
+		io.use(
+			expressToIO(
+				expressSession({
+					saveUninitialized: true,
+					resave: true,
+					secret: config.auth.sessionSecret,
+					cookie: config.auth.sessionCookie,
+					store: new MongoStore({
+						mongooseConnection: db.connection,
+						collection: config.auth.sessionCollection
+					})
+				})
+			)
+		);
+		io.use(expressToIO(passport.initialize()));
+		io.use(expressToIO(passport.session()));
+
+		// Verify if user was found in session
+		io.use((socket, next) => {
+			if (socket.request['user']) {
+				logger.debug(
+					'SocketIO: New authenticated user: %s',
+					socket.request['user'].username
+				);
+				return next(null);
+			}
+			logger.info('SocketIO: Unauthenticated user attempting to connect.');
+			return next(new Error('User is not authenticated'));
+		});
+
+		// Add an event listener to the 'connection' event
+		io.on('connection', (socket) => this.onConnect(socket));
+	}
+
+	/*
+	 * App-specific function to register controllers that will be
+	 * sent the socket
+	 */
+	registerSocketListener(s: BaseSocketSubclass) {
+		logger.info('Registering Socket Listener: %s', s.name);
+		this.registeredSocketListeners.push(s);
+	}
+}
+
+export = new SocketIo();

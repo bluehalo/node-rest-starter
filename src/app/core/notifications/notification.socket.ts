@@ -1,10 +1,9 @@
-'use strict';
+import _ from 'lodash';
+import { Socket } from 'socket.io';
 
-const _ = require('lodash'),
-	path = require('path'),
-	{ config, logger, socketIO } = require('../../../dependencies'),
-	socketProvider = require(path.posix.resolve(config.socketProvider)),
-	{ hasAccess } = require('../user/user-auth.middleware');
+import { config, logger, socketIO } from '../../../dependencies';
+import { SocketConfig } from '../../common/sockets/base-socket.provider';
+import { hasAccess } from '../user/user-auth.middleware';
 
 const emitName = 'alert';
 
@@ -12,28 +11,12 @@ const emitName = 'alert';
  * NotificationSocket Socket Controller that overrides Base Socket Controller
  * methods to handle specifics of Notifications
  */
-class NotificationSocket extends socketProvider {
-	constructor(...args) {
-		super(...args);
-		this._emitType = `${emitName}:data`;
-		this._topicName = config.dispatcher
-			? config.dispatcher.notificationTopic
-			: '';
-		this._subscriptionCount = 0;
-	}
+export class NotificationSocket extends socketIO.SocketProvider {
+	_topicName = config.dispatcher ? config.dispatcher.notificationTopic : '';
+	_subscriptionCount = 0;
 
-	/**
-	 *
-	 */
-	getEmitNotificationKey() {
-		return '';
-	}
-
-	getEmitMessage(json, rawMessage, consumer) {
-		return {
-			value: json,
-			key: this.getEmitMessageKey(json, rawMessage, consumer)
-		};
+	constructor(socket: Socket, _config: SocketConfig) {
+		super(socket, { ..._config, emitName });
 	}
 
 	ignorePayload(json) {
@@ -46,16 +29,16 @@ class NotificationSocket extends socketProvider {
 	}
 
 	/**
-	 * Returns the topic for a user ID.
+	 * Returns the topic
 	 */
-	getTopic(userId) {
+	getTopic() {
 		return this._topicName;
 	}
 
 	/**
 	 * Handle socket disconnects
 	 */
-	disconnect() {
+	onDisconnect() {
 		logger.info('NotificationSocket: Disconnected from client.');
 
 		this.unsubscribe(this.getTopic());
@@ -64,7 +47,7 @@ class NotificationSocket extends socketProvider {
 	/**
 	 * Handle socket errors
 	 */
-	error(err) {
+	onError(err) {
 		logger.error(err, 'NotificationSocket: Client connection error');
 
 		this.unsubscribe(this.getTopic());
@@ -73,9 +56,7 @@ class NotificationSocket extends socketProvider {
 	/**
 	 *
 	 */
-	handleSubscribe(payload) {
-		const self = this;
-
+	onSubscribe(payload) {
 		if (logger.debug()) {
 			logger.debug(
 				`NotificationSocket: ${emitName}:subscribe event with payload: ${JSON.stringify(
@@ -85,17 +66,16 @@ class NotificationSocket extends socketProvider {
 		}
 
 		// Check that the user account has access
-		self
-			.applyMiddleware([hasAccess])
+		this.applyMiddleware([hasAccess])
 			.then(() => {
 				// Subscribe to the user's notification topic
-				const topic = self.getTopic();
-				self.subscribe(topic);
-				self._subscriptionCount++;
+				const topic = this.getTopic();
+				this.subscribe(topic);
+				this._subscriptionCount++;
 			})
 			.catch((err) => {
 				logger.warn(
-					`Unauthorized access to notifications by inactive user ${self.getUserId()}: ${err}`
+					`Unauthorized access to notifications by inactive user ${this.getUserId()}: ${err}`
 				);
 			});
 	}
@@ -103,7 +83,7 @@ class NotificationSocket extends socketProvider {
 	/**
 	 *
 	 */
-	handleUnsubscribe(payload) {
+	onUnsubscribe(payload) {
 		if (logger.debug()) {
 			logger.debug(
 				`NotificationSocket: ${emitName}:unsubscribe event with payload: ${JSON.stringify(
@@ -119,21 +99,6 @@ class NotificationSocket extends socketProvider {
 		// If we are no longer listening for anything, unsubscribe
 		if (this._subscriptionCount === 0) {
 			this.unsubscribe(this.getTopic());
-		}
-	}
-
-	/**
-	 *
-	 */
-	addListeners() {
-		const s = this.getSocket();
-
-		if (typeof s.on === 'function') {
-			// Set up Subscribe events
-			s.on(`${emitName}:subscribe`, this.handleSubscribe.bind(this));
-
-			// Set up Unsubscribe events
-			s.on(`${emitName}:unsubscribe`, this.handleUnsubscribe.bind(this));
 		}
 	}
 }
