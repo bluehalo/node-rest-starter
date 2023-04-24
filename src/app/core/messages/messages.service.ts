@@ -3,6 +3,7 @@ import path from 'path';
 import { FilterQuery, PopulateOptions, Types } from 'mongoose';
 
 import { dbs, config, utilService } from '../../../dependencies';
+import { PublishProvider } from '../../common/event/publish.provider';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { UserDocument } from '../user/user.model';
 import {
@@ -11,10 +12,6 @@ import {
 	IDismissedMessage
 } from './dismissed-message.model';
 import { IMessage, MessageDocument, MessageModel } from './message.model';
-
-type PublishProvider = {
-	publish: (destination: string, message: unknown, retry: boolean) => void;
-};
 
 class MessagesService {
 	model: MessageModel;

@@ -27,7 +27,7 @@ export default async function () {
 		const server = http.createServer(app);
 
 		// Initialize socket.io
-		socketio.init(server, db.admin);
+		await socketio.init(server, db.admin);
 
 		return server;
 	} catch (err) {
