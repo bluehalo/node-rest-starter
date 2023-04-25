@@ -1,4 +1,4 @@
-import { Schema } from 'mongoose';
+import { Query, Schema } from 'mongoose';
 
 import { utilService } from '../../../dependencies';
 
@@ -11,6 +11,7 @@ export function containsSearchPlugin(
 	pluginOptions: { fields?: string[] } = {}
 ) {
 	schema.query['containsSearch'] = function (
+		this: Query<unknown, unknown>,
 		search: string,
 		fields: string[] = pluginOptions.fields ?? []
 	) {

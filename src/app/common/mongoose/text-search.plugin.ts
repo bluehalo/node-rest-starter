@@ -1,4 +1,4 @@
-import { Schema } from 'mongoose';
+import { Query, Schema } from 'mongoose';
 
 export interface TextSearchable {
 	textSearch(search: string, sortByTextScore?: boolean): this;
@@ -6,6 +6,7 @@ export interface TextSearchable {
 
 export function textSearchPlugin(schema: Schema) {
 	schema.query['textSearch'] = function (
+		this: Query<unknown, unknown>,
 		search: string,
 		sortByTextScore = false
 	) {

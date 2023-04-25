@@ -262,7 +262,7 @@ export const getHeaderField = function (header, fieldName) {
  * Parses user agent information from request header
  */
 export const getUserAgentFromHeader = function (header) {
-	const userAgent = this.getHeaderField(header, 'user-agent');
+	const userAgent = getHeaderField(header, 'user-agent');
 
 	let data = {};
 	if (null != userAgent) {

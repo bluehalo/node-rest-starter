@@ -263,11 +263,7 @@ UserSchema.index({ name: 'text', email: 'text', username: 'text' });
  * Lifecycle Hooks
  */
 
-/**
- * @this UserDocument
- * @param next
- */
-const preSave = function (next) {
+const preSave = function (this: UserDocument, next) {
 	// If the password is modified and it is valid, then re- salt/hash it
 	if (this.isModified('password') && validatePassword(this, this.password)) {
 		this.salt = Buffer.from(

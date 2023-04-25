@@ -26,22 +26,29 @@ export const loadModels = async () => {
  * Gets a database connection specification from the configured parameters, allowing for both simple
  * connection strings in addition to complex SSL and Replica Set connections
  *
- * @param {string} dbSpecName - key for the database connection within all the configs that will be returned
- * @param {object} dbConfigs - object that contains either a basic connection string or an object with a 'uri' and 'options' attributes
+ * @param dbSpecName - key for the database connection within all the configs that will be returned
+ * @param dbConfigs - object that contains either a basic connection string or an object with a 'uri' and 'options' attributes
  */
-function getDbSpec(dbSpecName, dbConfigs) {
-	const dbSpec = dbConfigs[dbSpecName];
+function getDbSpec(
+	dbSpecName: string,
+	dbConfigs: Record<
+		string,
+		string | { uri: string; options: Record<string, unknown> }
+	>
+) {
+	const dbConfig = dbConfigs[dbSpecName];
 
-	const connectionString = _.has(dbSpec, 'uri') ? dbSpec.uri : dbSpec;
-	const options = {};
-	if (_.has(dbSpec, 'options')) {
-		Object.assign(options, dbSpec.options);
+	if (_.isString(dbConfig)) {
+		return {
+			name: dbSpecName,
+			connectionString: dbConfig,
+			options: {}
+		};
 	}
-
 	return {
 		name: dbSpecName,
-		connectionString: connectionString,
-		options: options
+		connectionString: dbConfig.uri,
+		options: { ...dbConfig.options }
 	};
 }
 

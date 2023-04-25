@@ -36,8 +36,8 @@ class UserAuthenticationService {
 				userEmailService.welcomeWithAccessEmail(user, req);
 
 				// update the user's last login time
-				User.findOneAndUpdate(
-					{ _id: user._id },
+				User.findByIdAndUpdate(
+					user._id,
 					{ lastLogin: Date.now() },
 					{ new: true, upsert: false },
 					(_err, _user: UserDocument) => {

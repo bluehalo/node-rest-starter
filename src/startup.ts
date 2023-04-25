@@ -1,5 +1,7 @@
 import http from 'http';
 
+import { Mongoose } from 'mongoose';
+
 import * as agenda from './lib/agenda';
 import { logger } from './lib/bunyan';
 import * as express from './lib/express';
@@ -20,14 +22,14 @@ export default async function () {
 		await agenda.init();
 
 		// Initialize express
-		const app = await express.init(db.admin);
+		const app = await express.init(db.admin as Mongoose);
 
 		// Create a new HTTP server
 		logger.info('Creating HTTP Server');
 		const server = http.createServer(app);
 
 		// Initialize socket.io
-		await socketio.init(server, db.admin);
+		await socketio.init(server, db.admin as Mongoose);
 
 		return server;
 	} catch (err) {
