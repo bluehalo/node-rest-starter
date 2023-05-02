@@ -2,10 +2,11 @@ import http from 'http';
 import https from 'https';
 
 import _ from 'lodash';
-import mongoose, { SortOrder } from 'mongoose';
+import { SortOrder, Types } from 'mongoose';
 import platform from 'platform';
 
 import { config, errorService, logger } from '../../dependencies';
+import { IdOrObject } from './typescript-util';
 
 function getValidationErrors(err) {
 	const errors = [];
@@ -288,7 +289,7 @@ function propToMongoose(prop, nonMongoFunction) {
 		prop.$obj != null &&
 		typeof prop.$obj === 'string'
 	) {
-		return new mongoose.Types.ObjectId(prop.$obj);
+		return new Types.ObjectId(prop.$obj);
 	}
 
 	if (null != nonMongoFunction) {
@@ -439,4 +440,11 @@ export const removeStringsEndingWithWildcard = (stringArray: string[]) => {
  */
 export const escapeRegex = (str: string) => {
 	return `${str}`.replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&');
+};
+
+export const getId = <T>(obj: IdOrObject<T>) => {
+	if (typeof obj === 'object' && '_id' in obj) {
+		return obj._id;
+	}
+	return obj;
 };
