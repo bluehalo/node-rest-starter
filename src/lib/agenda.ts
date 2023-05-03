@@ -1,24 +1,34 @@
 import path from 'path';
 
-import { Agenda } from 'agenda/es';
+import { Agenda, Job } from 'agenda';
 
 import { JobService } from '../app/common/agenda/job-service';
 import config from '../config';
 import { logger } from './bunyan';
 
-const registerJobs = (agenda) => {
+type JobConfig = {
+	name: string;
+	file: string;
+	interval: string;
+	data: unknown;
+	options: unknown;
+};
+
+const registerJobs = (agenda: Agenda) => {
 	logger.info(`Registering ${config.agenda.jobs.length} job(s)...`);
 	return Promise.all(
-		config.agenda.jobs.map((jobConfig) => registerJob(agenda, jobConfig))
+		config.agenda.jobs.map((jobConfig: JobConfig) =>
+			registerJob(agenda, jobConfig)
+		)
 	);
 };
 
-const registerJob = async (agenda, jobConfig) => {
+const registerJob = async (agenda: Agenda, jobConfig: JobConfig) => {
 	logger.info(`Registering job: ${jobConfig.name}`);
 	const { default: Service } = await import(path.posix.resolve(jobConfig.file));
 	const jobService: JobService = new Service();
 
-	agenda.define(jobConfig.name, jobConfig.options ?? {}, (job) => {
+	agenda.define(jobConfig.name, jobConfig.options ?? {}, (job: Job) => {
 		logger.debug({ job: jobConfig.name }, 'Running job');
 		jobService
 			.run(job)
@@ -33,15 +43,22 @@ const registerJob = async (agenda, jobConfig) => {
 	});
 };
 
-const scheduleJobs = (agenda) => {
-	const jobsToSchedule = config.agenda.jobs.filter((job) => job.interval);
+const scheduleJobs = (agenda: Agenda) => {
+	const jobsToSchedule: JobConfig[] = config.agenda.jobs.filter(
+		(job: JobConfig) => job.interval
+	);
 
 	logger.info(`Scheduling ${jobsToSchedule.length} job(s)...`);
 
 	return Promise.all(
 		jobsToSchedule.map((job) => {
 			logger.info(`Scheduling job: ${job.name} [${job.interval}]`);
-			agenda.every(job.interval, job.name, job.data ?? null, job.options ?? {});
+			return agenda.every(
+				job.interval,
+				job.name,
+				job.data ?? null,
+				job.options ?? {}
+			);
 		})
 	);
 };

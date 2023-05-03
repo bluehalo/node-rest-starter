@@ -1,8 +1,10 @@
+import http from 'http';
 import path from 'path';
 
 import connect_mongo from 'connect-mongo';
 import cookieParser from 'cookie-parser';
 import expressSession from 'express-session';
+import { Mongoose } from 'mongoose';
 import passport from 'passport';
 import { Server, Socket } from 'socket.io';
 
@@ -64,11 +66,8 @@ class SocketIo {
 
 	/**
 	 * Define the Socket.io configuration method
-	 *
-	 * @param {import('http').Server} server
-	 * @param db
 	 */
-	async init(server, db) {
+	async init(server: http.Server, db: Mongoose) {
 		// Load configured Socket Provider implementation
 		await this.loadSocketProvider();
 

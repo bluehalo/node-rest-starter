@@ -5,7 +5,7 @@ import flash from 'connect-flash';
 import connect_mongo from 'connect-mongo';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import express from 'express';
+import express, { Express, Request, Response } from 'express';
 // Patches express to support async/await.  Should be called immediately after express.
 // Must still use require vs. import
 require('express-async-errors');
@@ -13,6 +13,7 @@ import session from 'express-session';
 import helmet from 'helmet';
 import _ from 'lodash';
 import methodOverride from 'method-override';
+import { Mongoose } from 'mongoose';
 import morgan from 'morgan';
 import passport from 'passport';
 import swaggerJsDoc from 'swagger-jsdoc';
@@ -29,7 +30,7 @@ const baseApiPath = '/api';
 /**
  * Initialize local variables
  */
-function initLocalVariables(app) {
+function initLocalVariables(app: Express) {
 	// Setting application local variables
 	app.locals.title = config.app.title;
 	app.locals.description = config.app.description;
@@ -49,14 +50,14 @@ function initLocalVariables(app) {
 /**
  * Initialize application middleware
  */
-function initMiddleware(app) {
+function initMiddleware(app: Express) {
 	// Showing stack errors
 	app.set('showStackError', true);
 
 	// Should be placed before express.static
 	app.use(
 		compress({
-			filter: function (req, res) {
+			filter: function (req: Request, res: Response) {
 				if (req.headers['x-no-compression']) {
 					// don't compress responses with this request header
 					return false;
@@ -100,14 +101,14 @@ function initMiddleware(app) {
  * Configure view engine
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function initViewEngine(app) {
+function initViewEngine(app: Express) {
 	// Not using server rendering for views
 }
 
 /**
  * Configure Express session
  */
-function initSession(app, db) {
+function initSession(app: Express, db: Mongoose) {
 	// Express MongoDB session storage
 	app.use(
 		session({
@@ -126,7 +127,7 @@ function initSession(app, db) {
 /**
  * Configure passport
  */
-async function initPassport(app) {
+async function initPassport(app: Express) {
 	app.use(passport.initialize());
 	app.use(passport.session());
 
@@ -136,10 +137,10 @@ async function initPassport(app) {
 /**
  * Invoke modules server configuration
  */
-async function initModulesConfiguration(app, db) {
+async function initModulesConfiguration(app: Express, db: Mongoose) {
 	const moduleConfigs = await Promise.all(
 		config.files.configs.map(
-			(configPath) => import(path.posix.resolve(configPath))
+			(configPath: string) => import(path.posix.resolve(configPath))
 		)
 	);
 	moduleConfigs.forEach((moduleConfig) => {
@@ -150,7 +151,7 @@ async function initModulesConfiguration(app, db) {
 /**
  * Configure Helmet headers configuration
  */
-function initHelmetHeaders(app) {
+function initHelmetHeaders(app: Express) {
 	// Use helmet to secure Express headers
 	app.use(helmet.frameguard());
 	app.use(helmet.xssFilter());
@@ -159,7 +160,7 @@ function initHelmetHeaders(app) {
 	app.disable('x-powered-by');
 }
 
-function initCORS(app) {
+function initCORS(app: Express) {
 	if (config.cors?.enabled) {
 		app.use(cors({ ...config.cors.options }));
 	}
@@ -168,13 +169,13 @@ function initCORS(app) {
 /**
  * Configure the modules server routes
  */
-async function initModulesServerRoutes(app) {
+async function initModulesServerRoutes(app: Express) {
 	// Init the global route prefix
 	const router = express.Router();
 
 	const routes = await Promise.all(
 		config.files.routes.map(
-			(routePath) => import(path.posix.resolve(routePath))
+			(routePath: string) => import(path.posix.resolve(routePath))
 		)
 	);
 	routes.forEach((route) => {
@@ -188,7 +189,7 @@ async function initModulesServerRoutes(app) {
 /**
  * Configure final error handlers
  */
-function initErrorRoutes(app) {
+function initErrorRoutes(app: Express) {
 	app.use(errorHandlers.jsonSchemaValidationErrorHandler);
 	app.use(errorHandlers.mongooseValidationErrorHandler);
 	app.use(errorHandlers.defaultErrorHandler);
@@ -204,7 +205,7 @@ function initErrorRoutes(app) {
 	});
 }
 
-function initSwaggerAPI(app) {
+function initSwaggerAPI(app: Express) {
 	if (!config.apiDocs || config.apiDocs.enabled !== true) {
 		// apiDocs must be enabled explicitly in the config
 		return;
@@ -229,9 +230,9 @@ function initSwaggerAPI(app) {
 			components: {}
 		},
 		apis: [
-			...config.files.docs.map((doc) => path.posix.resolve(doc)),
-			...config.files.routes.map((route) => path.posix.resolve(route)),
-			...config.files.models.map((model) => path.posix.resolve(model))
+			...config.files.docs.map((doc: string) => path.posix.resolve(doc)),
+			...config.files.routes.map((route: string) => path.posix.resolve(route)),
+			...config.files.models.map((model: string) => path.posix.resolve(model))
 		]
 	};
 
@@ -271,7 +272,7 @@ function initSwaggerAPI(app) {
 /**
  * Initialize the Express application
  */
-export const init = async (db): Promise<express.Express> => {
+export const init = async (db: Mongoose): Promise<Express> => {
 	// Initialize express app
 	logger.info('Initializing Express');
 

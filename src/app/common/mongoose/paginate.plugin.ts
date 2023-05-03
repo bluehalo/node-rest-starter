@@ -1,4 +1,4 @@
-import { HydratedDocument, Schema } from 'mongoose';
+import { HydratedDocument, Query, Schema } from 'mongoose';
 
 import { config } from '../../../dependencies';
 
@@ -23,6 +23,7 @@ export interface Paginateable<DocType> {
 
 export function paginatePlugin(schema: Schema) {
 	schema.query['paginate'] = async function <DocType>(
+		this: Query<HydratedDocument<DocType>[], DocType>,
 		pageSize: number,
 		pageNumber: number,
 		runCount = true,

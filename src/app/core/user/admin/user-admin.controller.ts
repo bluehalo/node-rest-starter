@@ -187,14 +187,16 @@ export const adminGetCSV = async (req, res) => {
 			case 'created':
 			case 'updated':
 			case 'acceptedEua':
-				col.callback = (value: Date) => {
-					return value?.toISOString() ?? '';
+				col.callback = (value: unknown) => {
+					return _.isDate(value) ? value.toISOString() : '';
 				};
 				break;
 			case 'teams':
 				populate.push({ path: 'teams._id', select: 'name' });
-				col.callback = (value: Array<{ _id: { name: string } }>) => {
-					return value.map((team) => team._id.name).join(', ');
+				col.callback = (value: unknown) => {
+					return (value as Array<{ _id: { name: string } }>)
+						.map((team) => team._id.name)
+						.join(', ');
 				};
 				break;
 		}
