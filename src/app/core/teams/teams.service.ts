@@ -9,6 +9,7 @@ import {
 	utilService
 } from '../../../dependencies';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
+import { IdOrObject, Override } from '../../common/typescript-util';
 import userAuthService from '../user/auth/user-authorization.service';
 import { IUser, UserDocument, UserModel } from '../user/user.model';
 import { TeamRolePriorities, TeamRoles } from './team-role.model';
@@ -41,11 +42,12 @@ class TeamsService {
 	/**
 	 * Creates a new team with the requested metadata
 	 *
-	 * @param creator The user requesting the create
 	 * @returns Returns a promise that resolves if team is successfully created, and rejects otherwise
 	 */
 	async create(
-		teamInfo: Partial<ITeam>,
+		teamInfo: Partial<
+			Override<ITeam, 'parent', IdOrObject<string | Types.ObjectId>>
+		>,
 		creator: UserDocument,
 		firstAdmin?: string | Types.ObjectId
 	): Promise<TeamDocument> {
@@ -60,7 +62,7 @@ class TeamsService {
 
 		// Nested teams
 		if (teamInfo.parent) {
-			const parentTeam = await this.read(teamInfo.parent);
+			const parentTeam = await this.read(utilService.getId(teamInfo.parent));
 			newTeam.parent = parentTeam._id;
 			newTeam.ancestors = [...parentTeam.ancestors, parentTeam._id];
 		}
