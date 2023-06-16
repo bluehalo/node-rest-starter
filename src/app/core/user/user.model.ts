@@ -65,6 +65,7 @@ type UserRoles = {
 	editor?: boolean;
 	auditor?: boolean;
 	admin?: boolean;
+	machine?: boolean;
 };
 
 export interface IUser {
