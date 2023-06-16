@@ -1,7 +1,7 @@
 import _ from 'lodash';
 
 import { config } from '../../../dependencies';
-import { has, hasAll } from '../../common/express/auth-middleware';
+import { has, hasAll, requiresAny } from '../../common/express/auth-middleware';
 import userAuthService from './auth/user-authentication.service';
 import userAuthorizationService from './auth/user-authorization.service';
 import { requiresEua } from './eua/eua.controller';
@@ -24,7 +24,7 @@ export const hasAccess = (req, res, next) => {
 	hasAll(
 		requiresLogin,
 		requiresOrganizationLevels,
-		requiresUserRole,
+		requiresAny([requiresUserRole, requiresMachineRole]),
 		requiresExternalRoles,
 		requiresEua
 	)(req, res, next);
@@ -39,9 +39,9 @@ export const hasEditorAccess = (req, res, next) => {
 	hasAll(
 		requiresLogin,
 		requiresOrganizationLevels,
-		requiresUserRole,
+		requiresAny([requiresUserRole, requiresMachineRole]),
 		requiresExternalRoles,
-		requiresEditorRole,
+		requiresAny([requiresAdminRole, requiresEditorRole]),
 		requiresEua
 	)(req, res, next);
 };
@@ -131,6 +131,11 @@ export const requiresAuditorRole = (req) => {
 // Detects if the user has admin role
 export const requiresAdminRole = (req) => {
 	return requiresRoles(['admin'])(req);
+};
+
+//Detects if the user has the machine role
+export const requiresMachineRole = (req) => {
+	return requiresRoles(['machine'])(req);
 };
 
 // Checks to see if all required external roles are accounted for
