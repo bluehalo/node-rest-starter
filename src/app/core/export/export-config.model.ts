@@ -3,8 +3,8 @@ import { HydratedDocument, Model, Schema, Types, model } from 'mongoose';
 
 export type ExportColumnDef = {
 	key: string;
-	title: string;
-	callback: (value: unknown, obj?: unknown) => string;
+	title?: string;
+	callback?: (value: unknown, obj?: unknown) => string;
 };
 
 export interface IExportConfig {

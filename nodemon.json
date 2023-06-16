@@ -6,5 +6,5 @@
     "execMap": {
         "ts": "node -r @swc-node/register"
     },
-    "ext": "js,ts"
+    "ext": "js,ts,yml,json"
 }
