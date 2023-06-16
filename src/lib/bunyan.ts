@@ -107,6 +107,6 @@ export const auditLogger = {
 };
 export const metricsLogger = {
 	log: (payload: unknown) => {
-		_metricsLogger.info({ metricsEvent: payload });
+		_metricsLogger.info(payload);
 	}
 };

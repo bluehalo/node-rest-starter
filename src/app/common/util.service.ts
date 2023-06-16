@@ -63,6 +63,11 @@ export const getClientErrorMessage = function (err) {
  * @deprecated
  */
 export const handleErrorResponse = function (res, errorResult) {
+	// If headers have already been sent then this function is unnecessary
+	if (res.headersSent) {
+		return;
+	}
+
 	// Return the error state to the client, defaulting to 500
 	errorResult = errorResult || {};
 

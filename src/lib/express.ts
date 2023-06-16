@@ -267,6 +267,10 @@ function initSwaggerAPI(app: Express) {
 		swaggerUi.serve,
 		swaggerUi.setup(swaggerSpec, null, uiOptions)
 	);
+
+	app.get(config.apiDocs.jsonPath || '/api/spec.json', (req, res) => {
+		res.send(swaggerSpec);
+	});
 }
 
 /**
