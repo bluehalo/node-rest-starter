@@ -1650,25 +1650,37 @@ FOOTER
 		});
 
 		it('should find all team members', async () => {
-			const teamIds = await teamsService.getMemberTeamIds(_user);
+			const teamIds = await teamsService.getTeamIds(
+				_user,
+				...teamsService.getRoles(TeamRoles.Member)
+			);
 			should.exist(teamIds);
 			teamIds.should.have.length(5);
 		});
 
 		it('should find all team editors', async () => {
-			const teamIds = await teamsService.getEditorTeamIds(_user);
+			const teamIds = await teamsService.getTeamIds(
+				_user,
+				...teamsService.getRoles(TeamRoles.Editor)
+			);
 			should.exist(teamIds);
 			teamIds.should.have.length(3);
 		});
 
 		it('should find all team admins', async () => {
-			const teamIds = await teamsService.getAdminTeamIds(_user);
+			const teamIds = await teamsService.getTeamIds(
+				_user,
+				...teamsService.getRoles(TeamRoles.Admin)
+			);
 			should.exist(teamIds);
 			teamIds.should.have.length(1);
 		});
 
 		it('should not', async () => {
-			const teamIds = await teamsService.getMemberTeamIds(user.blocked);
+			const teamIds = await teamsService.getTeamIds(
+				user.blocked,
+				...teamsService.getRoles(TeamRoles.Member)
+			);
 			should.exist(teamIds);
 			teamIds.should.have.length(0);
 		});
