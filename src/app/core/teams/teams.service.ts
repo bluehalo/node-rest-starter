@@ -12,7 +12,12 @@ import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { IdOrObject, Override } from '../../common/typescript-util';
 import userAuthService from '../user/auth/user-authorization.service';
 import { IUser, UserDocument, UserModel } from '../user/user.model';
-import { TeamRolePriorities, TeamRoles } from './team-role.model';
+import {
+	TeamRoleImplicit,
+	TeamRoleMinimumWithAccess,
+	TeamRolePriorities,
+	TeamRoles
+} from './team-role.model';
 import { ITeam, TeamDocument, TeamModel } from './team.model';
 
 /**
@@ -143,7 +148,10 @@ class TeamsService {
 		const limit = utilService.getLimit(queryParams, 1000);
 		const sort = utilService.getSortObj(queryParams, 'DESC', '_id');
 
-		let teamIds = await this.getMemberTeamIds(user);
+		let teamIds = await this.getTeamIds(
+			user,
+			...this.getRoles(TeamRoleMinimumWithAccess)
+		);
 
 		// convert team ids to strings
 		const teamIdStrings = teamIds.map((id) => id.toString());
@@ -446,7 +454,7 @@ class TeamsService {
 		} else if (types.length > 0 && roles.length > 0) {
 			if (
 				types.indexOf('implicit') !== -1 &&
-				roles.indexOf(TeamRoles.Member) !== -1
+				roles.indexOf(TeamRoleImplicit) !== -1
 			) {
 				const implicitFilter = this.getImplicitMemberFilter(team);
 				if (implicitFilter) {
@@ -469,7 +477,7 @@ class TeamsService {
 				query.$or.push({ 'teams._id': team._id });
 			}
 		} /* roles.length > 0 */ else {
-			if (roles.indexOf(TeamRoles.Member) !== -1) {
+			if (roles.indexOf(TeamRoleImplicit) !== -1) {
 				const implicitFilter = this.getImplicitMemberFilter(team);
 				if (implicitFilter) {
 					query.$or.push(implicitFilter);
@@ -709,7 +717,7 @@ class TeamsService {
 
 		if (
 			strategy == null ||
-			(roles.length > 0 && !roles.includes(TeamRoles.Member))
+			(roles.length > 0 && !roles.includes(TeamRoleImplicit))
 		) {
 			return Promise.resolve([]);
 		}
@@ -758,13 +766,17 @@ class TeamsService {
 			return Promise.resolve([]);
 		}
 
-		const blockedTeamIds = await this.getExplicitTeamIds(
+		const rolesToExclude: TeamRoles[] = Object.entries(TeamRolePriorities)
+			.filter(([, priority]) => priority < TeamRolePriorities[TeamRoleImplicit])
+			.map(([role]) => role as TeamRoles);
+
+		const excludedTeamIds = await this.getExplicitTeamIds(
 			user,
-			TeamRoles.Blocked
+			...rolesToExclude
 		);
-		if (blockedTeamIds.length > 0) {
+		if (excludedTeamIds.length > 0) {
 			query.$and.push({
-				_id: { $nin: blockedTeamIds }
+				_id: { $nin: excludedTeamIds }
 			});
 		}
 
@@ -806,23 +818,6 @@ class TeamsService {
 		];
 	}
 
-	getMemberTeamIds(user: UserDocument): Promise<Types.ObjectId[]> {
-		return this.getTeamIds(
-			user,
-			TeamRoles.Member,
-			TeamRoles.Editor,
-			TeamRoles.Admin
-		);
-	}
-
-	getEditorTeamIds(user: UserDocument): Promise<Types.ObjectId[]> {
-		return this.getTeamIds(user, TeamRoles.Editor, TeamRoles.Admin);
-	}
-
-	getAdminTeamIds(user: UserDocument): Promise<Types.ObjectId[]> {
-		return this.getTeamIds(user, TeamRoles.Admin);
-	}
-
 	/**
 	 * Constrain a set of teamIds provided by the user to those the user actually has access to.
 	 */
@@ -830,7 +825,10 @@ class TeamsService {
 		user: UserDocument,
 		teamIds: Types.ObjectId[] = []
 	): Promise<Types.ObjectId[]> {
-		const memberTeamIds = await this.getMemberTeamIds(user);
+		const memberTeamIds = await this.getTeamIds(
+			user,
+			...this.getRoles(TeamRoleMinimumWithAccess)
+		);
 
 		// If there were no teamIds to filter by, return all the team ids
 		if (null == teamIds || (_.isArray(teamIds) && teamIds.length === 0)) {
@@ -848,36 +846,36 @@ class TeamsService {
 			return;
 		}
 
-		const [adminTeamIds, editorTeamIds, memberTeamIds] = await Promise.all([
-			this.getTeamIds(user, TeamRoles.Admin),
-			this.getTeamIds(user, TeamRoles.Editor),
-			this.getTeamIds(user, TeamRoles.Member)
-		]);
-
-		const filteredEditorTeamIds = _.differenceWith(
-			editorTeamIds,
-			adminTeamIds,
-			isObjectIdEqual
-		);
-		const filteredMemberTeamIds = _.differenceWith(
-			memberTeamIds,
-			[...editorTeamIds, ...adminTeamIds],
-			isObjectIdEqual
+		const teamIdsByRole = await Promise.all(
+			Object.values(TeamRoles).map(async (role) => {
+				return {
+					role,
+					priority: TeamRolePriorities[role],
+					teamIds: await this.getTeamIds(user, role)
+				};
+			})
 		);
 
-		const updatedTeams = [
-			...adminTeamIds.map((id) => ({ role: TeamRoles.Admin, _id: id })),
-			...filteredEditorTeamIds.map((id) => ({
-				role: TeamRoles.Editor,
-				_id: id
-			})),
-			...filteredMemberTeamIds.map((id) => ({
-				role: TeamRoles.Member,
-				_id: id
-			}))
-		];
+		const getHigherPriorityIds = (targetPriority) =>
+			teamIdsByRole
+				.filter(({ priority }) => priority > targetPriority)
+				.flatMap(({ teamIds }) => teamIds);
 
-		user.teams = updatedTeams;
+		user.teams = teamIdsByRole.flatMap(({ role, priority, teamIds }) => {
+			const excludeIds = getHigherPriorityIds(priority);
+			return _.differenceWith(teamIds, excludeIds, isObjectIdEqual).map(
+				(id) => ({
+					role: role,
+					_id: id
+				})
+			);
+		});
+	}
+
+	getRoles(minPriorityRole: TeamRoles) {
+		return Object.values(TeamRoles).filter(
+			(role) => TeamRolePriorities[role] >= TeamRolePriorities[minPriorityRole]
+		);
 	}
 }
 

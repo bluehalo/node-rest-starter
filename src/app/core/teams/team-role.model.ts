@@ -18,6 +18,16 @@ export const TeamRolePriorities = {
 	[TeamRoles.Blocked]: -1
 };
 
+/**
+ * Minimum Team Role needed for access to a team. Used for building filters.
+ */
+export const TeamRoleMinimumWithAccess = TeamRoles.Member;
+
+/**
+ * Team Role that is assigned to Implicit members
+ */
+export const TeamRoleImplicit = TeamRoles.Member;
+
 export interface ITeamRole {
 	_id: Types.ObjectId;
 	role: string;
