@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
-import { hasAdminAccess, hasLogin } from '../user-auth.middleware';
 import * as euas from './eua.controller';
+import { hasAdminAccess, hasLogin } from '../user-auth.middleware';
 
 /**
  * End User Agreement Routes

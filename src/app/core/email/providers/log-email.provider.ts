@@ -1,5 +1,5 @@
-import { logger } from '../../../../dependencies';
 import { EmailProvider, MailOptions } from './email.provider';
+import { logger } from '../../../../dependencies';
 
 export default class implements EmailProvider {
 	/**

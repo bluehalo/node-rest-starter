@@ -1,8 +1,8 @@
 import { FilterQuery } from 'mongoose';
 
+import { NotificationDocument, NotificationModel } from './notification.model';
 import { dbs, utilService } from '../../../dependencies';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
-import { NotificationDocument, NotificationModel } from './notification.model';
 
 class NotificationService {
 	model: NotificationModel;

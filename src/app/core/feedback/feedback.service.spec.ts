@@ -1,10 +1,10 @@
 import should from 'should';
 import { assert, createSandbox } from 'sinon';
 
-import { auditService, emailService, config, dbs } from '../../../dependencies';
-import { UserModel } from '../user/user.model';
 import { FeedbackModel } from './feedback.model';
 import feedbackService from './feedback.service';
+import { auditService, emailService, config, dbs } from '../../../dependencies';
+import { UserModel } from '../user/user.model';
 
 const User = dbs.admin.model('User') as UserModel;
 const Feedback = dbs.admin.model('Feedback') as FeedbackModel;

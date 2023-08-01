@@ -1,9 +1,9 @@
 import { assert, createSandbox } from 'sinon';
 
-import { config, dbs, emailService, logger } from '../../../dependencies';
 import userEmailService from './user-email.service';
 import { UserModel } from './user.model';
 import userService from './user.service';
+import { config, dbs, emailService, logger } from '../../../dependencies';
 
 const User = dbs.admin.model('User') as UserModel;
 

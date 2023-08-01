@@ -1,5 +1,6 @@
 import { Request } from 'express';
 
+import { AuditDocument, AuditModel } from './audit.model';
 import {
 	dbs,
 	config,
@@ -8,7 +9,6 @@ import {
 	utilService
 } from '../../../dependencies';
 import { IUser, UserDocument } from '../user/user.model';
-import { AuditDocument, AuditModel } from './audit.model';
 
 class AuditService {
 	isUser = (obj: unknown): obj is Partial<IUser> => {

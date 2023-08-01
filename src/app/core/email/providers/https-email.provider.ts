@@ -3,8 +3,8 @@ import https, { AgentOptions } from 'https';
 
 import _ from 'lodash';
 
-import { logger } from '../../../../dependencies';
 import { EmailProvider, MailOptions } from './email.provider';
+import { logger } from '../../../../dependencies';
 
 type Options = AgentOptions & {
 	headers: Record<string, string | number>;

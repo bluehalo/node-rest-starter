@@ -1,8 +1,8 @@
 import { FilterQuery } from 'mongoose';
 
+import { CacheEntryDocument, CacheEntryModel } from './cache-entry.model';
 import { dbs, utilService } from '../../../../dependencies';
 import { PagingResults } from '../../../common/mongoose/paginate.plugin';
-import { CacheEntryDocument, CacheEntryModel } from './cache-entry.model';
 
 class CacheEntryService {
 	model: CacheEntryModel;

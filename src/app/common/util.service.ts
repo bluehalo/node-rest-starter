@@ -5,8 +5,8 @@ import _ from 'lodash';
 import { SortOrder, Types } from 'mongoose';
 import platform from 'platform';
 
-import { config, errorService, logger } from '../../dependencies';
 import { IdOrObject } from './typescript-util';
+import { config, errorService, logger } from '../../dependencies';
 
 function getValidationErrors(err) {
 	const errors = [];

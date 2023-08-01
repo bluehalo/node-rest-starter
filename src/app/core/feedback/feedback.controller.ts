@@ -1,8 +1,8 @@
+import { FeedbackModel } from './feedback.model';
+import feedbackService from './feedback.service';
 import { auditService, config, dbs, utilService } from '../../../dependencies';
 import * as exportConfigController from '../export/export-config.controller';
 import exportConfigService from '../export/export-config.service';
-import { FeedbackModel } from './feedback.model';
-import feedbackService from './feedback.service';
 
 const Feedback = dbs.admin.model('Feedback') as FeedbackModel;
 

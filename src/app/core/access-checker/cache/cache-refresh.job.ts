@@ -1,9 +1,9 @@
 import { Job } from 'agenda';
 
+import { CacheEntryModel } from './cache-entry.model';
 import { dbs, logger } from '../../../../dependencies';
 import { JobService } from '../../../common/agenda/job-service';
 import accessChecker from '../access-checker.service';
-import { CacheEntryModel } from './cache-entry.model';
 
 const CacheEntry = dbs.admin.model('CacheEntry') as CacheEntryModel;
 

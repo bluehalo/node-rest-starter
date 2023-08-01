@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
-import { hasAuditorAccess } from '../user/user-auth.middleware';
 import * as audit from './audit.controller';
+import { hasAuditorAccess } from '../user/user-auth.middleware';
 
 const router = Router();
 

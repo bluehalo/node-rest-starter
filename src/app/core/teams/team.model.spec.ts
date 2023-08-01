@@ -1,10 +1,10 @@
 import should from 'should';
 
+import { TeamRoles } from './team-role.model';
+import { TeamModel } from './team.model';
 import { dbs } from '../../../dependencies';
 import { AuditModel } from '../audit/audit.model';
 import { UserModel } from '../user/user.model';
-import { TeamRoles } from './team-role.model';
-import { TeamModel } from './team.model';
 
 const Audit = dbs.admin.model('Audit') as AuditModel;
 const Team = dbs.admin.model('Team') as TeamModel;

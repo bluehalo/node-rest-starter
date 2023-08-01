@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { Validator } from 'express-json-validator-middleware';
 
-import { hasAdminAccess, hasLogin } from '../user/user-auth.middleware';
 import * as feedback from './feedback.controller';
 import { createFeedbackSchema } from './feedback.schemas';
+import { hasAdminAccess, hasLogin } from '../user/user-auth.middleware';
 
 const { validate } = new Validator({});
 

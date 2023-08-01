@@ -2,9 +2,9 @@ import path from 'path';
 
 import { Agenda, Job } from 'agenda';
 
+import { logger } from './bunyan';
 import { JobService } from '../app/common/agenda/job-service';
 import config from '../config';
-import { logger } from './bunyan';
 
 type JobConfig = {
 	name: string;

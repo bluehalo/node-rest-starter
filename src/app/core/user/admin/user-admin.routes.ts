@@ -1,9 +1,9 @@
 import { Router } from 'express';
 
+import * as userAdminController from './user-admin.controller';
 import { config } from '../../../../dependencies';
 import { hasAdminAccess } from '../user-auth.middleware';
 import * as users from '../user.controller';
-import * as userAdminController from './user-admin.controller';
 
 const router = Router();
 

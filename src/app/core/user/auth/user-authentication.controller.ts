@@ -1,9 +1,9 @@
+import userAuthService from './user-authentication.service';
+import userAuthorizationService from './user-authorization.service';
 import { auditService, config, dbs } from '../../../../dependencies';
 import teamService from '../../teams/teams.service';
 import userEmailService from '../user-email.service';
 import { UserDocument, UserModel } from '../user.model';
-import userAuthService from './user-authentication.service';
-import userAuthorizationService from './user-authorization.service';
 
 const User = dbs.admin.model('User') as UserModel;
 

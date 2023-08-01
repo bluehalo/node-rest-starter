@@ -3,8 +3,8 @@ import path from 'path';
 import _ from 'lodash';
 import mongoose, { Connection, ConnectOptions, Mongoose } from 'mongoose';
 
-import config from '../config';
 import { logger } from './bunyan';
+import config from '../config';
 
 // Set the mongoose debugging option based on the configuration, defaulting to false
 const mongooseDebug = config.mongooseLogging ?? false;

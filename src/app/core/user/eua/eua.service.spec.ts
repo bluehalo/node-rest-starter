@@ -1,9 +1,9 @@
 import should from 'should';
 
-import { dbs } from '../../../../dependencies';
-import { UserModel } from '../user.model';
 import { UserAgreementModel } from './eua.model';
 import euaService from './eua.service';
+import { dbs } from '../../../../dependencies';
+import { UserModel } from '../user.model';
 
 const User = dbs.admin.model('User') as UserModel;
 const UserAgreement = dbs.admin.model('UserAgreement') as UserAgreementModel;

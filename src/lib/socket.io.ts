@@ -8,12 +8,12 @@ import { Mongoose } from 'mongoose';
 import passport from 'passport';
 import { Server, Socket } from 'socket.io';
 
+import { logger } from './bunyan';
 import {
 	BaseSocket,
 	BaseSocketSubclass
 } from '../app/common/sockets/base-socket.provider';
 import config from '../config';
-import { logger } from './bunyan';
 
 const MongoStore = connect_mongo(expressSession);
 

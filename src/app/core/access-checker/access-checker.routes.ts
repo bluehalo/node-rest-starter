@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
+import * as accessChecker from './access-checker.controller';
 import { logger } from '../../../dependencies';
 import { hasAdminAccess, hasLogin } from '../user/user-auth.middleware';
-import * as accessChecker from './access-checker.controller';
 
 /**
  * Routes that only apply to the 'proxy-pki' passport strategy

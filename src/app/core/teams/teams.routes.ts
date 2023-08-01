@@ -1,14 +1,14 @@
 import { Router } from 'express';
 import { Validator } from 'express-json-validator-middleware';
 
+import * as teams from './teams.controller';
+import * as teamSchemas from './teams.schemas';
 import { hasAny } from '../../common/express/auth-middleware';
 import {
 	hasAccess,
 	hasEditorAccess,
 	requiresAdminRole
 } from '../user/user-auth.middleware';
-import * as teams from './teams.controller';
-import * as teamSchemas from './teams.schemas';
 
 const { validate } = new Validator({});
 

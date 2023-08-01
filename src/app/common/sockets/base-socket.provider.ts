@@ -17,7 +17,10 @@ export abstract class BaseSocket<MessageType = Record<string, unknown>> {
 	_emitName: string;
 	_emitRateMs: number;
 
-	protected constructor(protected socket: Socket, _config: SocketConfig) {
+	protected constructor(
+		protected socket: Socket,
+		_config: SocketConfig
+	) {
 		this._emitName = _config.emitName;
 		this._emitRateMs = Math.max(_config.emitRateMs ?? 0, 0);
 
@@ -307,5 +310,5 @@ export type BaseSocketSubclass = (new (
 	config: SocketConfig
 ) => BaseSocket) & {
 	// a concrete constructor of BaseClass<any>
-	[K in keyof typeof BaseSocket]: typeof BaseSocket[K];
+	[K in keyof typeof BaseSocket]: (typeof BaseSocket)[K];
 };

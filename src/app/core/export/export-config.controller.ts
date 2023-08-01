@@ -1,9 +1,9 @@
 import os from 'os';
 import { Readable, Transform } from 'stream';
 
-import { auditService, csvStream, logger } from '../../../dependencies';
 import { ExportColumnDef } from './export-config.model';
 import exportConfigService from './export-config.service';
+import { auditService, csvStream, logger } from '../../../dependencies';
 
 /**
  * Request to generate an export configuration in preparation to serve a CSV download soon. The config document will

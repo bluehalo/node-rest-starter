@@ -2,6 +2,13 @@ import _ from 'lodash';
 import mongoose, { FilterQuery, PopulateOptions, Types } from 'mongoose';
 
 import {
+	TeamRoleImplicit,
+	TeamRoleMinimumWithAccess,
+	TeamRolePriorities,
+	TeamRoles
+} from './team-role.model';
+import { ITeam, TeamDocument, TeamModel } from './team.model';
+import {
 	config,
 	dbs,
 	emailService,
@@ -12,13 +19,6 @@ import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { IdOrObject, Override } from '../../common/typescript-util';
 import userAuthService from '../user/auth/user-authorization.service';
 import { IUser, UserDocument, UserModel } from '../user/user.model';
-import {
-	TeamRoleImplicit,
-	TeamRoleMinimumWithAccess,
-	TeamRolePriorities,
-	TeamRoles
-} from './team-role.model';
-import { ITeam, TeamDocument, TeamModel } from './team.model';
 
 /**
  * Copies the mutable fields from src to dest

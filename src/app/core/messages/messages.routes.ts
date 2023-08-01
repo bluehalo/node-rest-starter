@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
-import { hasAccess, hasAdminAccess } from '../user/user-auth.middleware';
 import * as messages from './message.controller';
+import { hasAccess, hasAdminAccess } from '../user/user-auth.middleware';
 
 const router = Router();
 

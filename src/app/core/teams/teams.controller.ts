@@ -1,7 +1,7 @@
-import { utilService, auditService } from '../../../dependencies';
-import userService from '../user/user.service';
 import { TeamRoles } from './team-role.model';
 import teamsService from './teams.service';
+import { utilService, auditService } from '../../../dependencies';
+import userService from '../user/user.service';
 
 /**
  * Create a new team. The team creator is automatically added as an admin

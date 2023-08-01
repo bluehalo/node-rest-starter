@@ -2,9 +2,9 @@ import mongoose from 'mongoose';
 import should from 'should';
 import { createSandbox } from 'sinon';
 
+import userAuthorizationService from './user-authorization.service';
 import { config, dbs } from '../../../../dependencies';
 import { IUser, UserModel } from '../user.model';
-import userAuthorizationService from './user-authorization.service';
 
 const User = dbs.admin.model('User') as UserModel;
 

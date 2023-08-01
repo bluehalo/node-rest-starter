@@ -1,10 +1,10 @@
 import _ from 'lodash';
 
-import { auditService, config, dbs, utilService } from '../../../dependencies';
-import teamService from '../teams/teams.service';
 import userAuthorizationService from './auth/user-authorization.service';
 import { UserModel } from './user.model';
 import userService from './user.service';
+import { auditService, config, dbs, utilService } from '../../../dependencies';
+import teamService from '../teams/teams.service';
 
 const User = dbs.admin.model('User') as UserModel;
 
