@@ -1,8 +1,8 @@
 import { FilterQuery, PopulateOptions, Types } from 'mongoose';
 
+import { UserDocument, UserModel } from './user.model';
 import { dbs, utilService } from '../../../dependencies';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
-import { UserDocument, UserModel } from './user.model';
 
 class UserService {
 	model: UserModel;

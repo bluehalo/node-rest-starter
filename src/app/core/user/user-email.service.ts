@@ -1,9 +1,9 @@
 import { DateTime } from 'luxon';
 
-import { config, emailService, logger } from '../../../dependencies';
 import userAuthorizationService from './auth/user-authorization.service';
 import { UserDocument } from './user.model';
 import userService from './user.service';
+import { config, emailService, logger } from '../../../dependencies';
 
 class UserEmailService {
 	// Send email alert to system admins about new account request

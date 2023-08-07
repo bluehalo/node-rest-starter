@@ -1,5 +1,5 @@
-import { auditService } from '../../../../dependencies';
 import euaService from './eua.service';
+import { auditService } from '../../../../dependencies';
 
 // Search (Retrieve) all user Agreements
 export const searchEuas = async (req, res) => {

@@ -1,5 +1,6 @@
 import { FilterQuery, PopulateOptions, Types } from 'mongoose';
 
+import { FeedbackDocument, FeedbackModel, Statuses } from './feedback.model';
 import {
 	dbs,
 	config,
@@ -9,7 +10,6 @@ import {
 } from '../../../dependencies';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { UserDocument } from '../user/user.model';
-import { FeedbackDocument, FeedbackModel, Statuses } from './feedback.model';
 
 class FeedbackService {
 	model: FeedbackModel;

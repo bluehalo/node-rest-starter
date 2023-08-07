@@ -1,9 +1,9 @@
 import path from 'path';
 
-import { config } from '../../../dependencies';
 import { AccessCheckerProvider } from './access-checker.provider';
 import { CacheEntryDocument } from './cache/cache-entry.model';
 import cacheEntryService from './cache/cache-entry.service';
+import { config } from '../../../dependencies';
 
 class AccessCheckerService {
 	provider: AccessCheckerProvider;

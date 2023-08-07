@@ -4,8 +4,8 @@ import path from 'path';
 import handlebars from 'handlebars';
 import _ from 'lodash';
 
-import { config, logger } from '../../../dependencies';
 import { EmailProvider, MailOptions } from './providers/email.provider';
+import { config, logger } from '../../../dependencies';
 
 handlebars.registerHelper('toLowerCase', (str) => str.toLowerCase());
 

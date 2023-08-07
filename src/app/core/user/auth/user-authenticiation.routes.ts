@@ -1,9 +1,9 @@
 import { Router } from 'express';
 
-import { config, logger } from '../../../../dependencies';
-import { hasLogin } from '../user-auth.middleware';
 import * as userAuthentication from './user-authentication.controller';
 import * as userPassword from './user-password.controller';
+import { config, logger } from '../../../../dependencies';
+import { hasLogin } from '../user-auth.middleware';
 
 const router = Router();
 

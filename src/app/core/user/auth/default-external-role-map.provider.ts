@@ -1,7 +1,7 @@
 import { FilterQuery } from 'mongoose';
 
-import { IUser, UserDocument } from '../user.model';
 import { ExternalRoleMapProvider } from './external-role-map.provider';
+import { IUser, UserDocument } from '../user.model';
 
 export default class DefaultExternalRoleMapProvider
 	implements ExternalRoleMapProvider

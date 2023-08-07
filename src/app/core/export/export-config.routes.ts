@@ -1,9 +1,9 @@
 import express from 'express';
 import { Validator } from 'express-json-validator-middleware';
 
-import { hasAccess } from '../user/user-auth.middleware';
 import * as exportConfig from './export-config.controller';
 import { exportConfigSchema } from './export-config.schemas';
+import { hasAccess } from '../user/user-auth.middleware';
 
 const { validate } = new Validator({});
 

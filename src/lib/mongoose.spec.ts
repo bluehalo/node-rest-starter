@@ -1,8 +1,8 @@
 import { Connection, Mongoose } from 'mongoose';
 import { createSandbox } from 'sinon';
 
-import config from '../config.js';
 import * as mongooseLib from './mongoose';
+import config from '../config.js';
 
 describe('Mongoose', () => {
 	const mongoHost = config?.test?.mongoHost ?? 'localhost';

@@ -1,8 +1,8 @@
 import _ from 'lodash';
 import { Socket } from 'socket.io';
 
-import { getEventEmitter } from '../event/event-emitter.service';
 import { BaseSocket, SocketConfig } from './base-socket.provider';
+import { getEventEmitter } from '../event/event-emitter.service';
 
 export default abstract class EventSocket extends BaseSocket {
 	_emitterFunc;

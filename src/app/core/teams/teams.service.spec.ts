@@ -3,6 +3,9 @@ import mongoose from 'mongoose';
 import should from 'should';
 import { assert, createSandbox } from 'sinon';
 
+import { TeamRoles } from './team-role.model';
+import { ITeam, TeamDocument, TeamModel } from './team.model';
+import teamsService from './teams.service';
 import {
 	auditService,
 	config,
@@ -12,9 +15,6 @@ import {
 } from '../../../dependencies';
 import { IUser, UserDocument, UserModel } from '../user/user.model';
 import userService from '../user/user.service';
-import { TeamRoles } from './team-role.model';
-import { ITeam, TeamDocument, TeamModel } from './team.model';
-import teamsService from './teams.service';
 
 const User = dbs.admin.model('User') as UserModel;
 const Team = dbs.admin.model('Team') as TeamModel;

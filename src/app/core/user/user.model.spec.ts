@@ -3,8 +3,8 @@ import * as assert from 'assert';
 import { Types } from 'mongoose';
 import should from 'should';
 
-import { dbs } from '../../../dependencies';
 import { UserModel } from './user.model';
+import { dbs } from '../../../dependencies';
 
 const User = dbs.admin.model('User') as UserModel;
 

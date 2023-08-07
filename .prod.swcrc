@@ -2,7 +2,6 @@
     "$schema": "https://json.schemastore.org/swcrc",
     "minify": false,
     "jsc": {
-        "target": "es2020",
         "parser": {
             "syntax": "typescript",
             "tsx": false,

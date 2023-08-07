@@ -1,5 +1,5 @@
-import { auditService } from '../../../dependencies';
 import messageService from './messages.service';
+import { auditService } from '../../../dependencies';
 
 // Create
 export const create = async (req, res) => {

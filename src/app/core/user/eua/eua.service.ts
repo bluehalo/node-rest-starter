@@ -1,13 +1,13 @@
 import { FilterQuery, PopulateOptions, Types } from 'mongoose';
 
-import { dbs, utilService } from '../../../../dependencies';
-import { PagingResults } from '../../../common/mongoose/paginate.plugin';
-import { UserDocument } from '../user.model';
 import {
 	IUserAgreement,
 	UserAgreementDocument,
 	UserAgreementModel
 } from './eua.model';
+import { dbs, utilService } from '../../../../dependencies';
+import { PagingResults } from '../../../common/mongoose/paginate.plugin';
+import { UserDocument } from '../user.model';
 
 class EuaService {
 	model: UserAgreementModel;

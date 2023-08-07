@@ -1,11 +1,11 @@
 import should from 'should';
 import { assert, createSandbox, spy, stub } from 'sinon';
 
-import { auditService, config, dbs, logger } from '../../../dependencies';
 import userAuthorizationService from './auth/user-authorization.service';
 import * as userController from './user.controller';
 import { UserModel } from './user.model';
 import userService from './user.service';
+import { auditService, config, dbs, logger } from '../../../dependencies';
 
 const User = dbs.admin.model('User') as UserModel;
 

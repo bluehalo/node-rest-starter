@@ -5,9 +5,9 @@ import path from 'path';
 import _ from 'lodash';
 import { FilterQuery } from 'mongoose';
 
+import { ExternalRoleMapProvider } from './external-role-map.provider';
 import { config } from '../../../../dependencies';
 import { IUser, UserDocument } from '../user.model';
-import { ExternalRoleMapProvider } from './external-role-map.provider';
 
 class UserAuthorizationService {
 	provider: ExternalRoleMapProvider;

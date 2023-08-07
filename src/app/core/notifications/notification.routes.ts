@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
-import { hasAccess } from '../user/user-auth.middleware';
 import * as notifications from './notification.controller';
+import { hasAccess } from '../user/user-auth.middleware';
 
 const router = Router();
 

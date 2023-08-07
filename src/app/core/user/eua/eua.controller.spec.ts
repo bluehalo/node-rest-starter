@@ -2,11 +2,11 @@ import { Request } from 'express';
 import should from 'should';
 import { assert, createSandbox, match, spy, stub } from 'sinon';
 
-import { auditService, dbs, logger } from '../../../../dependencies';
-import { UserModel } from '../user.model';
 import * as euaController from './eua.controller';
 import { UserAgreement, UserAgreementDocument } from './eua.model';
 import euaService from './eua.service';
+import { auditService, dbs, logger } from '../../../../dependencies';
+import { UserModel } from '../user.model';
 
 const User = dbs.admin.model('User') as UserModel;
 

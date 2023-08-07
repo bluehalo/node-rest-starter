@@ -3,9 +3,9 @@ import crypto from 'crypto';
 import should from 'should';
 import { assert, createSandbox } from 'sinon';
 
+import userPasswordService from './user-password.service';
 import { config, dbs, emailService, logger } from '../../../../dependencies';
 import { UserModel } from '../user.model';
-import userPasswordService from './user-password.service';
 
 const User = dbs.admin.model('User') as UserModel;
 

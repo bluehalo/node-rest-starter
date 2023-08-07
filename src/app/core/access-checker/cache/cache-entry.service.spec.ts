@@ -1,8 +1,8 @@
 import should from 'should';
 
-import { dbs } from '../../../../dependencies';
 import { CacheEntryModel } from './cache-entry.model';
 import cacheEntryService from './cache-entry.service';
+import { dbs } from '../../../../dependencies';
 
 const CacheEntry = dbs.admin.model('CacheEntry') as CacheEntryModel;
 

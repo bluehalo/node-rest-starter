@@ -1,9 +1,9 @@
 import should from 'should';
 
-import { dbs } from '../../../dependencies';
-import { IUser } from '../user/user.model';
 import { AuditModel } from './audit.model';
 import auditService from './audit.service';
+import { dbs } from '../../../dependencies';
+import { IUser } from '../user/user.model';
 
 const Audit = dbs.admin.model('Audit') as AuditModel;
 

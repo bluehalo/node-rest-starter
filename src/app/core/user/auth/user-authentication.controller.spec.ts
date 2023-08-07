@@ -3,6 +3,7 @@ import { DateTime } from 'luxon';
 import passport from 'passport';
 import should from 'should';
 
+import * as userAuthenticationController from './user-authentication.controller';
 import { config, dbs } from '../../../../dependencies';
 import local from '../../../../lib/strategies/local';
 import proxyPki from '../../../../lib/strategies/proxy-pki';
@@ -11,7 +12,6 @@ import {
 	ICacheEntry
 } from '../../access-checker/cache/cache-entry.model';
 import { IUser, UserModel } from '../user.model';
-import * as userAuthenticationController from './user-authentication.controller';
 
 const User = dbs.admin.model('User') as UserModel;
 const CacheEntry = dbs.admin.model('CacheEntry') as CacheEntryModel;

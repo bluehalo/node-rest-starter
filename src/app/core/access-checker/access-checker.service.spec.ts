@@ -3,10 +3,10 @@ import { DateTime } from 'luxon';
 import should from 'should';
 import { createSandbox } from 'sinon';
 
-import { config, dbs } from '../../../dependencies';
 import accessChecker from './access-checker.service';
 import { CacheEntryModel, ICacheEntry } from './cache/cache-entry.model';
 import cacheEntryService from './cache/cache-entry.service';
+import { config, dbs } from '../../../dependencies';
 
 const CacheEntry = dbs.admin.model('CacheEntry') as CacheEntryModel;
 

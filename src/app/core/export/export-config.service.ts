@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 
-import { dbs } from '../../../dependencies';
 import { ExportConfigDocument, ExportConfigModel } from './export-config.model';
+import { dbs } from '../../../dependencies';
 
 class ExportConfigService {
 	model = dbs.admin.model('ExportConfig') as ExportConfigModel;

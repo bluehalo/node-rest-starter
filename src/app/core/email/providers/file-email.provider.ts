@@ -3,8 +3,8 @@ import path from 'path';
 
 import { DateTime } from 'luxon';
 
-import { config, logger } from '../../../../dependencies';
 import { EmailProvider, MailOptions } from './email.provider';
+import { config, logger } from '../../../../dependencies';
 
 export default class implements EmailProvider {
 	getFileName(mailOptions: MailOptions) {

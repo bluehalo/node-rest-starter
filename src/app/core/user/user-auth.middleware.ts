@@ -1,10 +1,10 @@
 import _ from 'lodash';
 
-import { config } from '../../../dependencies';
-import { has, hasAll, requiresAny } from '../../common/express/auth-middleware';
 import userAuthService from './auth/user-authentication.service';
 import userAuthorizationService from './auth/user-authorization.service';
 import { requiresEua } from './eua/eua.controller';
+import { config } from '../../../dependencies';
+import { has, hasAll, requiresAny } from '../../common/express/auth-middleware';
 
 /**
  * Checks that the user is logged in

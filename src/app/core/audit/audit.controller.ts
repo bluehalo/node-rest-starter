@@ -1,7 +1,7 @@
 import _ from 'lodash';
 
-import { dbs, utilService as util } from '../../../dependencies';
 import { AuditModel } from './audit.model';
+import { dbs, utilService as util } from '../../../dependencies';
 
 const Audit = dbs.admin.model('Audit') as AuditModel;
 

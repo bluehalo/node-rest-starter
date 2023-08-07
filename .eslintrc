@@ -10,9 +10,9 @@
 		"sourceType": "module"
 	},
 
-	"plugins": ["jsdoc", "prettier"],
+	"plugins": ["deprecation", "jsdoc", "prettier"],
 
-	"extends": ["eslint:recommended", "prettier"],
+	"extends": ["eslint:recommended"],
 	"rules": {
 		"arrow-parens": ["error", "always"],
 		"eqeqeq": ["error", "smart"],
@@ -72,7 +72,12 @@
 
 			"parser": "@typescript-eslint/parser",
 
-			"plugins": ["jsdoc", "prettier", "@typescript-eslint"],
+			"plugins": [
+				"deprecation",
+				"jsdoc",
+				"prettier",
+				"@typescript-eslint"
+			],
 
 			"extends": [
 				"eslint:recommended",
