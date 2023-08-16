@@ -1,14 +1,10 @@
-'use strict';
-
 import { assert, createSandbox, spy, stub } from 'sinon';
 
 import * as userAdminController from './user-admin.controller';
-import { auditService, config, dbs } from '../../../../dependencies';
+import { auditService, config } from '../../../../dependencies';
 import userEmailService from '../user-email.service';
-import { UserModel } from '../user.model';
+import { User } from '../user.model';
 import userService from '../user.service';
-
-const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Helpers

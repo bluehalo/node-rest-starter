@@ -77,7 +77,7 @@ ExportConfigSchema.methods.auditCopy = function () {
 /**
  * Model Registration
  */
-export const Message = model<IExportConfig, ExportConfigModel>(
+export const ExportConfig = model<IExportConfig, ExportConfigModel>(
 	'ExportConfig',
 	ExportConfigSchema
 );

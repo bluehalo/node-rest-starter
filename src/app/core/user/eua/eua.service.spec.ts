@@ -1,12 +1,8 @@
 import should from 'should';
 
-import { UserAgreementModel } from './eua.model';
+import { UserAgreement } from './eua.model';
 import euaService from './eua.service';
-import { dbs } from '../../../../dependencies';
-import { UserModel } from '../user.model';
-
-const User = dbs.admin.model('User') as UserModel;
-const UserAgreement = dbs.admin.model('UserAgreement') as UserAgreementModel;
+import { User } from '../user.model';
 
 /**
  * Unit tests

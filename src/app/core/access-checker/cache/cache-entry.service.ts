@@ -1,15 +1,15 @@
 import { FilterQuery } from 'mongoose';
 
-import { CacheEntryDocument, CacheEntryModel } from './cache-entry.model';
-import { dbs, utilService } from '../../../../dependencies';
+import {
+	CacheEntry,
+	CacheEntryDocument,
+	CacheEntryModel
+} from './cache-entry.model';
+import { utilService } from '../../../../dependencies';
 import { PagingResults } from '../../../common/mongoose/paginate.plugin';
 
 class CacheEntryService {
-	model: CacheEntryModel;
-
-	constructor() {
-		this.model = dbs.admin.model('CacheEntry') as CacheEntryModel;
-	}
+	constructor(private model: CacheEntryModel) {}
 
 	/**
 	 * Get the entry from the cache. Gets the most recent version.
@@ -68,4 +68,4 @@ class CacheEntryService {
 	}
 }
 
-export = new CacheEntryService();
+export = new CacheEntryService(CacheEntry);

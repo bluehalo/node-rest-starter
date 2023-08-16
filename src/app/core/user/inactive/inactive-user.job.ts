@@ -1,21 +1,16 @@
-'use strict';
-
 import { Job } from 'agenda';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 import { FilterQuery } from 'mongoose';
 
 import {
-	dbs,
 	config,
 	emailService,
 	auditService,
 	logger
 } from '../../../../dependencies';
 import { JobService } from '../../../common/agenda/job-service';
-import { UserDocument, UserModel } from '../user.model';
-
-const User = dbs.admin.model('User') as UserModel;
+import { User, UserDocument } from '../user.model';
 
 /**
  * alert users whose accounts have been inactive for 30-89 days. Remove accounts that have been inactive for 90+ days

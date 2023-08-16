@@ -1,11 +1,9 @@
 import { Job } from 'agenda';
 
-import { CacheEntryModel } from './cache-entry.model';
-import { dbs, logger } from '../../../../dependencies';
+import { CacheEntry } from './cache-entry.model';
+import { logger } from '../../../../dependencies';
 import { JobService } from '../../../common/agenda/job-service';
 import accessChecker from '../access-checker.service';
-
-const CacheEntry = dbs.admin.model('CacheEntry') as CacheEntryModel;
 
 export default class CacheRefreshJobService implements JobService {
 	async run(job: Job) {

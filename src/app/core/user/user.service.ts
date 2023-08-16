@@ -1,15 +1,13 @@
+import { Readable } from 'stream';
+
 import { FilterQuery, PopulateOptions, Types } from 'mongoose';
 
-import { UserDocument, UserModel } from './user.model';
-import { dbs, utilService } from '../../../dependencies';
+import { UserDocument, UserModel, User } from './user.model';
+import { utilService } from '../../../dependencies';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
 
 class UserService {
-	model: UserModel;
-
-	constructor() {
-		this.model = dbs.admin.model('User') as UserModel;
-	}
+	constructor(private model: UserModel) {}
 
 	read(
 		id: string | Types.ObjectId,
@@ -64,6 +62,33 @@ class UserService {
 			.paginate(limit, page);
 	}
 
+	cursorSearch(
+		queryParams = {},
+		search = '',
+		query: FilterQuery<UserDocument> = {},
+		searchFields: string[] = [],
+		populate:
+			| string
+			| string[]
+			| PopulateOptions
+			| Array<string | PopulateOptions> = []
+	): Readable {
+		const sort = utilService.getSortObj(queryParams, 'DESC', '_id');
+
+		let mQuery = this.model.find(query);
+
+		if (searchFields.length > 0) {
+			mQuery = mQuery.containsSearch(search, searchFields);
+		} else {
+			mQuery = mQuery.textSearch(search);
+		}
+
+		return mQuery
+			.sort(sort)
+			.populate(populate as string[])
+			.cursor();
+	}
+
 	updateLastLogin(document: UserDocument): Promise<UserDocument> {
 		document.lastLogin = new Date();
 		return document.save();
@@ -91,4 +116,4 @@ class UserService {
 	}
 }
 
-export = new UserService();
+export = new UserService(User);

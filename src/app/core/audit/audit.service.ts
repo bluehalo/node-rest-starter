@@ -1,8 +1,7 @@
 import { Request } from 'express';
 
-import { AuditDocument, AuditModel } from './audit.model';
+import { Audit, AuditDocument } from './audit.model';
 import {
-	dbs,
 	config,
 	logger,
 	auditLogger,
@@ -34,9 +33,6 @@ class AuditService {
 		eventObject: unknown,
 		eventMetadata = null
 	): Promise<AuditDocument> {
-		// Delay resolving the Audit model until we can be sure it has been initialized
-		const Audit = dbs.admin.model('Audit') as AuditModel;
-
 		requestOrEventActor = await requestOrEventActor;
 
 		let actor = {};
@@ -44,7 +40,7 @@ class AuditService {
 			actor = requestOrEventActor;
 		} else if (requestOrEventActor.user && requestOrEventActor.headers) {
 			const user = requestOrEventActor.user as UserDocument;
-			actor = await user.auditCopy(
+			actor = user.auditCopy(
 				utilService.getHeaderField(requestOrEventActor.headers, 'x-real-ip')
 			);
 			eventMetadata = requestOrEventActor.headers;

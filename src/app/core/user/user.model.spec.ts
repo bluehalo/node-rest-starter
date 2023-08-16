@@ -3,10 +3,7 @@ import * as assert from 'assert';
 import { Types } from 'mongoose';
 import should from 'should';
 
-import { UserModel } from './user.model';
-import { dbs } from '../../../dependencies';
-
-const User = dbs.admin.model('User') as UserModel;
+import { User } from './user.model';
 
 /**
  * Globals

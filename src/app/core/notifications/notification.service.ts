@@ -1,15 +1,15 @@
 import { FilterQuery } from 'mongoose';
 
-import { NotificationDocument, NotificationModel } from './notification.model';
-import { dbs, utilService } from '../../../dependencies';
+import {
+	Notification,
+	NotificationDocument,
+	NotificationModel
+} from './notification.model';
+import { utilService } from '../../../dependencies';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
 
 class NotificationService {
-	model: NotificationModel;
-
-	constructor() {
-		this.model = dbs.admin.model('Notification') as NotificationModel;
-	}
+	constructor(private model: NotificationModel) {}
 
 	search(
 		queryParams = {},
@@ -24,4 +24,4 @@ class NotificationService {
 	}
 }
 
-export = new NotificationService();
+export = new NotificationService(Notification);

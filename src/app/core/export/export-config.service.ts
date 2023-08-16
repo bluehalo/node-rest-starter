@@ -1,10 +1,13 @@
 import { Types } from 'mongoose';
 
-import { ExportConfigDocument, ExportConfigModel } from './export-config.model';
-import { dbs } from '../../../dependencies';
+import {
+	ExportConfig,
+	ExportConfigDocument,
+	ExportConfigModel
+} from './export-config.model';
 
 class ExportConfigService {
-	model = dbs.admin.model('ExportConfig') as ExportConfigModel;
+	constructor(private model: ExportConfigModel) {}
 
 	/**
 	 * Generate a new ExportConfig document in the collection.
@@ -22,4 +25,4 @@ class ExportConfigService {
 	}
 }
 
-export = new ExportConfigService();
+export = new ExportConfigService(ExportConfig);

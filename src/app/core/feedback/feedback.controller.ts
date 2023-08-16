@@ -1,10 +1,7 @@
-import { FeedbackModel } from './feedback.model';
 import feedbackService from './feedback.service';
-import { auditService, config, dbs, utilService } from '../../../dependencies';
+import { auditService, config } from '../../../dependencies';
 import * as exportConfigController from '../export/export-config.controller';
 import exportConfigService from '../export/export-config.service';
-
-const Feedback = dbs.admin.model('Feedback') as FeedbackModel;
 
 export const submitFeedback = async function (req, res) {
 	const audit = await auditService.audit(
@@ -62,16 +59,16 @@ export const adminGetFeedbackCSV = async function (req, res) {
 
 	const query = result.config.q ? JSON.parse(result.config.q) : null;
 	const search = result.config.s;
-	const sort = utilService.getSortObj(result.config);
 
-	const feedbackCursor = Feedback.find(query)
-		.textSearch(search)
-		.sort(sort)
-		.populate({
+	const feedbackCursor = feedbackService.cursorSearch(
+		result.config,
+		search,
+		query,
+		{
 			path: 'creator',
 			select: ['username', 'organization', 'name', 'email']
-		})
-		.cursor();
+		}
+	);
 
 	exportConfigController.exportCSV(
 		req,
@@ -86,7 +83,11 @@ export const search = async (req, res) => {
 	const results = await feedbackService.search(
 		req.query,
 		req.body.s,
-		req.body.q
+		req.body.q,
+		{
+			path: 'creator',
+			select: ['username', 'organization', 'name', 'email']
+		}
 	);
 	res.status(200).json(results);
 };

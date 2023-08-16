@@ -5,10 +5,8 @@ import { assert, createSandbox, match, spy, stub } from 'sinon';
 import * as euaController from './eua.controller';
 import { UserAgreement, UserAgreementDocument } from './eua.model';
 import euaService from './eua.service';
-import { auditService, dbs, logger } from '../../../../dependencies';
-import { UserModel } from '../user.model';
-
-const User = dbs.admin.model('User') as UserModel;
+import { auditService, logger } from '../../../../dependencies';
+import { User } from '../user.model';
 
 /**
  * Unit tests

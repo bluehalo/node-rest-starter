@@ -2,15 +2,12 @@ import { Request } from 'express';
 import should from 'should';
 import { assert, createSandbox, match, spy, stub } from 'sinon';
 
-import { TeamDocument, TeamModel } from './team.model';
+import { Team, TeamDocument } from './team.model';
 import * as teamsController from './teams.controller';
 import teamsService from './teams.service';
-import { auditService, dbs, logger } from '../../../dependencies';
-import { UserDocument, UserModel } from '../user/user.model';
+import { auditService, logger } from '../../../dependencies';
+import { User, UserDocument } from '../user/user.model';
 import userService from '../user/user.service';
-
-const Team = dbs.admin.model('Team') as TeamModel;
-const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Unit tests

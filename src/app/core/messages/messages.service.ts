@@ -3,27 +3,29 @@ import path from 'path';
 import { FilterQuery, PopulateOptions, Types } from 'mongoose';
 
 import {
+	DismissedMessage,
 	DismissedMessageDocument,
 	DismissedMessageModel,
 	IDismissedMessage
 } from './dismissed-message.model';
-import { IMessage, MessageDocument, MessageModel } from './message.model';
-import { dbs, config, utilService } from '../../../dependencies';
+import {
+	IMessage,
+	Message,
+	MessageDocument,
+	MessageModel
+} from './message.model';
+import { config, utilService } from '../../../dependencies';
 import { PublishProvider } from '../../common/event/publish.provider';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { UserDocument } from '../user/user.model';
 
 class MessagesService {
-	model: MessageModel;
-	dismissedModel: DismissedMessageModel;
 	publishProvider: PublishProvider;
 
-	constructor() {
-		this.model = dbs.admin.model('Message') as MessageModel;
-		this.dismissedModel = dbs.admin.model(
-			'DismissedMessage'
-		) as DismissedMessageModel;
-	}
+	constructor(
+		private model: MessageModel,
+		private dismissedModel: DismissedMessageModel
+	) {}
 
 	create(user: UserDocument, doc: unknown): Promise<MessageDocument> {
 		const message = new this.model(doc);
@@ -144,4 +146,4 @@ class MessagesService {
 	}
 }
 
-export = new MessagesService();
+export = new MessagesService(Message, DismissedMessage);

@@ -1,10 +1,8 @@
 import _ from 'lodash';
-import { SortOrder } from 'mongoose';
 
 import {
 	auditService,
 	config,
-	dbs,
 	logger,
 	utilService
 } from '../../../../dependencies';
@@ -13,10 +11,8 @@ import exportConfigService from '../../export/export-config.service';
 import userAuthService from '../auth/user-authentication.service';
 import userAuthorizationService from '../auth/user-authorization.service';
 import userEmailService from '../user-email.service';
-import { UserDocument, UserModel } from '../user.model';
+import { User, UserDocument } from '../user.model';
 import userService from '../user.service';
-
-const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Standard User Operations
@@ -163,12 +159,8 @@ export const adminGetCSV = async (req, res) => {
 		result.auditCopy()
 	);
 
-	const columns = result.config.cols,
-		query = result.config.q ? JSON.parse(result.config.q) : null,
-		search = result.config.s,
-		sort = { [result.config.sort]: result.config.dir },
-		fileName = `${config.app.instanceName}-${result.type}.csv`,
-		populate = [];
+	const columns = result.config.cols;
+	const populate = [];
 
 	// Based on which columns are requested, handle property-specific behavior (ex. callbacks for the
 	// CSV service to make booleans and dates more human-readable)
@@ -202,13 +194,18 @@ export const adminGetCSV = async (req, res) => {
 		}
 	});
 
-	const userResults = await User.find(query)
-		.textSearch(search)
-		.sort(sort as { [key: string]: SortOrder })
-		.populate(populate)
-		.exec();
+	const query = result.config.q ? JSON.parse(result.config.q) : null;
+	const search = result.config.s;
+	const fileName = `${config.app.instanceName}-${result.type}.csv`;
 
-	exportConfigController.exportCSV(req, res, fileName, columns, userResults);
+	const userCursor = userService.cursorSearch(
+		result.config,
+		search,
+		query,
+		populate
+	);
+
+	exportConfigController.exportCSV(req, res, fileName, columns, userCursor);
 };
 
 // Admin creates a user
