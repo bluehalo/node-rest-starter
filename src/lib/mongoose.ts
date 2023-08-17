@@ -1,16 +1,21 @@
 import path from 'path';
 
 import _ from 'lodash';
-import mongoose, { Connection, ConnectOptions, Mongoose } from 'mongoose';
+import mongoose, {
+	Connection,
+	ConnectOptions,
+	Mongoose,
+	Model
+} from 'mongoose';
 
 import { logger } from './bunyan';
 import config from '../config';
 
-// Set the mongoose debugging option based on the configuration, defaulting to false
-const mongooseDebug = config.mongooseLogging ?? false;
-
-logger.info(`Mongoose: Setting debug to ${mongooseDebug}`);
-mongoose.set('debug', mongooseDebug);
+type MongooseDbSpec = {
+	name: string;
+	connectionString: string;
+	options: ConnectOptions;
+};
 
 // Load the mongoose models
 export const loadModels = async () => {
@@ -57,12 +62,14 @@ export const dbs: Record<string, Connection | Mongoose> = {};
 
 // Initialize Mongoose, returns a promise
 export const connect = async () => {
-	const dbSpecs: Array<{
-		name: string;
-		connectionString: string;
-		options: ConnectOptions;
-	}> = [];
-	let defaultDbSpec;
+	// Set the mongoose debugging option based on the configuration, defaulting to false
+	const mongooseDebug = config.mongooseLogging ?? false;
+
+	logger.info(`Mongoose: Setting debug to ${mongooseDebug}`);
+	mongoose.set('debug', mongooseDebug);
+
+	const dbSpecs: Array<MongooseDbSpec> = [];
+	let defaultDbSpec: MongooseDbSpec;
 
 	// Organize the dbs we need to connect
 	for (const dbSpec in config.db) {
@@ -73,55 +80,52 @@ export const connect = async () => {
 		}
 	}
 
+	// Check for required admin db config
+	if (!defaultDbSpec) {
+		throw Error('Required `admin` db not configured');
+	}
+
 	// Connect to the default db to kick off the process
-	if (defaultDbSpec) {
-		try {
-			await mongoose.connect(
-				defaultDbSpec.connectionString,
-				defaultDbSpec.options
-			);
+	try {
+		dbs[defaultDbSpec.name] = await mongoose.connect(
+			defaultDbSpec.connectionString,
+			defaultDbSpec.options
+		);
 
-			logger.info(`Mongoose: Connected to "${defaultDbSpec.name}" default db`);
+		logger.info(`Mongoose: Connected to "${defaultDbSpec.name}" default db`);
 
-			// store it in the db list
-			dbs[defaultDbSpec.name] = mongoose;
+		// Connect to the rest of the dbs
+		await Promise.all(
+			dbSpecs.map(async (spec: MongooseDbSpec) => {
+				// Create the secondary connection
+				dbs[spec.name] = await mongoose
+					.createConnection(spec.connectionString, spec.options)
+					.asPromise();
+				logger.info(`Mongoose: Connected to "${spec.name}" db`);
+			})
+		);
 
-			// Connect to the rest of the dbs
-			await Promise.all(
-				dbSpecs.map(async (spec) => {
-					// Create the secondary connection
-					dbs[spec.name] = await mongoose
-						.createConnection(spec.connectionString, spec.options)
-						.asPromise();
-					logger.info(`Mongoose: Connected to "${spec.name}" db`);
-				})
-			);
+		// Since all the db connections worked, we will load the mongoose models
+		logger.debug('Mongoose: Loading mongoose models...');
+		await loadModels();
+		logger.debug('Mongoose: Loaded all mongoose models!');
 
-			logger.debug('Loading mongoose models...');
-			// Since all the db connections worked, we will load the mongoose models
-			await loadModels();
-			logger.debug('Loaded all mongoose models!');
+		// Ensure that all mongoose models are initialized
+		// before responding with the connections(s)
+		await Promise.all(
+			Object.entries(dbs).flatMap(([key, conn]) => {
+				logger.debug(`Mongoose: Initializing all models for "${key}" db`);
+				return Object.entries(conn.models).map(([name, aModel]) =>
+					initializeModel(name, aModel)
+				);
+			})
+		);
 
-			// Ensure that all mongoose models are initialized
-			// before responding with the connections(s)
-			await Promise.all(
-				Object.entries(dbs).map(([key, conn]) => {
-					logger.debug(`Initializing all models for ${key}`);
-					return Promise.all(
-						Object.entries(conn.models).map(([name, aModel]) => {
-							logger.debug(`Initializing model ${name}`);
-							return aModel.init();
-						})
-					);
-				})
-			);
-
-			// Return the dbs since everything succeeded
-			return dbs;
-		} catch (err) {
-			logger.fatal('Mongoose: Could not connect to admin db');
-			throw err;
-		}
+		// Return the dbs since everything succeeded
+		return dbs;
+	} catch (err) {
+		logger.fatal('Mongoose: Could not connect to admin db');
+		throw err;
 	}
 };
 
@@ -138,6 +142,23 @@ export const disconnect = () => {
 	// Wait for all to finish, successful or not
 	return Promise.all(promises);
 };
+
+async function initializeModel(name: string, model: Model<unknown>) {
+	logger.debug(`Mongoose: Initializing model ${name}`);
+	try {
+		return await model.init();
+	} catch (err) {
+		logger.error(
+			`Mongoose: Error creating index for ${name}: ${err.codeName} - ${err.message}`
+		);
+		if (
+			config.mongooseFailOnIndexOptionsConflict ||
+			err.codeName !== 'IndexOptionsConflict'
+		) {
+			throw err;
+		}
+	}
+}
 
 function isMongoose(connection: Mongoose | Connection): connection is Mongoose {
 	return (connection as Mongoose).disconnect !== undefined;
