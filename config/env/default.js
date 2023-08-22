@@ -282,7 +282,10 @@ module.exports = {
 		topic: 'page.updated'
 	},
 
+	// configures mongo TTL index.  Overriding these may require dropping existing index
 	notificationExpires: 15552000, // 180 days
+	auditExpires: 15552000, //180 days
+	feedbackExpires: 15552000, // 180 days
 
 	// Configuration for outgoing mail server / service
 	mailer: {
