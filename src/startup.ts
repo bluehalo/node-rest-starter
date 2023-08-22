@@ -11,29 +11,21 @@ import socketio from './lib/socket.io';
 export default async function () {
 	logger.info('Starting initialization of Node.js server');
 
+	// Init mongoose connection(s)
 	const db = await mongoose.connect();
 
-	try {
-		logger.info(
-			'Mongoose connected, proceeding with application configuration'
-		);
+	// Init agenda.ts scheduler
+	await agenda.init();
 
-		// Init agenda.ts scheduler
-		await agenda.init();
+	// Initialize express
+	const app = await express.init(db.admin as Mongoose);
 
-		// Initialize express
-		const app = await express.init(db.admin as Mongoose);
+	// Create a new HTTP server
+	logger.info('Creating HTTP Server');
+	const server = http.createServer(app);
 
-		// Create a new HTTP server
-		logger.info('Creating HTTP Server');
-		const server = http.createServer(app);
+	// Initialize socket.io
+	await socketio.init(server, db.admin as Mongoose);
 
-		// Initialize socket.io
-		await socketio.init(server, db.admin as Mongoose);
-
-		return server;
-	} catch (err) {
-		logger.fatal('Express initialization failed.');
-		return Promise.reject(err);
-	}
+	return server;
 }

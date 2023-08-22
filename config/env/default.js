@@ -146,6 +146,7 @@ module.exports = {
 	db: {
 		admin: 'mongodb://localhost/node-rest-starter-dev'
 	},
+	mongooseFailOnIndexOptionsConflict: true,
 
 	/**
 	 * Environment Settings

@@ -10,4 +10,6 @@ startupFn()
 	})
 	.catch((error) => {
 		logger.fatal(error, 'Startup initialization failed.');
+		// non-zero exit code to let the process know that we've failed
+		process.exit(1);
 	});
