@@ -1,10 +1,7 @@
 import should from 'should';
 
-import { UserModel } from './user.model';
+import { User } from './user.model';
 import userService from './user.service';
-import { dbs } from '../../../dependencies';
-
-const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Helpers

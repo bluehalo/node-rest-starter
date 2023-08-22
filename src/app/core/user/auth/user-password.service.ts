@@ -3,12 +3,12 @@ import { promisify } from 'util';
 
 import { DateTime } from 'luxon';
 
-import { config, dbs, emailService, logger } from '../../../../dependencies';
-import { UserDocument, UserModel } from '../user.model';
-
-const User = dbs.admin.model('User') as UserModel;
+import { config, emailService, logger } from '../../../../dependencies';
+import { User, UserDocument, UserModel } from '../user.model';
 
 class UserPasswordService {
+	constructor(private userModel: UserModel) {}
+
 	findUserForActiveToken(token: string) {
 		return User.findOne({
 			resetPasswordToken: token,
@@ -122,4 +122,4 @@ class UserPasswordService {
 	}
 }
 
-export = new UserPasswordService();
+export = new UserPasswordService(User);

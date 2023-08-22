@@ -3,11 +3,9 @@ import { assert, createSandbox, spy, stub } from 'sinon';
 
 import userAuthorizationService from './auth/user-authorization.service';
 import * as userController from './user.controller';
-import { UserModel } from './user.model';
+import { User } from './user.model';
 import userService from './user.service';
-import { auditService, config, dbs, logger } from '../../../dependencies';
-
-const User = dbs.admin.model('User') as UserModel;
+import { auditService, config, logger } from '../../../dependencies';
 
 /**
  * Unit tests
@@ -77,9 +75,7 @@ describe('User Profile Controller:', () => {
 				}
 			};
 
-			sandbox.stub(User, 'findById').returns({
-				exec: () => Promise.resolve(user)
-			});
+			sandbox.stub(userService, 'read').resolves(user);
 			sandbox.stub(auditService, 'audit').resolves();
 
 			await userController.updateCurrentUser(req, res);
@@ -104,10 +100,9 @@ describe('User Profile Controller:', () => {
 					callback();
 				}
 			};
+			user.auditCopy();
 
-			sandbox.stub(User, 'findById').returns({
-				exec: () => Promise.resolve(user)
-			});
+			sandbox.stub(userService, 'read').resolves(user);
 			sandbox.stub(auditService, 'audit').resolves();
 
 			await userController.updateCurrentUser(req, res);
@@ -130,9 +125,7 @@ describe('User Profile Controller:', () => {
 				user: user
 			};
 
-			sandbox.stub(User, 'findById').returns({
-				exec: () => Promise.resolve(user)
-			});
+			sandbox.stub(userService, 'read').resolves(user);
 			sandbox.stub(auditService, 'audit').resolves();
 
 			await userController.updateCurrentUser(req, res);
@@ -158,9 +151,7 @@ describe('User Profile Controller:', () => {
 				}
 			};
 
-			sandbox.stub(User, 'findById').returns({
-				exec: () => Promise.resolve(user)
-			});
+			sandbox.stub(userService, 'read').resolves(user);
 			sandbox.stub(auditService, 'audit').resolves();
 
 			await userController.updateCurrentUser(req, res);
@@ -186,9 +177,7 @@ describe('User Profile Controller:', () => {
 				}
 			};
 
-			sandbox.stub(User, 'findById').returns({
-				exec: () => Promise.resolve(user)
-			});
+			sandbox.stub(userService, 'read').resolves(user);
 			sandbox.stub(auditService, 'audit').resolves();
 
 			await userController.updateCurrentUser(req, res);

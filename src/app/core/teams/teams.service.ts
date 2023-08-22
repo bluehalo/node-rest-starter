@@ -7,10 +7,9 @@ import {
 	TeamRolePriorities,
 	TeamRoles
 } from './team-role.model';
-import { ITeam, TeamDocument, TeamModel } from './team.model';
+import { ITeam, TeamDocument, TeamModel, Team } from './team.model';
 import {
 	config,
-	dbs,
 	emailService,
 	logger,
 	utilService
@@ -18,7 +17,7 @@ import {
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { IdOrObject, Override } from '../../common/typescript-util';
 import userAuthService from '../user/auth/user-authorization.service';
-import { IUser, UserDocument, UserModel } from '../user/user.model';
+import { IUser, UserDocument, UserModel, User } from '../user/user.model';
 
 /**
  * Copies the mutable fields from src to dest
@@ -36,13 +35,10 @@ const isObjectIdEqual = (value1, value2) => {
 };
 
 class TeamsService {
-	model: TeamModel;
-	userModel: UserModel;
-
-	constructor() {
-		this.model = dbs.admin.model('Team') as TeamModel;
-		this.userModel = dbs.admin.model('User') as UserModel;
-	}
+	constructor(
+		private model: TeamModel,
+		private userModel: UserModel
+	) {}
 
 	/**
 	 * Creates a new team with the requested metadata
@@ -879,4 +875,4 @@ class TeamsService {
 	}
 }
 
-export = new TeamsService();
+export = new TeamsService(Team, User);

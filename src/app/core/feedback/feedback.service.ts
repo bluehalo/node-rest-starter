@@ -1,8 +1,14 @@
+import { Readable } from 'stream';
+
 import { FilterQuery, PopulateOptions, Types } from 'mongoose';
 
-import { FeedbackDocument, FeedbackModel, Statuses } from './feedback.model';
 import {
-	dbs,
+	Feedback,
+	FeedbackDocument,
+	FeedbackModel,
+	Statuses
+} from './feedback.model';
+import {
 	config,
 	emailService,
 	logger,
@@ -12,11 +18,7 @@ import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { UserDocument } from '../user/user.model';
 
 class FeedbackService {
-	model: FeedbackModel;
-
-	constructor() {
-		this.model = dbs.admin.model('Feedback') as FeedbackModel;
-	}
+	constructor(private model: FeedbackModel) {}
 
 	create(
 		user: UserDocument,
@@ -65,7 +67,12 @@ class FeedbackService {
 	search(
 		queryParams = {},
 		search = '',
-		query: FilterQuery<FeedbackDocument> = {}
+		query: FilterQuery<FeedbackDocument> = {},
+		populate:
+			| string
+			| string[]
+			| PopulateOptions
+			| Array<string | PopulateOptions> = []
 	): Promise<PagingResults<FeedbackDocument>> {
 		const page = utilService.getPage(queryParams);
 		const limit = utilService.getLimit(queryParams, 100);
@@ -76,11 +83,28 @@ class FeedbackService {
 			.find(query)
 			.textSearch(search)
 			.sort(sort)
-			.populate({
-				path: 'creator',
-				select: ['username', 'organization', 'name', 'email']
-			})
+			.populate(populate as string[])
 			.paginate(limit, page);
+	}
+
+	cursorSearch(
+		queryParams = {},
+		search = '',
+		query: FilterQuery<FeedbackDocument> = {},
+		populate:
+			| string
+			| string[]
+			| PopulateOptions
+			| Array<string | PopulateOptions> = []
+	): Readable {
+		const sort = utilService.getSortObj(queryParams);
+
+		return this.model
+			.find(query)
+			.textSearch(search)
+			.sort(sort)
+			.populate(populate as string[])
+			.cursor();
 	}
 
 	async sendFeedbackEmail(
@@ -133,4 +157,4 @@ class FeedbackService {
 	}
 }
 
-export = new FeedbackService();
+export = new FeedbackService(Feedback);

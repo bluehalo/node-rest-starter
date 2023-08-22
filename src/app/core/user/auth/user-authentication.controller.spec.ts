@@ -4,17 +4,14 @@ import passport from 'passport';
 import should from 'should';
 
 import * as userAuthenticationController from './user-authentication.controller';
-import { config, dbs } from '../../../../dependencies';
+import { config } from '../../../../dependencies';
 import local from '../../../../lib/strategies/local';
 import proxyPki from '../../../../lib/strategies/proxy-pki';
 import {
-	CacheEntryModel,
+	CacheEntry,
 	ICacheEntry
 } from '../../access-checker/cache/cache-entry.model';
-import { IUser, UserModel } from '../user.model';
-
-const User = dbs.admin.model('User') as UserModel;
-const CacheEntry = dbs.admin.model('CacheEntry') as CacheEntryModel;
+import { IUser, User } from '../user.model';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const emptyFn = () => {};

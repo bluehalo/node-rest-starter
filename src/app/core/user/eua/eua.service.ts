@@ -3,18 +3,15 @@ import { FilterQuery, PopulateOptions, Types } from 'mongoose';
 import {
 	IUserAgreement,
 	UserAgreementDocument,
-	UserAgreementModel
+	UserAgreementModel,
+	UserAgreement
 } from './eua.model';
-import { dbs, utilService } from '../../../../dependencies';
+import { utilService } from '../../../../dependencies';
 import { PagingResults } from '../../../common/mongoose/paginate.plugin';
 import { UserDocument } from '../user.model';
 
 class EuaService {
-	model: UserAgreementModel;
-
-	constructor() {
-		this.model = dbs.admin.model('UserAgreement') as UserAgreementModel;
-	}
+	constructor(private model: UserAgreementModel) {}
 
 	create(doc: unknown): Promise<UserAgreementDocument> {
 		const document = new this.model(doc);
@@ -88,4 +85,4 @@ class EuaService {
 	}
 }
 
-export = new EuaService();
+export = new EuaService(UserAgreement);

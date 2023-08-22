@@ -1,13 +1,13 @@
 import passport from 'passport';
 
-import { auditService, config, dbs } from '../../../../dependencies';
+import { auditService, config } from '../../../../dependencies';
 import accessChecker from '../../access-checker/access-checker.service';
 import userEmailService from '../user-email.service';
-import { IUser, UserDocument, UserModel } from '../user.model';
-
-const User = dbs.admin.model('User') as UserModel;
+import { IUser, UserDocument, User, UserModel } from '../user.model';
 
 class UserAuthenticationService {
+	constructor(private userModel: UserModel) {}
+
 	/**
 	 * Initialize a new user
 	 * This method applies any common business logic that happens
@@ -36,7 +36,7 @@ class UserAuthenticationService {
 				userEmailService.welcomeWithAccessEmail(user, req);
 
 				// update the user's last login time
-				User.findByIdAndUpdate(
+				this.userModel.findByIdAndUpdate(
 					user._id,
 					{ lastLogin: Date.now() },
 					{ new: true, upsert: false },
@@ -153,9 +153,11 @@ class UserAuthenticationService {
 		const initializedUser = await this.initializeNewUser(newUser);
 
 		// Check for existing user with same username
-		const existingUser = await User.findOne({
-			username: initializedUser.username
-		}).exec();
+		const existingUser = await this.userModel
+			.findOne({
+				username: initializedUser.username
+			})
+			.exec();
 
 		// If existing user exists, update providerData with dn
 		if (existingUser) {
@@ -190,9 +192,11 @@ class UserAuthenticationService {
 	async verifyUser(dn: string, req, isProxy = false) {
 		const dnLower = dn.toLowerCase();
 
-		const localUser = await User.findOne({
-			'providerData.dnLower': dnLower
-		}).exec();
+		const localUser = await this.userModel
+			.findOne({
+				'providerData.dnLower': dnLower
+			})
+			.exec();
 
 		// Bypass AC check
 		if (localUser?.bypassAccessCheck) {
@@ -238,4 +242,4 @@ class UserAuthenticationService {
 	}
 }
 
-export = new UserAuthenticationService();
+export = new UserAuthenticationService(User);

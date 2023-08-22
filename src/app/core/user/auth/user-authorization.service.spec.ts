@@ -3,10 +3,8 @@ import should from 'should';
 import { createSandbox } from 'sinon';
 
 import userAuthorizationService from './user-authorization.service';
-import { config, dbs } from '../../../../dependencies';
-import { IUser, UserModel } from '../user.model';
-
-const User = dbs.admin.model('User') as UserModel;
+import { config } from '../../../../dependencies';
+import { IUser, User } from '../user.model';
 
 function userSpec(key) {
 	return {

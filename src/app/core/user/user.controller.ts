@@ -1,12 +1,9 @@
 import _ from 'lodash';
 
 import userAuthorizationService from './auth/user-authorization.service';
-import { UserModel } from './user.model';
 import userService from './user.service';
-import { auditService, config, dbs, utilService } from '../../../dependencies';
+import { auditService, config, utilService } from '../../../dependencies';
 import teamService from '../teams/teams.service';
-
-const User = dbs.admin.model('User') as UserModel;
 
 /**
  * Standard User Operations
@@ -43,7 +40,7 @@ export const updateCurrentUser = async (req, res) => {
 	}
 
 	// Get the full user (including the password)
-	const user = await User.findById(req.user._id).exec();
+	const user = await userService.read(req.user._id);
 	const originalUser = user.auditCopy();
 
 	// Copy over the new user properties

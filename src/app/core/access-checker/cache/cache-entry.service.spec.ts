@@ -1,10 +1,7 @@
 import should from 'should';
 
-import { CacheEntryModel } from './cache-entry.model';
+import { CacheEntry } from './cache-entry.model';
 import cacheEntryService from './cache-entry.service';
-import { dbs } from '../../../../dependencies';
-
-const CacheEntry = dbs.admin.model('CacheEntry') as CacheEntryModel;
 
 /**
  * Unit tests

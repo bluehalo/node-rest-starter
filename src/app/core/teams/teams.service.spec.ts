@@ -4,20 +4,16 @@ import should from 'should';
 import { assert, createSandbox } from 'sinon';
 
 import { TeamRoles } from './team-role.model';
-import { ITeam, TeamDocument, TeamModel } from './team.model';
+import { ITeam, Team, TeamDocument } from './team.model';
 import teamsService from './teams.service';
 import {
 	auditService,
 	config,
-	dbs,
 	emailService,
 	logger
 } from '../../../dependencies';
-import { IUser, UserDocument, UserModel } from '../user/user.model';
+import { IUser, User, UserDocument } from '../user/user.model';
 import userService from '../user/user.service';
-
-const User = dbs.admin.model('User') as UserModel;
-const Team = dbs.admin.model('Team') as TeamModel;
 
 /**
  * Helpers

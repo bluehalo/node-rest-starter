@@ -4,11 +4,9 @@ import should from 'should';
 import { createSandbox } from 'sinon';
 
 import accessChecker from './access-checker.service';
-import { CacheEntryModel, ICacheEntry } from './cache/cache-entry.model';
+import { CacheEntry, ICacheEntry } from './cache/cache-entry.model';
 import cacheEntryService from './cache/cache-entry.service';
-import { config, dbs } from '../../../dependencies';
-
-const CacheEntry = dbs.admin.model('CacheEntry') as CacheEntryModel;
+import { config } from '../../../dependencies';
 
 /**
  * Helpers

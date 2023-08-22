@@ -1,13 +1,10 @@
 import { assert, createSandbox, spy, stub } from 'sinon';
 
 import * as feedbackController from './feedback.controller';
-import { FeedbackModel } from './feedback.model';
+import { Feedback } from './feedback.model';
 import feedbackService from './feedback.service';
-import { auditService, dbs, logger } from '../../../dependencies';
-import { UserModel } from '../user/user.model';
-
-const Feedback = dbs.admin.model('Feedback') as FeedbackModel;
-const User = dbs.admin.model('User') as UserModel;
+import { auditService, logger } from '../../../dependencies';
+import { User } from '../user/user.model';
 
 describe('Feedback Controller2', () => {
 	let res;

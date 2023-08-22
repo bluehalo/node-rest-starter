@@ -1,17 +1,10 @@
 import mongoose from 'mongoose';
 import should from 'should';
 
-import { DismissedMessageModel } from './dismissed-message.model';
-import { MessageModel } from './message.model';
+import { DismissedMessage } from './dismissed-message.model';
+import { Message } from './message.model';
 import messagesService from './messages.service';
-import { dbs } from '../../../dependencies';
-import { UserModel } from '../user/user.model';
-
-const User = dbs.admin.model('User') as UserModel;
-const Message = dbs.admin.model('Message') as MessageModel;
-const DismissedMessage = dbs.admin.model(
-	'DismissedMessage'
-) as DismissedMessageModel;
+import { User } from '../user/user.model';
 
 /**
  * Helpers
