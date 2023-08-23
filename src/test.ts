@@ -3,7 +3,7 @@ import Mocha, { MochaOptions } from 'mocha';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
 
-import config from './config.js';
+import config from './config';
 import * as mongoose from './lib/mongoose';
 
 const args = yargs(hideBin(process.argv)).option({

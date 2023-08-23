@@ -1,7 +1,6 @@
-'use strict';
-
 import { HydratedDocument, model, Model, Schema, Types } from 'mongoose';
 
+import { config } from '../../../dependencies';
 import getterPlugin from '../../common/mongoose/getter.plugin';
 import {
 	paginatePlugin,
@@ -77,9 +76,16 @@ FeedbackSchema.plugin(textSearchPlugin);
  * Index declarations
  */
 
-// Created datetime index, expires after 180 days
+// created datetime index, expires after configured time (false to disable TTL)
+if (config.feedbackExpires === false) {
+	FeedbackSchema.index({ created: -1 });
+} else {
+	FeedbackSchema.index(
+		{ created: -1 },
+		{ expireAfterSeconds: config.feedbackExpires ?? 15552000 }
+	);
+}
 
-FeedbackSchema.index({ created: -1 }, { expireAfterSeconds: 15552000 });
 FeedbackSchema.index({ type: 1 });
 FeedbackSchema.index({ creator: 1 });
 FeedbackSchema.index({ url: 1 });

@@ -61,10 +61,17 @@ NotificationSchema.plugin(paginatePlugin);
 /**
  * Index declarations
  */
-NotificationSchema.index(
-	{ created: -1 },
-	{ expireAfterSeconds: config.notificationExpires }
-);
+
+// created datetime index, expires after configured time (false to disable TTL)
+if (config.notificationExpires === false) {
+	NotificationSchema.index({ created: -1 });
+} else {
+	NotificationSchema.index(
+		{ created: -1 },
+		{ expireAfterSeconds: config.notificationExpires ?? 15552000 }
+	);
+}
+
 NotificationSchema.index({ user: 1, created: -1 });
 
 /**
