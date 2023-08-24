@@ -130,17 +130,19 @@ export const connect = async () => {
 };
 
 //Disconnect from Mongoose
-export const disconnect = () => {
+export const disconnect = async () => {
 	// Create defers for mongoose connections
-	const promises = _.values(dbs).map((d) => {
-		if (isMongoose(d) && d.disconnect) {
-			return d.disconnect().catch(() => Promise.resolve());
-		}
-		return Promise.resolve();
-	});
+	const promises = Object.values(dbs)
+		.filter(isMongoose)
+		.map((d) => d.disconnect().catch(() => Promise.resolve()));
 
 	// Wait for all to finish, successful or not
-	return Promise.all(promises);
+	await Promise.all(promises);
+
+	// Remove connections
+	for (const key of Object.keys(dbs)) {
+		delete dbs[key];
+	}
 };
 
 async function initializeModel(name: string, model: Model<unknown>) {
