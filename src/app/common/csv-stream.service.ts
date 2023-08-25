@@ -1,7 +1,7 @@
 import { Transform } from 'stream';
 
 import stringify from 'csv-stringify';
-import jsonpath from 'JSONPath';
+import jsonpath from 'jsonpath';
 import _ from 'lodash';
 import pipe from 'multipipe';
 import through2 from 'through2';
@@ -35,25 +35,15 @@ class CsvStreamService {
 			columns.forEach((column) => {
 				if (_.has(column, 'key')) {
 					// Get the value from the object using jsonpath
-					let value = jsonpath.eval(chunk, `$.${column.key}`);
-
-					// Get the first returned value
-					if (value.length > 0) {
-						[value] = value;
-					} else {
-						value = null;
-					}
+					let value = jsonpath.value(chunk, `$.${column.key}`);
 
 					// Invoke any callback associated with the column
 					if (_.has(column, 'callback')) {
 						value = column.callback(value, chunk);
 					}
 
-					// Emit a blank column rather than null
-					if (null == value) {
-						value = '';
-					}
-					row.push(value);
+					// Emit a blank column rather than null/undefined
+					row.push(value ?? '');
 				}
 			});
 
