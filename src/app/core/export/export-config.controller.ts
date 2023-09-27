@@ -205,3 +205,33 @@ const exportStream = (
 		res.end();
 	});
 };
+
+/**
+ * export middleware
+ */
+const loadExportConfigById = async (req, res, id) => {
+	const exportConfig = await exportConfigService.read(id);
+
+	if (exportConfig == null) {
+		throw new Error(
+			'Export configuration not found. Document may have expired.'
+		);
+	}
+
+	req.exportConfig = exportConfig;
+
+	// Parse query from JSON string
+	req.exportQuery = exportConfig.config.q
+		? JSON.parse(exportConfig.config.q)
+		: {};
+
+	auditService.audit(
+		`${exportConfig.type} CSV config retrieved`,
+		'export',
+		'export',
+		req,
+		exportConfig.auditCopy()
+	);
+};
+export const exportConfigById = (req, res, next, id) =>
+	loadExportConfigById(req, res, id).then(next).catch(next);

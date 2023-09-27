@@ -282,51 +282,37 @@ export const getUserAgentFromHeader = function (header) {
 	return data;
 };
 
-function propToMongoose(prop, nonMongoFunction) {
-	if (
-		typeof prop === 'object' &&
-		prop.$date != null &&
-		typeof prop.$date === 'string'
-	) {
+const isMongooseDateValue = (obj: unknown): obj is { $date: string } => {
+	return typeof obj === 'object' && '$date' in obj;
+};
+
+const isMongooseObjValue = (obj: unknown): obj is { $obj: string } => {
+	return typeof obj === 'object' && '$obj' in obj;
+};
+
+function propToMongoose(
+	prop: unknown,
+	nonMongoFunction: (prop: unknown) => unknown
+) {
+	if (isMongooseDateValue(prop)) {
 		return new Date(prop.$date);
-	} else if (
-		typeof prop === 'object' &&
-		prop.$obj != null &&
-		typeof prop.$obj === 'string'
-	) {
+	}
+	if (isMongooseObjValue(prop)) {
 		return new Types.ObjectId(prop.$obj);
 	}
-
-	if (null != nonMongoFunction) {
-		return nonMongoFunction(prop);
-	}
-
-	return null;
+	return nonMongoFunction(prop);
 }
 
-export const toMongoose = (obj) => {
-	if (null != obj) {
-		if (typeof obj === 'object') {
-			if (Array.isArray(obj)) {
-				const arr = [];
-
-				for (const index in obj) {
-					arr.push(propToMongoose(obj[index], toMongoose));
-				}
-
-				return arr;
-			} else {
-				const newObj = {};
-
-				for (const prop in obj) {
-					newObj[prop] = propToMongoose(obj[prop], toMongoose);
-				}
-
-				return newObj;
-			}
+export const toMongoose = (obj: unknown) => {
+	if (obj && typeof obj === 'object') {
+		if (Array.isArray(obj)) {
+			return obj.map((value) => propToMongoose(value, toMongoose));
 		}
+		return Object.keys(obj).reduce((newObj, key) => {
+			newObj[key] = propToMongoose(obj[key], toMongoose);
+			return newObj;
+		}, {});
 	}
-
 	return obj;
 };
 

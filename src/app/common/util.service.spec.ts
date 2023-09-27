@@ -23,7 +23,7 @@ describe('Utils:', () => {
 				date: { $date: '2015-07-01T00:00:00.000Z' }
 			};
 
-			const output = utilService.toMongoose(input);
+			const output = utilService.toMongoose(input) as any;
 			(typeof output.hello).should.equal('object');
 			output.hello.there.should.equal('you are');
 			Array.isArray(output.hello.when).should.equal(true);
@@ -44,7 +44,7 @@ describe('Utils:', () => {
 				obj: { $obj: '000000000000000000000001' }
 			};
 
-			const output = utilService.toMongoose(input);
+			const output = utilService.toMongoose(input) as any;
 			(typeof output.hello).should.equal('object');
 			output.hello.there.should.equal('you are');
 			Array.isArray(output.hello.when).should.equal(true);

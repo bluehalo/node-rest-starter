@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import * as userAdminController from './user-admin.controller';
 import { config } from '../../../../dependencies';
+import { exportConfigById } from '../../export/export-config.controller';
 import { hasAdminAccess } from '../user-auth.middleware';
 import * as users from '../user.controller';
 
@@ -50,5 +51,7 @@ if (config.auth.strategy === 'local') {
 
 // Finish by binding the user middleware
 router.param('userId', users.userById);
+
+router.param('exportId', exportConfigById);
 
 export = router;
