@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { FilterQuery } from 'mongoose';
 
 import {
 	auditService,
@@ -6,12 +7,13 @@ import {
 	logger,
 	utilService
 } from '../../../../dependencies';
+import { Callbacks } from '../../export/callbacks';
 import * as exportConfigController from '../../export/export-config.controller';
-import exportConfigService from '../../export/export-config.service';
+import { IExportConfig } from '../../export/export-config.model';
 import userAuthService from '../auth/user-authentication.service';
 import userAuthorizationService from '../auth/user-authorization.service';
 import userEmailService from '../user-email.service';
-import { User, UserDocument } from '../user.model';
+import { Roles, User, UserDocument } from '../user.model';
 import userService from '../user.service';
 
 /**
@@ -138,74 +140,61 @@ export const adminSearchUsers = async (req, res) => {
 };
 
 // GET the requested CSV using a special configuration from the export config collection
-export const adminGetCSV = async (req, res) => {
-	const exportId = req.params.exportId;
+export const adminGetCSV = (req, res) => {
+	const exportConfig = req.exportConfig as IExportConfig;
+	const exportQuery = req.exportQuery as FilterQuery<UserDocument>;
 
-	const result = await exportConfigService.read(exportId);
+	const fileName = `${config.app.instanceName}-${exportConfig.type}.csv`;
 
-	if (null == result) {
-		return Promise.reject({
-			status: 404,
-			type: 'bad-argument',
-			message: 'Export configuration not found. Document may have expired.'
-		});
+	// Replace `roles` column with individual columns for each role
+	const columns = exportConfig.config.cols.filter(
+		(col) => ['roles'].indexOf(col.key) === -1
+	);
+	if (columns.length !== exportConfig.config.cols.length) {
+		for (const role of Roles) {
+			columns.push({
+				key: `roles.${role}`,
+				title: `${role} Role`,
+				callback: Callbacks.trueFalse
+			});
+		}
 	}
 
-	auditService.audit(
-		`${result.type} CSV config retrieved`,
-		'export',
-		'export',
-		req,
-		result.auditCopy()
-	);
-
-	const columns = result.config.cols;
 	const populate = [];
 
 	// Based on which columns are requested, handle property-specific behavior (ex. callbacks for the
 	// CSV service to make booleans and dates more human-readable)
 	columns.forEach((col) => {
+		col.title = col.title ?? _.capitalize(col.key);
+
 		switch (col.key) {
-			case 'roles.user':
-			case 'roles.editor':
-			case 'roles.auditor':
-			case 'roles.admin':
 			case 'bypassAccessCheck':
-				col.callback = (value) => {
-					return value ? 'true' : '';
-				};
+				col.callback = Callbacks.trueFalse;
 				break;
 			case 'lastLogin':
 			case 'created':
 			case 'updated':
 			case 'acceptedEua':
-				col.callback = (value: unknown) => {
-					return _.isDate(value) ? value.toISOString() : '';
-				};
+				col.callback = Callbacks.isoDateString;
 				break;
 			case 'teams':
-				populate.push({ path: 'teams._id', select: 'name' });
-				col.callback = (value: unknown) => {
-					return (value as Array<{ _id: { name: string } }>)
-						.map((team) => team._id.name)
-						.join(', ');
-				};
+				populate.push({ path: 'teams.team', select: 'name' });
+				col.callback = Callbacks.mapAndJoinArray(
+					(team: { team: { name: string } }) => team.team.name
+				);
 				break;
 		}
 	});
 
-	const query = result.config.q ? JSON.parse(result.config.q) : null;
-	const search = result.config.s;
-	const fileName = `${config.app.instanceName}-${result.type}.csv`;
-
-	const userCursor = userService.cursorSearch(
-		result.config,
-		search,
-		query,
+	const cursor = userService.cursorSearch(
+		exportConfig.config,
+		exportConfig.config.s,
+		exportQuery,
+		[],
 		populate
 	);
 
-	exportConfigController.exportCSV(req, res, fileName, columns, userCursor);
+	exportConfigController.exportCSV(req, res, fileName, columns, cursor);
 };
 
 // Admin creates a user

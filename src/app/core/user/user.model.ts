@@ -46,8 +46,14 @@ const passwordMessage = 'Password must be at least 6 characters long';
 /**
  * User Roles
  */
-const roles = config?.auth?.roles ?? ['user', 'editor', 'auditor', 'admin'];
-const roleObject = roles.reduce(
+export const Roles = (config?.auth?.roles as string[]) ?? [
+	'user',
+	'editor',
+	'auditor',
+	'admin'
+];
+
+const roleObject = Roles.reduce(
 	(obj, role) => {
 		obj[role] = {
 			type: Boolean,

@@ -3,6 +3,7 @@ import { Validator } from 'express-json-validator-middleware';
 
 import * as feedback from './feedback.controller';
 import { createFeedbackSchema } from './feedback.schemas';
+import { exportConfigById } from '../export/export-config.controller';
 import { hasAdminAccess, hasLogin } from '../user/user-auth.middleware';
 
 const { validate } = new Validator({});
@@ -159,5 +160,7 @@ router
 	.get(hasAdminAccess, feedback.adminGetFeedbackCSV);
 
 router.param('feedbackId', feedback.feedbackById);
+
+router.param('exportId', exportConfigById);
 
 export = router;
