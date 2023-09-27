@@ -1,7 +1,11 @@
 import _ from 'lodash';
+import { FilterQuery } from 'mongoose';
 
-import { Audit } from './audit.model';
-import { utilService as util } from '../../../dependencies';
+import { Audit, AuditDocument } from './audit.model';
+import { config, utilService as util } from '../../../dependencies';
+import { Callbacks } from '../export/callbacks';
+import * as exportConfigController from '../export/export-config.controller';
+import { IExportConfig } from '../export/export-config.model';
 
 /**
  * Retrieves the distinct values for a field in the Audit collection
@@ -42,4 +46,37 @@ export const search = async function (req, res) {
 
 	// Serialize the response
 	res.status(200).json(result);
+};
+
+export const getCSV = (req, res) => {
+	const exportConfig = req.exportConfig as IExportConfig;
+	const exportQuery = util.toMongoose(
+		req.exportQuery
+	) as FilterQuery<AuditDocument>;
+
+	const fileName = `${config.app.instanceName}-${exportConfig.type}.csv`;
+
+	const columns = exportConfig.config.cols;
+
+	columns.forEach((col) => {
+		col.title = col.title ?? _.capitalize(col.key);
+
+		switch (col.key) {
+			case 'created':
+				col.callback = Callbacks.formatDate(`yyyy-LL-dd HH:mm:ss`);
+				break;
+			case 'audit.actor':
+				col.callback = Callbacks.getValueProperty('name');
+				break;
+		}
+	});
+
+	const sort = util.getSortObj(exportConfig.config, 'DESC', '_id');
+
+	const cursor = Audit.find(exportQuery)
+		.containsSearch(exportConfig.config.s)
+		.sort(sort)
+		.cursor();
+
+	exportConfigController.exportCSV(req, res, fileName, columns, cursor);
 };
