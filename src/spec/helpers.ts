@@ -1,3 +1,5 @@
+import { spy, stub } from 'sinon';
+
 /**
  * this takes an object, converts stringifies it and then parses it back out.
  * this is useful when fields are Date objects and need to be compared to a
@@ -20,4 +22,15 @@ export const parsedJSON = (json) => {
 export const isISOString = (val) => {
 	const d = new Date(val);
 	return !Number.isNaN(d.valueOf()) && d.toISOString() === val;
+};
+
+export const getResponseSpy = () => {
+	const res = {
+		json: spy(),
+		end: spy(),
+		redirect: spy(),
+		status: stub()
+	};
+	res.status.returns(res);
+	return res;
 };

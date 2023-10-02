@@ -23,13 +23,13 @@ describe('Utils:', () => {
 				date: { $date: '2015-07-01T00:00:00.000Z' }
 			};
 
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const output = utilService.toMongoose(input) as any;
-			(typeof output.hello).should.equal('object');
+			output.hello.should.be.a.Object();
 			output.hello.there.should.equal('you are');
-			Array.isArray(output.hello.when).should.equal(true);
+			output.hello.when.should.be.a.Array();
 			output.hello.when.length.should.equal(3);
-			(typeof output.hello.when[0]).should.equal('object');
-			(output.hello.when[0].length == null).should.equal(true);
+			output.hello.when[0].should.be.a.Object();
 			output.hello.when[1].something.should.equal(0);
 			output.hello.when[2].getTime().should.equal(1420070400000);
 			output.date.getTime().should.equal(1435708800000);
@@ -44,13 +44,13 @@ describe('Utils:', () => {
 				obj: { $obj: '000000000000000000000001' }
 			};
 
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const output = utilService.toMongoose(input) as any;
-			(typeof output.hello).should.equal('object');
+			output.hello.should.be.a.Object();
 			output.hello.there.should.equal('you are');
-			Array.isArray(output.hello.when).should.equal(true);
+			output.hello.when.should.be.a.Array();
 			output.hello.when.length.should.equal(3);
-			(typeof output.hello.when[0]).should.equal('object');
-			(output.hello.when[0].length == null).should.equal(true);
+			output.hello.when[0].should.be.a.Object();
 			output.hello.when[1].something.should.equal(0);
 			output.hello.when[2]._bsontype.should.equal('ObjectID');
 			output.hello.when[2]
