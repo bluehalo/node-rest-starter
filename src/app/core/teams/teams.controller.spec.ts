@@ -1,11 +1,12 @@
 import { Request } from 'express';
 import should from 'should';
-import { assert, createSandbox, match, spy, stub } from 'sinon';
+import { assert, createSandbox, match, stub } from 'sinon';
 
 import { Team, TeamDocument } from './team.model';
 import * as teamsController from './teams.controller';
 import teamsService from './teams.service';
 import { auditService, logger } from '../../../dependencies';
+import { getResponseSpy } from '../../../spec/helpers';
 import { User, UserDocument } from '../user/user.model';
 import userService from '../user/user.service';
 
@@ -18,12 +19,7 @@ describe('Teams Controller:', () => {
 
 	beforeEach(() => {
 		sandbox = createSandbox();
-		res = {
-			json: spy(),
-			end: spy(),
-			status: stub()
-		};
-		res.status.returns(res);
+		res = getResponseSpy();
 	});
 
 	afterEach(() => {

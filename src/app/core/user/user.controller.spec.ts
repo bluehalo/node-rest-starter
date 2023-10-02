@@ -1,11 +1,12 @@
 import should from 'should';
-import { assert, createSandbox, spy, stub } from 'sinon';
+import { assert, createSandbox } from 'sinon';
 
 import userAuthorizationService from './auth/user-authorization.service';
 import * as userController from './user.controller';
 import { User } from './user.model';
 import userService from './user.service';
 import { auditService, config, logger } from '../../../dependencies';
+import { getResponseSpy } from '../../../spec/helpers';
 
 /**
  * Unit tests
@@ -17,11 +18,7 @@ describe('User Profile Controller:', () => {
 	beforeEach(() => {
 		sandbox = createSandbox();
 		sandbox.stub(logger, 'error').returns();
-		res = {
-			json: spy(),
-			status: stub()
-		};
-		res.status.returns(res);
+		res = getResponseSpy();
 	});
 
 	afterEach(() => {

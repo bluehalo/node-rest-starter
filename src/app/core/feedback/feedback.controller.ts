@@ -3,11 +3,7 @@ import { FilterQuery } from 'mongoose';
 
 import { FeedbackDocument } from './feedback.model';
 import feedbackService from './feedback.service';
-import {
-	auditService,
-	config,
-	utilService as util
-} from '../../../dependencies';
+import { auditService, config } from '../../../dependencies';
 import { Callbacks } from '../export/callbacks';
 import * as exportConfigController from '../export/export-config.controller';
 import { IExportConfig } from '../export/export-config.model';

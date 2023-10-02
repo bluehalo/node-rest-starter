@@ -1,7 +1,8 @@
-import { assert, createSandbox, spy, stub } from 'sinon';
+import { assert, createSandbox } from 'sinon';
 
 import * as userAdminController from './user-admin.controller';
 import { auditService, config } from '../../../../dependencies';
+import { getResponseSpy } from '../../../../spec/helpers';
 import userEmailService from '../user-email.service';
 import { User } from '../user.model';
 import userService from '../user.service';
@@ -29,11 +30,7 @@ describe('User Admin Controller:', () => {
 
 	beforeEach(() => {
 		sandbox = createSandbox();
-		res = {
-			json: spy(),
-			status: stub()
-		};
-		res.status.returns(res);
+		res = getResponseSpy();
 	});
 
 	afterEach(() => {

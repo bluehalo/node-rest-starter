@@ -1,11 +1,12 @@
 import { Request } from 'express';
 import should from 'should';
-import { assert, createSandbox, match, spy, stub } from 'sinon';
+import { assert, createSandbox, match, stub } from 'sinon';
 
 import * as euaController from './eua.controller';
 import { UserAgreement, UserAgreementDocument } from './eua.model';
 import euaService from './eua.service';
 import { auditService, logger } from '../../../../dependencies';
+import { getResponseSpy } from '../../../../spec/helpers';
 import { User } from '../user.model';
 
 /**
@@ -17,11 +18,7 @@ describe('EUA Controller:', () => {
 
 	beforeEach(() => {
 		sandbox = createSandbox();
-		res = {
-			json: spy(),
-			status: stub()
-		};
-		res.status.returns(res);
+		res = getResponseSpy();
 	});
 
 	afterEach(() => {
