@@ -9,6 +9,7 @@ import express, { Express, Request, Response } from 'express';
 // Patches express to support async/await.  Should be called immediately after express.
 // Must still use require vs. import
 require('express-async-errors');
+import actuator from 'express-actuator';
 import session from 'express-session';
 import helmet from 'helmet';
 import _ from 'lodash';
@@ -205,11 +206,21 @@ function initErrorRoutes(app: Express) {
 	});
 }
 
+function initActuator(app: Express) {
+	if (!config.actuator.enabled) {
+		return;
+	}
+	logger.info('Configuring actuator endpoints');
+	app.use(actuator(config.actuator.options));
+}
+
 function initSwaggerAPI(app: Express) {
 	if (!config.apiDocs || config.apiDocs.enabled !== true) {
 		// apiDocs must be enabled explicitly in the config
 		return;
 	}
+
+	logger.info('Configuring api docs');
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const swaggerOptions: any = {
@@ -314,6 +325,9 @@ export const init = async (db: Mongoose): Promise<Express> => {
 
 	// Initialize Swagger API
 	initSwaggerAPI(app);
+
+	// Initialize Actuator routes
+	initActuator(app);
 
 	// Initialize error routes
 	initErrorRoutes(app);

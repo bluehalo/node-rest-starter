@@ -416,6 +416,13 @@ module.exports = {
 		path: '/api-docs'
 	},
 
+	actuator: {
+		enabled: true,
+		options: {
+			basePath: '/actuator'
+		}
+	},
+
 	// The port to use for the application (defaults to the environment variable if present)
 	port: process.env.PORT || 3001,
 
