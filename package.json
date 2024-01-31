@@ -61,6 +61,7 @@
     "cors": "^2.8.5",
     "csv-stringify": "4.0",
     "express": "4.17",
+    "express-actuator": "^1.8.4",
     "express-async-errors": "^3.1.1",
     "express-json-validator-middleware": "^2.2.1",
     "express-session": "1.15",
