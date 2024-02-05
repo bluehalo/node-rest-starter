@@ -1,5 +1,6 @@
 import path from 'path';
 
+import { globSync } from 'glob';
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerParser from 'swagger-parser';
 
@@ -27,9 +28,15 @@ describe('Init Swagger API:', () => {
 				components: {}
 			},
 			apis: [
-				...config.files.docs.map((doc) => path.posix.resolve(doc)),
-				...config.files.routes.map((route) => path.posix.resolve(route)),
-				...config.files.models.map((model) => path.posix.resolve(model))
+				...globSync(config.assets.docs).map((doc: string) =>
+					path.posix.resolve(doc)
+				),
+				...globSync(config.assets.routes).map((route: string) =>
+					path.posix.resolve(route)
+				),
+				...globSync(config.assets.models).map((model: string) =>
+					path.posix.resolve(model)
+				)
 			]
 		};
 

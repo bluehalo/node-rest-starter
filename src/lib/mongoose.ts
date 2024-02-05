@@ -1,5 +1,6 @@
 import path from 'path';
 
+import { glob } from 'glob';
 import _ from 'lodash';
 import mongoose, {
 	Connection,
@@ -19,8 +20,9 @@ type MongooseDbSpec = {
 
 // Load the mongoose models
 export const loadModels = async () => {
+	const modelPaths = await glob(config.assets.models);
 	// Globbing model files
-	for (const modelPath of config.files.models) {
+	for (const modelPath of modelPaths) {
 		logger.debug(`Mongoose: Loading ${modelPath}`);
 		// eslint-disable-next-line no-await-in-loop
 		await import(path.posix.resolve(modelPath));

@@ -4,6 +4,7 @@ import path from 'path';
 import connect_mongo from 'connect-mongo';
 import cookieParser from 'cookie-parser';
 import expressSession from 'express-session';
+import { glob } from 'glob';
 import { Mongoose } from 'mongoose';
 import passport from 'passport';
 import { Server, Socket } from 'socket.io';
@@ -51,8 +52,9 @@ class SocketIo {
 	 * Do not instantiate the modules.
 	 */
 	async initModulesServerSockets() {
+		const socketPaths = await glob(config.assets.sockets);
 		// Globbing socket files
-		for (const socketPath of config.files.sockets) {
+		for (const socketPath of socketPaths) {
 			// eslint-disable-next-line no-await-in-loop
 			await import(path.posix.resolve(socketPath));
 		}

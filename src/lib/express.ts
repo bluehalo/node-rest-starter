@@ -11,6 +11,7 @@ import express, { Express, Request, Response } from 'express';
 require('express-async-errors');
 import actuator from 'express-actuator';
 import session from 'express-session';
+import { glob, globSync } from 'glob';
 import helmet from 'helmet';
 import _ from 'lodash';
 import methodOverride from 'method-override';
@@ -139,8 +140,10 @@ async function initPassport(app: Express) {
  * Invoke modules server configuration
  */
 async function initModulesConfiguration(app: Express, db: Mongoose) {
+	const configPaths = (await glob(config.assets.config)) ?? [];
+
 	const moduleConfigs = await Promise.all(
-		config.files.configs.map(
+		configPaths.map(
 			(configPath: string) => import(path.posix.resolve(configPath))
 		)
 	);
@@ -174,10 +177,9 @@ async function initModulesServerRoutes(app: Express) {
 	// Init the global route prefix
 	const router = express.Router();
 
+	const routePaths = await glob(config.assets.routes);
 	const routes = await Promise.all(
-		config.files.routes.map(
-			(routePath: string) => import(path.posix.resolve(routePath))
-		)
+		routePaths.map((routePath: string) => import(path.posix.resolve(routePath)))
 	);
 	routes.forEach((route) => {
 		router.use(route.default);
@@ -241,9 +243,15 @@ function initSwaggerAPI(app: Express) {
 			components: {}
 		},
 		apis: [
-			...config.files.docs.map((doc: string) => path.posix.resolve(doc)),
-			...config.files.routes.map((route: string) => path.posix.resolve(route)),
-			...config.files.models.map((model: string) => path.posix.resolve(model))
+			...globSync(config.assets.docs).map((doc: string) =>
+				path.posix.resolve(doc)
+			),
+			...globSync(config.assets.routes).map((route: string) =>
+				path.posix.resolve(route)
+			),
+			...globSync(config.assets.models).map((model: string) =>
+				path.posix.resolve(model)
+			)
 		]
 	};
 

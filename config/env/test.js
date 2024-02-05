@@ -6,7 +6,7 @@ module.exports = {
 
 	// Use a test db so we don't modify the real DB
 	db: {
-		admin: 'mongodb://localhost/node-rest-starter-test'
+		admin: 'mongodb://127.0.0.1/node-rest-starter-test'
 	},
 
 	// Run tests on something other than default port

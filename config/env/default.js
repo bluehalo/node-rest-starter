@@ -9,6 +9,16 @@ module.exports = {
 	/**
 	 * Core System Settings
 	 */
+	assets: {
+		models: ['src/**/*.model!(.spec).{js,ts}'],
+		routes: ['src/**/*.routes!(.spec).{js,ts}'],
+		sockets: ['src/**/*.socket!(.spec).{js,ts}'],
+		config: ['src/**/*.config!(.spec).js'],
+		docs: ['src/**/*/*.components.yml'],
+		// Test specific source files
+		tests: ['src/**/*.spec.{js,ts}'],
+		e2e: ['e2e/**/*.spec.{js, ts}']
+	},
 
 	/**
 	 * When using the 'proxy-pki' authentication strategy,

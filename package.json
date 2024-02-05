@@ -65,7 +65,7 @@
     "express-async-errors": "^3.1.1",
     "express-json-validator-middleware": "^2.2.1",
     "express-session": "1.15",
-    "glob": "7.1",
+    "glob": "10.3.10",
     "handlebars": "^4.7.7",
     "helmet": "3.21.1",
     "jsonpath": "^1.1.1",
