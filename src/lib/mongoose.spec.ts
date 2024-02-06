@@ -1,12 +1,12 @@
+import config from 'config';
 import { intersection } from 'lodash';
 import { Connection, Mongoose } from 'mongoose';
 import { createSandbox } from 'sinon';
 
 import * as mongooseLib from './mongoose';
-import config from '../config.js';
 
 describe('Mongoose', () => {
-	const mongoHost = config?.test?.mongoHost ?? '127.0.0.1';
+	const mongoHost = config.get('test.mongoHost');
 	const adminDatabaseName = 'mean-test-mongoose-admin';
 	const otherDatabaseName = 'mean-test-mongoose-other';
 

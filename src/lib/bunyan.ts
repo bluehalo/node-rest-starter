@@ -1,38 +1,50 @@
 import bunyan from 'bunyan';
-
-import config from '../config';
+import config from 'config';
 
 /**
  * Initialize the log configuration object
  * This method will create the default console logger
  * if it is missing from the config
  *
- * @param c The logger config block
+ * @param logConfig The logger config block
  * @returns {*|{}}
  */
-function initializeConfig(c) {
+function initializeConfig(logConfig) {
 	// Initialize the log config to empty if it doesn't exist
-	c = c ?? {};
+	const c: Record<
+		string,
+		Array<Record<string, unknown>>
+	> = config.util.extendDeep(
+		{
+			// default application log config (defaults to console warn)
+			application: [
+				{
+					stream: process.stdout,
+					level: 'warn'
+				}
+			],
+			// default audit log config (should always be info)
+			audit: [
+				{
+					stream: process.stdout,
+					level: 'info'
+				}
+			]
+		},
+		config.util.toObject(logConfig)
+	);
 
-	// Initialize the app log config (defaults to console warn)
-	if (null == c.application) {
-		c.application = [
-			{
-				stream: process.stdout,
-				level: 'warn'
+	// Replace string references to stdout/stderr with the real thing
+	Object.values(c).forEach((streamConfigs) => {
+		streamConfigs.forEach((streamConfig) => {
+			if (streamConfig.stream === 'process.stdout') {
+				streamConfig.stream = process.stdout;
 			}
-		];
-	}
-
-	// Initialize the audit log config (should always be info)
-	if (null == c.audit) {
-		c.audit = [
-			{
-				stream: process.stdout,
-				level: 'info'
+			if (streamConfig.stream === 'process.stderr') {
+				streamConfig.stream = process.stderr;
 			}
-		];
-	}
+		});
+	});
 
 	return c;
 }
@@ -54,7 +66,7 @@ function reqSerializer(req) {
 }
 
 // Initialize the Config Object
-const loggerConfig = initializeConfig(config.logger);
+const loggerConfig = initializeConfig(config.get('logger'));
 
 const appLogger = bunyan.createLogger({
 	name: 'application',

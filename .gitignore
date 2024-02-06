@@ -6,9 +6,9 @@
 /public
 
 # Config Files
-/config/env/development.js
-/config/env/dev-sender.js
-/config/env/development-*.js
+/config/development.js
+/config/dev-sender.js
+/config/development-*.js
 
 # Packages
 *.tar.gz

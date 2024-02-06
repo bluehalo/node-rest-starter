@@ -14,7 +14,6 @@ export const getSystemConfig = () => {
 
 		contactEmail: config.app.contactEmail,
 
-		maxExport: config.maxExport,
 		feedback: config.feedback,
 		teams: config.teams,
 

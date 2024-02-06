@@ -1,5 +1,6 @@
 import path from 'path';
 
+import config from 'config';
 import { glob } from 'glob';
 import _ from 'lodash';
 import mongoose, {
@@ -10,7 +11,11 @@ import mongoose, {
 } from 'mongoose';
 
 import { logger } from './bunyan';
-import config from '../config';
+
+type MongooseDbConfig = Record<
+	string,
+	string | { uri: string; options: Record<string, unknown> }
+>;
 
 type MongooseDbSpec = {
 	name: string;
@@ -20,7 +25,7 @@ type MongooseDbSpec = {
 
 // Load the mongoose models
 export const loadModels = async () => {
-	const modelPaths = await glob(config.assets.models);
+	const modelPaths = await glob(config.get<string[]>('assets.models'));
 	// Globbing model files
 	for (const modelPath of modelPaths) {
 		logger.debug(`Mongoose: Loading ${modelPath}`);
@@ -36,13 +41,7 @@ export const loadModels = async () => {
  * @param dbSpecName - key for the database connection within all the configs that will be returned
  * @param dbConfigs - object that contains either a basic connection string or an object with a 'uri' and 'options' attributes
  */
-function getDbSpec(
-	dbSpecName: string,
-	dbConfigs: Record<
-		string,
-		string | { uri: string; options: Record<string, unknown> }
-	>
-) {
+function getDbSpec(dbSpecName: string, dbConfigs: MongooseDbConfig) {
 	const dbConfig = dbConfigs[dbSpecName];
 
 	if (_.isString(dbConfig)) {
@@ -65,7 +64,7 @@ export const dbs: Record<string, Connection | Mongoose> = {};
 // Initialize Mongoose, returns a promise
 export const connect = async () => {
 	// Set the mongoose debugging option based on the configuration, defaulting to false
-	const mongooseDebug = config.mongooseLogging ?? false;
+	const mongooseDebug = config.get('mongooseLogging');
 
 	logger.info(`Mongoose: Setting debug to ${mongooseDebug}`);
 	mongoose.set('debug', mongooseDebug);
@@ -73,12 +72,14 @@ export const connect = async () => {
 	const dbSpecs: Array<MongooseDbSpec> = [];
 	let defaultDbSpec: MongooseDbSpec;
 
+	const dbConfig = config.get<MongooseDbConfig>('db');
+
 	// Organize the dbs we need to connect
-	for (const dbSpec in config.db) {
+	for (const dbSpec in dbConfig) {
 		if (dbSpec === 'admin') {
-			defaultDbSpec = getDbSpec(dbSpec, config.db);
+			defaultDbSpec = getDbSpec(dbSpec, dbConfig);
 		} else {
-			dbSpecs.push(getDbSpec(dbSpec, config.db));
+			dbSpecs.push(getDbSpec(dbSpec, dbConfig));
 		}
 	}
 
@@ -156,7 +157,7 @@ async function initializeModel(name: string, model: Model<unknown>) {
 			`Mongoose: Error creating index for ${name}: ${err.codeName} - ${err.message}`
 		);
 		if (
-			config.mongooseFailOnIndexOptionsConflict ||
+			config.get<boolean>('mongooseFailOnIndexOptionsConflict') ||
 			err.codeName !== 'IndexOptionsConflict'
 		) {
 			throw err;

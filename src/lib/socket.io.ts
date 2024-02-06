@@ -1,6 +1,7 @@
 import http from 'http';
 import path from 'path';
 
+import config from 'config';
 import connect_mongo from 'connect-mongo';
 import cookieParser from 'cookie-parser';
 import expressSession from 'express-session';
@@ -14,7 +15,6 @@ import {
 	BaseSocket,
 	BaseSocketSubclass
 } from '../app/common/sockets/base-socket.provider';
-import config from '../config';
 
 const MongoStore = connect_mongo(expressSession);
 
@@ -52,7 +52,7 @@ class SocketIo {
 	 * Do not instantiate the modules.
 	 */
 	async initModulesServerSockets() {
-		const socketPaths = await glob(config.assets.sockets);
+		const socketPaths = await glob(config.get<string[]>('assets.sockets'));
 		// Globbing socket files
 		for (const socketPath of socketPaths) {
 			// eslint-disable-next-line no-await-in-loop
@@ -62,7 +62,7 @@ class SocketIo {
 
 	async loadSocketProvider() {
 		this.SocketProvider = (
-			await import(path.posix.resolve(config.socketProvider))
+			await import(path.posix.resolve(config.get('socketProvider')))
 		).default;
 	}
 
@@ -82,17 +82,17 @@ class SocketIo {
 			allowEIO3: true // @FIXME: Set to true for client compatibility. Fix when UI is updated.
 		});
 
-		io.use(expressToIO(cookieParser(config.auth.sessionSecret)));
+		io.use(expressToIO(cookieParser(config.get('auth.sessionSecret'))));
 		io.use(
 			expressToIO(
 				expressSession({
 					saveUninitialized: true,
 					resave: true,
-					secret: config.auth.sessionSecret,
-					cookie: config.auth.sessionCookie,
+					secret: config.get('auth.sessionSecret'),
+					cookie: config.get('auth.sessionCookie'),
 					store: new MongoStore({
 						mongooseConnection: db.connection,
-						collection: config.auth.sessionCollection
+						collection: config.get('auth.sessionCollection')
 					})
 				})
 			)

@@ -49,7 +49,8 @@ class ProxyPkiStrategy extends TrustedHeadersStrategy {
 				// in by updating their lastLogin time.
 				if (
 					!secondaryUser.lastLogin ||
-					secondaryUser.lastLogin.getTime() + config.auth.sessionCookie.maxAge <
+					secondaryUser.lastLogin.getTime() +
+						config.get<number>('auth.sessionCookie.maxAge') <
 						Date.now()
 				) {
 					await userService.updateLastLogin(secondaryUser);
@@ -79,7 +80,7 @@ class ProxyPkiStrategy extends TrustedHeadersStrategy {
 				if (
 					!secondaryUser.lastLogin ||
 					secondaryUser.lastLogin.getTime() +
-						(config.auth?.sessionCookie?.maxAge ?? 0) <
+						config.get<number>('auth.sessionCookie.maxAge') <
 						Date.now()
 				) {
 					await userService.updateLastLogin(secondaryUser);

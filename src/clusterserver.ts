@@ -1,8 +1,8 @@
 'use strict';
 
+import config from 'config';
 import sticky from 'socketio-sticky-session';
 
-import config from './config';
 import { logger } from './lib/bunyan';
 import startupFn from './startup';
 
@@ -14,7 +14,7 @@ const defaultOptions = {
 };
 
 const options = config.clusterConfig || defaultOptions;
-logger.info(`Cluster confg: ${JSON.stringify(options)}`);
+logger.info(`Cluster config: ${JSON.stringify(options)}`);
 
 startupFn()
 	.then((app) => {

@@ -1,10 +1,10 @@
 import path from 'path';
 
 import { Agenda, Job } from 'agenda';
+import config from 'config';
 
 import { logger } from './bunyan';
 import { JobService } from '../app/common/agenda/job-service';
-import config from '../config';
 
 type JobConfig = {
 	name: string;
@@ -15,11 +15,10 @@ type JobConfig = {
 };
 
 const registerJobs = (agenda: Agenda) => {
-	logger.info(`Registering ${config.agenda.jobs.length} job(s)...`);
+	const jobs = config.get<JobConfig[]>('agenda.jobs');
+	logger.info(`Registering ${jobs.length} job(s)...`);
 	return Promise.all(
-		config.agenda.jobs.map((jobConfig: JobConfig) =>
-			registerJob(agenda, jobConfig)
-		)
+		jobs.map((jobConfig: JobConfig) => registerJob(agenda, jobConfig))
 	);
 };
 
@@ -44,9 +43,9 @@ const registerJob = async (agenda: Agenda, jobConfig: JobConfig) => {
 };
 
 const scheduleJobs = (agenda: Agenda) => {
-	const jobsToSchedule: JobConfig[] = config.agenda.jobs.filter(
-		(job: JobConfig) => job.interval
-	);
+	const jobsToSchedule: JobConfig[] = config
+		.get<JobConfig[]>('agenda.jobs')
+		.filter((job: JobConfig) => job.interval);
 
 	logger.info(`Scheduling ${jobsToSchedule.length} job(s)...`);
 
@@ -64,14 +63,14 @@ const scheduleJobs = (agenda: Agenda) => {
 };
 
 export const init = async () => {
-	if (config.agenda?.enabled !== true) {
+	if (config.get('agenda.enabled') !== true) {
 		// agenda must be enabled explicitly in the config
 		return;
 	}
 
 	logger.info('Initializing Agenda.js...');
 	const agenda = new Agenda({
-		db: { address: config.db.admin }
+		db: { address: config.get<string>('db.admin') }
 	});
 
 	await registerJobs(agenda);

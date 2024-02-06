@@ -1,6 +1,6 @@
 // Need to ensure that config is loaded before other services below.
 /* eslint-disable-next-line */
-import config from './config';
+import config from 'config';
 
 import csvStream from './app/common/csv-stream.service';
 import delayedStream from './app/common/delayed-stream.service';

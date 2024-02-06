@@ -1,6 +1,7 @@
 import path from 'path';
 
 import compress from 'compression';
+import config from 'config';
 import flash from 'connect-flash';
 import connect_mongo from 'connect-mongo';
 import cookieParser from 'cookie-parser';
@@ -23,31 +24,10 @@ import swaggerUi from 'swagger-ui-express';
 
 import { logger } from './bunyan';
 import * as errorHandlers from '../app/common/express/error-handlers';
-import config from '../config';
 
 const MongoStore = connect_mongo(session);
 
 const baseApiPath = '/api';
-
-/**
- * Initialize local variables
- */
-function initLocalVariables(app: Express) {
-	// Setting application local variables
-	app.locals.title = config.app.title;
-	app.locals.description = config.app.description;
-	app.locals.keywords = config.app.keywords;
-
-	// Development
-	app.locals.developmentMode = config.mode === 'development';
-
-	// Passing the request url to environment locals
-	app.use((req, res, next) => {
-		res.locals.host = config.app.serverUrlWithoutPort;
-		res.locals.url = config.app.clientUrl + req.originalUrl;
-		next();
-	});
-}
 
 /**
  * Initialize application middleware
@@ -73,15 +53,15 @@ function initMiddleware(app: Express) {
 	);
 
 	// Environment dependent middleware
-	if (config.mode === 'development') {
+	if (config.get<string>('mode') === 'development') {
 		// Disable views cache
 		app.set('view cache', false);
-	} else if (config.mode === 'production') {
+	} else if (config.get<string>('mode') === 'production') {
 		app.locals.cache = 'memory';
 	}
 
 	// Optionally turn on express logging
-	if (config.expressLogging) {
+	if (config.get<boolean>('expressLogging')) {
 		app.use(morgan('dev'));
 	}
 
@@ -95,7 +75,7 @@ function initMiddleware(app: Express) {
 	app.use(methodOverride());
 
 	// Add the cookie parser and flash middleware
-	app.use(cookieParser(config.auth.sessionSecret));
+	app.use(cookieParser(config.get<string>('auth.sessionSecret')));
 	app.use(flash());
 }
 
@@ -116,11 +96,11 @@ function initSession(app: Express, db: Mongoose) {
 		session({
 			saveUninitialized: true,
 			resave: true,
-			secret: config.auth.sessionSecret,
-			cookie: config.auth.sessionCookie,
+			secret: config.get<string>('auth.sessionSecret'),
+			cookie: config.get<string>('auth.sessionCookie'),
 			store: new MongoStore({
 				mongooseConnection: db.connection,
-				collection: config.auth.sessionCollection
+				collection: config.get<string>('auth.sessionCollection')
 			})
 		})
 	);
@@ -140,12 +120,10 @@ async function initPassport(app: Express) {
  * Invoke modules server configuration
  */
 async function initModulesConfiguration(app: Express, db: Mongoose) {
-	const configPaths = (await glob(config.assets.config)) ?? [];
+	const configPaths = await glob(config.get<string[]>('assets.config'));
 
 	const moduleConfigs = await Promise.all(
-		configPaths.map(
-			(configPath: string) => import(path.posix.resolve(configPath))
-		)
+		configPaths.map((configPath) => import(path.posix.resolve(configPath)))
 	);
 	moduleConfigs.forEach((moduleConfig) => {
 		moduleConfig.default(app, db);
@@ -165,9 +143,10 @@ function initHelmetHeaders(app: Express) {
 }
 
 function initCORS(app: Express) {
-	if (config.cors?.enabled) {
-		app.use(cors({ ...config.cors.options }));
+	if (config.get<boolean>('cors.enabled') !== true) {
+		return;
 	}
+	app.use(cors({ ...config.get<Record<string, unknown>>('cors.options') }));
 }
 
 /**
@@ -177,7 +156,7 @@ async function initModulesServerRoutes(app: Express) {
 	// Init the global route prefix
 	const router = express.Router();
 
-	const routePaths = await glob(config.assets.routes);
+	const routePaths = await glob(config.get<string[]>('assets.routes'));
 	const routes = await Promise.all(
 		routePaths.map((routePath: string) => import(path.posix.resolve(routePath)))
 	);
@@ -209,16 +188,17 @@ function initErrorRoutes(app: Express) {
 }
 
 function initActuator(app: Express) {
-	if (!config.actuator.enabled) {
+	// actuator must be enabled explicitly in the config
+	if (config.get<boolean>('actuator.enabled') !== true) {
 		return;
 	}
 	logger.info('Configuring actuator endpoints');
-	app.use(actuator(config.actuator.options));
+	app.use(actuator(config.get<Record<string, unknown>>('actuator.options')));
 }
 
 function initSwaggerAPI(app: Express) {
-	if (!config.apiDocs || config.apiDocs.enabled !== true) {
-		// apiDocs must be enabled explicitly in the config
+	// apiDocs must be enabled explicitly in the config
+	if (config.get<boolean>('apiDocs.enabled') !== true) {
 		return;
 	}
 
@@ -229,10 +209,10 @@ function initSwaggerAPI(app: Express) {
 		swaggerDefinition: {
 			openapi: '3.0.2',
 			info: {
-				title: config.app.title,
-				description: config.app.description,
+				title: config.get<string>('app.title'),
+				description: config.get<string>('app.description'),
 				contact: {
-					email: config.mailer?.from
+					email: config.get<string>('mailer.from')
 				}
 			},
 			servers: [
@@ -243,19 +223,19 @@ function initSwaggerAPI(app: Express) {
 			components: {}
 		},
 		apis: [
-			...globSync(config.assets.docs).map((doc: string) =>
+			...globSync(config.get<string[]>('assets.docs')).map((doc: string) =>
 				path.posix.resolve(doc)
 			),
-			...globSync(config.assets.routes).map((route: string) =>
+			...globSync(config.get<string[]>('assets.routes')).map((route: string) =>
 				path.posix.resolve(route)
 			),
-			...globSync(config.assets.models).map((model: string) =>
+			...globSync(config.get<string[]>('assets.models')).map((model: string) =>
 				path.posix.resolve(model)
 			)
 		]
 	};
 
-	if (config.auth.strategy === 'local') {
+	if (config.get<string>('auth.strategy') === 'local') {
 		swaggerOptions.swaggerDefinition.components.securitySchemes = {
 			basicAuth: {
 				type: 'http',
@@ -272,22 +252,23 @@ function initSwaggerAPI(app: Express) {
 	 */
 	swaggerSpec.paths = _.pickBy(swaggerSpec.paths, (_path) => {
 		return (
-			_path.strategy === undefined || _path.strategy === config.auth.strategy
+			_path.strategy === undefined ||
+			_path.strategy === config.get<string>('auth.strategy')
 		);
 	});
 
 	const uiOptions = {
 		filter: true,
-		...config.apiDocs.uiOptions
+		...config.get<Record<string, unknown>>('apiDocs.uiOptions')
 	};
 
 	app.use(
-		config.apiDocs.path || '/api-docs',
+		config.get<string>('apiDocs.path'),
 		swaggerUi.serve,
 		swaggerUi.setup(swaggerSpec, null, uiOptions)
 	);
 
-	app.get(config.apiDocs.jsonPath || '/api/spec.json', (req, res) => {
+	app.get(config.get<string>('apiDocs.jsonPath'), (req, res) => {
 		res.send(swaggerSpec);
 	});
 }
@@ -299,13 +280,7 @@ export const init = async (db: Mongoose): Promise<Express> => {
 	// Initialize express app
 	logger.info('Initializing Express');
 
-	/**
-	 * @type {express.Express}
-	 */
-	const app = express();
-
-	// Initialize local variables
-	initLocalVariables(app);
+	const app: Express = express();
 
 	// Initialize Express middleware
 	initMiddleware(app);
