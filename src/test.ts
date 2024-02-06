@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
+import config from 'config';
 import { globSync } from 'glob';
 import Mocha, { MochaOptions } from 'mocha';
 import 'should';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
 
-import config from './config';
 import * as mongoose from './lib/mongoose';
 
 const args = yargs(hideBin(process.argv)).option({
@@ -54,7 +54,7 @@ mongoose
 
 		// Add all the tests to mocha
 		let testCount = 0;
-		globSync(config.assets.tests).forEach((file) => {
+		globSync(config.get<string[]>('assets.tests')).forEach((file) => {
 			if (!argv.filter || file.match(new RegExp(argv.filter))) {
 				testCount++;
 				mocha.addFile(file);

@@ -6,9 +6,51 @@ const contactEmail =
 	'noreply@asymmetrik.com';
 
 module.exports = {
+	mode: 'production',
+
+	// The port to use for the application (defaults to the environment variable if present)
+	port: process.env.PORT || 3001,
+
+	// Basic title and instance name
+	app: {
+		title: 'Node REST Starter',
+		instanceName: 'node-rest-starter',
+		description: 'Node REST app',
+		clientUrl: 'http://localhost/#',
+		helpUrl: 'http://localhost/#/help',
+		contactEmail: contactEmail
+	},
+
 	/**
 	 * Core System Settings
 	 */
+
+	apiDocs: {
+		enabled: true,
+		path: '/api-docs',
+		jsonPath: '/api/spec.json',
+		uiOptions: {}
+	},
+
+	actuator: {
+		enabled: true,
+		options: {
+			basePath: '/actuator'
+		}
+	},
+
+	// SocketIO Settings
+	socketio: {
+		ignoreOlderThan: 600
+	},
+
+	cors: {
+		enabled: false,
+		options: {
+			credentials: true
+		}
+	},
+
 	assets: {
 		models: ['src/**/*.model!(.spec).{js,ts}'],
 		routes: ['src/**/*.routes!(.spec).{js,ts}'],
@@ -80,10 +122,10 @@ module.exports = {
 		// 	},
 		// 	cacheExpire: 1000*60*60*24 // expiration of cache entries
 		// },
-		//
-		// autoLogin: true,
-		// autoCreateAccounts: true,
-		// defaultRoles: { user: true },
+
+		autoLogin: false,
+		autoCreateAccounts: false,
+		defaultRoles: {},
 		// requiredRoles: ['ROLE'],
 
 		roles: ['user', 'editor', 'auditor', 'admin'],
@@ -158,49 +200,48 @@ module.exports = {
 	},
 	mongooseFailOnIndexOptionsConflict: true,
 
+	/*
+	 * The maximum time in milliseconds allowed for processing operation on the cursor by a mongo query
+	 */
+	maxTimeMS: 30000,
+
+	/*
+	 * The maximum time in milliseconds allowed for a count operation on the cursor by a mongo search/pagination query
+	 */
+	maxCountTimeMS: 5000,
+
 	/**
 	 * Environment Settings
 	 */
 
-	// Basic title and instance name
-	app: {
-		title: 'Node REST Starter',
-		name: 'Node Rest Starter',
-		instanceName: 'node-rest-starter',
-		url: {
-			protocol: 'http',
-			host: 'localhost',
-			port: 3000
-		},
-		clientUrl: 'http://localhost/#',
-		helpUrl: 'http://localhost/#/help',
-		contactEmail: contactEmail
-	},
-
-	// Header/footer
-	banner: {
-		// The string to display
-		html: 'DEFAULT SETTINGS',
-
-		// additional CSS class to apply to the banner
-		style: 'default'
-	},
-
-	// Copyright footer (shown above the system footer)
-	copyright: {
-		// HTML-enabled contents of the banner
-		html: 'Copyright © 2018 <a href="http://www.asymmetrik.com" target="_blank">Asymmetrik, Ltd</a>. All Rights Reserved.'
-	},
-
-	feedback: {
-		showFlyout: true,
-		showInSidebar: true,
-
-		classificationOpts: [
-			{ level: 'LEVEL-1', prefix: '(L1)' },
-			{ level: 'LEVEL-2', prefix: '(L2)' },
-			{ level: 'LEVEL-3', prefix: '(L3)' }
-		]
+	// Configuration for outgoing mail server / service
+	mailer: {
+		from: process.env.MAILER_FROM || 'USERNAME@GMAIL.COM',
+		provider: './src/app/core/email/providers/smtp-email.provider',
+		options: {
+			host: process.env.MAILER_SERVICE_PROVIDER || 'gmail',
+			port: 587,
+			secure: false, // true for 465, false for other ports
+			auth: {
+				user: process.env.MAILER_EMAIL_ID || 'USERNAME@GMAIL.COM',
+				pass: process.env.MAILER_PASSWORD || 'PASSWORD'
+			}
+		}
+		/*
+		provider: './src/app/core/email/providers/log-email.server.provider',
+		options: {}
+		*/
+		/*
+		provider: './src/app/core/email/providers/https-email.server.provider',
+		options: {
+			host: '',
+			port: ,
+			path: '',
+			ca: '/path/to/ca.crt',
+			cert: '/path/to/cert.crt',
+			key: '/path/to/cert.key'
+		}
+		*/
 	},
 
 	coreEmails: {
@@ -214,7 +255,7 @@ module.exports = {
 			enabled: true,
 			templatePath:
 				'src/app/core/user/templates/user-signup-alert-email.server.view.html',
-			subject: 'New Account Request - {{ app.serverUrl }}',
+			subject: 'New Account Request - {{ app.clientUrl }}',
 			to: contactEmail
 		},
 		welcomeNoAccess: {
@@ -297,35 +338,27 @@ module.exports = {
 	auditExpires: 15552000, //180 days
 	feedbackExpires: 15552000, // 180 days
 
-	// Configuration for outgoing mail server / service
-	mailer: {
-		from: process.env.MAILER_FROM || 'USERNAME@GMAIL.COM',
-		provider: './src/app/core/email/providers/smtp-email.provider',
-		options: {
-			host: process.env.MAILER_SERVICE_PROVIDER || 'gmail',
-			port: 587,
-			secure: false, // true for 465, false for other ports
-			auth: {
-				user: process.env.MAILER_EMAIL_ID || 'USERNAME@GMAIL.COM',
-				pass: process.env.MAILER_PASSWORD || 'PASSWORD'
-			}
-		}
-		/*
-		provider: './src/app/core/email/providers/log-email.server.provider',
-		options: {}
-		*/
-		/*
-		provider: './src/app/core/email/providers/https-email.server.provider',
-		options: {
-			host: '',
-			port: ,
-			path: '',
-			ca: '/path/to/ca.crt',
-			cert: '/path/to/cert.crt',
-			key: '/path/to/cert.key'
-		}
-		*/
+	teams: {
+		implicitMembers: {
+			/**
+			 * 'roles' strategy matches user.externalRoles against team.requiresExternalRoles to determine implicit
+			 * membership in team.  User must have all of the specified roles to be granted access to team.
+			 */
+			strategy: 'roles'
+
+			/**
+			 * 'teams' strategy matches user.externalGroups against team.requiresExternalGroups to determine implicit
+			 * membership in team.  User mush have one of the specified roles to be granted access to team.
+			 */
+			// strategy: 'teams'
+		},
+		nestedTeams: false
 	},
+
+	/*
+	 * Whether the delete user functionality is enabled or disabled
+	 */
+	allowDeleteUser: true,
 
 	/**
 	 * Development/debugging settings
@@ -349,7 +382,7 @@ module.exports = {
 		application: [
 			// Console logger
 			{
-				stream: process.stdout,
+				stream: 'process.stdout',
 				level: 'info'
 			} //,
 			// Rotating file logger
@@ -373,7 +406,7 @@ module.exports = {
 		audit: [
 			// Console logger (audit logger must be 'info' level)
 			{
-				stream: process.stdout,
+				stream: 'process.stdout',
 				level: 'info'
 			} //,
 			//{
@@ -387,7 +420,7 @@ module.exports = {
 		metrics: [
 			// Console logger (audit logger must be 'info' level)
 			{
-				stream: process.stdout,
+				stream: 'process.stdout',
 				level: 'info'
 			} //,
 			//{
@@ -400,82 +433,32 @@ module.exports = {
 		]
 	},
 
-	teams: {
-		implicitMembers: {
-			/**
-			 * 'roles' strategy matches user.externalRoles against team.requiresExternalRoles to determine implicit
-			 * membership in team.  User must have all of the specified roles to be granted access to team.
-			 */
-			strategy: 'roles'
-
-			/**
-			 * 'teams' strategy matches user.externalGroups against team.requiresExternalGroups to determine implicit
-			 * membership in team.  User mush have one of the specified roles to be granted access to team.
-			 */
-			// strategy: 'teams'
-		},
-		nestedTeams: false
-	},
-
 	/**
-	 * Not So Environment-Specific Settings
+	 * UI Settings
 	 */
+	// Header/footer
+	banner: {
+		// The string to display
+		html: 'DEFAULT SETTINGS',
 
-	apiDocs: {
-		enabled: true,
-		path: '/api-docs'
+		// additional CSS class to apply to the banner
+		style: 'default'
 	},
 
-	actuator: {
-		enabled: true,
-		options: {
-			basePath: '/actuator'
-		}
+	// Copyright footer (shown above the system footer)
+	copyright: {
+		// HTML-enabled contents of the banner
+		html: 'Copyright © 2018 <a href="http://www.asymmetrik.com" target="_blank">Asymmetrik, Ltd</a>. All Rights Reserved.'
 	},
 
-	// The port to use for the application (defaults to the environment variable if present)
-	port: process.env.PORT || 3001,
+	feedback: {
+		showFlyout: true,
+		showInSidebar: true,
 
-	// SocketIO Settings
-	socketio: {
-		ignoreOlderThan: 600
-	},
-
-	// CSV Export Settings
-	csv: {
-		delayMs: 0
-	},
-
-	/*
-	 * The maximum time in milliseconds allowed for processing operation on the cursor by a mongo query
-	 */
-	maxTimeMS: 30000,
-
-	/*
-	 * The maximum time in milliseconds allowed for a count operation on the cursor by a mongo search/pagination query
-	 */
-	maxCountTimeMS: 5000,
-
-	/*
-	 * The maximum number of records allowed to be exported to csv
-	 */
-	maxExport: 1000,
-
-	/*
-	 * Configurations for External Services
-	 */
-	external: {},
-
-	/*
-	 * Whether the delete user functionality is enabled or disabled
-	 */
-	allowDeleteUser: true,
-
-	cors: {
-		enabled: false,
-		options: {
-			credentials: true
-			// origin: 'http://example.com'
-		}
+		classificationOpts: [
+			{ level: 'LEVEL-1', prefix: '(L1)' },
+			{ level: 'LEVEL-2', prefix: '(L2)' },
+			{ level: 'LEVEL-3', prefix: '(L3)' }
+		]
 	}
 };

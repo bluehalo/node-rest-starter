@@ -90,7 +90,7 @@ FOOTER`;
 				to: config.coreEmails.userSignupAlert.to,
 				from: config.coreEmails.default.from,
 				replyTo: config.coreEmails.default.replyTo,
-				subject: `New Account Request - ${config.app.serverUrl}`,
+				subject: `New Account Request - ${config.app.clientUrl}`,
 				html: expectedEmailContent
 			});
 			assert.notCalled(logger.error);

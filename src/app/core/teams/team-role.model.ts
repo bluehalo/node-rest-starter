@@ -7,13 +7,15 @@ export enum TeamRoles {
 	Editor = 'editor',
 	Member = 'member',
 	Requester = 'requester',
+	Viewer = 'viewer',
 	Blocked = 'blocked'
 }
 
 export const TeamRolePriorities = {
 	[TeamRoles.Admin]: 7,
 	[TeamRoles.Editor]: 5,
-	[TeamRoles.Member]: 1,
+	[TeamRoles.Member]: 3,
+	[TeamRoles.Viewer]: 1,
 	[TeamRoles.Requester]: 0,
 	[TeamRoles.Blocked]: -1
 };

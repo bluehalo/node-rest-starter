@@ -15,7 +15,7 @@
   "scripts": {
     "init": "npm ci && npm run init:env:dev",
     "init:mongo": "npm run init && npm run init:mongo:up",
-    "init:env:dev": "cp config/env/development.template.js config/env/development.js",
+    "init:env:dev": "cp config/env/development.template.js config/development.js",
     "init:mongo:up": "docker compose -p node-rest-starter -f dev/mongo.yml up -d",
     "init:mongo:express": "docker compose -p node-rest-starter -f dev/mongo-express.yml up -d",
     "init:mongo:down": "docker compose -p node-rest-starter -f dev/mongo.yml down",
@@ -23,19 +23,19 @@
     "start": "nodemon ./src/server.ts --exec 'npm run lint && node --inspect -r @swc-node/register' | bunyan",
     "start:dev": "export NODE_ENV=development && npm run start",
     "start:prod": "cd dist && node ./src/server.js",
-    "test": "NODE_ENV=test nodemon -r @swc-node/register src/test.ts",
+    "test": "NODE_ENV=test ALLOW_CONFIG_MUTATIONS=true nodemon -r @swc-node/register src/test.ts",
     "test:build": "cd dist && node -r @swc-node/register src/test.ts",
-    "test:ci": "NODE_ENV=test nyc --reporter=lcov --reporter=text-summary node -r @swc-node/register src/test.ts --ci",
-    "test:gitlab": "NODE_ENV=testgitlab nyc --reporter=lcov --reporter=text-summary node -r @swc-node/register src/test.ts --ci",
-    "test:debug": "NODE_ENV=test nodemon src/test.ts --exec 'node -r @swc-node/register --inspect-brk=:9339'",
+    "test:ci": "NODE_ENV=test ALLOW_CONFIG_MUTATIONS=true nyc --reporter=lcov --reporter=text-summary node -r @swc-node/register src/test.ts --ci",
+    "test:gitlab": "NODE_ENV=testgitlab ALLOW_CONFIG_MUTATIONS=true nyc --reporter=lcov --reporter=text-summary node -r @swc-node/register src/test.ts --ci",
+    "test:debug": "NODE_ENV=test ALLOW_CONFIG_MUTATIONS=true nodemon src/test.ts --exec 'node -r @swc-node/register --inspect-brk=:9339'",
     "build": "npm run lint",
     "build:prod": "npm run lint && npm run clean && npm run compile:prod && npm run link:prod",
     "compile:prod": "swc src --config-file .prod.swcrc -d dist/src --copy-files",
     "link:prod": "ln -s ../config ./dist/config && ln -s ../node_modules ./dist/node_modules && ln -s ../package.json ./dist/package.json && ln -s ../package-lock.json ./dist/package-lock.json",
     "lint": "npm run lint:eslint",
     "lint:fix": "npm run lint:eslint:fix",
-    "lint:eslint": "eslint \"./**/*.js\" \"./**/*.ts\"",
-    "lint:eslint:fix": "eslint \"./**/*.js\" \"./**/*.ts\" --fix",
+    "lint:eslint": "eslint \"./**/*.{js,ts}\"",
+    "lint:eslint:fix": "eslint \"./**/*.{js,ts}\" --fix",
     "tsc:check": "tsc --project tsconfig.json --noEmit",
     "tsc:watch": "tsc --watch --noEmit",
     "prepare": "husky install"
@@ -45,7 +45,7 @@
     "exclude": [
       "**/*.spec.js",
       "**/*.spec.ts",
-      "src/test.js"
+      "src/test.ts"
     ]
   },
   "dependencies": {
@@ -55,6 +55,7 @@
     "chalk": "2",
     "colors": "1",
     "compression": "1.7",
+    "config": "^3.3.11",
     "connect-flash": "0.1",
     "connect-mongo": "^3.2.0",
     "cookie-parser": "1.4",

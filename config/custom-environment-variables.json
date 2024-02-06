@@ -1,0 +1,16 @@
+{
+  "port": "PORT",
+  "app": {
+    "contactEmail": "CONTACT_EMAIL"
+  },
+  "mailer": {
+    "from": "MAILER_FROM",
+    "options": {
+      "host": "MAILER_SERVICE_PROVIDER",
+      "auth": {
+        "user": "MAILER_EMAIL_ID",
+        "pass": "MAILER_PASSWORD"
+      }
+    }
+  }
+}
