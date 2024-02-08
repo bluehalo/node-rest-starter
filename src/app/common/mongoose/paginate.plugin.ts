@@ -1,6 +1,5 @@
+import config from 'config';
 import { HydratedDocument, Query, Schema } from 'mongoose';
-
-import { config } from '../../../dependencies';
 
 const MONGO_TIMEOUT_ERROR_CODE = 50;
 
@@ -27,7 +26,7 @@ export function paginatePlugin(schema: Schema) {
 		pageSize: number,
 		pageNumber: number,
 		runCount = true,
-		countTimeout = config.maxCountTimeMS
+		countTimeout = config.get<number>('maxCountTimeMS')
 	): Promise<PagingResults<DocType>> {
 		const countPromise = runCount
 			? this.model
@@ -46,7 +45,7 @@ export function paginatePlugin(schema: Schema) {
 
 		const resultsPromise = this.skip(pageNumber * pageSize)
 			.limit(pageSize)
-			.maxTimeMS(config.maxTimeMS)
+			.maxTimeMS(config.get<number>('maxTimeMS'))
 			.exec();
 
 		const [totalSize, elements] = await Promise.all([

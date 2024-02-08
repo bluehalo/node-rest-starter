@@ -1,12 +1,8 @@
+import config from 'config';
 import { Request } from 'express';
 
 import { Audit, AuditDocument } from './audit.model';
-import {
-	config,
-	logger,
-	auditLogger,
-	utilService
-} from '../../../dependencies';
+import { logger, auditLogger, utilService } from '../../../dependencies';
 import { IUser, UserDocument } from '../user/user.model';
 
 class AuditService {
@@ -90,13 +86,14 @@ class AuditService {
 	 * Creates an audit entry persisted to Mongo and the bunyan logger
 	 */
 	private getMasqueradingUserDn(eventActor, headers) {
-		if (config.auth.strategy === 'proxy-pki' && config.auth.masquerade) {
+		if (
+			config.get<string>('auth.strategy') === 'proxy-pki' &&
+			config.get<boolean>('auth.masquerade')
+		) {
 			const masqueradeUserDn =
-				headers?.[config.masqueradeUserHeader ?? 'x-masquerade-user-dn'];
+				headers?.[config.get<string>('masqueradeUserHeader')];
 			if (eventActor.dn && eventActor.dn === masqueradeUserDn) {
-				return headers?.[
-					config.proxyPkiPrimaryUserHeader ?? 'x-ssl-client-s-dn'
-				];
+				return headers?.[config.get<string>('proxyPkiPrimaryUserHeader')];
 			}
 		}
 		return undefined;

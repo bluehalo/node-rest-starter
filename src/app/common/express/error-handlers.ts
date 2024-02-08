@@ -1,7 +1,8 @@
+import config from 'config';
 import { ValidationError } from 'express-json-validator-middleware';
 import _ from 'lodash';
 
-import { config, logger } from '../../../dependencies';
+import { logger } from '../../../dependencies';
 
 const getStatus = (err) => {
 	logger.error(err.status < 400);
@@ -84,7 +85,7 @@ export const defaultErrorHandler = (err, req, res, next) => {
 
 	if (errorResponse.status >= 500 && errorResponse.status < 600) {
 		// Swap the error message if `exposeServerErrors` is disabled
-		if (!config.exposeServerErrors) {
+		if (!config.get<boolean>('exposeServerErrors')) {
 			errorResponse.message = 'A server error has occurred.';
 			delete errorResponse.stack;
 		}

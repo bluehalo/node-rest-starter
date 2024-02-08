@@ -1,15 +1,11 @@
 'use strict';
 
-const contactEmail =
-	process.env.CONTACT_EMAIL ||
-	process.env.MAILER_ADMIN ||
-	'noreply@asymmetrik.com';
+const contactEmail = process.env.CONTACT_EMAIL || 'noreply@bluehalo.com';
 
 module.exports = {
 	mode: 'production',
 
-	// The port to use for the application (defaults to the environment variable if present)
-	port: process.env.PORT || 3001,
+	port: 3000,
 
 	// Basic title and instance name
 	app: {
@@ -18,7 +14,7 @@ module.exports = {
 		description: 'Node REST app',
 		clientUrl: 'http://localhost/#',
 		helpUrl: 'http://localhost/#/help',
-		contactEmail: contactEmail
+		contactEmail: 'noreply@bluehalo.com'
 	},
 
 	/**
@@ -42,6 +38,17 @@ module.exports = {
 	// SocketIO Settings
 	socketio: {
 		ignoreOlderThan: 600
+	},
+	// Use the following for local eventEmitter
+	publishProvider: './src/app/common/event/event-publish.provider',
+	socketProvider: './src/app/common/sockets/event-socket.provider',
+
+	messages: {
+		topic: 'message.posted'
+	},
+
+	pages: {
+		topic: 'page.updated'
 	},
 
 	cors: {
@@ -126,7 +133,7 @@ module.exports = {
 		autoLogin: false,
 		autoCreateAccounts: false,
 		defaultRoles: {},
-		// requiredRoles: ['ROLE'],
+		requiredRoles: [],
 
 		roles: ['user', 'editor', 'auditor', 'admin'],
 		roleStrategy: 'local', // 'local' || 'external' || 'hybrid'
@@ -210,21 +217,26 @@ module.exports = {
 	 */
 	maxCountTimeMS: 5000,
 
+	// configures mongo TTL index.  Overriding these may require dropping existing index
+	notificationExpires: 15552000, // 180 days
+	auditExpires: 15552000, //180 days
+	feedbackExpires: 15552000, // 180 days
+
 	/**
 	 * Environment Settings
 	 */
 
 	// Configuration for outgoing mail server / service
 	mailer: {
-		from: process.env.MAILER_FROM || 'USERNAME@GMAIL.COM',
+		from: 'USERNAME@GMAIL.COM',
 		provider: './src/app/core/email/providers/smtp-email.provider',
 		options: {
-			host: process.env.MAILER_SERVICE_PROVIDER || 'gmail',
+			host: 'gmail',
 			port: 587,
 			secure: false, // true for 465, false for other ports
 			auth: {
-				user: process.env.MAILER_EMAIL_ID || 'USERNAME@GMAIL.COM',
-				pass: process.env.MAILER_PASSWORD || 'PASSWORD'
+				user: 'USERNAME@GMAIL.COM',
+				pass: 'PASSWORD'
 			}
 		}
 		/*
@@ -321,23 +333,6 @@ module.exports = {
 
 	siteEmails: {},
 
-	// Use the following for local eventEmitter
-	publishProvider: './src/app/common/event/event-publish.provider',
-	socketProvider: './src/app/common/sockets/event-socket.provider',
-
-	messages: {
-		topic: 'message.posted'
-	},
-
-	pages: {
-		topic: 'page.updated'
-	},
-
-	// configures mongo TTL index.  Overriding these may require dropping existing index
-	notificationExpires: 15552000, // 180 days
-	auditExpires: 15552000, //180 days
-	feedbackExpires: 15552000, // 180 days
-
 	teams: {
 		implicitMembers: {
 			/**
@@ -365,7 +360,7 @@ module.exports = {
 	 */
 
 	// Expose server errors to the client (500 errors)
-	exposeServerErrors: true,
+	exposeServerErrors: false,
 
 	// Mongoose query logging
 	mongooseLogging: false,
@@ -383,7 +378,7 @@ module.exports = {
 			// Console logger
 			{
 				stream: 'process.stdout',
-				level: 'info'
+				level: 'warn'
 			} //,
 			// Rotating file logger
 			//{
@@ -448,7 +443,7 @@ module.exports = {
 	// Copyright footer (shown above the system footer)
 	copyright: {
 		// HTML-enabled contents of the banner
-		html: 'Copyright © 2018 <a href="http://www.asymmetrik.com" target="_blank">Asymmetrik, Ltd</a>. All Rights Reserved.'
+		html: '© 2024 <a href="http://www.bluehalo.com" target="_blank">BLUEHALO</a>'
 	},
 
 	feedback: {

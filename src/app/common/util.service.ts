@@ -52,7 +52,7 @@ export const getErrorMessage = function (err) {
  * @deprecated
  */
 export const getClientErrorMessage = function (err) {
-	if (config.exposeServerErrors) {
+	if (config.get<boolean>('exposeServerErrors')) {
 		return getErrorMessage(err);
 	} else {
 		return 'A server error has occurred.';

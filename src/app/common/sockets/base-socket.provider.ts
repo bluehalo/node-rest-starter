@@ -1,11 +1,12 @@
 import * as async from 'async';
+import config from 'config';
 import { Request, RequestHandler, Response } from 'express';
 import { Socket } from 'socket.io';
 
-import { config, logger } from '../../../dependencies';
+import { logger } from '../../../dependencies';
 
 // If this is not null, ignore any messages that are older than this number of seconds.
-const ignoreOlderThan = config.socketio.ignoreOlderThan;
+const ignoreOlderThan = config.get<number>('socketio.ignoreOlderThan');
 
 export type SocketConfig = {
 	emitName?: string;

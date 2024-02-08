@@ -8,9 +8,9 @@ import { config } from '../../dependencies';
 class ProxyPkiStrategy extends TrustedHeadersStrategy {
 	constructor() {
 		super([
-			config.proxyPkiPrimaryUserHeader ?? 'x-ssl-client-s-dn',
-			config.proxyPkiProxiedUserHeader ?? 'x-proxied-user-dn',
-			config.masqueradeUserHeader ?? 'x-masquerade-user-dn'
+			config.get<string>('proxyPkiPrimaryUserHeader'),
+			config.get<string>('proxyPkiProxiedUserHeader'),
+			config.get<string>('masqueradeUserHeader')
 		]);
 		this.name = 'proxy-pki';
 	}
