@@ -544,7 +544,7 @@ describe('Utils:', () => {
 		let originalExposeServerErrors;
 
 		before(() => {
-			originalExposeServerErrors = config.exposeServerErrors;
+			originalExposeServerErrors = config.get<string>('exposeServerErrors');
 		});
 
 		after(() => {

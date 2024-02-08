@@ -1,6 +1,6 @@
+import config from 'config';
 import { HydratedDocument, Model, model, Schema } from 'mongoose';
 
-import { config } from '../../../dependencies';
 import {
 	ContainsSearchable,
 	containsSearchPlugin
@@ -71,12 +71,12 @@ AuditSchema.plugin(containsSearchPlugin, {
  */
 
 // created datetime index, expires after configured time (false to disable TTL)
-if (config.auditExpires === false) {
+if (config.get('auditExpires') === false) {
 	AuditSchema.index({ created: -1 });
 } else {
 	AuditSchema.index(
 		{ created: -1 },
-		{ expireAfterSeconds: config.auditExpires ?? 15552000 }
+		{ expireAfterSeconds: config.get<number>('auditExpires') }
 	);
 }
 

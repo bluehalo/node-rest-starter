@@ -16,8 +16,8 @@ describe('Init Swagger API:', () => {
 			swaggerDefinition: {
 				openapi: '3.0.2',
 				info: {
-					title: config.app.title,
-					description: config.app.description,
+					title: config.get<string>('app.title'),
+					description: config.get<string>('app.description'),
 					version: 'test'
 				},
 				servers: [
@@ -28,19 +28,19 @@ describe('Init Swagger API:', () => {
 				components: {}
 			},
 			apis: [
-				...globSync(config.assets.docs).map((doc: string) =>
+				...globSync(config.get<string[]>('assets.docs')).map((doc: string) =>
 					path.posix.resolve(doc)
 				),
-				...globSync(config.assets.routes).map((route: string) =>
-					path.posix.resolve(route)
+				...globSync(config.get<string[]>('assets.routes')).map(
+					(route: string) => path.posix.resolve(route)
 				),
-				...globSync(config.assets.models).map((model: string) =>
-					path.posix.resolve(model)
+				...globSync(config.get<string[]>('assets.models')).map(
+					(model: string) => path.posix.resolve(model)
 				)
 			]
 		};
 
-		if (config.auth.strategy === 'local') {
+		if (config.get<string>('auth.strategy') === 'local') {
 			swaggerOptions.swaggerDefinition.components.securitySchemes = {
 				basicAuth: {
 					type: 'http',
