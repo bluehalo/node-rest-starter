@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { DateTime } from 'luxon';
 import passport from 'passport';
 import should from 'should';
-import { assert } from 'sinon';
+import { assert, createSandbox } from 'sinon';
 
 import * as userAuthenticationController from './user-authentication.controller';
 import { config } from '../../../../dependencies';
@@ -71,6 +71,7 @@ function cacheSpec(key): Partial<ICacheEntry> {
  */
 describe('User Auth Controller:', () => {
 	let res;
+	let sandbox;
 
 	before(() => {
 		return clearDatabase();
@@ -81,7 +82,12 @@ describe('User Auth Controller:', () => {
 	});
 
 	beforeEach(() => {
+		sandbox = createSandbox();
 		res = getResponseSpy();
+	});
+
+	afterEach(() => {
+		sandbox.restore();
 	});
 
 	describe('signout', () => {
@@ -104,16 +110,16 @@ describe('User Auth Controller:', () => {
 		const spec = { user: localUserSpec('user1') };
 		let user;
 
-		before(async () => {
+		beforeEach(async () => {
 			await clearDatabase();
 			user = await new User(spec.user).save();
 
 			//setup to use local passport
-			config.auth.strategy = 'local';
+			sandbox.stub(config.auth, 'strategy').value('local');
 			passport.use(local);
 		});
 
-		after(() => {
+		afterEach(() => {
 			return clearDatabase();
 		});
 
@@ -299,7 +305,7 @@ describe('User Auth Controller:', () => {
 		const cache = {};
 		const user = {};
 
-		before(async () => {
+		beforeEach(async () => {
 			await clearDatabase();
 			let defers = [];
 			defers = defers.concat(
@@ -314,26 +320,24 @@ describe('User Auth Controller:', () => {
 			);
 			await Promise.all(defers);
 
-			const accessCheckerConfig = {
-				userbypassed: {
-					name: 'Invalid Name',
-					organization: 'Invalid Org',
-					email: 'invalid@invalid.org',
-					username: 'invalid'
+			sandbox.stub(config.auth, 'strategy').value('proxy-pki');
+			sandbox.stub(config.auth.accessChecker, 'provider').value({
+				file: 'src/app/core/access-checker/providers/example.provider',
+				config: {
+					userbypassed: {
+						name: 'Invalid Name',
+						organization: 'Invalid Org',
+						email: 'invalid@invalid.org',
+						username: 'invalid'
+					}
 				}
-			};
+			});
+
 			// All of the data is loaded, so initialize proxy-pki
-			config.auth.strategy = 'proxy-pki';
-			config.auth.accessChecker = {
-				provider: {
-					file: 'src/app/core/access-checker/providers/example.provider',
-					config: accessCheckerConfig
-				}
-			};
 			passport.use(proxyPki);
 		});
 
-		after(() => {
+		afterEach(() => {
 			return clearDatabase();
 		});
 
@@ -393,7 +397,7 @@ describe('User Auth Controller:', () => {
 
 			// Unknown DN header
 			it('should fail when the dn is unknown and auto create is disabled', async () => {
-				config.auth.autoCreateAccounts = false;
+				sandbox.stub(config.auth, 'autoCreateAccounts').value(false);
 				req.headers = { [config.proxyPkiPrimaryUserHeader]: 'unknown' };
 				let err;
 				try {
@@ -606,7 +610,7 @@ describe('User Auth Controller:', () => {
 			};
 
 			it('should create a new account from access checker information', async () => {
-				config.auth.autoCreateAccounts = true;
+				sandbox.stub(config.auth, 'autoCreateAccounts').value(true);
 				req.headers = {
 					[config.proxyPkiPrimaryUserHeader]: spec.cache.cacheOnly.key
 				};
