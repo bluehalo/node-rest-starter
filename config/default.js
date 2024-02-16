@@ -114,21 +114,21 @@ module.exports = {
 		 */
 		// strategy: 'proxy-pki',
 
-		// accessChecker: {
-		// 	provider: {
-		// 		file: 'src/app/core/access-checker/providers/example.provider',
-		// 		config: {
-		// 			'user cn string': {
-		// 				name: 'User Name',
-		// 				profileOrganization: 'User Organization',
-		// 				email: 'user@email.com',
-		// 				username: 'username',
-		// 				roles: [ 'ROLE' ]
-		// 			}
-		// 		}
-		// 	},
-		// 	cacheExpire: 1000*60*60*24 // expiration of cache entries
-		// },
+		accessChecker: {
+			cacheExpire: 1000 * 60 * 60 * 24, // expiration of cache entries
+			provider: {
+				// file: 'src/app/core/access-checker/providers/example.provider',
+				config: {
+					// 'user cn string': {
+					// 	name: 'User Name',
+					// 	profileOrganization: 'User Organization',
+					// 	email: 'user@email.com',
+					// 	username: 'username',
+					// 	roles: ['ROLE']
+					// }
+				}
+			}
+		},
 
 		autoLogin: false,
 		autoCreateAccounts: false,

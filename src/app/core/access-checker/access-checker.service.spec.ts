@@ -1,3 +1,4 @@
+import config from 'config';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 import should from 'should';
@@ -6,7 +7,6 @@ import { createSandbox } from 'sinon';
 import accessChecker from './access-checker.service';
 import { CacheEntry, ICacheEntry } from './cache/cache-entry.model';
 import cacheEntryService from './cache/cache-entry.service';
-import { config } from '../../../dependencies';
 
 /**
  * Helpers
@@ -121,23 +121,14 @@ describe('Access Checker Service:', () => {
 	 * Test functionality with the access checker provider fails
 	 */
 	describe('Broken Access Checker', () => {
-		let originalAuth;
-		before(() => {
-			originalAuth = config.auth;
-			// All the data is loaded, so initialize proxy-pki
-			config.auth.accessChecker = {
-				provider: {
-					file: 'src/app/core/access-checker/providers/failure-provider.service',
-					config: {}
-				}
-			};
+		beforeEach(() => {
+			sandbox.stub(config.auth.accessChecker, 'provider').value({
+				file: 'src/app/core/access-checker/providers/failure-provider.service',
+				config: {}
+			});
 
 			// Need to clear cached provider from service to ensure proper test run.
 			accessChecker.provider = null;
-		});
-
-		after(() => {
-			config.auth = originalAuth;
 		});
 
 		// Provider fails on get
@@ -197,24 +188,14 @@ describe('Access Checker Service:', () => {
 	 * Test basic functionality of a working provider
 	 */
 	describe('Working Access Checker', () => {
-		let originalAuth;
-		before(() => {
-			originalAuth = config.auth;
-
-			// All the data is loaded, so initialize proxy-pki
-			config.auth.accessChecker = {
-				provider: {
-					file: 'src/app/core/access-checker/providers/example.provider',
-					config: provider
-				}
-			};
+		beforeEach(() => {
+			sandbox.stub(config.auth.accessChecker, 'provider').value({
+				file: 'src/app/core/access-checker/providers/example.provider',
+				config: provider
+			});
 
 			// Need to clear cached provider from service to ensure proper test run.
 			accessChecker.provider = null;
-		});
-
-		after(() => {
-			config.auth = originalAuth;
 		});
 
 		// Pull from cache
@@ -289,20 +270,11 @@ describe('Access Checker Service:', () => {
 	 * Test functionality with missing access checker config
 	 */
 	describe('Missing Access Checker Config', () => {
-		let originalAuth;
-		before(() => {
-			originalAuth = config.auth;
-			// All the data is loaded, so initialize proxy-pki
-			config.auth.accessChecker = {
-				provider: {}
-			};
+		beforeEach(() => {
+			sandbox.stub(config.auth.accessChecker, 'provider').value({});
 
 			// Need to clear cached provider from service to ensure proper test run.
 			accessChecker.provider = null;
-		});
-
-		after(() => {
-			config.auth = originalAuth;
 		});
 
 		// Provider fails on get
@@ -326,22 +298,14 @@ describe('Access Checker Service:', () => {
 	 * Test functionality with missing access checker provider file
 	 */
 	describe('Missing Access Checker Config', () => {
-		let originalAuth;
-		before(() => {
-			originalAuth = config.auth;
-			// All the data is loaded, so initialize proxy-pki
-			config.auth.accessChecker = {
-				provider: {
-					file: 'invalid/path/to/provider'
-				}
-			};
+		beforeEach(() => {
+			sandbox.stub(config.auth.accessChecker, 'provider').value({
+				file: 'invalid/path/to/provider',
+				config: {}
+			});
 
 			// Need to clear cached provider from service to ensure proper test run.
 			accessChecker.provider = null;
-		});
-
-		after(() => {
-			config.auth = originalAuth;
 		});
 
 		// Provider fails on get

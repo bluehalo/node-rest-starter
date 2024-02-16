@@ -1,9 +1,11 @@
 import path from 'path';
 
+import config from 'config';
+
 import { AccessCheckerProvider } from './access-checker.provider';
 import { CacheEntryDocument } from './cache/cache-entry.model';
 import cacheEntryService from './cache/cache-entry.service';
-import { config } from '../../../dependencies';
+import { logger } from '../../../dependencies';
 
 class AccessCheckerService {
 	provider: AccessCheckerProvider;
@@ -77,7 +79,7 @@ class AccessCheckerService {
 	}
 
 	getCacheExpire() {
-		return config.auth?.accessChecker?.cacheExpire ?? 1000 * 60 * 60 * 24;
+		return config.get('auth.accessChecker.cacheExpire');
 	}
 
 	/**
@@ -86,18 +88,32 @@ class AccessCheckerService {
 	 */
 	async getProvider(): Promise<AccessCheckerProvider> {
 		if (!this.provider) {
-			const acConfig = config.auth?.accessChecker;
-			if (!acConfig.provider?.file) {
+			if (!config.has('auth.accessChecker.provider.file')) {
+				logger.error(
+					'Invalid accessChecker provider configuration.  No `provider.file` specified'
+				);
 				return Promise.reject(
 					new Error('Invalid accessChecker provider configuration.')
 				);
 			}
+			const providerFile = config.get<string>(
+				'auth.accessChecker.provider.file'
+			);
 			try {
 				const { default: Provider } = await import(
-					path.posix.resolve(acConfig.provider.file)
+					path.posix.resolve(providerFile)
 				);
-				this.provider = new Provider(acConfig.provider.config);
+				this.provider = new Provider(
+					config.util.cloneDeep(
+						config.get('auth.accessChecker.provider.config')
+					)
+				);
 			} catch (err) {
+				logger.error(
+					err,
+					'Failed to load access checker provider: %s',
+					providerFile
+				);
 				throw new Error('Failed to load access checker provider.');
 			}
 		}
