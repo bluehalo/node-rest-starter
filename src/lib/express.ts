@@ -14,6 +14,7 @@ import actuator from 'express-actuator';
 import session from 'express-session';
 import { glob, globSync } from 'glob';
 import helmet from 'helmet';
+import { StatusCodes } from 'http-status-codes';
 import _ from 'lodash';
 import methodOverride from 'method-override';
 import { Mongoose } from 'mongoose';
@@ -23,7 +24,11 @@ import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
 import { logger } from './bunyan';
-import * as errorHandlers from '../app/common/express/error-handlers';
+import {
+	defaultErrorHandler,
+	jsonSchemaValidationErrorHandler,
+	mongooseValidationErrorHandler
+} from '../app/common/express/error-handlers';
 
 const MongoStore = connect_mongo(session);
 
@@ -172,15 +177,15 @@ async function initModulesServerRoutes(app: Express) {
  * Configure final error handlers
  */
 function initErrorRoutes(app: Express) {
-	app.use(errorHandlers.jsonSchemaValidationErrorHandler);
-	app.use(errorHandlers.mongooseValidationErrorHandler);
-	app.use(errorHandlers.defaultErrorHandler);
+	app.use(jsonSchemaValidationErrorHandler);
+	app.use(mongooseValidationErrorHandler);
+	app.use(defaultErrorHandler);
 
 	// Assume 404 since no middleware responded
 	app.use((req, res) => {
 		// Send 404 with error message
-		res.status(404).json({
-			status: 404,
+		res.status(StatusCodes.NOT_FOUND).json({
+			status: StatusCodes.NOT_FOUND,
 			type: 'not-found',
 			message: 'The resource was not found'
 		});

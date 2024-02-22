@@ -4,6 +4,7 @@ import { assert, createSandbox } from 'sinon';
 import { Feedback } from './feedback.model';
 import feedbackService from './feedback.service';
 import { auditService, emailService, config } from '../../../dependencies';
+import { NotFoundError } from '../../common/errors';
 import { User } from '../user/user.model';
 
 /**
@@ -77,17 +78,10 @@ FOOTER
 			should.exist(feedback);
 		});
 
-		it('should throw a 400 errorResult if an invalid feedback ID is supplied', async () => {
-			let error = null;
-			try {
-				await feedbackService.read('1234');
-			} catch (e) {
-				error = e;
-			}
-			should.exist(error);
-			error.status.should.equal(400);
-			error.message.should.equal('Invalid feedback ID');
-			error.type.should.equal('validation');
+		it('should throw a 404 errorResult if an invalid feedback ID is supplied', async () => {
+			await feedbackService
+				.read('1234')
+				.should.be.rejectedWith(new NotFoundError('Invalid feedback ID'));
 		});
 
 		it('should return null if a nonexistent feedback ID is supplied', async () => {

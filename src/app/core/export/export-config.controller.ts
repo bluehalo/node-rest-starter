@@ -1,9 +1,12 @@
 import os from 'os';
 import { Readable, Transform } from 'stream';
 
+import { StatusCodes } from 'http-status-codes';
+
 import { ExportColumnDef } from './export-config.model';
 import exportConfigService from './export-config.service';
 import { auditService, csvStream, logger } from '../../../dependencies';
+import { NotFoundError } from '../../common/errors';
 
 /**
  * Request to generate an export configuration in preparation to serve a CSV download soon. The config document will
@@ -25,7 +28,7 @@ export const requestExport = async (req, res) => {
 		generatedConfig.auditCopy()
 	);
 
-	res.status(200).json({ _id: generatedConfig._id });
+	res.status(StatusCodes.OK).json({ _id: generatedConfig._id });
 };
 
 /**
@@ -213,7 +216,7 @@ const loadExportConfigById = async (req, res, id) => {
 	const exportConfig = await exportConfigService.read(id);
 
 	if (exportConfig == null) {
-		throw new Error(
+		throw new NotFoundError(
 			'Export configuration not found. Document may have expired.'
 		);
 	}

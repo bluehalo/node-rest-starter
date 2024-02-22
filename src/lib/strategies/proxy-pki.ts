@@ -1,5 +1,10 @@
 import _ from 'lodash';
 
+import {
+	BadRequestError,
+	ForbiddenError,
+	UnauthorizedError
+} from '../../app/common/errors';
 import { TrustedHeadersStrategy } from '../../app/common/passport/trusted-headers-strategy';
 import userAuthService from '../../app/core/user/auth/user-authentication.service';
 import userService from '../../app/core/user/user.service';
@@ -18,11 +23,7 @@ class ProxyPkiStrategy extends TrustedHeadersStrategy {
 	async verify(req, [primaryUserDn, proxiedUserDn, masqueradeUserDn], done) {
 		// If there is no DN, we can't authenticate
 		if (!primaryUserDn) {
-			return done(null, false, {
-				status: 400,
-				type: 'missing-credentials',
-				message: 'Missing certificate'
-			});
+			return done(null, false, new BadRequestError('Missing certificate'));
 		}
 
 		try {
@@ -31,12 +32,13 @@ class ProxyPkiStrategy extends TrustedHeadersStrategy {
 			if (proxiedUserDn) {
 				// Return error if primary user tries to proxy to another user
 				if (!primaryUser.canProxy) {
-					return done(null, false, {
-						status: 403,
-						type: 'authentication-error',
-						message:
+					return done(
+						null,
+						false,
+						new ForbiddenError(
 							'Not approved to proxy users. Please verify your credentials.'
-					});
+						)
+					);
 				}
 
 				const secondaryUser = await userAuthService.verifyUser(
@@ -94,12 +96,13 @@ class ProxyPkiStrategy extends TrustedHeadersStrategy {
 			if (err.status && err.type && err.message) {
 				return done(null, false, err);
 			}
-			return done(null, false, {
-				status: 403,
-				type: 'authentication-error',
-				message:
+			return done(
+				null,
+				false,
+				new UnauthorizedError(
 					'Could not authenticate request, please verify your credentials.'
-			});
+				)
+			);
 		}
 	}
 }

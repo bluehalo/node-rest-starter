@@ -1,3 +1,4 @@
+import { StatusCodes } from 'http-status-codes';
 import _ from 'lodash';
 import { FilterQuery } from 'mongoose';
 
@@ -7,6 +8,7 @@ import {
 	logger,
 	utilService
 } from '../../../../dependencies';
+import { BadRequestError, ForbiddenError } from '../../../common/errors';
 import { Callbacks } from '../../export/callbacks';
 import * as exportConfigController from '../../export/export-config.controller';
 import { IExportConfig } from '../../export/export-config.model';
@@ -24,16 +26,14 @@ export const adminGetUser = (req, res) => {
 	// The user that is a parameter of the request is stored in 'userParam'
 	const user = req.userParam;
 
-	res.status(200).json(user.fullCopy());
+	res.status(StatusCodes.OK).json(user.fullCopy());
 };
 
 export const adminGetAll = async (req, res) => {
 	// The field that the admin is requesting is a query parameter
 	const field = req.body.field;
 	if (null == field || field.length === 0) {
-		return res.status(500).json({
-			message: 'Query field must be provided'
-		});
+		throw new BadRequestError('Query field must be provided');
 	}
 
 	const query = req.body.query;
@@ -43,7 +43,7 @@ export const adminGetAll = async (req, res) => {
 
 	const results = await User.find(utilService.toMongoose(query), proj).exec();
 
-	res.status(200).json(
+	res.status(StatusCodes.OK).json(
 		results.map((r) => {
 			return r[field];
 		})
@@ -90,7 +90,7 @@ export const adminUpdateUser = async (req, res) => {
 		}
 	}
 
-	res.status(200).json(user.fullCopy());
+	res.status(StatusCodes.OK).json(user.fullCopy());
 };
 
 // Admin Delete a User
@@ -99,9 +99,7 @@ export const adminDeleteUser = async (req, res) => {
 	const user = req.userParam;
 
 	if (!config?.allowDeleteUser) {
-		return res.status(403).json({
-			message: 'User deletion is disabled'
-		});
+		throw new ForbiddenError('User deletion is disabled');
 	}
 
 	await auditService.audit(
@@ -112,7 +110,7 @@ export const adminDeleteUser = async (req, res) => {
 		user.auditCopy()
 	);
 	await userService.remove(user);
-	res.status(200).json(user.fullCopy());
+	res.status(StatusCodes.OK).json(user.fullCopy());
 };
 
 // Admin Search for Users
@@ -136,7 +134,7 @@ export const adminSearchUsers = async (req, res) => {
 			return userCopy;
 		})
 	};
-	res.status(200).json(mappedResults);
+	res.status(StatusCodes.OK).json(mappedResults);
 };
 
 // GET the requested CSV using a special configuration from the export config collection
@@ -210,7 +208,7 @@ async function _adminCreateUser(user, req, res) {
 		req,
 		result.auditCopy()
 	);
-	res.status(200).json(result.fullCopy());
+	res.status(StatusCodes.OK).json(result.fullCopy());
 }
 
 /**

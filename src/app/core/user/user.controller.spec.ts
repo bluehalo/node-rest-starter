@@ -1,4 +1,3 @@
-import should from 'should';
 import { assert, createSandbox } from 'sinon';
 
 import userAuthorizationService from './auth/user-authorization.service';
@@ -7,6 +6,11 @@ import { User } from './user.model';
 import userService from './user.service';
 import { auditService, config, logger } from '../../../dependencies';
 import { getResponseSpy } from '../../../spec/helpers';
+import {
+	BadRequestError,
+	ForbiddenError,
+	UnauthorizedError
+} from '../../common/errors';
 
 /**
  * Unit tests
@@ -49,14 +53,11 @@ describe('User Profile Controller:', () => {
 
 			sandbox.stub(userAuthorizationService, 'updateRoles').resolves();
 
-			await userController.getCurrentUser(req, res);
+			await userController
+				.getCurrentUser(req, res)
+				.should.be.rejectedWith(new UnauthorizedError('User is not logged in'));
 
 			assert.notCalled(userAuthorizationService.updateRoles);
-
-			assert.calledWith(res.status, 400);
-			assert.calledWithMatch(res.json, {
-				message: 'User is not logged in'
-			});
 		});
 	});
 
@@ -125,38 +126,16 @@ describe('User Profile Controller:', () => {
 			sandbox.stub(userService, 'read').resolves(user);
 			sandbox.stub(auditService, 'audit').resolves();
 
-			await userController.updateCurrentUser(req, res);
+			await userController
+				.updateCurrentUser(req, res)
+				.should.be.rejectedWith(
+					new BadRequestError('Current password invalid')
+				);
 
 			assert.calledWithMatch(
 				auditService.audit,
 				'user update authentication failed'
 			);
-		});
-
-		it('user is logged in; save returns error', async () => {
-			const user = new User();
-			user.password = 'oldPassword';
-			user.save = () => Promise.reject('error');
-			const req = {
-				body: {
-					currentPassword: 'oldPassword',
-					password: 'newPassword'
-				},
-				user: user,
-				login: (u, callback) => {
-					callback('error');
-				}
-			};
-
-			sandbox.stub(userService, 'read').resolves(user);
-			sandbox.stub(auditService, 'audit').resolves();
-
-			await userController.updateCurrentUser(req, res);
-
-			assert.calledWith(res.status, 400);
-			assert.calledWithMatch(res.json, { message: 'error' });
-
-			assert.notCalled(auditService.audit);
 		});
 
 		it('user is logged in; login returns error', async () => {
@@ -190,12 +169,9 @@ describe('User Profile Controller:', () => {
 				body: {}
 			};
 
-			await userController.updateCurrentUser(req, res);
-
-			assert.calledWith(res.status, 400);
-			assert.calledWithMatch(res.json, {
-				message: 'User is not logged in'
-			});
+			await userController
+				.updateCurrentUser(req, res)
+				.should.be.rejectedWith(new BadRequestError('User is not logged in'));
 		});
 	});
 
@@ -339,14 +315,7 @@ describe('User Profile Controller:', () => {
 				user: { bypassAccessCheck: true }
 			};
 
-			let error;
-			try {
-				await userController.hasEdit(req);
-			} catch (err) {
-				error = err;
-			}
-
-			should.not.exist(error);
+			await userController.hasEdit(req).should.not.be.rejected();
 		});
 
 		it('user does not have edit', async () => {
@@ -356,16 +325,11 @@ describe('User Profile Controller:', () => {
 				user: { bypassAccessCheck: false }
 			};
 
-			let error;
-			try {
-				await userController.hasEdit(req);
-			} catch (err) {
-				error = err;
-			}
-
-			should.exist(error);
-			error.status.should.equal(403);
-			error.message.should.equal('User not authorized to edit their profile');
+			await userController
+				.hasEdit(req)
+				.should.be.rejectedWith(
+					new ForbiddenError('User not authorized to edit their profile')
+				);
 		});
 	});
 });

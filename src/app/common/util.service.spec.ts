@@ -1,6 +1,6 @@
 import should from 'should';
 
-import { config, utilService } from '../../dependencies';
+import { utilService } from '../../dependencies';
 
 /**
  * Globals
@@ -423,36 +423,6 @@ describe('Utils:', () => {
 		});
 	});
 
-	describe('validateNumber:', () => {
-		[
-			{ input: null, expected: false, name: 'should return false for null' },
-			{
-				input: undefined,
-				expected: false,
-				name: 'should return false for undefined'
-			},
-			{
-				input: emptyFn,
-				expected: false,
-				name: 'should return false for function'
-			},
-			{ input: {}, expected: false, name: 'should return false for object' },
-			{ input: [], expected: false, name: 'should return false for array' },
-			{ input: '', expected: false, name: 'should return false for string' },
-			{
-				input: '456456',
-				expected: false,
-				name: 'should return false for number string'
-			},
-			{ input: 1, expected: true, name: 'should return true for number' }
-		].forEach((test) => {
-			it(test.name, () => {
-				const actual = utilService.validateNumber(test.input);
-				should(actual).equal(test.expected);
-			});
-		});
-	});
-
 	describe('validateNonEmpty:', () => {
 		[
 			{ input: null, expected: false, name: 'should return false for null' },
@@ -482,129 +452,6 @@ describe('Utils:', () => {
 		].forEach((test) => {
 			it(test.name, () => {
 				const actual = utilService.validateNonEmpty(test.input);
-				should(actual).equal(test.expected);
-			});
-		});
-	});
-
-	describe('validateArray:', () => {
-		[
-			{ input: null, expected: false, name: 'should return false for null' },
-			{
-				input: undefined,
-				expected: false,
-				name: 'should return false for undefined'
-			},
-			{
-				input: emptyFn,
-				expected: false,
-				name: 'should return false for function'
-			},
-			{ input: {}, expected: false, name: 'should return false for object' },
-			{
-				input: [],
-				expected: false,
-				name: 'should return false for empty array'
-			},
-			{
-				input: [1, 2, 3],
-				expected: true,
-				name: 'should return true for number array'
-			},
-			{
-				input: ['Hello', 'You'],
-				expected: true,
-				name: 'should return true for string array'
-			},
-			{
-				input: ['Hello', 2, 3],
-				expected: true,
-				name: 'should return true for mixed array'
-			},
-			{
-				input: '',
-				expected: false,
-				name: 'should return false for empty string'
-			},
-			{
-				input: 'Hello',
-				expected: false,
-				name: 'should return false for string'
-			},
-			{ input: 1, expected: false, name: 'should return false for number' }
-		].forEach((test) => {
-			it(test.name, () => {
-				const actual = utilService.validateArray(test.input);
-				should(actual).equal(test.expected);
-			});
-		});
-	});
-
-	describe('getClientErrorMessage:', () => {
-		let originalExposeServerErrors;
-
-		before(() => {
-			originalExposeServerErrors = config.get<string>('exposeServerErrors');
-		});
-
-		after(() => {
-			// Restore the original exposeServerErrors config
-			config.exposeServerErrors = originalExposeServerErrors;
-		});
-
-		const defaultResponse = 'A server error has occurred.';
-		const unknownError = 'unknown error';
-
-		const errorTests = [
-			{
-				testName: 'null error',
-				error: null,
-				expected: unknownError
-			},
-			{
-				testName: 'string error',
-				error: 'This is an error',
-				expected: 'This is an error'
-			},
-			{
-				testName: 'empty string error',
-				error: '',
-				expected: ''
-			},
-			{
-				testName: 'empty object error',
-				error: {},
-				expected: 'unknown error'
-			},
-			{
-				testName: 'message object error',
-				error: { message: 'Message Error' },
-				expected: 'Message Error'
-			},
-			{
-				testName: 'message and stack object error',
-				error: { message: 'Message Error', stack: 'this is\na stack' },
-				expected: '[Message Error] this is\na stack'
-			},
-			{
-				testName: 'stack object error',
-				error: { stack: 'this is\na stack' },
-				expected: `[${unknownError}] this is\na stack`
-			}
-		];
-
-		errorTests.forEach((test) => {
-			it(`should return default error message when config is false: ${test.testName}`, () => {
-				config.exposeServerErrors = false;
-				const actual = utilService.getClientErrorMessage(test.error);
-				should(actual).equal(defaultResponse);
-			});
-		});
-
-		errorTests.forEach((test) => {
-			it(`should return contextual error message when config is true: ${test.testName}`, () => {
-				config.exposeServerErrors = true;
-				const actual = utilService.getClientErrorMessage(test.error);
 				should(actual).equal(test.expected);
 			});
 		});

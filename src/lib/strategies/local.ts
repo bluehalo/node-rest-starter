@@ -1,14 +1,11 @@
 import { Strategy as LocalStrategy } from 'passport-local';
 
+import { BadRequestError, UnauthorizedError } from '../../app/common/errors';
 import { User } from '../../app/core/user/user.model';
 
 const verify = (username: string, password: string, done) => {
 	if (!username) {
-		return done(null, false, {
-			status: 400,
-			type: 'missing-credentials',
-			message: 'No username provided'
-		});
+		return done(null, false, new BadRequestError('No username provided'));
 	}
 
 	User.findOne({ username: username })
@@ -16,11 +13,11 @@ const verify = (username: string, password: string, done) => {
 		.then((user) => {
 			// The user wasn't found or the password was wrong
 			if (!user || !user.authenticate(password)) {
-				return done(null, false, {
-					status: 401,
-					type: 'invalid-credentials',
-					message: 'Incorrect username or password'
-				});
+				return done(
+					null,
+					false,
+					new UnauthorizedError('Incorrect username or password')
+				);
 			}
 
 			// Return the user

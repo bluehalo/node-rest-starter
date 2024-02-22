@@ -1,21 +1,18 @@
 import { config } from '../../dependencies';
+import { BadRequestError, UnauthorizedError } from '../common/errors';
 
 export const verify = (role) => {
 	return function (req, res, next) {
 		// Grab the Authentication header
 		const authentication = req.headers.authentication;
 		if (null == authentication) {
-			return res.status(400).json({
-				message: 'No Authentication header present.'
-			});
+			throw new BadRequestError('No Authentication header present.');
 		}
 
 		// Break the Authentication information into token and secret
 		const tokens = authentication.split(':');
 		if (tokens.length < 2) {
-			return res.status(400).json({
-				message: 'Invalid Authentication header.'
-			});
+			throw new BadRequestError('Invalid Authentication header.');
 		}
 
 		const [token, secret] = tokens;
@@ -34,9 +31,7 @@ export const verify = (role) => {
 
 		// If it isn't found or it's wrong, reject the call
 		if (null == credentials || secret !== credentials.secret) {
-			return res.status(401).json({
-				message: 'Bad authentication data.'
-			});
+			throw new UnauthorizedError('Bad authentication data.');
 		}
 
 		// It's good so continue

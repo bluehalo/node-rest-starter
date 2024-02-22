@@ -12,6 +12,11 @@ import {
 	emailService,
 	logger
 } from '../../../dependencies';
+import {
+	BadRequestError,
+	ForbiddenError,
+	InternalServerError
+} from '../../common/errors';
 import { IUser, User, UserDocument } from '../user/user.model';
 import userService from '../user/user.service';
 
@@ -301,11 +306,11 @@ describe('Team Service:', () => {
 					team.teamWithNoExternalTeam,
 					TeamRoles.Admin
 				)
-				.should.be.rejectedWith({
-					status: 403,
-					type: 'missing-roles',
-					message: 'The user does not have the required roles for the team'
-				});
+				.should.be.rejectedWith(
+					new ForbiddenError(
+						'The user does not have the required roles for the team'
+					)
+				);
 		});
 	});
 
@@ -436,11 +441,9 @@ describe('Team Service:', () => {
 
 			await teamsService
 				.delete(team.teamWithNoExternalTeam)
-				.should.be.rejectedWith({
-					status: 400,
-					type: 'bad-request',
-					message: 'There are still resources in this team.'
-				});
+				.should.be.rejectedWith(
+					new BadRequestError('There are still resources in this team.')
+				);
 
 			// Verify team still exists
 			const result = await Team.findById(team.teamWithNoExternalTeam._id);
@@ -648,11 +651,9 @@ describe('Team Service:', () => {
 					team.teamWithNoExternalTeam,
 					TeamRoles.Member
 				)
-				.should.be.rejectedWith({
-					status: 400,
-					type: 'bad-request',
-					message: 'Team must have at least one admin'
-				});
+				.should.be.rejectedWith(
+					new BadRequestError('Team must have at least one admin')
+				);
 		});
 	});
 
@@ -672,11 +673,9 @@ describe('Team Service:', () => {
 		it('remove admin user; reject if team has no other admins', async () => {
 			await teamsService
 				.removeMemberFromTeam(user.user3, team.teamWithNoExternalTeam)
-				.should.be.rejectedWith({
-					status: 400,
-					type: 'bad-request',
-					message: 'Team must have at least one admin'
-				});
+				.should.be.rejectedWith(
+					new BadRequestError('Team must have at least one admin')
+				);
 		});
 	});
 
@@ -1006,10 +1005,9 @@ FOOTER
 		it('should reject if no team admins are found', async () => {
 			await teamsService
 				.requestAccessToTeam(user.admin, team.teamWithNoExternalTeam2, {})
-				.should.be.rejectedWith({
-					status: 404,
-					message: 'Error retrieving team admins'
-				});
+				.should.be.rejectedWith(
+					new InternalServerError('Error retrieving team admins')
+				);
 
 			const requesterCount = await User.count({
 				teams: {
@@ -1047,55 +1045,25 @@ FOOTER
 		});
 
 		it('should properly reject invalid parameters', async () => {
-			let error = null;
-			try {
-				await teamsService.requestNewTeam(null, null, null, null, null);
-			} catch (e) {
-				error = e;
-			}
-
-			should.exist(error);
-			error.status.should.equal(400);
-			error.message.should.equal('Organization cannot be empty');
-
-			error = null;
-			try {
-				await teamsService.requestNewTeam('org', null, null, null, null);
-			} catch (e) {
-				error = e;
-			}
-
-			should.exist(error);
-			error.status.should.equal(400);
-			error.message.should.equal('AOI cannot be empty');
-
-			error = null;
-			try {
-				await teamsService.requestNewTeam('org', 'aoi', null, null, null);
-			} catch (e) {
-				error = e;
-			}
-
-			should.exist(error);
-			error.status.should.equal(400);
-			error.message.should.equal('Description cannot be empty');
-
-			error = null;
-			try {
-				await teamsService.requestNewTeam(
-					'org',
-					'aoi',
-					'description',
-					null,
-					null
+			await teamsService
+				.requestNewTeam(null, null, null, null, null)
+				.should.be.rejectedWith(
+					new BadRequestError('Organization cannot be empty')
 				);
-			} catch (e) {
-				error = e;
-			}
 
-			should.exist(error);
-			error.status.should.equal(400);
-			error.message.should.equal('Invalid requester');
+			await teamsService
+				.requestNewTeam('org', null, null, null, null)
+				.should.be.rejectedWith(new BadRequestError('AOI cannot be empty'));
+
+			await teamsService
+				.requestNewTeam('org', 'aoi', null, null, null)
+				.should.be.rejectedWith(
+					new BadRequestError('Description cannot be empty')
+				);
+
+			await teamsService
+				.requestNewTeam('org', 'aoi', 'description', null, null)
+				.should.be.rejectedWith(new BadRequestError('Invalid requester'));
 		});
 
 		it('should create mailOptions properly', async () => {
@@ -1162,11 +1130,11 @@ FOOTER
 			});
 
 			it('reject for non-existent user', async () => {
-				await teamsService.getImplicitTeamIds(null).should.be.rejectedWith({
-					status: 401,
-					type: 'bad-request',
-					message: 'User does not exist'
-				});
+				await teamsService
+					.getImplicitTeamIds(null)
+					.should.be.rejectedWith(
+						new InternalServerError('User does not exist')
+					);
 			});
 
 			it('should find implicit teams for user with matching external roles (model object)', async () => {
@@ -1546,11 +1514,9 @@ FOOTER
 		});
 
 		it('should reject for non-existent user', async () => {
-			await teamsService.getExplicitTeamIds(null).should.be.rejectedWith({
-				status: 401,
-				type: 'bad-request',
-				message: 'User does not exist'
-			});
+			await teamsService
+				.getExplicitTeamIds(null)
+				.should.be.rejectedWith(new InternalServerError('User does not exist'));
 		});
 
 		it('should return no teams for user with empty teams array', async () => {

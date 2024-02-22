@@ -1,3 +1,5 @@
+import { StatusCodes } from 'http-status-codes';
+
 import accessCheckerService from './access-checker.service';
 import cacheEntryService from './cache/cache-entry.service';
 
@@ -21,20 +23,20 @@ export const matchEntries = async (req, res) => {
 		elements: results.elements.map((element) => element.fullCopy())
 	};
 
-	res.status(200).json(mappedResults);
+	res.status(StatusCodes.OK).json(mappedResults);
 };
 
 export const refreshEntry = async (req, res) => {
 	await accessCheckerService.refreshEntry(req.params.key);
-	res.status(204).end();
+	res.status(StatusCodes.NO_CONTENT).end();
 };
 
 export const deleteEntry = async (req, res) => {
 	await cacheEntryService.delete(req.params.key);
-	res.status(204).end();
+	res.status(StatusCodes.NO_CONTENT).end();
 };
 
 export const refreshCurrentUser = async (req, res) => {
 	await accessCheckerService.refreshEntry(req.user?.providerData?.dnLower);
-	res.status(204).end();
+	res.status(StatusCodes.NO_CONTENT).end();
 };

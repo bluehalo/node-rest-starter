@@ -7,6 +7,7 @@ import { UserAgreement, UserAgreementDocument } from './eua.model';
 import euaService from './eua.service';
 import { auditService, logger } from '../../../../dependencies';
 import { getResponseSpy } from '../../../../spec/helpers';
+import { ForbiddenError } from '../../../common/errors';
 import { User } from '../user.model';
 
 /**
@@ -285,34 +286,12 @@ describe('EUA Controller:', () => {
 					.stub(euaService, 'getCurrentEua')
 					.resolves(test.currentEuaReturnValue);
 
-				let err;
-				try {
-					await euaController.requiresEua(test.input);
-				} catch (e) {
-					err = e;
-				}
-
-				should.exist(err);
-				err.status.should.equal(403);
-				err.type.should.equal('eua');
-				err.message.should.equal('User must accept end-user agreement.');
+				await euaController
+					.requiresEua(test.input)
+					.should.be.rejectedWith(
+						new ForbiddenError('User must accept end-user agreement.')
+					);
 			});
-		});
-
-		it('Error thrown', async () => {
-			sandbox.stub(euaService, 'getCurrentEua').rejects('error message');
-
-			let err;
-			try {
-				await euaController.requiresEua({});
-			} catch (e) {
-				err = e;
-			}
-
-			should.exist(err);
-			err.status.should.equal(500);
-			err.type.should.equal('error');
-			err.error.name.should.equal('error message');
 		});
 	});
 });

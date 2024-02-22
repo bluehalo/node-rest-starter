@@ -1,8 +1,14 @@
+import { StatusCodes } from 'http-status-codes';
 import _ from 'lodash';
 
 import userAuthorizationService from './auth/user-authorization.service';
 import userService from './user.service';
-import { auditService, config, utilService } from '../../../dependencies';
+import { auditService, config } from '../../../dependencies';
+import {
+	BadRequestError,
+	ForbiddenError,
+	UnauthorizedError
+} from '../../common/errors';
 import teamService from '../teams/teams.service';
 
 /**
@@ -15,10 +21,7 @@ export const getCurrentUser = async (req, res) => {
 	const user = req.user;
 
 	if (null == user) {
-		res.status(400).json({
-			message: 'User is not logged in'
-		});
-		return;
+		throw new UnauthorizedError('User is not logged in');
 	}
 
 	const userCopy = user.fullCopy();
@@ -27,16 +30,14 @@ export const getCurrentUser = async (req, res) => {
 
 	await teamService.updateTeams(userCopy);
 
-	res.status(200).json(userCopy);
+	res.status(StatusCodes.OK).json(userCopy);
 };
 
 // Update Current User
 export const updateCurrentUser = async (req, res) => {
 	// Make sure the user is logged in
 	if (null == req.user) {
-		return res.status(400).json({
-			message: 'User is not logged in'
-		});
+		throw new BadRequestError('User is not logged in');
 	}
 
 	// Get the full user (including the password)
@@ -65,10 +66,7 @@ export const updateCurrentUser = async (req, res) => {
 				{}
 			);
 
-			res.status(400).json({
-				message: 'Current password invalid'
-			});
-			return;
+			throw new BadRequestError('Current password invalid');
 		}
 
 		// We passed the auth check and we're updating the password
@@ -76,44 +74,40 @@ export const updateCurrentUser = async (req, res) => {
 	}
 
 	// Save the user
-	try {
-		await user.save();
+	await user.save();
 
-		// Remove the password/salt
-		delete user.password;
-		delete user.salt;
+	// Remove the password/salt
+	delete user.password;
+	delete user.salt;
 
-		// Audit user update
-		auditService.audit('user updated', 'user', 'update', req, {
-			before: originalUser,
-			after: user.auditCopy()
-		});
+	// Audit user update
+	auditService.audit('user updated', 'user', 'update', req, {
+		before: originalUser,
+		after: user.auditCopy()
+	});
 
-		// Log in with the new info
-		req.login(user, (error) => {
-			if (error) {
-				return res.status(400).json(error);
-			}
-			res.status(200).json(user.fullCopy());
-		});
-	} catch (err) {
-		utilService.catchError(res, err);
-	}
+	// Log in with the new info
+	req.login(user, (error) => {
+		if (error) {
+			return res.status(StatusCodes.BAD_REQUEST).json(error);
+		}
+		res.status(StatusCodes.OK).json(user.fullCopy());
+	});
 };
 
 export const updatePreferences = async (req, res) => {
 	await userService.updatePreferences(req.user, req.body);
-	res.status(200).json({});
+	res.status(StatusCodes.OK).json({});
 };
 
 export const updateRequiredOrgs = async (req, res) => {
 	await userService.updateRequiredOrgs(req.user, req.body);
-	res.status(200).json({});
+	res.status(StatusCodes.OK).json({});
 };
 
 // Get a filtered version of a user by id
 export const getUserById = (req, res) => {
-	res.status(200).json(req.userParam.filteredCopy());
+	res.status(StatusCodes.OK).json(req.userParam.filteredCopy());
 };
 
 // Search for users (return filtered version of user)
@@ -130,7 +124,7 @@ export const searchUsers = async (req, res) => {
 		totalPages: results.totalPages,
 		elements: results.elements.map((user) => user.filteredCopy())
 	};
-	res.status(200).json(mappedResults);
+	res.status(StatusCodes.OK).json(mappedResults);
 };
 
 // Match users given a search fragment
@@ -151,7 +145,7 @@ export const matchUsers = async (req, res) => {
 		totalPages: results.totalPages,
 		elements: results.elements.map((user) => user.filteredCopy())
 	};
-	res.status(200).json(mappedResults);
+	res.status(StatusCodes.OK).json(mappedResults);
 };
 
 export const canEditProfile = (authStrategy, user) => {
@@ -163,11 +157,9 @@ export const hasEdit = (req) => {
 	if (canEditProfile(config.auth.strategy, req.user)) {
 		return Promise.resolve();
 	}
-	return Promise.reject({
-		status: 403,
-		type: 'not-authorized',
-		message: 'User not authorized to edit their profile'
-	});
+	return Promise.reject(
+		new ForbiddenError('User not authorized to edit their profile')
+	);
 };
 
 // User middleware - stores user corresponding to id in 'userParam'

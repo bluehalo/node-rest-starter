@@ -5,6 +5,7 @@ import { assert, createSandbox } from 'sinon';
 
 import userPasswordService from './user-password.service';
 import { config, emailService, logger } from '../../../../dependencies';
+import { BadRequestError } from '../../../common/errors';
 import { User } from '../user.model';
 
 /**
@@ -52,16 +53,9 @@ describe('User Password Service:', () => {
 		it('error generating token', async () => {
 			sandbox.stub(crypto, 'randomBytes').callsArgWith(1, new Error('error'));
 
-			let token;
-			let error;
-			try {
-				token = await userPasswordService.generateToken();
-			} catch (err) {
-				error = err;
-			}
-			should.not.exist(token);
-			should.exist(error);
-			error.message.should.equal('error');
+			await userPasswordService
+				.generateToken()
+				.should.be.rejectedWith(new Error('error'));
 		});
 	});
 
@@ -86,21 +80,11 @@ describe('User Password Service:', () => {
 		});
 
 		it('should throw error for invalid user', async () => {
-			let error;
-			try {
-				await userPasswordService.setResetTokenForUser(
-					'invalid-user',
-					testToken
+			await userPasswordService
+				.setResetTokenForUser('invalid-user', testToken)
+				.should.be.rejectedWith(
+					new BadRequestError('No account with that username has been found.')
 				);
-			} catch (e) {
-				error = e;
-			}
-
-			should.exist(error);
-			should.exist(error.message);
-			error.message.should.equal(
-				'No account with that username has been found.'
-			);
 		});
 	});
 
@@ -125,18 +109,11 @@ describe('User Password Service:', () => {
 		});
 
 		it('should throw error for invalid token', async () => {
-			let error;
-			try {
-				await userPasswordService.resetPasswordForToken('invalid-token', '');
-			} catch (e) {
-				error = e;
-			}
-
-			should.exist(error);
-			should.exist(error.message);
-			error.message.should.equal(
-				'Password reset token is invalid or has expired.'
-			);
+			await userPasswordService
+				.resetPasswordForToken('invalid-token', '')
+				.should.be.rejectedWith(
+					new BadRequestError('Password reset token is invalid or has expired.')
+				);
 		});
 	});
 

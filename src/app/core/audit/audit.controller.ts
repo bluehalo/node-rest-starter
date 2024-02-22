@@ -1,3 +1,4 @@
+import { StatusCodes } from 'http-status-codes';
 import _ from 'lodash';
 import { FilterQuery } from 'mongoose';
 
@@ -12,7 +13,7 @@ import { IExportConfig } from '../export/export-config.model';
  */
 export const getDistinctValues = async (req, res) => {
 	const results = await Audit.distinct(req.query.field, {});
-	res.status(200).json(results);
+	res.status(StatusCodes.OK).json(results);
 };
 
 export const search = async function (req, res) {
@@ -45,7 +46,7 @@ export const search = async function (req, res) {
 	});
 
 	// Serialize the response
-	res.status(200).json(result);
+	res.status(StatusCodes.OK).json(result);
 };
 
 export const getCSV = (req, res) => {

@@ -1,5 +1,8 @@
+import { StatusCodes } from 'http-status-codes';
+
 import messageService from './messages.service';
 import { auditService } from '../../../dependencies';
+import { NotFoundError } from '../../common/errors';
 
 // Create
 export const create = async (req, res) => {
@@ -17,12 +20,12 @@ export const create = async (req, res) => {
 		message.auditCopy()
 	);
 
-	res.status(200).json(message);
+	res.status(StatusCodes.OK).json(message);
 };
 
 // Read
 export const read = (req, res) => {
-	res.status(200).json(req.message);
+	res.status(StatusCodes.OK).json(req.message);
 };
 
 // Update
@@ -38,7 +41,7 @@ export const update = async (req, res) => {
 		after: updatedMessage.auditCopy()
 	});
 
-	res.status(200).json(updatedMessage);
+	res.status(StatusCodes.OK).json(updatedMessage);
 };
 
 // Delete
@@ -54,7 +57,7 @@ export const deleteMessage = async (req, res) => {
 		req.message.auditCopy()
 	);
 
-	res.status(200).json(req.message);
+	res.status(StatusCodes.OK).json(req.message);
 };
 
 // Search - with paging and sorting
@@ -74,7 +77,7 @@ export const search = async (req, res) => {
 		elements: results.elements.map((element) => element.fullCopy())
 	};
 
-	res.status(200).json(mappedResults);
+	res.status(StatusCodes.OK).json(mappedResults);
 };
 
 /**
@@ -83,7 +86,7 @@ export const search = async (req, res) => {
 export const messageById = async (req, res, next, id) => {
 	const message = await messageService.read(id);
 	if (!message) {
-		return next(new Error(`Failed to load message: ${id}`));
+		return next(new NotFoundError(`Failed to load message: ${id}`));
 	}
 	req.message = message;
 	return next();
@@ -94,7 +97,7 @@ export const messageById = async (req, res, next, id) => {
  */
 export const getRecentMessages = async (req, res) => {
 	const result = await messageService.getRecentMessages(req.user._id);
-	res.status(200).json(result);
+	res.status(StatusCodes.OK).json(result);
 };
 
 /**
@@ -119,5 +122,5 @@ export const dismissMessage = async (req, res) => {
 		);
 	}
 
-	res.status(200).json(dismissedMessages);
+	res.status(StatusCodes.OK).json(dismissedMessages);
 };
