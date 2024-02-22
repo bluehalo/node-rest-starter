@@ -1,3 +1,5 @@
+import { StatusCodes } from 'http-status-codes';
+
 import userAuthService from './user-authentication.service';
 import userAuthorizationService from './user-authorization.service';
 import { auditService, config } from '../../../../dependencies';
@@ -31,7 +33,7 @@ const _signup = async (user: UserDocument, req, res) => {
 	const result = await userAuthService.login(user, req);
 	userAuthorizationService.updateRoles(result);
 	await teamService.updateTeams(result);
-	res.status(200).json(result);
+	res.status(StatusCodes.OK).json(result);
 };
 
 /**
@@ -83,7 +85,7 @@ export const signin = async (req, res, next) => {
 
 	userAuthorizationService.updateRoles(result);
 	await teamService.updateTeams(result);
-	res.status(200).json(result);
+	res.status(StatusCodes.OK).json(result);
 };
 
 /**

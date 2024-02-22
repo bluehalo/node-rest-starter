@@ -7,6 +7,7 @@ import { FilterQuery } from 'mongoose';
 
 import { ExternalRoleMapProvider } from './external-role-map.provider';
 import { config } from '../../../../dependencies';
+import { UnauthorizedError } from '../../../common/errors';
 import { IUser, UserDocument } from '../user.model';
 
 class UserAuthorizationService {
@@ -101,12 +102,11 @@ class UserAuthorizationService {
 		if (isAdmin || resource.creator.equals(user._id)) {
 			return Promise.resolve();
 		}
-		return Promise.reject({
-			status: 403,
-			type: 'unauthorized',
-			message:
+		return Promise.reject(
+			new UnauthorizedError(
 				'The user does not have the necessary permissions to access this resource'
-		});
+			)
+		);
 	}
 
 	/**

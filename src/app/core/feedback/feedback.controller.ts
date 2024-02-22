@@ -1,9 +1,11 @@
+import { StatusCodes } from 'http-status-codes';
 import _ from 'lodash';
 import { FilterQuery } from 'mongoose';
 
 import { FeedbackDocument } from './feedback.model';
 import feedbackService from './feedback.service';
 import { auditService, config } from '../../../dependencies';
+import { NotFoundError } from '../../common/errors';
 import { Callbacks } from '../export/callbacks';
 import * as exportConfigController from '../export/export-config.controller';
 import { IExportConfig } from '../export/export-config.model';
@@ -23,7 +25,7 @@ export const submitFeedback = async function (req, res) {
 	);
 	await feedbackService.sendFeedbackEmail(req.user, feedback, req);
 
-	res.status(200).json(feedback);
+	res.status(StatusCodes.OK).json(feedback);
 };
 
 export const adminGetFeedbackCSV = function (req, res) {
@@ -69,7 +71,7 @@ export const search = async (req, res) => {
 			select: ['username', 'organization', 'name', 'email']
 		}
 	);
-	res.status(200).json(results);
+	res.status(StatusCodes.OK).json(results);
 };
 
 export const updateFeedbackAssignee = async (req, res) => {
@@ -87,7 +89,7 @@ export const updateFeedbackAssignee = async (req, res) => {
 		req.body.assignee
 	);
 	const updatedFeedback = await updateFeedbackAssigneePromise;
-	res.status(200).json(updatedFeedback);
+	res.status(StatusCodes.OK).json(updatedFeedback);
 };
 
 export const updateFeedbackStatus = async (req, res) => {
@@ -105,7 +107,7 @@ export const updateFeedbackStatus = async (req, res) => {
 		req.body.status
 	);
 	const updatedFeedback = await updateFeedbackStatusPromise;
-	res.status(200).json(updatedFeedback);
+	res.status(StatusCodes.OK).json(updatedFeedback);
 };
 
 /**
@@ -121,11 +123,7 @@ export const feedbackById = async (req, res, next, id) => {
 
 	req.feedback = await feedbackService.read(id, populate);
 	if (!req.feedback) {
-		throw {
-			status: 404,
-			type: 'not-found',
-			message: 'Could not find feedback'
-		};
+		throw new NotFoundError('Could not find feedback');
 	}
 	return next();
 };

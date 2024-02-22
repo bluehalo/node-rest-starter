@@ -3,7 +3,6 @@ import { Router } from 'express';
 import * as userAuthentication from './user-authentication.controller';
 import * as userPassword from './user-password.controller';
 import { config, logger } from '../../../../dependencies';
-import { hasLogin } from '../user-auth.middleware';
 
 const router = Router();
 
@@ -47,7 +46,7 @@ router.route('/auth/signin').post(userAuthentication.signin);
  *       '200':
  *          description: User was signed out.
  */
-router.route('/auth/signout').get(hasLogin, userAuthentication.signout);
+router.route('/auth/signout').get(userAuthentication.signout);
 
 /**
  * Routes that only apply to the 'local' passport strategy

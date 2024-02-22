@@ -52,14 +52,14 @@
 		"rest-spread-spacing": ["error"],
 		"prefer-arrow-callback": ["error"],
 		"jsdoc/no-undefined-types": 1,
+		"no-throw-literal": ["error"],
+		"prefer-promise-reject-errors": ["error"],
+		"no-else-return": ["error"],
+		"guard-for-in": ["error"],
 
 		//		"arrow-body-style": ["warn", "as-needed"],
 		//		"handle-callback-err": ["warn"],
-		//		"prefer-promise-reject-errors": ["warn"],
-		//		"no-else-return": ["warn"],
-		//		"no-throw-literal": ["warn"],
-		//		"guard-for-in": ["warn"],
-		//		"no-shadow": ["warn"]
+		//		"no-shadow": ["warn"],
 
 		"prettier/prettier": ["error"]
 	},

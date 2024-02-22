@@ -4,6 +4,7 @@ import userAuthService from './auth/user-authentication.service';
 import userAuthorizationService from './auth/user-authorization.service';
 import { requiresEua } from './eua/eua.controller';
 import { config } from '../../../dependencies';
+import { ForbiddenError, UnauthorizedError } from '../../common/errors';
 import { has, hasAll, requiresAny } from '../../common/express/auth-middleware';
 
 /**
@@ -84,38 +85,27 @@ export const requiresLogin = (req, res, next) => {
 		return userAuthService.authenticateAndLogin(req, res, next);
 	}
 	// Otherwise don't
-	return Promise.reject({
-		status: 401,
-		type: 'no-login',
-		message: 'User is not logged in'
-	});
+	return Promise.reject(new UnauthorizedError('User is not logged in'));
 };
 
 /**
  * Require the passed roles
  */
-export const requiresRoles = (roles: string[], rejectStatus?: unknown) => {
-	rejectStatus = rejectStatus || {
-		status: 403,
-		type: 'missing-roles',
-		message: 'User is missing required roles'
-	};
-
+export const requiresRoles = (
+	roles: string[],
+	errorMessage = 'User is missing required roles'
+) => {
 	return (req) => {
 		if (userAuthorizationService.hasRoles(req.user, roles)) {
 			return Promise.resolve();
 		}
-		return Promise.reject(rejectStatus);
+		return Promise.reject(new ForbiddenError(errorMessage));
 	};
 };
 
 //Detects if the user has the user role
 export const requiresUserRole = (req) => {
-	return requiresRoles(['user'], {
-		status: 403,
-		type: 'inactive',
-		message: 'User account is inactive'
-	})(req);
+	return requiresRoles(['user'], 'User account is inactive')(req);
 };
 
 //Detects if the user has the editor role
@@ -157,11 +147,9 @@ export const requiresExternalRoles = (req, requiredRoles) => {
 
 		// Reject if the user is missing required roles
 		if (_.difference(requiredRoles, userRoles).length > 0) {
-			return Promise.reject({
-				status: 403,
-				type: 'noaccess',
-				message: 'User is missing required roles'
-			});
+			return Promise.reject(
+				new ForbiddenError('User is missing required external roles')
+			);
 		}
 		// Resolve if they had all the roles
 		return Promise.resolve();
@@ -188,9 +176,7 @@ export const requiresOrganizationLevels = (req) => {
 
 	return !_.isEmpty(req.user.organizationLevels)
 		? Promise.resolve()
-		: Promise.reject({
-				status: 403,
-				type: 'requiredOrg',
-				message: 'User must select organization levels.'
-		  });
+		: Promise.reject(
+				new ForbiddenError('User must select organization levels.')
+		  );
 };

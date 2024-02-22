@@ -3,6 +3,7 @@ import { assert, createSandbox } from 'sinon';
 import * as userAdminController from './user-admin.controller';
 import { auditService, config } from '../../../../dependencies';
 import { getResponseSpy } from '../../../../spec/helpers';
+import { BadRequestError } from '../../../common/errors';
 import userEmailService from '../user-email.service';
 import { User } from '../user.model';
 import userService from '../user.service';
@@ -93,13 +94,13 @@ describe('User Admin Controller:', () => {
 				exec: () => Promise.resolve([])
 			});
 
-			await userAdminController.adminGetAll(req, res);
+			await userAdminController
+				.adminGetAll(req, res)
+				.should.be.rejectedWith(
+					new BadRequestError('Query field must be provided')
+				);
 
 			assert.notCalled(User.find);
-			assert.calledWith(res.status, 500);
-			assert.calledWithMatch(res.json, {
-				message: 'Query field must be provided'
-			});
 		});
 
 		it('query field is empty string; returns error', async () => {
@@ -111,13 +112,13 @@ describe('User Admin Controller:', () => {
 				exec: () => Promise.resolve([])
 			});
 
-			await userAdminController.adminGetAll(req, res);
+			await userAdminController
+				.adminGetAll(req, res)
+				.should.be.rejectedWith(
+					new BadRequestError('Query field must be provided')
+				);
 
 			assert.notCalled(User.find);
-			assert.calledWith(res.status, 500);
-			assert.calledWithMatch(res.json, {
-				message: 'Query field must be provided'
-			});
 		});
 	});
 

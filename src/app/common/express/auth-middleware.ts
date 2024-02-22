@@ -54,10 +54,9 @@ export const requiresAll = (requirements: Array<RequirementFunction>) => {
 					// Success means try the next one
 					return applyRequirement(++i);
 				});
-			} else {
-				// Once they all pass, we're good
-				return Promise.resolve();
 			}
+			// Once they all pass, we're good
+			return Promise.resolve();
 		};
 
 		return applyRequirement(0);
@@ -80,10 +79,9 @@ export const requiresAny = (requirements: Array<RequirementFunction>) => {
 						error = errorResult;
 						return applyRequirement(++i);
 					});
-			} else {
-				// If we run out of requirements, fail with the last error
-				return Promise.reject(error);
 			}
+			// If we run out of requirements, fail with the last error
+			return Promise.reject(error);
 		};
 
 		if (requirements.length > 0) {

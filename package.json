@@ -69,6 +69,7 @@
     "glob": "10.3.10",
     "handlebars": "^4.7.7",
     "helmet": "3.21.1",
+    "http-status-codes": "^2.3.0",
     "jsonpath": "^1.1.1",
     "lodash": "4.17.21",
     "luxon": "^1.28.1",

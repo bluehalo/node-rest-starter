@@ -1,8 +1,10 @@
 import config from 'config';
 import { ValidationError } from 'express-json-validator-middleware';
 import _ from 'lodash';
+import { Error } from 'mongoose';
 
 import { logger } from '../../../dependencies';
+import { BadRequestError, HttpError, InternalServerError } from '../errors';
 
 const getStatus = (err) => {
 	logger.error(err.status < 400);
@@ -12,7 +14,9 @@ const getStatus = (err) => {
 	return err.status;
 };
 
-const getMessage = (err) => {
+const getMessage = (
+	err: string | Error | { name: string; message?: unknown }
+) => {
 	if (_.isString(err)) {
 		return err;
 	}
@@ -47,12 +51,9 @@ export const mongooseValidationErrorHandler = (err, req, res, next) => {
 
 	// Map to format expected by default error handler and pass on
 	const errors = getMongooseValidationErrors(err);
-	return next({
-		status: 400,
-		type: 'validation',
-		message: errors.map((e) => e.message).join(', '),
-		errors
-	});
+	return next(
+		new BadRequestError(errors.map((e) => e.message).join(', '), errors)
+	);
 };
 
 export const jsonSchemaValidationErrorHandler = (err, req, res, next) => {
@@ -60,12 +61,7 @@ export const jsonSchemaValidationErrorHandler = (err, req, res, next) => {
 		return next(err);
 	}
 
-	res.status(400).json({
-		status: 400,
-		type: 'validation',
-		message: 'Invalid submission',
-		errors: err.validationErrors
-	});
+	return next(new BadRequestError('Invalid submission', err.validationErrors));
 };
 
 export const defaultErrorHandler = (err, req, res, next) => {
@@ -73,6 +69,27 @@ export const defaultErrorHandler = (err, req, res, next) => {
 		return next(err);
 	}
 
+	const exposeServerErrors = config.get<boolean>('exposeServerErrors');
+
+	if (err instanceof InternalServerError) {
+		return res.status(err.status).json({
+			status: err.status,
+			message: exposeServerErrors
+				? err.message
+				: 'A server error has occurred.',
+			type: err.name,
+			stack: exposeServerErrors ? err.stack : undefined
+		});
+	} else if (err instanceof HttpError) {
+		logger.error(req.url, err);
+
+		return res.status(err.status).json({
+			status: err.status,
+			message: err.message,
+			type: err.name,
+			stack: config.get<boolean>('exposeServerErrors') ? err.stack : undefined
+		});
+	}
 	const errorResponse = {
 		status: getStatus(err),
 		type: err.type ?? 'server-error',

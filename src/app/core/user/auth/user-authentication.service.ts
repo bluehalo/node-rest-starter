@@ -1,6 +1,7 @@
 import passport from 'passport';
 
 import { auditService, config } from '../../../../dependencies';
+import { InternalServerError, UnauthorizedError } from '../../../common/errors';
 import accessChecker from '../../access-checker/access-checker.service';
 import userEmailService from '../user-email.service';
 import { IUser, UserDocument, User, UserModel } from '../user.model';
@@ -30,7 +31,7 @@ class UserAuthenticationService {
 			// Calls the login function (which goes to passport)
 			req.login(user, (err) => {
 				if (err) {
-					return reject({ status: 500, type: 'login-error', message: err });
+					return reject(new InternalServerError(err));
 				}
 
 				userEmailService.welcomeWithAccessEmail(user, req);
@@ -42,11 +43,7 @@ class UserAuthenticationService {
 					{ new: true, upsert: false },
 					(_err, _user: UserDocument) => {
 						if (_err) {
-							return reject({
-								status: 500,
-								type: 'login-error',
-								message: _err
-							});
+							return reject(new InternalServerError(_err.message));
 						}
 						return resolve(_user.fullCopy());
 					}
@@ -74,11 +71,7 @@ class UserAuthenticationService {
 				// If there was an error
 				if (err) {
 					// Reject the promise with a 500 error
-					return reject({
-						status: 500,
-						type: 'authentication-error',
-						message: err
-					});
+					return reject(new InternalServerError(err));
 				}
 				// If the authentication failed
 				if (!user) {
@@ -214,11 +207,9 @@ class UserAuthenticationService {
 			null == acUser &&
 			(isProxy || !autoCreateAccounts)
 		) {
-			throw {
-				status: 401,
-				type: 'invalid-credentials',
-				message: 'Certificate unknown, expired, or unauthorized'
-			};
+			throw new UnauthorizedError(
+				'Certificate unknown, expired, or unauthorized'
+			);
 		}
 
 		// Else if the user is not known locally, and we are creating accounts, create the account as an empty account

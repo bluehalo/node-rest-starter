@@ -14,6 +14,12 @@ import {
 	logger,
 	utilService
 } from '../../../dependencies';
+import {
+	BadRequestError,
+	ForbiddenError,
+	InternalServerError,
+	NotFoundError
+} from '../../common/errors';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { IdOrObject, Override } from '../../common/typescript-util';
 import userAuthService from '../user/auth/user-authorization.service';
@@ -88,7 +94,7 @@ class TeamsService {
 			| Array<string | PopulateOptions> = []
 	): Promise<TeamDocument | null> {
 		if (!mongoose.Types.ObjectId.isValid(id)) {
-			throw { status: 400, type: 'validation', message: 'Invalid team ID' };
+			return Promise.reject(new NotFoundError('Invalid team ID'));
 		}
 		return this.model
 			.findById(id)
@@ -275,11 +281,11 @@ class TeamsService {
 			return Promise.resolve();
 		}
 
-		return Promise.reject({
-			status: 403,
-			type: 'missing-roles',
-			message: 'The user does not have the required roles for the team'
-		});
+		return Promise.reject(
+			new ForbiddenError(
+				'The user does not have the required roles for the team'
+			)
+		);
 	}
 
 	/**
@@ -343,11 +349,9 @@ class TeamsService {
 		const resourceCount = await this.getResourceCount(team);
 
 		if (resourceCount > 0) {
-			return Promise.reject({
-				status: 400,
-				type: 'bad-request',
-				message: 'There are still resources in this team.'
-			});
+			return Promise.reject(
+				new BadRequestError('There are still resources in this team.')
+			);
 		}
 
 		return Promise.resolve();
@@ -392,11 +396,9 @@ class TeamsService {
 		if (adminFound) {
 			return Promise.resolve();
 		}
-		return Promise.reject({
-			status: 400,
-			type: 'bad-request',
-			message: 'Team must have at least one admin'
-		});
+		return Promise.reject(
+			new BadRequestError('Team must have at least one admin')
+		);
 	}
 
 	private getImplicitMemberFilter(
@@ -613,10 +615,9 @@ class TeamsService {
 		const adminEmails = admins.map((admin) => admin.email);
 
 		if (null == adminEmails || adminEmails.length === 0) {
-			return Promise.reject({
-				status: 404,
-				message: 'Error retrieving team admins'
-			});
+			return Promise.reject(
+				new InternalServerError('Error retrieving team admins')
+			);
 		}
 
 		// Add requester role to user for this team
@@ -634,22 +635,18 @@ class TeamsService {
 		req
 	): Promise<void> {
 		if (null == org) {
-			return Promise.reject({
-				status: 400,
-				message: 'Organization cannot be empty'
-			});
+			return Promise.reject(
+				new BadRequestError('Organization cannot be empty')
+			);
 		}
 		if (null == aoi) {
-			return Promise.reject({ status: 400, message: 'AOI cannot be empty' });
+			return Promise.reject(new BadRequestError('AOI cannot be empty'));
 		}
 		if (null == description) {
-			return Promise.reject({
-				status: 400,
-				message: 'Description cannot be empty'
-			});
+			return Promise.reject(new BadRequestError('Description cannot be empty'));
 		}
 		if (null == requester) {
-			return Promise.reject({ status: 400, message: 'Invalid requester' });
+			return Promise.reject(new BadRequestError('Invalid requester'));
 		}
 
 		try {
@@ -676,12 +673,9 @@ class TeamsService {
 		...roles: TeamRoles[]
 	): Promise<Types.ObjectId[]> {
 		// Validate the user input
+		// This check shouldn't be need once strictNullChecks is enabled
 		if (null == user) {
-			return Promise.reject({
-				status: 401,
-				type: 'bad-request',
-				message: 'User does not exist'
-			});
+			return Promise.reject(new InternalServerError('User does not exist'));
 		}
 
 		let userTeams = _.isArray(user.teams) ? user.teams : [];
@@ -701,12 +695,9 @@ class TeamsService {
 		...roles: TeamRoles[]
 	): Promise<Types.ObjectId[]> {
 		// Validate the user input
+		// This check shouldn't be need once strictNullChecks is enabled
 		if (null == user) {
-			return Promise.reject({
-				status: 401,
-				type: 'bad-request',
-				message: 'User does not exist'
-			});
+			return Promise.reject(new InternalServerError('User does not exist'));
 		}
 
 		const strategy = config?.teams?.implicitMembers?.strategy ?? null;

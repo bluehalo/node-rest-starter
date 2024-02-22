@@ -1,6 +1,9 @@
+import { StatusCodes } from 'http-status-codes';
+
 import { TeamRoles } from './team-role.model';
 import teamsService from './teams.service';
 import { utilService, auditService } from '../../../dependencies';
+import { BadRequestError, NotFoundError } from '../../common/errors';
 import userService from '../user/user.service';
 
 /**
@@ -22,14 +25,14 @@ export const create = async (req, res) => {
 		result.auditCopy()
 	);
 
-	res.status(200).json(result);
+	res.status(StatusCodes.OK).json(result);
 };
 
 /**
  * Read the team
  */
 export const read = (req, res) => {
-	res.status(200).json(req.team);
+	res.status(StatusCodes.OK).json(req.team);
 };
 
 /**
@@ -46,7 +49,7 @@ export const update = async (req, res) => {
 		after: result.auditCopy()
 	});
 
-	res.status(200).json(result);
+	res.status(StatusCodes.OK).json(result);
 };
 
 /**
@@ -64,7 +67,7 @@ export const deleteTeam = async (req, res) => {
 		req.team.auditCopy()
 	);
 
-	res.status(200).json(req.team);
+	res.status(StatusCodes.OK).json(req.team);
 };
 
 /**
@@ -76,12 +79,12 @@ export const search = async (req, res) => {
 	const query = utilService.toMongoose(req.body.q ?? {});
 
 	const result = await teamsService.search(req.query, query, search, req.user);
-	res.status(200).json(result);
+	res.status(StatusCodes.OK).json(result);
 };
 
 export const getAncestorTeamIds = async (req, res) => {
 	const result = await teamsService.getAncestorTeamIds(req.body.teamIds);
-	res.status(200).json(result);
+	res.status(StatusCodes.OK).json(result);
 };
 
 export const requestNewTeam = async (req, res) => {
@@ -98,12 +101,12 @@ export const requestNewTeam = async (req, res) => {
 		description
 	});
 
-	res.status(204).end();
+	res.status(StatusCodes.NO_CONTENT).end();
 };
 
 export const requestAccess = async (req, res) => {
 	await teamsService.requestAccessToTeam(req.user, req.team, req);
-	res.status(204).end();
+	res.status(StatusCodes.NO_CONTENT).end();
 };
 
 /**
@@ -133,7 +136,7 @@ export const searchMembers = async (req, res) => {
 		})
 	};
 
-	res.status(200).json(mappedResults);
+	res.status(StatusCodes.OK).json(mappedResults);
 };
 
 /**
@@ -153,7 +156,7 @@ export const addMember = async (req, res) => {
 		req.team.auditCopyTeamMember(req.userParam, role)
 	);
 
-	res.status(204).end();
+	res.status(StatusCodes.NO_CONTENT).end();
 };
 
 /**
@@ -177,7 +180,7 @@ export const addMembers = async (req, res) => {
 				}
 			})
 	);
-	res.status(204).end();
+	res.status(StatusCodes.NO_CONTENT).end();
 };
 
 /**
@@ -195,7 +198,7 @@ export const removeMember = async (req, res) => {
 		req.team.auditCopyTeamMember(req.userParam)
 	);
 
-	res.status(204).end();
+	res.status(StatusCodes.NO_CONTENT).end();
 };
 
 export const updateMemberRole = async (req, res) => {
@@ -212,7 +215,7 @@ export const updateMemberRole = async (req, res) => {
 		req.team.auditCopyTeamMember(req.userParam, role)
 	);
 
-	res.status(204).end();
+	res.status(StatusCodes.NO_CONTENT).end();
 };
 
 /**
@@ -232,7 +235,7 @@ export const teamById = async (req, res, next, id: string) => {
 
 	const team = await teamsService.read(id, populate);
 	if (!team) {
-		return next(new Error('Could not find team'));
+		return next(new NotFoundError('Could not find team'));
 	}
 	req.team = team;
 	return next();
@@ -256,19 +259,11 @@ function requiresRole(role: TeamRoles): (req) => Promise<void> {
 		// Verify that the user and team are on the request
 		const user = req.user;
 		if (null == user) {
-			return Promise.reject({
-				status: 400,
-				type: 'bad-request',
-				message: 'No user for request'
-			});
+			return Promise.reject(new BadRequestError('No user for request'));
 		}
 		const team = req.team;
 		if (null == team) {
-			return Promise.reject({
-				status: 400,
-				type: 'bad-request',
-				message: 'No team for request'
-			});
+			return Promise.reject(new BadRequestError('No team for request'));
 		}
 
 		return teamsService.meetsRoleRequirement(user, team, role);

@@ -5,6 +5,7 @@ import _ from 'lodash';
 
 import { EmailProvider, MailOptions } from './email.provider';
 import { logger } from '../../../../dependencies';
+import { InternalServerError } from '../../../common/errors';
 
 type Options = AgentOptions & {
 	headers: Record<string, string | number>;
@@ -49,7 +50,7 @@ export default class HttpsEmailProvider implements EmailProvider {
 				});
 				res.on('end', () => {
 					if (res.statusCode === 404) {
-						reject('Email service not found');
+						reject(new InternalServerError('Email service not found'));
 					} else if (res.statusCode !== 200) {
 						reject(data); // send back the error
 					} else {

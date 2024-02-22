@@ -31,14 +31,12 @@ describe('Email Service:', () => {
 					html: null
 				}
 			].forEach((options) => {
-				let error;
-				try {
+				should(() => {
 					emailService.validateMailOptions(options);
-				} catch (e) {
-					error = e;
-				}
-				error.message.should.equal(
-					'The following required values were not specified in mailOptions: ("to" or "cc" or "bcc"), "from", "subject", ("text" or "html")'
+				}).throw(
+					new Error(
+						'The following required values were not specified in mailOptions: ("to" or "cc" or "bcc"), "from", "subject", ("text" or "html")'
+					)
 				);
 			});
 
@@ -50,52 +48,43 @@ describe('Email Service:', () => {
 					html: null
 				}
 			].forEach((options) => {
-				let error;
-				try {
+				should(() => {
 					emailService.validateMailOptions(options);
-				} catch (e) {
-					error = e;
-				}
-				error.message.should.equal(
-					'The following required values were not specified in mailOptions: "from", "subject", ("text" or "html")'
+				}).throw(
+					new Error(
+						'The following required values were not specified in mailOptions: "from", "subject", ("text" or "html")'
+					)
 				);
 			});
 
-			let error;
-			try {
+			should(() => {
 				emailService.validateMailOptions({ from: 'sender' });
-			} catch (e) {
-				error = e;
-			}
-			error.message.should.equal(
-				'The following required values were not specified in mailOptions: ("to" or "cc" or "bcc"), "subject", ("text" or "html")'
+			}).throw(
+				new Error(
+					'The following required values were not specified in mailOptions: ("to" or "cc" or "bcc"), "subject", ("text" or "html")'
+				)
 			);
 
-			try {
+			should(() => {
 				emailService.validateMailOptions({
 					to: 'recipient',
 					from: 'sender',
 					html: '("text" or "html")'
 				});
-			} catch (e) {
-				error = e;
-			}
-			error.message.should.equal(
-				'The following required values were not specified in mailOptions: "subject"'
+			}).throw(
+				new Error(
+					'The following required values were not specified in mailOptions: "subject"'
+				)
 			);
 
-			error = null;
-			try {
+			should(() => {
 				emailService.validateMailOptions({
 					to: 'recipient',
 					from: 'sender',
 					html: '("text" or "html")',
 					subject: 'subject'
 				});
-			} catch (e) {
-				error = e;
-			}
-			should(error).be.null();
+			}).not.throwError();
 		});
 	});
 
@@ -106,51 +95,35 @@ describe('Email Service:', () => {
 
 			sandbox.stub(config, 'mailer').value({});
 
-			let error = null;
-
-			try {
-				await emailService.sendMail({});
-			} catch (err) {
-				error = err;
-			}
-			error.should.not.be.null();
-			error.message.should.not.be.null();
-			error.message.should.equal('Email service is not configured');
+			await emailService
+				.sendMail({})
+				.should.be.rejectedWith(new Error('Email service is not configured'));
 		});
 
 		it('should fail for null mailOptions', async () => {
-			let error = null;
-
-			try {
-				await emailService.sendMail();
-			} catch (err) {
-				error = err;
-			}
-			error.should.not.be.null();
-			error.message.should.not.be.null();
-			error.message.should.equal('No email options specified');
+			await emailService
+				.sendMail()
+				.should.be.rejectedWith(new Error('No email options specified'));
 		});
 
 		it('should fail for incomplete mailOptions', async () => {
-			let error = null;
-			try {
-				await emailService.sendMail({ to: 'to', from: 'from', html: 'html' });
-			} catch (err) {
-				error = err;
-			}
-			error.should.not.be.null();
-			error.message.should.not.be.null();
-			error.message.should.equal(
-				'The following required values were not specified in mailOptions: "subject"'
-			);
+			await emailService
+				.sendMail({ to: 'to', from: 'from', html: 'html' })
+				.should.be.rejectedWith(
+					new Error(
+						'The following required values were not specified in mailOptions: "subject"'
+					)
+				);
 		});
 		it('should work', async () => {
-			await emailService.sendMail({
-				to: 'to',
-				from: 'from',
-				html: 'html',
-				subject: 'test'
-			});
+			await emailService
+				.sendMail({
+					to: 'to',
+					from: 'from',
+					html: 'html',
+					subject: 'test'
+				})
+				.should.not.be.rejected();
 		});
 	});
 
@@ -192,18 +165,12 @@ ${footer}
 		});
 
 		it('should throw error for invalid template path', async () => {
-			let error;
-			let subject;
-			try {
-				subject = await emailService.buildEmailContent(
+			await emailService
+				.buildEmailContent(
 					'src/app/core/user/templates/file-that-doesnt-exist.view.html',
 					user
-				);
-			} catch (err) {
-				error = err;
-			}
-			should.exist(error);
-			should.not.exist(subject);
+				)
+				.should.be.rejected();
 		});
 	});
 
@@ -275,16 +242,9 @@ ${footer}
 					'src/app/core/user/templates/file-that-doesnt-exist.view.html'
 			};
 
-			let options;
-			let error;
-			try {
-				options = await emailService.generateMailOptions(user, {}, emailConfig);
-			} catch (err) {
-				error = err;
-			}
-
-			should.not.exist(options);
-			should.exist(error);
+			await emailService
+				.generateMailOptions(user, {}, emailConfig)
+				.should.be.rejected();
 		});
 	});
 });

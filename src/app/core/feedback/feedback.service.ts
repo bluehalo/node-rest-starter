@@ -14,6 +14,7 @@ import {
 	logger,
 	utilService
 } from '../../../dependencies';
+import { BadRequestError, NotFoundError } from '../../common/errors';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { UserDocument } from '../user/user.model';
 
@@ -56,7 +57,7 @@ class FeedbackService {
 			| Array<string | PopulateOptions> = []
 	): Promise<FeedbackDocument | null> {
 		if (!Types.ObjectId.isValid(id)) {
-			throw { status: 400, type: 'validation', message: 'Invalid feedback ID' };
+			return Promise.reject(new NotFoundError('Invalid feedback ID'));
 		}
 		return this.model
 			.findById(id)
@@ -118,7 +119,7 @@ class FeedbackService {
 			null == feedback.type ||
 			null == feedback.url
 		) {
-			return Promise.reject({ status: 400, message: 'Invalid submission.' });
+			return Promise.reject(new BadRequestError('Invalid submission.'));
 		}
 
 		try {

@@ -1,4 +1,7 @@
+import { StatusCodes } from 'http-status-codes';
+
 import userPasswordService from './user-password.service';
+import { BadRequestError } from '../../../common/errors';
 
 /**
  * Forgot for reset password (forgot POST)
@@ -6,7 +9,7 @@ import userPasswordService from './user-password.service';
 export const forgot = async (req, res) => {
 	// Make sure there is a username
 	if (!req.body.username) {
-		return res.status(400).json({ message: 'Username is missing.' });
+		throw new BadRequestError('Username is missing.');
 	}
 
 	try {
@@ -20,14 +23,12 @@ export const forgot = async (req, res) => {
 		await userPasswordService.sendResetPasswordEmail(user, token, req);
 
 		res
-			.status(200)
+			.status(StatusCodes.OK)
 			.json(
 				`An email has been sent to ${user.email} with further instructions.`
 			);
 	} catch (error) {
-		res
-			.status(400)
-			.json({ message: 'Failure generating reset password token.' });
+		throw new BadRequestError('Failure generating reset password token.');
 	}
 };
 
@@ -40,9 +41,9 @@ export const validateResetToken = async (req, res) => {
 	);
 
 	if (!user) {
-		return res.status(400).json({ message: 'invalid-token' });
+		throw new BadRequestError('invalid-token');
 	}
-	res.status(200).json({ message: 'valid-token' });
+	res.status(StatusCodes.OK).json({ message: 'valid-token' });
 };
 
 /**
@@ -54,7 +55,7 @@ export const reset = async (req, res) => {
 
 	// Make sure there is a password
 	if (!password) {
-		return res.status(400).json({ message: 'Password is missing.' });
+		throw new BadRequestError('Password is missing.');
 	}
 
 	try {
@@ -66,11 +67,11 @@ export const reset = async (req, res) => {
 		await userPasswordService.sendPasswordResetConfirmEmail(user, req);
 
 		res
-			.status(200)
+			.status(StatusCodes.OK)
 			.json(
 				`An email has been sent to ${user.email} letting them know their password was reset.`
 			);
 	} catch (error) {
-		res.status(400).json({ message: 'Failure resetting password.' });
+		throw new BadRequestError('Failure resetting password.');
 	}
 };

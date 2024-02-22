@@ -1,3 +1,5 @@
+import { StatusCodes } from 'http-status-codes';
+
 import notificationsService from './notification.service';
 
 export const search = async (req, res) => {
@@ -8,5 +10,5 @@ export const search = async (req, res) => {
 	query.user = req.user._id;
 
 	const result = await notificationsService.search(req.query, query);
-	res.status(200).json(result);
+	res.status(StatusCodes.OK).json(result);
 };

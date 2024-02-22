@@ -10,6 +10,11 @@ import local from '../../../../lib/strategies/local';
 import proxyPki from '../../../../lib/strategies/proxy-pki';
 import { getResponseSpy } from '../../../../spec/helpers';
 import {
+	BadRequestError,
+	ForbiddenError,
+	UnauthorizedError
+} from '../../../common/errors';
+import {
 	CacheEntry,
 	ICacheEntry
 } from '../../access-checker/cache/cache-entry.model';
@@ -156,18 +161,14 @@ describe('User Auth Controller:', () => {
 					return cb && cb();
 				};
 
-				let err;
-				try {
-					await userAuthenticationController.signin(req, res, emptyFn);
-				} catch (e) {
-					err = e;
-				}
+				await userAuthenticationController
+					.signin(req, res, emptyFn)
+					.should.be.rejectedWith(
+						new UnauthorizedError('Incorrect username or password')
+					);
 
 				assert.notCalled(res.status);
 				assert.notCalled(res.json);
-
-				should.exist(err);
-				should(err.type).equal('invalid-credentials');
 			});
 
 			it('should fail with missing password', async () => {
@@ -222,18 +223,14 @@ describe('User Auth Controller:', () => {
 					return cb && cb();
 				};
 
-				let err;
-				try {
-					await userAuthenticationController.signin(req, res, emptyFn);
-				} catch (e) {
-					err = e;
-				}
+				await userAuthenticationController
+					.signin(req, res, emptyFn)
+					.should.be.rejectedWith(
+						new UnauthorizedError('Incorrect username or password')
+					);
 
 				assert.notCalled(res.status);
 				assert.notCalled(res.json);
-
-				should.exist(err);
-				should(err.type).equal('invalid-credentials');
 			});
 		}); // describe - login
 	});
@@ -381,32 +378,26 @@ describe('User Auth Controller:', () => {
 			it('should fail when there is no dn', async () => {
 				req.headers = {};
 
-				let err;
-				try {
-					await userAuthenticationController.signin(req, res, emptyFn);
-				} catch (e) {
-					err = e;
-				}
+				await userAuthenticationController
+					.signin(req, res, emptyFn)
+					.should.be.rejectedWith(new BadRequestError('Missing certificate'));
 
 				assert.notCalled(res.status);
 				assert.notCalled(res.json);
-
-				should.exist(err);
-				should(err.type).equal('missing-credentials');
 			});
 
 			// Unknown DN header
 			it('should fail when the dn is unknown and auto create is disabled', async () => {
 				sandbox.stub(config.auth, 'autoCreateAccounts').value(false);
 				req.headers = { [config.proxyPkiPrimaryUserHeader]: 'unknown' };
-				let err;
-				try {
-					await userAuthenticationController.signin(req, {}, emptyFn);
-				} catch (e) {
-					err = e;
-				}
-				should.exist(err);
-				should(err.type).equal('invalid-credentials');
+
+				await userAuthenticationController
+					.signin(req, {}, emptyFn)
+					.should.be.rejectedWith(
+						new UnauthorizedError(
+							'Could not authenticate request, please verify your credentials.'
+						)
+					);
 			});
 		});
 
@@ -669,23 +660,16 @@ describe('User Auth Controller:', () => {
 						spec.user.userBypassed.providerData.dn
 				};
 
-				let err;
-				try {
-					await userAuthenticationController.signin(req, res, emptyFn);
-				} catch (e) {
-					err = e;
-				}
+				await userAuthenticationController
+					.signin(req, res, emptyFn)
+					.should.be.rejectedWith(
+						new ForbiddenError(
+							'Not approved to proxy users. Please verify your credentials.'
+						)
+					);
 
 				assert.notCalled(res.status);
 				assert.notCalled(res.json);
-
-				should.exist(err);
-				should(err).eql({
-					status: 403,
-					message:
-						'Not approved to proxy users. Please verify your credentials.',
-					type: 'authentication-error'
-				});
 			});
 
 			it('should succeed when authorized to proxy users', async () => {

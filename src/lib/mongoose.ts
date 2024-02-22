@@ -85,7 +85,7 @@ export const connect = async () => {
 
 	// Check for required admin db config
 	if (!defaultDbSpec) {
-		throw Error('Required `admin` db not configured');
+		throw new Error('Required `admin` db not configured');
 	}
 
 	// Connect to the default db to kick off the process

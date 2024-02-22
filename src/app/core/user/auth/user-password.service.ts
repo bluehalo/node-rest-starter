@@ -4,6 +4,7 @@ import { promisify } from 'util';
 import { DateTime } from 'luxon';
 
 import { config, emailService, logger } from '../../../../dependencies';
+import { BadRequestError } from '../../../common/errors';
 import { User, UserDocument, UserModel } from '../user.model';
 
 class UserPasswordService {
@@ -34,9 +35,9 @@ class UserPasswordService {
 		}
 
 		if (!user) {
-			return Promise.reject({
-				message: 'No account with that username has been found.'
-			});
+			return Promise.reject(
+				new BadRequestError('No account with that username has been found.')
+			);
 		}
 
 		// Generate the token and the expire date/time
@@ -59,9 +60,9 @@ class UserPasswordService {
 		}
 
 		if (!user) {
-			return Promise.reject({
-				message: 'Password reset token is invalid or has expired.'
-			});
+			return Promise.reject(
+				new BadRequestError('Password reset token is invalid or has expired.')
+			);
 		}
 
 		user.password = password;
