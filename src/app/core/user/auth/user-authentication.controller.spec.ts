@@ -179,18 +179,12 @@ describe('User Auth Controller:', () => {
 					return cb && cb();
 				};
 
-				let err;
-				try {
-					await userAuthenticationController.signin(req, res, emptyFn);
-				} catch (e) {
-					err = e;
-				}
+				await userAuthenticationController
+					.signin(req, res, emptyFn)
+					.should.be.rejectedWith('Missing credentials');
 
 				assert.notCalled(res.status);
 				assert.notCalled(res.json);
-
-				should.exist(err);
-				should(err.type).equal('missing-credentials');
 			});
 
 			it('should fail with missing username', async () => {
@@ -201,18 +195,12 @@ describe('User Auth Controller:', () => {
 					return cb && cb();
 				};
 
-				let err;
-				try {
-					await userAuthenticationController.signin(req, res, emptyFn);
-				} catch (e) {
-					err = e;
-				}
+				await userAuthenticationController
+					.signin(req, res, emptyFn)
+					.should.be.rejectedWith('Missing credentials');
 
 				assert.notCalled(res.status);
 				assert.notCalled(res.json);
-
-				should.exist(err);
-				should(err.type).equal('missing-credentials');
 			});
 
 			it('should fail with unknown user', async () => {

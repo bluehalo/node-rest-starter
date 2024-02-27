@@ -133,15 +133,7 @@ describe('Access Checker Service:', () => {
 
 		// Provider fails on get
 		it('should not update the cache when the access checker provider fails', async () => {
-			let err;
-			try {
-				await accessChecker.get('provideronly');
-			} catch (e) {
-				err = e;
-			}
-
-			// Should have errored
-			should.exist(err);
+			await accessChecker.get('provideronly').should.be.rejected();
 
 			const result = await CacheEntry.findOne({ key: 'provideronly' }).exec();
 			should.not.exist(result);
@@ -149,14 +141,9 @@ describe('Access Checker Service:', () => {
 
 		// Provider fails on refresh attempt
 		it('should not update the cache on refresh when the access checker provider fails', async () => {
-			let err;
-			try {
-				await accessChecker.refreshEntry(spec.cache.outdated.key);
-			} catch (e) {
-				err = e;
-			}
-			// Should have errored
-			should.exist(err);
+			await accessChecker
+				.refreshEntry(spec.cache.outdated.key)
+				.should.be.rejected();
 
 			// Query for the cache object and verify it hasn't been updated
 			const result = await CacheEntry.findOne({
@@ -167,14 +154,7 @@ describe('Access Checker Service:', () => {
 
 		// Provider fails on refresh attempt
 		it('should fail when no key is specified', async () => {
-			let err;
-			try {
-				await accessChecker.refreshEntry(null);
-			} catch (e) {
-				err = e;
-			}
-			// Should have errored
-			should.exist(err);
+			await accessChecker.refreshEntry(null).should.be.rejected();
 
 			// Query for the cache object and verify it hasn't been updated
 			const result = await CacheEntry.findOne({
@@ -200,13 +180,7 @@ describe('Access Checker Service:', () => {
 
 		// Pull from cache
 		it('should fail when no key is specified', async () => {
-			let err;
-			try {
-				await accessChecker.get(null);
-			} catch (e) {
-				err = e;
-			}
-			should.exist(err);
+			await accessChecker.get(null).should.be.rejected();
 		});
 
 		// Pull from cache
@@ -279,18 +253,13 @@ describe('Access Checker Service:', () => {
 
 		// Provider fails on get
 		it('should throw error when no provider is configured', async () => {
-			let err;
-			try {
-				await accessChecker.get('notincache');
-			} catch (e) {
-				err = e;
-			}
-
-			// Should have errored
-			should.exist(err?.message);
-			err.message.should.equal(
-				'Error retrieving entry from the access checker provider: Invalid accessChecker provider configuration.'
-			);
+			await accessChecker
+				.get('notincache')
+				.should.be.rejectedWith(
+					new Error(
+						'Error retrieving entry from the access checker provider: Invalid accessChecker provider configuration.'
+					)
+				);
 		});
 	});
 
@@ -310,18 +279,11 @@ describe('Access Checker Service:', () => {
 
 		// Provider fails on get
 		it('should throw error when provider is configured with invalid file path', async () => {
-			let err;
-			try {
-				await accessChecker.get('notincache');
-			} catch (e) {
-				err = e;
-			}
-
-			// Should have errored
-			should.exist(err?.message);
-			err.message.should.equal(
-				'Error retrieving entry from the access checker provider: Failed to load access checker provider.'
-			);
+			await accessChecker
+				.get('notincache')
+				.should.be.rejectedWith(
+					'Error retrieving entry from the access checker provider: Failed to load access checker provider.'
+				);
 		});
 	});
 });
