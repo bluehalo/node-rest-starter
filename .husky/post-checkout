@@ -1,0 +1,4 @@
+if ! test -f config/development.js; then
+    echo "config/development.js not found.  Creating from template..."
+    cp config/development.template.js config/development.js
+fi

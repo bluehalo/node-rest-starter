@@ -7,7 +7,6 @@
 
 # Config Files
 /config/development.js
-/config/dev-sender.js
 /config/development-*.js
 
 # Packages
