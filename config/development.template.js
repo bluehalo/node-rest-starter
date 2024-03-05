@@ -1,33 +1,66 @@
 'use strict';
 
 /**
- * Copy this file to 'development.js' and selectively pull in first-level properties
+ * Copy this file to 'development.js' and selectively pull in properties
  * to override the properties in 'default.js'.
  */
 module.exports = {
+	mode: 'development',
+
+	// Basic title and instance name
+	app: {
+		title: 'Node REST Starter (Development Settings)',
+		clientUrl: 'http://localhost:4200/#',
+		helpUrl: 'http://localhost:4200/#/help'
+	},
 
 	/**
-	 * System Settings
+	 * Core System Settings
 	 */
-
+	// MongoDB
+	db: {
+		admin: 'mongodb://127.0.0.1/node-rest-starter-dev'
+	},
+	mongooseFailOnIndexOptionsConflict: false,
 
 	/**
 	 * Environment Settings
 	 */
 
+	// Configuration for outgoing mail server
+	mailer: {
+		provider: './src/app/core/email/providers/log-email.provider'
+	},
 
 	/**
 	 * Development/debugging settings
 	 */
-
+	mongooseLogging: false,
+	expressLogging: false,
+	exposeServerErrors: true,
 
 	/**
 	 * Logging Settings
 	 */
-
+	logger: {
+		application: [
+			// Console logger
+			{
+				stream: 'process.stdout',
+				level: 'debug'
+			}
+		]
+	},
 
 	/**
-	 * Not So Environment-Specific Settings
+	 * UI Settings
 	 */
+	// Header/footer
+	banner: {
+		// The string to display
+		html: 'DEVELOPMENT SETTINGS',
 
+		// additional CSS class to apply to the banner
+		style: 'default'
+	}
 };
