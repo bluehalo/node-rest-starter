@@ -8,12 +8,8 @@ import {
 	TeamRoles
 } from './team-role.model';
 import { ITeam, TeamDocument, TeamModel, Team } from './team.model';
-import {
-	config,
-	emailService,
-	logger,
-	utilService
-} from '../../../dependencies';
+import { config, emailService, utilService } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
 import {
 	BadRequestError,
 	ForbiddenError,
@@ -591,7 +587,7 @@ class TeamsService {
 			logger.debug(`Sent approved user (${requester.username}) alert email`);
 		} catch (error) {
 			// Log the error but this shouldn't block
-			logger.error({ err: error, req: req }, 'Failure sending email.');
+			logger.error('Failure sending email.', { err: error, req: req });
 		}
 	}
 
@@ -664,7 +660,7 @@ class TeamsService {
 			logger.debug('Sent team request email');
 		} catch (error) {
 			// Log the error but this shouldn't block
-			logger.error({ err: error, req: req }, 'Failure sending email.');
+			logger.error('Failure sending email.', { err: error, req: req });
 		}
 	}
 

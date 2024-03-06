@@ -3,7 +3,8 @@ import { assert, createSandbox } from 'sinon';
 import userEmailService from './user-email.service';
 import { User } from './user.model';
 import userService from './user.service';
-import { config, emailService, logger } from '../../../dependencies';
+import { config, emailService } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
 
 /**
  * Unit tests

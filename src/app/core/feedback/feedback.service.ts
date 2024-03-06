@@ -8,12 +8,8 @@ import {
 	FeedbackModel,
 	Statuses
 } from './feedback.model';
-import {
-	config,
-	emailService,
-	logger,
-	utilService
-} from '../../../dependencies';
+import { config, emailService, utilService } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
 import { BadRequestError, NotFoundError } from '../../common/errors';
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { UserDocument } from '../user/user.model';
@@ -40,10 +36,10 @@ class FeedbackService {
 			return feedback.save();
 		} catch (err) {
 			// Log and continue the error
-			logger.error(
-				{ err: err, feedback: doc },
-				'Error trying to persist feedback record to storage.'
-			);
+			logger.error('Error trying to persist feedback record to storage.', {
+				err: err,
+				feedback: doc
+			});
 			return Promise.reject(err);
 		}
 	}
@@ -137,7 +133,7 @@ class FeedbackService {
 			logger.debug(`Sent approved user (${user.username}) alert email`);
 		} catch (error) {
 			// Log the error but this shouldn't block
-			logger.error({ err: error, req: req }, 'Failure sending email.');
+			logger.error('Failure sending email.', { err: error, req: req });
 		}
 	}
 

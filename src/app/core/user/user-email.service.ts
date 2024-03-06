@@ -3,7 +3,8 @@ import { DateTime } from 'luxon';
 import userAuthorizationService from './auth/user-authorization.service';
 import { UserDocument } from './user.model';
 import userService from './user.service';
-import { config, emailService, logger } from '../../../dependencies';
+import { config, emailService } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
 
 class UserEmailService {
 	// Send email alert to system admins about new account request
@@ -22,7 +23,7 @@ class UserEmailService {
 			await emailService.sendMail(mailOptions);
 		} catch (error) {
 			// Log the error but this shouldn't block
-			logger.error({ err: error, req: req }, 'Failure sending email.');
+			logger.error('Failure sending email.', { err: error, req: req });
 		}
 	}
 
@@ -40,7 +41,7 @@ class UserEmailService {
 			await emailService.sendMail(mailOptions);
 		} catch (error) {
 			// Log the error but this shouldn't block the user from signing up
-			logger.error({ err: error, req: req }, 'Failure sending email.');
+			logger.error('Failure sending email.', { err: error, req: req });
 		}
 	}
 
@@ -65,7 +66,7 @@ class UserEmailService {
 				await emailService.sendMail(mailOptions);
 			} catch (error) {
 				// Log the error but this shouldn't block the user from signing up
-				logger.error({ err: error, req: req }, 'Failure sending email.');
+				logger.error('Failure sending email.', { err: error, req: req });
 			}
 		}
 	}
@@ -84,7 +85,7 @@ class UserEmailService {
 		const accessRole = config.coreEmails.welcomeWithAccess.accessRole;
 
 		if (accessRole && userAuthorizationService.hasRole(user, accessRole)) {
-			if (recentCutoff.toMillis() > user.lastLoginWithAccess.getTime()) {
+			if (recentCutoff.toMillis() > user.lastLoginWithAccess?.getTime()) {
 				try {
 					const mailOptions = await emailService.generateMailOptions(
 						user,
@@ -99,7 +100,7 @@ class UserEmailService {
 					await emailService.sendMail(mailOptions);
 				} catch (error) {
 					// Log the error but this shouldn't block the user from signing up
-					logger.error({ err: error, req: req }, 'Failure sending email.');
+					logger.error('Failure sending email.', { err: error, req: req });
 				}
 			}
 			userService.updateLastLoginWithAccess(user);

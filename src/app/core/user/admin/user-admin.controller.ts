@@ -2,12 +2,8 @@ import { StatusCodes } from 'http-status-codes';
 import _ from 'lodash';
 import { FilterQuery } from 'mongoose';
 
-import {
-	auditService,
-	config,
-	logger,
-	utilService
-} from '../../../../dependencies';
+import { auditService, config, utilService } from '../../../../dependencies';
+import { logger } from '../../../../lib/logger';
 import { BadRequestError, ForbiddenError } from '../../../common/errors';
 import { Callbacks } from '../../export/callbacks';
 import * as exportConfigController from '../../export/export-config.controller';

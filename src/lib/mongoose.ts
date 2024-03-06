@@ -10,7 +10,7 @@ import mongoose, {
 	Model
 } from 'mongoose';
 
-import { logger } from './bunyan';
+import { logger } from './logger';
 
 type MongooseDbConfig = Record<
 	string,
@@ -127,7 +127,7 @@ export const connect = async () => {
 		// Return the dbs since everything succeeded
 		return dbs;
 	} catch (err) {
-		logger.fatal('Mongoose: Could not connect to admin db');
+		logger.error('Mongoose: Could not connect to admin db');
 		throw err;
 	}
 };

@@ -3,7 +3,8 @@ import { promisify } from 'util';
 
 import { DateTime } from 'luxon';
 
-import { config, emailService, logger } from '../../../../dependencies';
+import { config, emailService } from '../../../../dependencies';
+import { logger } from '../../../../lib/logger';
 import { BadRequestError } from '../../../common/errors';
 import { User, UserDocument, UserModel } from '../user.model';
 
@@ -94,7 +95,7 @@ class UserPasswordService {
 			logger.debug(`Sent reset password email to user (${user.username})`);
 		} catch (error) {
 			// Log the error but this shouldn't block
-			logger.error({ err: error, req: req }, 'Failure sending email.');
+			logger.error('Failure sending email.', { err: error, req: req });
 		}
 	}
 
@@ -118,7 +119,7 @@ class UserPasswordService {
 			logger.debug(`Sent reset password email to user (${user.username})`);
 		} catch (error) {
 			// Log the error but this shouldn't block
-			logger.error({ err: error, req: req }, 'Failure sending email.');
+			logger.error('Failure sending email.', { err: error, req: req });
 		}
 	}
 }

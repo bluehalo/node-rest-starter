@@ -5,7 +5,7 @@ import config from 'config';
 import { AccessCheckerProvider } from './access-checker.provider';
 import { CacheEntryDocument } from './cache/cache-entry.model';
 import cacheEntryService from './cache/cache-entry.service';
-import { logger } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
 
 class AccessCheckerService {
 	provider: AccessCheckerProvider;

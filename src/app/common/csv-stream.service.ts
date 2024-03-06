@@ -6,7 +6,7 @@ import _ from 'lodash';
 import pipe from 'multipipe';
 import through2 from 'through2';
 
-import { logger } from '../../dependencies';
+import { logger } from '../../lib/logger';
 import { ExportColumnDef } from '../core/export/export-config.model';
 
 class CsvStreamService {

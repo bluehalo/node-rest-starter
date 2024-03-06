@@ -1,6 +1,7 @@
 import { Socket } from 'socket.io';
 
-import { config, logger, socketIO } from '../../../dependencies';
+import { config, socketIO } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
 import { SocketConfig } from '../../common/sockets/base-socket.provider';
 import { hasAccess } from '../user/user-auth.middleware';
 
@@ -47,7 +48,7 @@ export class MessageSocket extends socketIO.SocketProvider {
 	 *
 	 */
 	onSubscribe(payload) {
-		if (logger.debug()) {
+		if (logger.isDebugEnabled()) {
 			logger.debug(
 				`MessageSocket: ${emitName}: subscribe event with payload: ${JSON.stringify(
 					payload
@@ -74,7 +75,7 @@ export class MessageSocket extends socketIO.SocketProvider {
 	 *
 	 */
 	onUnsubscribe(payload) {
-		if (logger.debug()) {
+		if (logger.isDebugEnabled()) {
 			logger.debug(
 				`MessageSocket: ${emitName}: unsubscribe event with payload: ${JSON.stringify(
 					payload

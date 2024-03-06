@@ -2,7 +2,8 @@ import { DateTime } from 'luxon';
 import { assert, createSandbox } from 'sinon';
 
 import InactiveUsersJobService from './inactive-user.job';
-import { config, emailService, logger } from '../../../../dependencies';
+import { config, emailService } from '../../../../dependencies';
+import { logger } from '../../../../lib/logger';
 
 /**
  * Unit tests

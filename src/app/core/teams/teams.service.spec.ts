@@ -6,12 +6,8 @@ import { assert, createSandbox } from 'sinon';
 import { TeamRoles } from './team-role.model';
 import { ITeam, Team, TeamDocument } from './team.model';
 import teamsService from './teams.service';
-import {
-	auditService,
-	config,
-	emailService,
-	logger
-} from '../../../dependencies';
+import { auditService, config, emailService } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
 import {
 	BadRequestError,
 	ForbiddenError,
@@ -994,10 +990,10 @@ FOOTER
 			);
 
 			assert.calledOnce(logStub);
-			const [logOptions] = logStub.getCall(0).args;
 
-			should.exist(logOptions.err);
-			logOptions.err.name.should.equal('error');
+			const [message] = logStub.getCall(0).args;
+
+			should(message).equal('Failure sending email.');
 		});
 	});
 
@@ -1114,10 +1110,9 @@ FOOTER
 			);
 
 			assert.calledOnce(logStub);
-			const [logOptions] = logStub.getCall(0).args;
 
-			should.exist(logOptions.err);
-			logOptions.err.name.should.equal('error');
+			const [message] = logStub.getCall(0).args;
+			should(message).equal('Failure sending email.');
 		});
 	});
 

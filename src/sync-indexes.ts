@@ -1,6 +1,6 @@
 import { models } from 'mongoose';
 
-import { logger } from './lib/bunyan';
+import { logger } from './lib/logger';
 import * as mongoose from './lib/mongoose';
 
 const syncIndex = async () => {
@@ -17,7 +17,7 @@ const syncIndex = async () => {
 			await model.syncIndexes();
 		}
 	} catch (err) {
-		logger.fatal('failed.');
+		logger.error('failed.');
 		return Promise.reject(err);
 	}
 };
@@ -28,6 +28,6 @@ syncIndex()
 		process.exit(0);
 	})
 	.catch((error) => {
-		logger.fatal(error, 'Startup initialization failed.');
+		logger.error('Startup initialization failed.', error);
 		process.exit(1);
 	});

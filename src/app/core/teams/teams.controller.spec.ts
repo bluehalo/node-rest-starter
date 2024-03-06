@@ -5,7 +5,7 @@ import { assert, createSandbox, match, stub } from 'sinon';
 import { Team, TeamDocument } from './team.model';
 import * as teamsController from './teams.controller';
 import teamsService from './teams.service';
-import { auditService, logger } from '../../../dependencies';
+import { auditService } from '../../../dependencies';
 import { getResponseSpy } from '../../../spec/helpers';
 import { User, UserDocument } from '../user/user.model';
 import userService from '../user/user.service';
@@ -86,7 +86,6 @@ describe('Teams Controller:', () => {
 				user: new User()
 			};
 
-			sandbox.stub(logger, 'error').returns();
 			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(teamsService, 'delete').resolves();
 
@@ -125,7 +124,6 @@ describe('Teams Controller:', () => {
 				body: {}
 			};
 
-			sandbox.stub(logger, 'error').returns();
 			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(teamsService, 'requestNewTeam').resolves();
 
@@ -148,7 +146,6 @@ describe('Teams Controller:', () => {
 				body: {}
 			};
 
-			sandbox.stub(logger, 'error').returns();
 			sandbox.stub(teamsService, 'requestAccessToTeam').resolves();
 
 			await teamsController.requestAccess(req, res);
@@ -188,7 +185,6 @@ describe('Teams Controller:', () => {
 				body: {}
 			};
 
-			sandbox.stub(logger, 'error').returns();
 			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(teamsService, 'addMemberToTeam').resolves();
 
@@ -222,11 +218,12 @@ describe('Teams Controller:', () => {
 				}
 			};
 
-			sandbox.stub(logger, 'error').returns();
 			sandbox.stub(auditService, 'audit').resolves();
+
 			const readUserStub = sandbox.stub(userService, 'read');
 			readUserStub.onCall(0).resolves({});
 			readUserStub.onCall(1).resolves();
+
 			sandbox.stub(teamsService, 'addMemberToTeam').resolves();
 
 			await teamsController.addMembers(req, res);
@@ -249,7 +246,6 @@ describe('Teams Controller:', () => {
 				body: {}
 			};
 
-			sandbox.stub(logger, 'error').returns();
 			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(teamsService, 'removeMemberFromTeam').resolves();
 
@@ -273,7 +269,6 @@ describe('Teams Controller:', () => {
 				body: {}
 			};
 
-			sandbox.stub(logger, 'error').returns();
 			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(teamsService, 'updateMemberRole').resolves();
 

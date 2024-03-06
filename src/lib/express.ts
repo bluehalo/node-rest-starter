@@ -23,7 +23,7 @@ import passport from 'passport';
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
-import { logger } from './bunyan';
+import { logger } from './logger';
 import {
 	defaultErrorHandler,
 	jsonSchemaValidationErrorHandler,

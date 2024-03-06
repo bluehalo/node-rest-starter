@@ -3,8 +3,8 @@ import http from 'http';
 import { Mongoose } from 'mongoose';
 
 import * as agenda from './lib/agenda';
-import { logger } from './lib/bunyan';
 import * as express from './lib/express';
+import { logger } from './lib/logger';
 import * as mongoose from './lib/mongoose';
 import socketio from './lib/socket.io';
 

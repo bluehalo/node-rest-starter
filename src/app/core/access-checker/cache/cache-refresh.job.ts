@@ -1,7 +1,7 @@
 import { Job } from 'agenda';
 
 import { CacheEntry } from './cache-entry.model';
-import { logger } from '../../../../dependencies';
+import { logger } from '../../../../lib/logger';
 import { JobService } from '../../../common/agenda/job-service';
 import accessChecker from '../access-checker.service';
 

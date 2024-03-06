@@ -3,7 +3,7 @@ import config from 'config';
 import { Request, RequestHandler, Response } from 'express';
 import { Socket } from 'socket.io';
 
-import { logger } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
 
 // If this is not null, ignore any messages that are older than this number of seconds.
 const ignoreOlderThan = config.get<number>('socketio.ignoreOlderThan');
@@ -62,9 +62,7 @@ export abstract class BaseSocket<MessageType = Record<string, unknown>> {
 		message: MessageType
 	): Record<string, unknown> {
 		logger.debug(
-			'%s: Received Event Message for event %s',
-			this.constructor.name,
-			topic
+			`${this.constructor.name}: Received Event Message for event ${topic}`
 		);
 		return message as Record<string, unknown>;
 	}
@@ -91,19 +89,17 @@ export abstract class BaseSocket<MessageType = Record<string, unknown>> {
 		if (messagePayload?.time) {
 			const time = messagePayload.time;
 			logger.debug(
-				'%s: Extracted message time of %d',
-				this.constructor.name,
-				time
+				`${this.constructor.name}: Extracted message time of ${time}`
 			);
 			return time as number;
 		}
 
-		if (logger.debug()) {
+		if (logger.isDebugEnabled()) {
 			// is debug enabled?
 			logger.debug(
-				'%s: Unknown time for message: %s',
-				this.constructor.name,
-				JSON.stringify(messagePayload)
+				`${this.constructor.name}: Unknown time for message: ${JSON.stringify(
+					messagePayload
+				)}`
 			);
 		}
 
@@ -125,11 +121,7 @@ export abstract class BaseSocket<MessageType = Record<string, unknown>> {
 				const now = Date.now();
 				if (messageTime + ignoreOlderThan * 1000 < now) {
 					logger.debug(
-						'%s: Message is too old: %d is more than %d seconds older than %d',
-						this.constructor.name,
-						messageTime,
-						ignoreOlderThan,
-						now
+						`${this.constructor.name}: Message is too old: ${messageTime} is more than ${ignoreOlderThan} seconds older than ${now}`
 					);
 					return true;
 				}
@@ -142,9 +134,7 @@ export abstract class BaseSocket<MessageType = Record<string, unknown>> {
 		// Gracefully handle empty messages by ignoring and logging
 		if (null == message) {
 			logger.warn(
-				'%s: Ignoring empty message %s',
-				this.constructor.name,
-				message
+				`${this.constructor.name}: Ignoring empty message ${message}`
 			);
 			return;
 		}
@@ -166,11 +156,10 @@ export abstract class BaseSocket<MessageType = Record<string, unknown>> {
 				}
 			}
 		} catch (e) {
-			logger.error(
-				{ err: e, msg: message },
-				'%s: Error parsing payload body.',
-				this.constructor.name
-			);
+			logger.error(`${this.constructor.name}: Error parsing payload body.`, {
+				err: e,
+				msg: message
+			});
 		}
 	}
 
