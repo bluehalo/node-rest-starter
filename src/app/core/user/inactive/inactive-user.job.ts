@@ -3,12 +3,8 @@ import _ from 'lodash';
 import { DateTime } from 'luxon';
 import { FilterQuery } from 'mongoose';
 
-import {
-	config,
-	emailService,
-	auditService,
-	logger
-} from '../../../../dependencies';
+import { config, emailService, auditService } from '../../../../dependencies';
+import { logger } from '../../../../lib/logger';
 import { JobService } from '../../../common/agenda/job-service';
 import { User, UserDocument } from '../user.model';
 
@@ -38,7 +34,7 @@ export default class InactiveUsersJobService implements JobService {
 			logger.debug('Sent team request email');
 		} catch (error) {
 			// Log the error but this shouldn't block
-			logger.error({ err: error }, 'Failure sending email.');
+			logger.error('Failure sending email.', { err: error });
 		}
 	}
 

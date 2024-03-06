@@ -5,7 +5,8 @@ import { StatusCodes } from 'http-status-codes';
 
 import { ExportColumnDef } from './export-config.model';
 import exportConfigService from './export-config.service';
-import { auditService, csvStream, logger } from '../../../dependencies';
+import { auditService, csvStream } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
 import { NotFoundError } from '../../common/errors';
 
 /**
@@ -182,7 +183,7 @@ const exportStream = (
 
 	// If an error occurs, close the stream
 	stream.on('error', (err) => {
-		logger.error(err, `${contentType} export error occurred`);
+		logger.error(`${contentType} export error occurred`, err);
 
 		stream.destroy();
 

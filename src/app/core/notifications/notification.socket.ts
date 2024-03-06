@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import { Socket } from 'socket.io';
 
-import { config, logger, socketIO } from '../../../dependencies';
+import { config, socketIO } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
 import { SocketConfig } from '../../common/sockets/base-socket.provider';
 import { hasAccess } from '../user/user-auth.middleware';
 
@@ -57,7 +58,7 @@ export class NotificationSocket extends socketIO.SocketProvider {
 	 *
 	 */
 	onSubscribe(payload) {
-		if (logger.debug()) {
+		if (logger.isDebugEnabled()) {
 			logger.debug(
 				`NotificationSocket: ${emitName}:subscribe event with payload: ${JSON.stringify(
 					payload
@@ -84,7 +85,7 @@ export class NotificationSocket extends socketIO.SocketProvider {
 	 *
 	 */
 	onUnsubscribe(payload) {
-		if (logger.debug()) {
+		if (logger.isDebugEnabled()) {
 			logger.debug(
 				`NotificationSocket: ${emitName}:unsubscribe event with payload: ${JSON.stringify(
 					payload

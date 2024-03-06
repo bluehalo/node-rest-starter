@@ -4,7 +4,7 @@ import https, { AgentOptions } from 'https';
 import _ from 'lodash';
 
 import { EmailProvider, MailOptions } from './email.provider';
-import { logger } from '../../../../dependencies';
+import { logger } from '../../../../lib/logger';
 import { InternalServerError } from '../../../common/errors';
 
 type Options = AgentOptions & {

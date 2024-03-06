@@ -2,7 +2,8 @@ import { Router } from 'express';
 
 import * as userAuthentication from './user-authentication.controller';
 import * as userPassword from './user-password.controller';
-import { config, logger } from '../../../../dependencies';
+import { config } from '../../../../dependencies';
+import { logger } from '../../../../lib/logger';
 
 const router = Router();
 

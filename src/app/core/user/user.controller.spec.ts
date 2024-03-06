@@ -4,7 +4,7 @@ import userAuthorizationService from './auth/user-authorization.service';
 import * as userController from './user.controller';
 import { User } from './user.model';
 import userService from './user.service';
-import { auditService, config, logger } from '../../../dependencies';
+import { auditService, config } from '../../../dependencies';
 import { getResponseSpy } from '../../../spec/helpers';
 import {
 	BadRequestError,
@@ -21,7 +21,6 @@ describe('User Profile Controller:', () => {
 
 	beforeEach(() => {
 		sandbox = createSandbox();
-		sandbox.stub(logger, 'error').returns();
 		res = getResponseSpy();
 	});
 

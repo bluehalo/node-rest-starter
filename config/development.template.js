@@ -43,13 +43,34 @@ module.exports = {
 	 * Logging Settings
 	 */
 	logger: {
-		application: [
-			// Console logger
-			{
-				stream: 'process.stdout',
+		application: {
+			console: {
 				level: 'debug'
+			},
+			file: {
+				enabled: true,
+				level: 'debug',
+				directory: './logs'
 			}
-		]
+		},
+		audit: {
+			console: {
+				enabled: true
+			},
+			file: {
+				enabled: false,
+				directory: './logs'
+			}
+		},
+		metrics: {
+			console: {
+				enabled: true
+			},
+			file: {
+				enabled: false,
+				directory: './logs'
+			}
+		}
 	},
 
 	/**

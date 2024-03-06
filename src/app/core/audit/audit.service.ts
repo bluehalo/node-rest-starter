@@ -2,7 +2,8 @@ import config from 'config';
 import { Request } from 'express';
 
 import { Audit, AuditDocument } from './audit.model';
-import { logger, auditLogger, utilService } from '../../../dependencies';
+import { utilService } from '../../../dependencies';
+import { logger, auditLogger } from '../../../lib/logger';
 import { IUser, UserDocument } from '../user/user.model';
 
 class AuditService {
@@ -62,22 +63,23 @@ class AuditService {
 			newAudit.audit.masqueradingUser = masqueradingUserDn;
 		}
 
-		// Send to bunyan logger for logfile persistence
-		auditLogger.audit(
-			message,
-			eventType,
-			eventAction,
-			actor,
-			eventObject,
-			userAgentObj
-		);
+		// Send to audit logger for logfile persistence
+		auditLogger.info(message, {
+			audit: {
+				type: eventType,
+				action: eventAction,
+				actor: actor,
+				object: eventObject,
+				userAgent: userAgentObj
+			}
+		});
 
 		return newAudit.save().catch((err) => {
 			// Log and continue the error
-			logger.error(
-				{ err: err, audit: newAudit },
-				'Error trying to persist audit record to storage.'
-			);
+			logger.error('Error trying to persist audit record to storage.', {
+				err: err,
+				audit: newAudit
+			});
 			return Promise.reject(err);
 		});
 	}

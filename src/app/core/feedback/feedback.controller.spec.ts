@@ -3,7 +3,7 @@ import { assert, createSandbox } from 'sinon';
 import * as feedbackController from './feedback.controller';
 import { Feedback } from './feedback.model';
 import feedbackService from './feedback.service';
-import { auditService, logger } from '../../../dependencies';
+import { auditService } from '../../../dependencies';
 import { getResponseSpy } from '../../../spec/helpers';
 import { User } from '../user/user.model';
 
@@ -14,7 +14,6 @@ describe('Feedback Controller2', () => {
 	beforeEach(() => {
 		sandbox = createSandbox();
 		res = getResponseSpy();
-		sandbox.stub(logger, 'error').returns();
 	});
 
 	afterEach(() => {

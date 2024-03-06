@@ -3,7 +3,7 @@
 import config from 'config';
 import sticky from 'socketio-sticky-session';
 
-import { logger } from './lib/bunyan';
+import { logger } from './lib/logger';
 import startupFn from './startup';
 
 const defaultOptions = {
@@ -23,5 +23,5 @@ startupFn()
 		});
 	})
 	.catch((error) => {
-		logger.fatal(error, 'Startup initialization failed.');
+		logger.error(error, 'Startup initialization failed.');
 	});

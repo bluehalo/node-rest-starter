@@ -3,7 +3,7 @@ import path from 'path';
 import { Agenda, Job } from 'agenda';
 import config from 'config';
 
-import { logger } from './bunyan';
+import { logger } from './logger';
 import { JobService } from '../app/common/agenda/job-service';
 
 type JobConfig = {
@@ -28,16 +28,16 @@ const registerJob = async (agenda: Agenda, jobConfig: JobConfig) => {
 	const jobService: JobService = new Service();
 
 	agenda.define(jobConfig.name, jobConfig.options ?? {}, (job: Job) => {
-		logger.debug({ job: jobConfig.name }, 'Running job');
+		logger.debug('Running job', { job: jobConfig.name });
 		jobService
 			.run(job)
 			.catch((err) => {
-				logger.error({ job: jobConfig.name }, 'Error running job', err);
+				logger.error('Error running job', { job: jobConfig.name }, err);
 				// Ignore any errors
 				return Promise.resolve();
 			})
 			.then(() => {
-				logger.debug({ job: jobConfig.name }, 'Job complete');
+				logger.debug('Job complete', { job: jobConfig.name });
 			});
 	});
 };

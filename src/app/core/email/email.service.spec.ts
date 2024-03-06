@@ -2,7 +2,7 @@ import should from 'should';
 import { createSandbox } from 'sinon';
 import uuid from 'uuid';
 
-import { config, emailService, logger } from '../../../dependencies';
+import { config, emailService } from '../../../dependencies';
 
 /**
  * Unit tests
@@ -12,7 +12,6 @@ describe('Email Service:', () => {
 
 	beforeEach(() => {
 		sandbox = createSandbox();
-		sandbox.stub(logger, 'error').returns();
 	});
 
 	afterEach(() => {

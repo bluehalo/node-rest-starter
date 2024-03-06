@@ -5,7 +5,7 @@ import { assert, createSandbox, match, stub } from 'sinon';
 import * as euaController from './eua.controller';
 import { UserAgreement, UserAgreementDocument } from './eua.model';
 import euaService from './eua.service';
-import { auditService, logger } from '../../../../dependencies';
+import { auditService } from '../../../../dependencies';
 import { getResponseSpy } from '../../../../spec/helpers';
 import { ForbiddenError } from '../../../common/errors';
 import { User } from '../user.model';
@@ -171,7 +171,6 @@ describe('EUA Controller:', () => {
 				user: new User({})
 			};
 
-			sandbox.stub(logger, 'error').returns();
 			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(euaService, 'delete').resolves(req.euaParam);
 

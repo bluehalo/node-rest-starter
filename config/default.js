@@ -371,61 +371,58 @@ module.exports = {
 	/**
 	 * Logging Settings
 	 */
-
-	// Application logging and logstash
 	logger: {
-		application: [
-			// Console logger
-			{
-				stream: 'process.stdout',
+		application: {
+			silent: false,
+			console: {
+				enabled: true,
 				level: 'warn'
-			} //,
-			// Rotating file logger
-			//{
-			//	type: 'rotating-file',
-			//	level: 'info',
-			//	path: '/usr/local/var/log/mean2/application.log',
-			//	period: '1d',
-			//	count: 1
-			//},
-			// Logstash logger
-			//{
-			//	type: 'raw',
-			//	level: 'info',
-			//	stream: logstash.createStream({
-			//		host: 'localhost',
-			//		port: 4561
-			//	})
-			//}
-		],
-		audit: [
-			// Console logger (audit logger must be 'info' level)
-			{
-				stream: 'process.stdout',
+			},
+			file: {
+				enabled: true,
+				level: 'warn',
+				directory: '/var/log/rest-server',
+				filename: 'application-%DATE%.log',
+				datePattern: 'YYYY-MM-DD-HH',
+				zippedArchive: true,
+				maxSize: '20m',
+				maxFiles: '7d'
+			}
+		},
+		audit: {
+			silent: false,
+			console: {
+				enabled: false,
 				level: 'info'
-			} //,
-			//{
-			//	type: 'rotating-file',
-			//	level: 'info',
-			//	path: '/usr/local/var/log/mean2/audit.log',
-			//	period: '1d',
-			//	count: 1
-			//}
-		],
-		metrics: [
-			// Console logger (audit logger must be 'info' level)
-			{
-				stream: 'process.stdout',
+			},
+			file: {
+				enabled: true,
+				level: 'info',
+				directory: '/var/log/rest-server',
+				filename: 'audit-%DATE%.log',
+				datePattern: 'YYYY-MM-DD-HH',
+				zippedArchive: true,
+				maxSize: '20m',
+				maxFiles: '7d'
+			}
+		},
+		metrics: {
+			silent: false,
+			console: {
+				enabled: false,
 				level: 'info'
-			} //,
-			//{
-			//	type: 'rotating-file',
-			//	level: 'info',
-			//	path: '/usr/local/var/log/mean2/metrics.log',
-			//	period: '1d',
-			//	count: 1
-			//}
-		]
+			},
+			file: {
+				enabled: true,
+				level: 'info',
+				directory: '/var/log/rest-server',
+				filename: 'metrics-%DATE%.log',
+				datePattern: 'YYYY-MM-DD-HH',
+				zippedArchive: true,
+				maxSize: '20m',
+				maxFiles: '7d'
+			}
+		}
 	},
 
 	/**

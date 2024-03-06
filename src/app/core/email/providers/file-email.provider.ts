@@ -4,7 +4,8 @@ import path from 'path';
 import { DateTime } from 'luxon';
 
 import { EmailProvider, MailOptions } from './email.provider';
-import { config, logger } from '../../../../dependencies';
+import { config } from '../../../../dependencies';
+import { logger } from '../../../../lib/logger';
 
 export default class implements EmailProvider {
 	getFileName(mailOptions: MailOptions) {

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import * as accessChecker from './access-checker.controller';
-import { logger } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
 import { hasAdminAccess, hasLogin } from '../user/user-auth.middleware';
 
 /**

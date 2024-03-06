@@ -5,7 +5,8 @@ import handlebars from 'handlebars';
 import _ from 'lodash';
 
 import { EmailProvider, MailOptions } from './providers/email.provider';
-import { config, logger } from '../../../dependencies';
+import { config } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
 
 handlebars.registerHelper('toLowerCase', (str) => str.toLowerCase());
 
@@ -125,7 +126,7 @@ class EmailService {
 				emailSubjectData
 			);
 		} catch (error) {
-			logger.error({ err: error, req: req }, 'Failure rendering template.');
+			logger.error('Failure rendering template.', { err: error, req: req });
 			return Promise.reject(error);
 		}
 

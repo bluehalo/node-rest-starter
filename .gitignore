@@ -2,6 +2,9 @@
 # Project Specific
 ###################
 
+# Development logs
+/logs
+
 # Typescript Build
 /public
 

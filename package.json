@@ -20,7 +20,7 @@
     "init:mongo:express": "docker compose -p node-rest-starter -f dev/mongo-express.yml up -d",
     "init:mongo:down": "docker compose -p node-rest-starter -f dev/mongo.yml down",
     "clean": "rm -rf dist",
-    "start": "nodemon ./src/server.ts --exec 'npm run lint && node --inspect -r @swc-node/register' | bunyan",
+    "start": "nodemon ./src/server.ts --exec 'npm run lint && node --inspect -r @swc-node/register'",
     "start:dev": "export NODE_ENV=development && npm run start",
     "start:prod": "cd dist && node ./src/server.js",
     "test": "NODE_ENV=test ALLOW_CONFIG_MUTATIONS=true nodemon -r @swc-node/register src/test.ts",
@@ -51,7 +51,6 @@
   "dependencies": {
     "agenda": "^4.3.0",
     "async": "2.6",
-    "bunyan": "1.8",
     "chalk": "2",
     "colors": "1",
     "compression": "1.7",
@@ -91,6 +90,8 @@
     "through2": "2.0",
     "typescript": "~4.9.4",
     "uuid": "3.3",
+    "winston": "^3.12.0",
+    "winston-daily-rotate-file": "^5.0.0",
     "yargs": "^17.5.1"
   },
   "devDependencies": {

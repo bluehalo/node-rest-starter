@@ -3,7 +3,7 @@ import { ValidationError } from 'express-json-validator-middleware';
 import _ from 'lodash';
 import { Error } from 'mongoose';
 
-import { logger } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
 import { BadRequestError, HttpError, InternalServerError } from '../errors';
 
 const getStatus = (err) => {

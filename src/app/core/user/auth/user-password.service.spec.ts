@@ -4,7 +4,8 @@ import should from 'should';
 import { assert, createSandbox } from 'sinon';
 
 import userPasswordService from './user-password.service';
-import { config, emailService, logger } from '../../../../dependencies';
+import { config, emailService } from '../../../../dependencies';
+import { logger } from '../../../../lib/logger';
 import { BadRequestError } from '../../../common/errors';
 import { User } from '../user.model';
 

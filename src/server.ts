@@ -1,6 +1,6 @@
 import config from 'config';
 
-import { logger } from './lib/bunyan';
+import { logger } from './lib/logger';
 import startupFn from './startup';
 
 startupFn()
@@ -12,7 +12,7 @@ startupFn()
 		);
 	})
 	.catch((error) => {
-		logger.fatal(error, 'Startup initialization failed.');
+		logger.error('Startup initialization failed.', error);
 		// non-zero exit code to let the process know that we've failed
 		process.exit(1);
 	});
