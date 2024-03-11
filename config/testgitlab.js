@@ -28,12 +28,23 @@ module.exports = {
 
 	// Disable loggers for tests
 	logger: {
-		application: [
-			{
-				stream: 'process.stdout',
-				level: 'error'
+		application: {
+			silent: true,
+			file: {
+				enabled: false
 			}
-		],
-		audit: []
+		},
+		audit: {
+			silent: true,
+			file: {
+				enabled: false
+			}
+		},
+		metrics: {
+			silent: true,
+			file: {
+				enabled: false
+			}
+		}
 	}
 };
