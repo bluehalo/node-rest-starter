@@ -1,6 +1,7 @@
 import path from 'path';
 
 import { globSync } from 'glob';
+import { OpenAPI } from 'openapi-types';
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerParser from 'swagger-parser';
 
@@ -49,7 +50,7 @@ describe('Init Swagger API:', () => {
 			};
 		}
 
-		const swaggerSpec = swaggerJsDoc(swaggerOptions);
+		const swaggerSpec = swaggerJsDoc(swaggerOptions) as OpenAPI.Document;
 		await swaggerParser.validate(swaggerSpec);
 	});
 });

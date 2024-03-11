@@ -1,6 +1,6 @@
 import should from 'should';
 import { createSandbox } from 'sinon';
-import uuid from 'uuid';
+import * as uuid from 'uuid';
 
 import { config, emailService } from '../../../dependencies';
 

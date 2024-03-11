@@ -19,6 +19,7 @@ import _ from 'lodash';
 import methodOverride from 'method-override';
 import { Mongoose } from 'mongoose';
 import morgan from 'morgan';
+import { OpenAPI } from 'openapi-types';
 import passport from 'passport';
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
@@ -249,7 +250,7 @@ function initSwaggerAPI(app: Express) {
 		};
 	}
 
-	const swaggerSpec = swaggerJsDoc(swaggerOptions);
+	const swaggerSpec = swaggerJsDoc(swaggerOptions) as OpenAPI.Document;
 
 	/*
 	 * Some api calls are dependent on whether local or proxy-pki are used.
