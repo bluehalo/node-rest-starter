@@ -60,7 +60,7 @@
     "cookie-parser": "1.4",
     "cors": "^2.8.5",
     "csv-stringify": "4.0",
-    "express": "4.17",
+    "express": "4.19",
     "express-actuator": "^1.8.4",
     "express-async-errors": "^3.1.1",
     "express-json-validator-middleware": "^2.2.1",
