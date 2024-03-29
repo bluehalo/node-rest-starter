@@ -1,27 +1,27 @@
 import os from 'os';
 import path from 'path';
 
-import config from 'config';
-import winston from 'winston';
+import config, { IConfig } from 'config';
+import winston, { LoggerOptions } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
 const { combine, errors, json, splat, timestamp } = winston.format;
 
 function createLogger(loggerName: string) {
-	const loggerConfig = config.get('logger').get(loggerName);
+	const loggerConfig = config.get<IConfig>('logger').get<IConfig>(loggerName);
 
 	const options = {
 		format: combine(timestamp(), errors({ stack: true }), splat(), json()),
 		silent: loggerConfig.get('silent'),
 		defaultMeta: {
 			hostname: os.hostname(),
-			name: config.app.instanceName,
+			name: config.get('app.instanceName'),
 			pid: process.pid
 		},
 		transports: []
 	};
 
-	const consoleConfig = loggerConfig.get('console');
+	const consoleConfig = loggerConfig.get<IConfig>('console');
 	if (consoleConfig.get('enabled')) {
 		options.transports.push(
 			new winston.transports.Console({
@@ -30,7 +30,7 @@ function createLogger(loggerName: string) {
 		);
 	}
 
-	const fileConfig = loggerConfig.get('file');
+	const fileConfig = loggerConfig.get<IConfig>('file');
 	if (fileConfig.get('enabled')) {
 		options.transports.push(
 			new DailyRotateFile({
@@ -46,7 +46,7 @@ function createLogger(loggerName: string) {
 		);
 	}
 
-	return winston.createLogger(options);
+	return winston.createLogger(options as LoggerOptions);
 }
 
 export const logger = createLogger('application');

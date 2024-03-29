@@ -43,8 +43,14 @@ module.exports = {
 	publishProvider: './src/app/common/event/event-publish.provider',
 	socketProvider: './src/app/common/sockets/event-socket.provider',
 
+	notifications: {
+		enabled: false,
+		topic: 'notification.posted'
+	},
+
 	messages: {
-		topic: 'message.posted'
+		topic: 'message.posted',
+		expireSeconds: 2592000 // default to 30 days
 	},
 
 	pages: {
@@ -151,6 +157,10 @@ module.exports = {
 					}
 				}
 			}
+		},
+
+		orgLevelConfig: {
+			required: false
 		},
 
 		/**
@@ -335,6 +345,8 @@ module.exports = {
 
 	teams: {
 		implicitMembers: {
+			enabled: false,
+
 			/**
 			 * 'roles' strategy matches user.externalRoles against team.requiresExternalRoles to determine implicit
 			 * membership in team.  User must have all of the specified roles to be granted access to team.
@@ -452,5 +464,7 @@ module.exports = {
 			{ level: 'LEVEL-2', prefix: '(L2)' },
 			{ level: 'LEVEL-3', prefix: '(L3)' }
 		]
-	}
+	},
+
+	userPreferences: {}
 };

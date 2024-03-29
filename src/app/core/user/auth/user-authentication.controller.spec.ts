@@ -120,7 +120,10 @@ describe('User Auth Controller:', () => {
 			user = await new User(spec.user).save();
 
 			//setup to use local passport
-			sandbox.stub(config.auth, 'strategy').value('local');
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub.withArgs('auth.strategy').returns('local');
+			configGetStub.callThrough();
+
 			passport.use(local);
 		});
 
@@ -305,18 +308,20 @@ describe('User Auth Controller:', () => {
 			);
 			await Promise.all(defers);
 
-			sandbox.stub(config.auth, 'strategy').value('proxy-pki');
-			sandbox.stub(config.auth.accessChecker, 'provider').value({
-				file: 'src/app/core/access-checker/providers/example.provider',
-				config: {
-					userbypassed: {
-						name: 'Invalid Name',
-						organization: 'Invalid Org',
-						email: 'invalid@invalid.org',
-						username: 'invalid'
-					}
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub.withArgs('auth.strategy').returns('proxy-pki');
+			configGetStub
+				.withArgs('auth.accessChecker.provider.file')
+				.returns('src/app/core/access-checker/providers/example.provider');
+			configGetStub.withArgs('auth.accessChecker.provider.config').returns({
+				userbypassed: {
+					name: 'Invalid Name',
+					organization: 'Invalid Org',
+					email: 'invalid@invalid.org',
+					username: 'invalid'
 				}
 			});
+			configGetStub.callThrough();
 
 			// All of the data is loaded, so initialize proxy-pki
 			passport.use(proxyPki);
@@ -338,7 +343,8 @@ describe('User Auth Controller:', () => {
 
 			it('should work when user is synced with access checker', async () => {
 				req.headers = {
-					[config.proxyPkiPrimaryUserHeader]: spec.user.synced.providerData.dn
+					[config.get<string>('proxyPkiPrimaryUserHeader')]:
+						spec.user.synced.providerData.dn
 				};
 
 				await userAuthenticationController.signin(req, res, emptyFn);
@@ -347,6 +353,7 @@ describe('User Auth Controller:', () => {
 				assert.calledOnce(res.json);
 
 				const [result] = res.json.getCall(0).args;
+
 				should.exist(result);
 				should(result.name).equal(spec.user.synced.name);
 				should(result.organization).equal(spec.user.synced.organization);
@@ -376,8 +383,13 @@ describe('User Auth Controller:', () => {
 
 			// Unknown DN header
 			it('should fail when the dn is unknown and auto create is disabled', async () => {
-				sandbox.stub(config.auth, 'autoCreateAccounts').value(false);
-				req.headers = { [config.proxyPkiPrimaryUserHeader]: 'unknown' };
+				/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+				const configGetStub = config.get as any;
+				configGetStub.withArgs('auth.autoCreateAccounts').returns(false);
+
+				req.headers = {
+					[config.get<string>('proxyPkiPrimaryUserHeader')]: 'unknown'
+				};
 
 				await userAuthenticationController
 					.signin(req, {}, emptyFn)
@@ -401,7 +413,8 @@ describe('User Auth Controller:', () => {
 
 			it('should update the user info from access checker on login', async () => {
 				req.headers = {
-					[config.proxyPkiPrimaryUserHeader]: spec.user.oldMd.providerData.dn
+					[config.get<string>('proxyPkiPrimaryUserHeader')]:
+						spec.user.oldMd.providerData.dn
 				};
 
 				await userAuthenticationController.signin(req, res, emptyFn);
@@ -419,7 +432,7 @@ describe('User Auth Controller:', () => {
 
 			it('should sync roles and groups from access checker on login', async () => {
 				req.headers = {
-					[config.proxyPkiPrimaryUserHeader]:
+					[config.get<string>('proxyPkiPrimaryUserHeader')]:
 						spec.user.differentRolesAndGroups.providerData.dn
 				};
 
@@ -456,7 +469,7 @@ describe('User Auth Controller:', () => {
 
 			it('should have external roles and groups removed on login when missing from cache', async () => {
 				req.headers = {
-					[config.proxyPkiPrimaryUserHeader]:
+					[config.get<string>('proxyPkiPrimaryUserHeader')]:
 						spec.user.missingUser.providerData.dn
 				};
 
@@ -481,7 +494,7 @@ describe('User Auth Controller:', () => {
 
 			it('should have external roles and groups removed on login when cache expired', async () => {
 				req.headers = {
-					[config.proxyPkiPrimaryUserHeader]:
+					[config.get<string>('proxyPkiPrimaryUserHeader')]:
 						spec.user.expiredUser.providerData.dn
 				};
 
@@ -513,7 +526,7 @@ describe('User Auth Controller:', () => {
 
 			it('should preserve user info, roles and groups on login', async () => {
 				req.headers = {
-					[config.proxyPkiPrimaryUserHeader]:
+					[config.get<string>('proxyPkiPrimaryUserHeader')]:
 						spec.user.missingUserBypassed.providerData.dn
 				};
 
@@ -558,7 +571,7 @@ describe('User Auth Controller:', () => {
 
 			it('should preserve user info, roles and groups on login', async () => {
 				req.headers = {
-					[config.proxyPkiPrimaryUserHeader]:
+					[config.get<string>('proxyPkiPrimaryUserHeader')]:
 						spec.user.userBypassed.providerData.dn
 				};
 
@@ -589,9 +602,13 @@ describe('User Auth Controller:', () => {
 			};
 
 			it('should create a new account from access checker information', async () => {
-				sandbox.stub(config.auth, 'autoCreateAccounts').value(true);
+				/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+				const configGetStub = config.get as any;
+				configGetStub.withArgs('auth.autoCreateAccounts').returns(true);
+
 				req.headers = {
-					[config.proxyPkiPrimaryUserHeader]: spec.cache.cacheOnly.key
+					[config.get<string>('proxyPkiPrimaryUserHeader')]:
+						spec.cache.cacheOnly.key
 				};
 
 				await userAuthenticationController.signin(req, res, () => {
@@ -643,8 +660,9 @@ describe('User Auth Controller:', () => {
 
 			it('should fail when not authorized to proxy users', async () => {
 				req.headers = {
-					[config.proxyPkiPrimaryUserHeader]: spec.user.synced.providerData.dn,
-					[config.proxyPkiProxiedUserHeader]:
+					[config.get<string>('proxyPkiPrimaryUserHeader')]:
+						spec.user.synced.providerData.dn,
+					[config.get<string>('proxyPkiProxiedUserHeader')]:
 						spec.user.userBypassed.providerData.dn
 				};
 
@@ -662,9 +680,9 @@ describe('User Auth Controller:', () => {
 
 			it('should succeed when authorized to proxy users', async () => {
 				req.headers = {
-					[config.proxyPkiPrimaryUserHeader]:
+					[config.get<string>('proxyPkiPrimaryUserHeader')]:
 						spec.user.userCanProxy.providerData.dn,
-					[config.proxyPkiProxiedUserHeader]:
+					[config.get<string>('proxyPkiProxiedUserHeader')]:
 						spec.user.userBypassed.providerData.dn
 				};
 

@@ -131,14 +131,16 @@ describe('User Password Service:', () => {
 			const expectedEmailContent = `HEADER
 <p>Hey there ${testUser.name},</p>
 <br>
-<p>It looks like you've asked us to reset your ${config.app.title} account password.</p>
+<p>It looks like you've asked us to reset your ${config.get(
+				'app.title'
+			)} account password.</p>
 <p>If that sounds right, you can go to this url to complete the process:</p>
-<p>${config.app.clientUrl}/password/reset/${testToken}</p>
+<p>${config.get('app.clientUrl')}/password/reset/${testToken}</p>
 <strong>If you didn't make this request, you can ignore this email.</strong>
 <br>
 <br>
 <p>Thanks,</p>
-<p>The ${config.app.title} Support Team</p>
+<p>The ${config.get('app.title')} Support Team</p>
 FOOTER`;
 
 			sandbox.stub(emailService, 'sendMail').resolves();
@@ -147,8 +149,8 @@ FOOTER`;
 
 			assert.calledWithMatch(emailService.sendMail, {
 				to: testUser.email,
-				from: config.coreEmails.default.from,
-				replyTo: config.coreEmails.default.replyTo,
+				from: config.get('coreEmails.default.from'),
+				replyTo: config.get('coreEmails.default.replyTo'),
 				subject: 'Password Reset',
 				html: expectedEmailContent
 			});
@@ -171,7 +173,7 @@ FOOTER`;
 <p>This is a confirmation that the password for your account has just been changed</p>
 <br>
 <br>
-<p>The ${config.app.title} Support Team</p>
+<p>The ${config.get('app.title')} Support Team</p>
 FOOTER`;
 
 			sandbox.stub(emailService, 'sendMail').resolves();
@@ -180,8 +182,8 @@ FOOTER`;
 
 			assert.calledWithMatch(emailService.sendMail, {
 				to: testUser.email,
-				from: config.coreEmails.default.from,
-				replyTo: config.coreEmails.default.replyTo,
+				from: config.get('coreEmails.default.from'),
+				replyTo: config.get('coreEmails.default.replyTo'),
 				subject: 'Your password has been changed',
 				html: expectedEmailContent
 			});

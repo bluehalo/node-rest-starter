@@ -2,7 +2,7 @@ import { assert, createSandbox } from 'sinon';
 
 import userAuthorizationService from './auth/user-authorization.service';
 import * as userController from './user.controller';
-import { User } from './user.model';
+import { User, UserDocument } from './user.model';
 import userService from './user.service';
 import { auditService, config } from '../../../dependencies';
 import { getResponseSpy } from '../../../spec/helpers';
@@ -270,37 +270,37 @@ describe('User Profile Controller:', () => {
 
 	describe('canEditProfile', () => {
 		it('local auth and undef bypass should be able to edit', () => {
-			const _user = {};
+			const _user = new User();
 			const result = userController.canEditProfile('local', _user);
 			result.should.equal(true);
 		});
 
 		it('local auth and no bypass should be able to edit', () => {
-			const _user = { bypassAccessCheck: false };
+			const _user = new User({ bypassAccessCheck: false });
 			const result = userController.canEditProfile('local', _user);
 			result.should.equal(true);
 		});
 
 		it('local auth and bypass should be able to edit', () => {
-			const _user = { bypassAccessCheck: true };
+			const _user = new User({ bypassAccessCheck: true });
 			const result = userController.canEditProfile('local', _user);
 			result.should.equal(true);
 		});
 
 		it('proxy-pki auth and undef bypass should not be able to edit', () => {
-			const _user = {};
+			const _user = new User({});
 			const result = userController.canEditProfile('proxy-pki', _user);
 			result.should.equal(false);
 		});
 
 		it('proxy-pki auth and no bypass should not be able to edit', () => {
-			const _user = { bypassAccessCheck: false };
+			const _user = new User({ bypassAccessCheck: false });
 			const result = userController.canEditProfile('proxy-pki', _user);
 			result.should.equal(false);
 		});
 
 		it('proxy-pki auth and bypass should be able to edit', () => {
-			const _user = { bypassAccessCheck: true };
+			const _user = new User({ bypassAccessCheck: true });
 			const result = userController.canEditProfile('proxy-pki', _user);
 			result.should.equal(true);
 		});
@@ -308,7 +308,8 @@ describe('User Profile Controller:', () => {
 
 	describe('hasEdit', () => {
 		it('user has edit', async () => {
-			sandbox.stub(config.auth, 'strategy').value('proxy-pki');
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub.withArgs('auth.strategy').returns('proxy-pki');
 			const req = {
 				body: {},
 				user: { bypassAccessCheck: true }
@@ -318,7 +319,8 @@ describe('User Profile Controller:', () => {
 		});
 
 		it('user does not have edit', async () => {
-			sandbox.stub(config.auth, 'strategy').value('proxy-pki');
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub.withArgs('auth.strategy').returns('proxy-pki');
 			const req = {
 				body: {},
 				user: { bypassAccessCheck: false }

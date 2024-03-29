@@ -55,7 +55,7 @@ export const getCSV = (req, res) => {
 		req.exportQuery
 	) as FilterQuery<AuditDocument>;
 
-	const fileName = `${config.app.instanceName}-${exportConfig.type}.csv`;
+	const fileName = `${config.get('app.instanceName')}-${exportConfig.type}.csv`;
 
 	const columns = exportConfig.config.cols;
 

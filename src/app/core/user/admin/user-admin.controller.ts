@@ -76,14 +76,12 @@ export const adminUpdateUser = async (req, res) => {
 		after: user.auditCopy()
 	});
 
-	if (config?.coreEmails?.approvedUserEmail?.enabled ?? false) {
-		const originalUserRole =
-			(originalUser?.roles as Record<string, unknown>)?.user ?? null;
-		const newUserRole = user?.roles?.user ?? null;
+	const originalUserRole =
+		(originalUser?.roles as Record<string, unknown>)?.user ?? null;
+	const newUserRole = user?.roles?.user ?? null;
 
-		if (originalUserRole !== newUserRole && newUserRole) {
-			await userEmailService.emailApprovedUser(user, req);
-		}
+	if (originalUserRole !== newUserRole && newUserRole) {
+		await userEmailService.emailApprovedUser(user, req);
 	}
 
 	res.status(StatusCodes.OK).json(user.fullCopy());
@@ -94,7 +92,7 @@ export const adminDeleteUser = async (req, res) => {
 	// Init Variables
 	const user = req.userParam;
 
-	if (!config?.allowDeleteUser) {
+	if (!config.get('allowDeleteUser')) {
 		throw new ForbiddenError('User deletion is disabled');
 	}
 
@@ -138,7 +136,7 @@ export const adminGetCSV = (req, res) => {
 	const exportConfig = req.exportConfig as IExportConfig;
 	const exportQuery = req.exportQuery as FilterQuery<UserDocument>;
 
-	const fileName = `${config.app.instanceName}-${exportConfig.type}.csv`;
+	const fileName = `${config.get('app.instanceName')}-${exportConfig.type}.csv`;
 
 	// Replace `roles` column with individual columns for each role
 	const columns = exportConfig.config.cols.filter(

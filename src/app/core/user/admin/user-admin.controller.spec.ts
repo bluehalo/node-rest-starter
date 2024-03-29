@@ -228,7 +228,9 @@ describe('User Admin Controller:', () => {
 
 			['external', 'hybrid'].forEach((strategy) => {
 				it(`strategy = ${strategy}`, () => {
-					sandbox.stub(config.auth, 'roleStrategy').value(strategy);
+					const configGetStub = sandbox.stub(config, 'get');
+					configGetStub.withArgs('auth.roleStrategy').returns(strategy);
+					configGetStub.callThrough();
 				});
 			});
 

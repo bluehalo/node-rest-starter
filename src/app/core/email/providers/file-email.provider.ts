@@ -19,7 +19,7 @@ export default class implements EmailProvider {
 	 * Mocks sending an email with the input mail options by logging each email to individual files
 	 */
 	async sendMail(mailOptions: MailOptions): Promise<void> {
-		const fileDirectory = config.mailer.options['outputDir'] ?? 'emails';
+		const fileDirectory = config.get<string>('mailer.options.outputDir');
 
 		// ensure directory exists
 		await fsPromises.mkdir(fileDirectory, { recursive: true });

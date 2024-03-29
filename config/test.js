@@ -19,7 +19,7 @@ module.exports = {
 
 	// Configuration for outgoing mail server / service
 	mailer: {
-		provider: './src/app/core/email/providers/log-email.provider'
+		provider: './src/app/core/email/providers/noop-email.provider'
 	},
 
 	/**

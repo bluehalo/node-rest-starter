@@ -122,10 +122,14 @@ describe('Access Checker Service:', () => {
 	 */
 	describe('Broken Access Checker', () => {
 		beforeEach(() => {
-			sandbox.stub(config.auth.accessChecker, 'provider').value({
-				file: 'src/app/core/access-checker/providers/failure-provider.service',
-				config: {}
-			});
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub
+				.withArgs('auth.accessChecker.provider.file')
+				.returns(
+					'src/app/core/access-checker/providers/failure-provider.service'
+				);
+			configGetStub.withArgs('auth.accessChecker.provider.config').returns({});
+			configGetStub.callThrough();
 
 			// Need to clear cached provider from service to ensure proper test run.
 			accessChecker.provider = null;
@@ -169,10 +173,14 @@ describe('Access Checker Service:', () => {
 	 */
 	describe('Working Access Checker', () => {
 		beforeEach(() => {
-			sandbox.stub(config.auth.accessChecker, 'provider').value({
-				file: 'src/app/core/access-checker/providers/example.provider',
-				config: provider
-			});
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub
+				.withArgs('auth.accessChecker.provider.file')
+				.returns('src/app/core/access-checker/providers/example.provider');
+			configGetStub
+				.withArgs('auth.accessChecker.provider.config')
+				.returns(provider);
+			configGetStub.callThrough();
 
 			// Need to clear cached provider from service to ensure proper test run.
 			accessChecker.provider = null;
@@ -245,8 +253,6 @@ describe('Access Checker Service:', () => {
 	 */
 	describe('Missing Access Checker Config', () => {
 		beforeEach(() => {
-			sandbox.stub(config.auth.accessChecker, 'provider').value({});
-
 			// Need to clear cached provider from service to ensure proper test run.
 			accessChecker.provider = null;
 		});
@@ -257,7 +263,7 @@ describe('Access Checker Service:', () => {
 				.get('notincache')
 				.should.be.rejectedWith(
 					new Error(
-						'Error retrieving entry from the access checker provider: Invalid accessChecker provider configuration.'
+						'Error retrieving entry from the access checker provider: Configuration property "auth.accessChecker.provider.file" is not defined'
 					)
 				);
 		});
@@ -266,12 +272,14 @@ describe('Access Checker Service:', () => {
 	/**
 	 * Test functionality with missing access checker provider file
 	 */
-	describe('Missing Access Checker Config', () => {
+	describe('Invalid Access Checker Config', () => {
 		beforeEach(() => {
-			sandbox.stub(config.auth.accessChecker, 'provider').value({
-				file: 'invalid/path/to/provider',
-				config: {}
-			});
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub
+				.withArgs('auth.accessChecker.provider.file')
+				.returns('invalid/path/to/provider');
+			configGetStub.withArgs('auth.accessChecker.provider.config').returns({});
+			configGetStub.callThrough();
 
 			// Need to clear cached provider from service to ensure proper test run.
 			accessChecker.provider = null;

@@ -37,12 +37,12 @@ router
 /**
  * Routes that only apply to the 'local' passport strategy
  */
-if (config.auth.strategy === 'local') {
+if (config.get('auth.strategy') === 'local') {
 	// Admin Create User
 	router
 		.route('/admin/user')
 		.post(hasAdminAccess, userAdminController.adminCreateUser);
-} else if (config.auth.strategy === 'proxy-pki') {
+} else if (config.get('auth.strategy') === 'proxy-pki') {
 	// Admin Create User
 	router
 		.route('/admin/user')

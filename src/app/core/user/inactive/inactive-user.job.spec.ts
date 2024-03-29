@@ -35,27 +35,31 @@ describe('User Email Service:', () => {
 			const expectedEmailContent = `HEADER
 <p>Hello ${user.name},</p>
 <br>
-<p>It seems you haven't logged into your ${config.app.title} account in ${daysAgo} days.</p>
+<p>It seems you haven't logged into your ${config.get(
+				'app.title'
+			)} account in ${daysAgo} days.</p>
 <p>Therefore, your account has been deactivated.</p>
-<p>Please contact us at ${config.app.contactEmail} if you have any questions.</p>
+<p>Please contact us at ${config.get(
+				'app.contactEmail'
+			)} if you have any questions.</p>
 <br>
 <br>
 <p>Thanks,</p>
-<p>The ${config.app.title} Support Team</p>
+<p>The ${config.get('app.title')} Support Team</p>
 FOOTER`;
 
 			sandbox.stub(emailService, 'sendMail').resolves();
 
 			await inactiveUsersJobService.sendEmail(
 				user,
-				config.coreEmails.userDeactivate
+				config.get('coreEmails.userDeactivate')
 			);
 
 			assert.calledWithMatch(emailService.sendMail, {
 				to: user.email,
-				from: config.coreEmails.default.from,
-				replyTo: config.coreEmails.default.replyTo,
-				subject: `${config.app.title}: Account Deactivation`,
+				from: config.get('coreEmails.default.from'),
+				replyTo: config.get('coreEmails.default.replyTo'),
+				subject: `${config.get('app.title')}: Account Deactivation`,
 				html: expectedEmailContent
 			});
 
@@ -66,29 +70,31 @@ FOOTER`;
 			const expectedEmailContent = `HEADER
 <p>Hello ${user.name},</p>
 <br>
-<p>It seems you haven't logged into your ${config.app.title} account in ${daysAgo} days. Why not check in and see what's new!</p>
+<p>It seems you haven't logged into your ${config.get(
+				'app.title'
+			)} account in ${daysAgo} days. Why not check in and see what's new!</p>
 <p>Have a question or just want to know what's new? Take a look at our Message of the Day page:</p>
-<p>${config.app.clientUrl}</p>
+<p>${config.get('app.clientUrl')}</p>
 <br>
 <p>Keep in mind that all accounts that have been inactive for a period of at least 90 days are deactivated.</p>
 <br>
 <br>
 <p>Thanks,</p>
-<p>The ${config.app.title} Support Team</p>
+<p>The ${config.get('app.title')} Support Team</p>
 FOOTER`;
 
 			sandbox.stub(emailService, 'sendMail').resolves();
 
 			await inactiveUsersJobService.sendEmail(
 				user,
-				config.coreEmails.userInactivity
+				config.get('coreEmails.userInactivity')
 			);
 
 			assert.calledWithMatch(emailService.sendMail, {
 				to: user.email,
-				from: config.coreEmails.default.from,
-				replyTo: config.coreEmails.default.replyTo,
-				subject: `${config.app.title}: Inactivity Notice`,
+				from: config.get('coreEmails.default.from'),
+				replyTo: config.get('coreEmails.default.replyTo'),
+				subject: `${config.get('app.title')}: Inactivity Notice`,
 				html: expectedEmailContent
 			});
 

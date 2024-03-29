@@ -217,70 +217,65 @@ describe('Team Service:', () => {
 			should.not.exist(role);
 		});
 
-		it('return implicit team role for user', () => {
-			sandbox
-				.stub(config.teams, 'implicitMembers')
-				.value({ strategy: 'teams' });
+		describe('implicitMembers.strategy = "teams"', () => {
+			beforeEach(() => {
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.implicitMembers.enabled').returns(true);
+				configGetStub
+					.withArgs('teams.implicitMembers.strategy')
+					.returns('teams');
+				configGetStub.callThrough();
+			});
 
-			const role = teamsService.getActiveTeamRole(
-				user.implicit1,
-				team.teamWithExternalTeam
-			);
+			it('return implicit team role for user', () => {
+				const role = teamsService.getActiveTeamRole(
+					user.implicit1,
+					team.teamWithExternalTeam
+				);
 
-			should.exist(role);
-			role.should.equal(TeamRoles.Member);
+				should.exist(role);
+				role.should.equal(TeamRoles.Member);
+			});
 		});
 
-		it('return null role for user not implicitly in team', () => {
-			sandbox
-				.stub(config.teams, 'implicitMembers')
-				.value({ strategy: 'roles' });
+		describe('implicitMembers.strategy = "roles"', () => {
+			beforeEach(() => {
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.implicitMembers.enabled').returns(true);
+				configGetStub
+					.withArgs('teams.implicitMembers.strategy')
+					.returns('roles');
+				configGetStub.callThrough();
+			});
 
-			const role = teamsService.getActiveTeamRole(
-				user.implicit1,
-				team.teamWithExternalTeam
-			);
+			it('return null role for user not implicitly in team', () => {
+				const role = teamsService.getActiveTeamRole(
+					user.implicit1,
+					team.teamWithExternalTeam
+				);
 
-			should.not.exist(role);
-		});
+				should.not.exist(role);
+			});
 
-		it('return implicit team role for user', () => {
-			sandbox
-				.stub(config.teams, 'implicitMembers')
-				.value({ strategy: 'roles' });
+			it('return implicit team role for user', () => {
+				const role = teamsService.getActiveTeamRole(
+					user.implicit2,
+					team.teamWithExternalRoles
+				);
 
-			const role = teamsService.getActiveTeamRole(
-				user.implicit2,
-				team.teamWithExternalRoles
-			);
+				should.exist(role);
+				role.should.equal(TeamRoles.Member);
+			});
 
-			should.exist(role);
-			role.should.equal(TeamRoles.Member);
-		});
+			it('return blocked role for user blocked from team that they would otherwise be an implicit member', () => {
+				const role = teamsService.getActiveTeamRole(
+					user.blocked,
+					team.teamWithExternalRoles2
+				);
 
-		it('return null role for user implicitly in team, but implicit teams disabled', () => {
-			sandbox.stub(config.teams, 'implicitMembers').value(undefined);
-
-			const role = teamsService.getActiveTeamRole(
-				user.implicit1,
-				team.teamWithExternalTeam
-			);
-
-			should.not.exist(role);
-		});
-
-		it('return blocked role for user blocked from team that they would otherwise be an implicit member', () => {
-			sandbox
-				.stub(config.teams, 'implicitMembers')
-				.value({ strategy: 'roles' });
-
-			const role = teamsService.getActiveTeamRole(
-				user.blocked,
-				team.teamWithExternalRoles2
-			);
-
-			should.exist(role);
-			role.should.equal('blocked');
+				should.exist(role);
+				role.should.equal('blocked');
+			});
 		});
 	});
 
@@ -809,10 +804,15 @@ describe('Team Service:', () => {
 	});
 
 	describe('isImplicitMember', () => {
-		it('strategy = roles', () => {
-			sandbox
-				.stub(config.teams, 'implicitMembers')
-				.value({ strategy: 'roles' });
+		describe('strategy = roles', () => {
+			beforeEach(() => {
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.implicitMembers.enabled').returns(true);
+				configGetStub
+					.withArgs('teams.implicitMembers.strategy')
+					.returns('roles');
+				configGetStub.callThrough();
+			});
 
 			it('should not match when user.externalRoles and team.requiresExternalRoles are undefined', () => {
 				const _user = new User({});
@@ -849,10 +849,13 @@ describe('Team Service:', () => {
 		});
 
 		describe('strategy = teams', () => {
-			before(() => {
-				sandbox
-					.stub(config.teams, 'implicitMembers')
-					.value({ strategy: 'teams' });
+			beforeEach(() => {
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.implicitMembers.enabled').returns(true);
+				configGetStub
+					.withArgs('teams.implicitMembers.strategy')
+					.returns('teams');
+				configGetStub.callThrough();
 			});
 
 			it('should not match when user.externalRoles and team.requiresExternalTeams are undefined', () => {
@@ -891,9 +894,11 @@ describe('Team Service:', () => {
 			});
 		});
 
-		describe('strategy = undefined', () => {
-			before(() => {
-				sandbox.stub(config.teams, 'implicitMembers').value({ strategy: null });
+		describe('enabled = false', () => {
+			beforeEach(() => {
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.implicitMembers.enabled').returns(false);
+				configGetStub.callThrough();
 			});
 
 			it('should not match any since disabled', () => {
@@ -950,8 +955,12 @@ describe('Team Service:', () => {
 
 			const expectedEmailContent = `HEADER
 <p>Hey there <strong>${_team.name}</strong> Admin,</p>
-<p>A user named <strong>${_user.name}</strong> with username <strong>${_user.username}</strong> has requested access to the team.</p>
-<p>Click <a href="${config.app.clientUrl}/team/${_team._id}">here</a> to give them access!</p>
+<p>A user named <strong>${_user.name}</strong> with username <strong>${
+				_user.username
+			}</strong> has requested access to the team.</p>
+<p>Click <a href="${config.get('app.clientUrl')}/team/${
+				_team._id
+			}">here</a> to give them access!</p>
 FOOTER
 `;
 
@@ -970,10 +979,14 @@ FOOTER
 			mailOptions.bcc.length.should.equal(2);
 			mailOptions.bcc[0].should.equal(toEmails[0]);
 			mailOptions.bcc[1].should.equal(toEmails[1]);
-			mailOptions.from.should.equal(config.coreEmails.default.from);
-			mailOptions.replyTo.should.equal(config.coreEmails.default.replyTo);
+			mailOptions.from.should.equal(config.get('coreEmails.default.from'));
+			mailOptions.replyTo.should.equal(
+				config.get('coreEmails.default.replyTo')
+			);
 			mailOptions.subject.should.equal(
-				`${config.app.title}: A user has requested access to Team ${_team.name}`
+				`${config.get('app.title')}: A user has requested access to Team ${
+					_team.name
+				}`
 			);
 			mailOptions.html.should.equal(expectedEmailContent);
 		});
@@ -1066,14 +1079,18 @@ FOOTER
 			const sendMailStub = sandbox.stub(emailService, 'sendMail');
 
 			const expectedEmailContent = `HEADER
-<p>Hey there ${config.app.title} Admins,</p>
-<p>A user named <strong>${_user.name}</strong> with username <strong>${_user.username}</strong> has requested a new team:</p>
+<p>Hey there ${config.get('app.title')} Admins,</p>
+<p>A user named <strong>${_user.name}</strong> with username <strong>${
+				_user.username
+			}</strong> has requested a new team:</p>
 <p>
 \t<strong>Organization:</strong> org<br/>
 \t<strong>AOI:</strong> aoi<br/>
 \t<strong>Description:</strong> description<br/>
 </p>
-<p>Click <a href="${config.app.clientUrl}/team/create">here</a> to create this team!</p>
+<p>Click <a href="${config.get(
+				'app.clientUrl'
+			)}/team/create">here</a> to create this team!</p>
 FOOTER
 `;
 
@@ -1090,9 +1107,11 @@ FOOTER
 				should.exist(mailOptions[key], `expected mailOptions.${key} to exist`);
 			}
 
-			mailOptions.bcc.should.equal(config.coreEmails.newTeamRequest.bcc);
-			mailOptions.from.should.equal(config.coreEmails.default.from);
-			mailOptions.replyTo.should.equal(config.coreEmails.default.replyTo);
+			mailOptions.bcc.should.equal(config.get('coreEmails.newTeamRequest.bcc'));
+			mailOptions.from.should.equal(config.get('coreEmails.default.from'));
+			mailOptions.replyTo.should.equal(
+				config.get('coreEmails.default.replyTo')
+			);
 			mailOptions.subject.should.equal('New Team Requested');
 			mailOptions.html.should.equal(expectedEmailContent);
 		});
@@ -1118,10 +1137,13 @@ FOOTER
 
 	describe('getImplicitTeamIds', () => {
 		describe('strategy = roles', () => {
-			before(() => {
-				sandbox
-					.stub(config.teams, 'implicitMembers')
-					.value({ strategy: 'roles' });
+			beforeEach(() => {
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.implicitMembers.enabled').returns(true);
+				configGetStub
+					.withArgs('teams.implicitMembers.strategy')
+					.returns('roles');
+				configGetStub.callThrough();
 			});
 
 			it('reject for non-existent user', async () => {
@@ -1174,10 +1196,13 @@ FOOTER
 		});
 
 		describe('strategy = teams;', () => {
-			before(() => {
-				sandbox
-					.stub(config.teams, 'implicitMembers')
-					.value({ strategy: 'teams' });
+			beforeEach(() => {
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.implicitMembers.enabled').returns(true);
+				configGetStub
+					.withArgs('teams.implicitMembers.strategy')
+					.returns('teams');
+				configGetStub.callThrough();
 			});
 
 			it('should find implicit teams for user with matching external teams', async () => {
@@ -1207,9 +1232,11 @@ FOOTER
 			});
 		});
 
-		describe('strategy = null;', () => {
-			before(() => {
-				sandbox.stub(config.teams, 'implicitMembers').value({ strategy: null });
+		describe('enabled = false;', () => {
+			beforeEach(() => {
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.implicitMembers.enabled').returns(false);
+				configGetStub.callThrough();
 			});
 
 			it('should not find implicit teams for users with matching external roles/teams if disabled', async () => {
@@ -1298,7 +1325,10 @@ FOOTER
 			});
 
 			it('Should get team role for nested team when nested teams are enabled', () => {
-				sandbox.stub(config.teams, 'nestedTeams').value(true);
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.nestedTeams').returns(true);
+				configGetStub.callThrough();
+
 				const role = teamsService.getActiveTeamRole(
 					user.user1,
 					team.nestedTeam2_1
@@ -1308,7 +1338,10 @@ FOOTER
 			});
 
 			it('Should not get team role for nested team when nested teams are disabled', () => {
-				sandbox.stub(config.teams, 'nestedTeams').value(false);
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.nestedTeams').returns(false);
+				configGetStub.callThrough();
+
 				const role = teamsService.getActiveTeamRole(
 					user.user1,
 					team.nestedTeam2_1
@@ -1327,7 +1360,9 @@ FOOTER
 
 		describe('getNestedTeamIds', () => {
 			it('return empty array if nestedTeams is disabled in config', async () => {
-				sandbox.stub(config.teams, 'nestedTeams').value(false);
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.nestedTeams').returns(false);
+				configGetStub.callThrough();
 
 				const nestedTeamIds = await teamsService.getNestedTeamIds([
 					team.teamWithNoExternalTeam._id
@@ -1339,7 +1374,9 @@ FOOTER
 			});
 
 			it('undefined parent teams', async () => {
-				sandbox.stub(config.teams, 'nestedTeams').value(true);
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.nestedTeams').returns(true);
+				configGetStub.callThrough();
 
 				const nestedTeamIds = await teamsService.getNestedTeamIds();
 
@@ -1349,7 +1386,9 @@ FOOTER
 			});
 
 			it('empty parent teams array', async () => {
-				sandbox.stub(config.teams, 'nestedTeams').value(true);
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.nestedTeams').returns(true);
+				configGetStub.callThrough();
 
 				const nestedTeamIds = await teamsService.getNestedTeamIds([]);
 
@@ -1359,7 +1398,9 @@ FOOTER
 			});
 
 			it('default/all roles', async () => {
-				sandbox.stub(config.teams, 'nestedTeams').value(true);
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.nestedTeams').returns(true);
+				configGetStub.callThrough();
 
 				const nestedTeamIds = await teamsService.getNestedTeamIds([
 					team.teamWithNoExternalTeam._id
@@ -1371,7 +1412,9 @@ FOOTER
 			});
 
 			it('explicitly pass "member" role', async () => {
-				sandbox.stub(config.teams, 'nestedTeams').value(true);
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.nestedTeams').returns(true);
+				configGetStub.callThrough();
 
 				const nestedTeamIds = await teamsService.getNestedTeamIds([
 					team.nestedTeam1._id
@@ -1409,8 +1452,10 @@ FOOTER
 
 		describe('updateTeams', () => {
 			it('implicit members disabled; nested teams disabled', async () => {
-				sandbox.stub(config.teams, 'implicitMembers').value({});
-				sandbox.stub(config.teams, 'nestedTeams').value(false);
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.implicitMembers.enabled').returns(false);
+				configGetStub.withArgs('teams.nestedTeams').returns(false);
+				configGetStub.callThrough();
 
 				const user = new User({
 					teams: [
@@ -1426,10 +1471,13 @@ FOOTER
 			});
 
 			it('implicit members enabled; nested teams disabled', async () => {
-				sandbox
-					.stub(config.teams, 'implicitMembers')
-					.value({ strategy: 'roles' });
-				sandbox.stub(config.teams, 'nestedTeams').value(false);
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.implicitMembers.enabled').returns(true);
+				configGetStub
+					.withArgs('teams.implicitMembers.strategy')
+					.returns('roles');
+				configGetStub.withArgs('teams.nestedTeams').returns(false);
+				configGetStub.callThrough();
 
 				const user = new User({
 					teams: [
@@ -1445,8 +1493,10 @@ FOOTER
 			});
 
 			it('implicit members disabled; nested teams enabled', async () => {
-				sandbox.stub(config.teams, 'implicitMembers').value({});
-				sandbox.stub(config.teams, 'nestedTeams').value(true);
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.implicitMembers.enabled').returns(false);
+				configGetStub.withArgs('teams.nestedTeams').returns(true);
+				configGetStub.callThrough();
 
 				const user = new User({
 					teams: [
@@ -1462,10 +1512,13 @@ FOOTER
 			});
 
 			it('implicit members enabled; nested teams enabled', async () => {
-				sandbox
-					.stub(config.teams, 'implicitMembers')
-					.value({ strategy: 'roles' });
-				sandbox.stub(config.teams, 'nestedTeams').value(true);
+				const configGetStub = sandbox.stub(config, 'get');
+				configGetStub.withArgs('teams.implicitMembers.enabled').returns(true);
+				configGetStub
+					.withArgs('teams.implicitMembers.strategy')
+					.returns('roles');
+				configGetStub.withArgs('teams.nestedTeams').returns(true);
+				configGetStub.callThrough();
 
 				const user = new User({
 					teams: [

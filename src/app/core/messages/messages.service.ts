@@ -125,7 +125,7 @@ class MessagesService {
 	async publishMessage(message: MessageDocument): Promise<void> {
 		const provider = await this.getProvider();
 		provider.publish(
-			config.messages.topic,
+			config.get('messages.topic'),
 			{
 				type: 'message',
 				id: message._id.toString(),
@@ -139,7 +139,7 @@ class MessagesService {
 	async getProvider(): Promise<PublishProvider> {
 		if (!this.publishProvider) {
 			this.publishProvider = await import(
-				path.posix.resolve(config.publishProvider)
+				path.posix.resolve(config.get('publishProvider'))
 			);
 		}
 		return this.publishProvider;

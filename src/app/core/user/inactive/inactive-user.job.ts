@@ -49,7 +49,7 @@ export default class InactiveUsersJobService implements JobService {
 				user.markModified('roles');
 				await user.save();
 
-				await this.sendEmail(user, config.coreEmails.userDeactivate);
+				await this.sendEmail(user, config.get('coreEmails.userDeactivate'));
 
 				await auditService.audit(
 					'deactivation due to inactivity',
@@ -69,7 +69,7 @@ export default class InactiveUsersJobService implements JobService {
 		const inactiveUsers = await User.find(dQuery).exec();
 		return Promise.all(
 			inactiveUsers.map((user) =>
-				this.sendEmail(user, config.coreEmails.userInactivity)
+				this.sendEmail(user, config.get('coreEmails.userInactivity'))
 			)
 		);
 	}

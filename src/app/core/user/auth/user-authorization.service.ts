@@ -115,11 +115,11 @@ class UserAuthorizationService {
 	 * ==========================================================
 	 */
 	getRoleStrategy() {
-		return config?.auth?.roleStrategy ?? 'local';
+		return config.get<string>('auth.roleStrategy');
 	}
 
 	getRoles() {
-		return config?.auth?.roles ?? ['user', 'editor', 'auditor', 'admin'];
+		return config.get<string[]>('auth.roles');
 	}
 
 	/**
@@ -128,20 +128,18 @@ class UserAuthorizationService {
 	 */
 	async loadProvider(reload = false): Promise<ExternalRoleMapProvider> {
 		if (!this.provider || reload) {
-			const erConfig = config.auth?.externalRoles;
-			if (!erConfig.provider?.file) {
-				return Promise.reject(
-					new Error('Invalid external role map provider configuration.')
-				);
-			}
 			try {
 				const { default: Provider } = await import(
-					path.posix.resolve(erConfig.provider.file)
+					path.posix.resolve(config.get('auth.externalRoles.provider.file'))
 				);
-				this.provider = new Provider(erConfig.provider.config);
+				this.provider = new Provider(
+					config.get('auth.externalRoles.provider.config')
+				);
 			} catch (err) {
 				throw new Error(
-					`Failed to load external role map provider: ${erConfig.provider.file}`
+					`Failed to load external role map provider: ${config.get(
+						'auth.externalRoles.provider.file'
+					)}`
 				);
 			}
 		}

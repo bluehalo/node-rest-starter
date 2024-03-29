@@ -7,7 +7,7 @@ import {
 	TeamRolePriorities,
 	TeamRoles
 } from './team-role.model';
-import { ITeam, TeamDocument, TeamModel, Team } from './team.model';
+import { ITeam, Team, TeamDocument, TeamModel } from './team.model';
 import { config, emailService, utilService } from '../../../dependencies';
 import { logger } from '../../../lib/logger';
 import {
@@ -19,7 +19,7 @@ import {
 import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { IdOrObject, Override } from '../../common/typescript-util';
 import userAuthService from '../user/auth/user-authorization.service';
-import { IUser, UserDocument, UserModel, User } from '../user/user.model';
+import { IUser, User, UserDocument, UserModel } from '../user/user.model';
 
 /**
  * Copies the mutable fields from src to dest
@@ -178,7 +178,7 @@ class TeamsService {
 			.sort(sort)
 			.paginate(limit, page);
 
-		const mappedResults: PagingResults<TeamDocument> = {
+		return {
 			pageNumber: results.pageNumber,
 			pageSize: results.pageSize,
 			totalPages: results.totalPages,
@@ -191,8 +191,6 @@ class TeamsService {
 				} as unknown as TeamDocument;
 			})
 		};
-
-		return mappedResults;
 	}
 
 	/**
@@ -207,8 +205,7 @@ class TeamsService {
 			return user.teams[ndx].role;
 		}
 
-		const nestedTeamsEnabled = _.get(config, 'teams.nestedTeams', false);
-		if (nestedTeamsEnabled) {
+		if (config.get<boolean>('teams.nestedTeams')) {
 			for (const ancestor of team.ancestors || []) {
 				const role = this.getTeamRole(user, new this.model({ _id: ancestor }));
 				if (role) {
@@ -224,13 +221,15 @@ class TeamsService {
 	 * If the user is bypassed, they automatically meet the required external teams
 	 */
 	isImplicitMember(user: UserDocument, team: TeamDocument): boolean {
-		const strategy = config?.teams?.implicitMembers?.strategy ?? null;
+		if (config.get<boolean>('teams.implicitMembers.enabled')) {
+			const strategy = config.get<string>('teams.implicitMembers.strategy');
 
-		if (strategy === 'roles') {
-			return this.meetsRequiredExternalRoles(user, team);
-		}
-		if (strategy === 'teams') {
-			return this.meetsRequiredExternalTeams(user, team);
+			if (strategy === 'roles') {
+				return this.meetsRequiredExternalRoles(user, team);
+			}
+			if (strategy === 'teams') {
+				return this.meetsRequiredExternalTeams(user, team);
+			}
 		}
 		return false;
 	}
@@ -316,22 +315,20 @@ class TeamsService {
 			return teamRole;
 		}
 
-		const implicitMembersEnabled =
-			(config?.teams?.implicitMembers?.strategy ?? null) !== null;
+		const implicitMembersEnabled = config.get<boolean>(
+			'teams.implicitMembers.enabled'
+		);
 
-		// implicit team members is not enabled, or the team does not have implicit members enabled
-		if (!implicitMembersEnabled || !team.implicitMembers) {
-			// Return the team role
-			return teamRole;
-		}
-
-		// If the user is active
-		if (this.isImplicitMember(user, team)) {
+		if (
+			implicitMembersEnabled &&
+			team.implicitMembers &&
+			this.isImplicitMember(user, team)
+		) {
 			// implicit members get the default 'member' role.
 			return 'member';
 		}
 
-		// Return null since the user is neither an explicit or implicit member of the team.
+		// Return null since the user is neither an explicit nor implicit member of the team.
 		return null;
 	}
 
@@ -400,8 +397,9 @@ class TeamsService {
 	private getImplicitMemberFilter(
 		team: TeamDocument
 	): FilterQuery<TeamDocument> {
-		const implicitTeamStrategy =
-			config?.teams?.implicitMembers?.strategy ?? null;
+		const implicitTeamStrategy = config.get<string>(
+			'teams.implicitMembers.strategy'
+		);
 		if (
 			implicitTeamStrategy === 'roles' &&
 			team.requiresExternalRoles?.length > 0
@@ -572,7 +570,7 @@ class TeamsService {
 			const mailOptions = await emailService.generateMailOptions(
 				requester,
 				null,
-				config.coreEmails.teamAccessRequestEmail,
+				config.get('coreEmails.teamAccessRequestEmail'),
 				{
 					team: team.toJSON()
 				},
@@ -649,7 +647,7 @@ class TeamsService {
 			const mailOptions = await emailService.generateMailOptions(
 				requester,
 				req,
-				config.coreEmails.newTeamRequest,
+				config.get('coreEmails.newTeamRequest'),
 				{
 					org: org,
 					aoi: aoi,
@@ -696,10 +694,13 @@ class TeamsService {
 			return Promise.reject(new InternalServerError('User does not exist'));
 		}
 
-		const strategy = config?.teams?.implicitMembers?.strategy ?? null;
+		const implicitMembersEnabled = config.get<boolean>(
+			'teams.implicitMembers.enabled'
+		);
+		const strategy = config.get<string>('teams.implicitMembers.strategy');
 
 		if (
-			strategy == null ||
+			!implicitMembersEnabled ||
 			(roles.length > 0 && !roles.includes(TeamRoleImplicit))
 		) {
 			return Promise.resolve([]);
@@ -767,7 +768,7 @@ class TeamsService {
 	}
 
 	getNestedTeamIds(teamIds: Types.ObjectId[] = []): Promise<Types.ObjectId[]> {
-		const nestedTeamsEnabled = config?.teams?.nestedTeams ?? false;
+		const nestedTeamsEnabled = config.get<boolean>('teams.nestedTeams');
 		if (!nestedTeamsEnabled || teamIds.length === 0) {
 			return Promise.resolve([]);
 		}
@@ -822,8 +823,8 @@ class TeamsService {
 	}
 
 	async updateTeams(user: IUser) {
-		const strategy = config?.teams?.implicitMembers?.strategy ?? 'disabled';
-		const nestedTeamsEnabled = config?.teams?.nestedTeams ?? false;
+		const strategy = config.get('teams.implicitMembers.strategy');
+		const nestedTeamsEnabled = config.get<boolean>('teams.nestedTeams');
 
 		if (strategy === 'disabled' && !nestedTeamsEnabled) {
 			return;

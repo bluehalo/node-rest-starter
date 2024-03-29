@@ -52,7 +52,7 @@ router.route('/auth/signout').get(userAuthentication.signout);
 /**
  * Routes that only apply to the 'local' passport strategy
  */
-if (config.auth.strategy === 'local') {
+if (config.get('auth.strategy') === 'local') {
 	logger.info('Configuring local user authentication routes.');
 
 	// Default setup is basic local auth
@@ -61,7 +61,7 @@ if (config.auth.strategy === 'local') {
 	router.route('/auth/forgot').post(userPassword.forgot);
 	router.route('/auth/reset/:token').get(userPassword.validateResetToken);
 	router.route('/auth/reset/:token').post(userPassword.reset);
-} else if (config.auth.strategy === 'proxy-pki') {
+} else if (config.get('auth.strategy') === 'proxy-pki') {
 	/**
 	 * Routes that only apply to the 'proxy-pki' passport strategy
 	 */

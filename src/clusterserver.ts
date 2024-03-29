@@ -13,13 +13,13 @@ const defaultOptions = {
 	num: parseInt(process.env.NODE_WORKERS) || 2 //count of processes to create, defaults to maximum if omitted
 };
 
-const options = config.clusterConfig || defaultOptions;
+const options = config.get('clusterConfig') || defaultOptions;
 logger.info(`Cluster config: ${JSON.stringify(options)}`);
 
 startupFn()
 	.then((app) => {
-		sticky(options, () => app).listen(config.port, () => {
-			logger.info(`server started on ${config.port} port`);
+		sticky(options, () => app).listen(config.get('port'), () => {
+			logger.info(`server started on ${config.get('port')} port`);
 		});
 	})
 	.catch((error) => {
