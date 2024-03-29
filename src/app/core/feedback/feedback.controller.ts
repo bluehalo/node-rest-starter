@@ -32,7 +32,7 @@ export const adminGetFeedbackCSV = function (req, res) {
 	const exportConfig = req.exportConfig as IExportConfig;
 	const exportQuery = req.exportQuery as FilterQuery<FeedbackDocument>;
 
-	const fileName = `${config.app.instanceName}-${exportConfig.type}.csv`;
+	const fileName = `${config.get('app.instanceName')}-${exportConfig.type}.csv`;
 
 	const columns = exportConfig.config.cols;
 	// Based on which columns are requested, handle property-specific behavior (ex. callbacks for the

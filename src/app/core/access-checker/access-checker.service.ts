@@ -88,14 +88,6 @@ class AccessCheckerService {
 	 */
 	async getProvider(): Promise<AccessCheckerProvider> {
 		if (!this.provider) {
-			if (!config.has('auth.accessChecker.provider.file')) {
-				logger.error(
-					'Invalid accessChecker provider configuration.  No `provider.file` specified'
-				);
-				return Promise.reject(
-					new Error('Invalid accessChecker provider configuration.')
-				);
-			}
 			const providerFile = config.get<string>(
 				'auth.accessChecker.provider.file'
 			);

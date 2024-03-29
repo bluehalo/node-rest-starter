@@ -39,8 +39,12 @@ describe('Feedback Service:', () => {
 			});
 
 			const expectedEmailContent = `HEADER
-<p>Hey there ${config.app.title} Admins,</p>
-<p>A user named <strong>${user.name}</strong> with username <strong>${user.username}</strong> and email <strong>${user.email}</strong> has submitted the following ${feedback.type}:</p>
+<p>Hey there ${config.get('app.title')} Admins,</p>
+<p>A user named <strong>${user.name}</strong> with username <strong>${
+				user.username
+			}</strong> and email <strong>${
+				user.email
+			}</strong> has submitted the following ${feedback.type}:</p>
 <p>${feedback.body}</p>
 <p>Submitted from: ${feedback.url}</p>
 FOOTER
@@ -57,11 +61,13 @@ FOOTER
 				should.exist(mailOptions[key], `expected mailOptions.${key} to exist`);
 			}
 
-			mailOptions.bcc.should.equal(config.coreEmails.feedbackEmail.bcc);
-			mailOptions.from.should.equal(config.coreEmails.default.from);
-			mailOptions.replyTo.should.equal(config.coreEmails.default.replyTo);
+			mailOptions.bcc.should.equal(config.get('coreEmails.feedbackEmail.bcc'));
+			mailOptions.from.should.equal(config.get('coreEmails.default.from'));
+			mailOptions.replyTo.should.equal(
+				config.get('coreEmails.default.replyTo')
+			);
 			mailOptions.subject.should.equal(
-				`${config.app.title}: Feedback Submitted`
+				`${config.get('app.title')}: Feedback Submitted`
 			);
 			mailOptions.html.should.equal(expectedEmailContent);
 		});

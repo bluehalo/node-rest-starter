@@ -49,6 +49,7 @@
     ]
   },
   "dependencies": {
+    "@types/config": "^3.3.4",
     "agenda": "^4.3.0",
     "async": "2.6",
     "chalk": "2",

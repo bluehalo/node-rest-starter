@@ -78,9 +78,9 @@ class EmailService {
 		// Set email header/footer
 		const data = _.merge(
 			{},
-			config.coreEmails.default,
+			config.get('coreEmails.default'),
 			{
-				app: config.app,
+				app: config.get('app'),
 				user: user
 			},
 			overrides
@@ -92,9 +92,9 @@ class EmailService {
 	buildEmailSubject(template, user, overrides = {}): string {
 		const data = _.merge(
 			{},
-			config.coreEmails.default,
+			config.get('coreEmails.default'),
 			{
-				app: config.app,
+				app: config.get('app'),
 				user: user
 			},
 			overrides
@@ -105,7 +105,7 @@ class EmailService {
 	async generateMailOptions(
 		user,
 		req,
-		emailConfig,
+		emailTemplateConfig,
 		emailContentData = {},
 		emailSubjectData = {},
 		mailOpts = {}
@@ -113,15 +113,16 @@ class EmailService {
 		if (user.toObject) {
 			user = user.toObject();
 		}
-		let emailContent, emailSubject;
+		let emailContent: string;
+		let emailSubject: string;
 		try {
 			emailContent = await this.buildEmailContent(
-				path.posix.resolve(emailConfig.templatePath),
+				path.posix.resolve(emailTemplateConfig.templatePath),
 				user,
 				emailContentData
 			);
 			emailSubject = this.buildEmailSubject(
-				emailConfig.subject,
+				emailTemplateConfig.subject,
 				user,
 				emailSubjectData
 			);
@@ -130,10 +131,16 @@ class EmailService {
 			return Promise.reject(error);
 		}
 
-		return _.merge({}, config.coreEmails.default, emailConfig, mailOpts, {
-			subject: emailSubject,
-			html: emailContent
-		});
+		return _.merge(
+			{},
+			config.get('coreEmails.default'),
+			emailTemplateConfig,
+			mailOpts,
+			{
+				subject: emailSubject,
+				html: emailContent
+			}
+		);
 	}
 
 	/**
@@ -141,11 +148,11 @@ class EmailService {
 	 * to create and/or retrieve this singleton
 	 */
 	async getProvider(): Promise<EmailProvider> {
-		if (!this.provider && config.mailer?.provider) {
+		if (!this.provider && config.has('mailer.provider')) {
 			const { default: Provider } = await import(
-				path.posix.resolve(config.mailer.provider)
+				path.posix.resolve(config.get('mailer.provider'))
 			);
-			this.provider = new Provider(config.mailer.options);
+			this.provider = new Provider(config.get('mailer.options'));
 		}
 		return this.provider;
 	}

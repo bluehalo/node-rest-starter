@@ -135,23 +135,27 @@ describe('Email Service:', () => {
 		};
 
 		beforeEach(() => {
-			sandbox.stub(config, 'coreEmails').value({
-				default: {
-					header,
-					footer
-				}
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub.withArgs('coreEmails.default').returns({
+				header,
+				footer
 			});
+			configGetStub.callThrough();
 		});
 
 		it('should build email content', async () => {
 			const expectedResult = `${header}
-<p>Welcome to ${config.app.title}, ${user.name}!</p>
-<p>Have a question? Take a look at our <a href="${config.app.helpUrl}">Help documentation</a>.</p>
-<p>If you need to contact a member of our team, you can reach us at ${config.app.contactEmail}.</p>
+<p>Welcome to ${config.get('app.title')}, ${user.name}!</p>
+<p>Have a question? Take a look at our <a href="${config.get(
+				'app.helpUrl'
+			)}">Help documentation</a>.</p>
+<p>If you need to contact a member of our team, you can reach us at ${config.get(
+				'app.contactEmail'
+			)}.</p>
 <br/>
 <br/>
 <p>Thanks,</p>
-<p>The ${config.app.title} Support Team</p><p></p>
+<p>The ${config.get('app.title')} Support Team</p><p></p>
 ${footer}
 `;
 
@@ -207,12 +211,12 @@ ${footer}
 		};
 
 		beforeEach(() => {
-			sandbox.stub(config, 'coreEmails').value({
-				default: {
-					header,
-					footer
-				}
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub.withArgs('coreEmails.default').returns({
+				header,
+				footer
 			});
+			configGetStub.callThrough();
 		});
 
 		it('should return merged mail options', async () => {

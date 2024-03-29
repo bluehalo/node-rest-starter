@@ -67,43 +67,48 @@ class UserAuthenticationService {
 	authenticateAndLogin(req, res, next): Promise<IUser> {
 		return new Promise((resolve, reject) => {
 			// Attempt to authenticate the user using passport
-			passport.authenticate(config.auth.strategy, (err, user, info, status) => {
-				// If there was an error
-				if (err) {
-					// Reject the promise with a 500 error
-					return reject(new InternalServerError(err));
-				}
-				// If the authentication failed
-				if (!user) {
-					// In the case of a auth failure, info should have the reason
-					// Here is a hack for the local strategy...
-					if (null == info.status && null != status) {
-						info.status = status;
-						if (info.message === 'Missing credentials') {
-							info.type = 'missing-credentials';
-						}
+			passport.authenticate(
+				config.get('auth.strategy'),
+				(err, user, info, status) => {
+					// If there was an error
+					if (err) {
+						// Reject the promise with a 500 error
+						return reject(new InternalServerError(err));
 					}
+					// If the authentication failed
+					if (!user) {
+						// In the case of a auth failure, info should have the reason
+						// Here is a hack for the local strategy...
+						if (null == info.status && null != status) {
+							info.status = status;
+							if (info.message === 'Missing credentials') {
+								info.type = 'missing-credentials';
+							}
+						}
 
-					// Try to grab the username from the request
-					const username =
-						req.body && req.body.username ? req.body.username : 'none provided';
+						// Try to grab the username from the request
+						const username =
+							req.body && req.body.username
+								? req.body.username
+								: 'none provided';
 
-					// Audit the failed attempt
-					auditService.audit(
-						info.message,
-						'user-authentication',
-						'authentication failed',
-						req,
-						{ username: username }
-					);
+						// Audit the failed attempt
+						auditService.audit(
+							info.message,
+							'user-authentication',
+							'authentication failed',
+							req,
+							{ username: username }
+						);
 
-					return reject(info);
+						return reject(info);
+					}
+					// Else the authentication was successful
+					// Set the user ip if available.
+					user.ip = req.headers?.['x-real-ip'] ?? null;
+					this.login(user, req).then(resolve).catch(reject);
 				}
-				// Else the authentication was successful
-				// Set the user ip if available.
-				user.ip = req.headers?.['x-real-ip'] ?? null;
-				this.login(user, req).then(resolve).catch(reject);
-			})(req, res, next);
+			)(req, res, next);
 		});
 	}
 
@@ -199,7 +204,7 @@ class UserAuthenticationService {
 		const acUser = await accessChecker.get(dnLower);
 
 		// Default to creating accounts automatically
-		const autoCreateAccounts = config?.auth?.autoCreateAccounts ?? true;
+		const autoCreateAccounts = config.get<boolean>('auth.autoCreateAccounts');
 
 		// If the user is not known locally, is not known by access checker, and we are creating accounts, create the account as an empty account
 		if (

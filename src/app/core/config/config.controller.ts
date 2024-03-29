@@ -3,27 +3,28 @@ import pkg from '../../../../package.json';
 
 export const getSystemConfig = () => {
 	const toReturn = {
-		auth: config.auth.strategy,
-		apiDocs: config.apiDocs,
-		app: config.app,
-		requiredRoles: config.auth.requiredRoles,
+		auth: config.get('auth.strategy'),
+		apiDocs: config.get('apiDocs'),
+		app: config.get('app'),
+		requiredRoles: config.get('auth.requiredRoles'),
 
 		version: pkg.version,
-		banner: config.banner,
-		copyright: config.copyright,
+		banner: config.get('banner'),
+		copyright: config.get('copyright'),
 
-		contactEmail: config.app.contactEmail,
+		contactEmail: config.get('app.contactEmail'),
 
-		feedback: config.feedback,
-		teams: config.teams,
+		feedback: config.get('feedback'),
+		teams: config.get('teams'),
 
-		userPreferences: config.userPreferences,
+		userPreferences: config.get('userPreferences'),
 
 		masqueradeEnabled:
-			config.auth.strategy === 'proxy-pki' && config.auth.masquerade === true,
-		masqueradeUserHeader: config.masqueradeUserHeader,
+			config.get('auth.strategy') === 'proxy-pki' &&
+			config.get('auth.masquerade') === true,
+		masqueradeUserHeader: config.get('masqueradeUserHeader'),
 
-		allowDeleteUser: config.allowDeleteUser
+		allowDeleteUser: config.get('allowDeleteUser')
 	};
 
 	return toReturn;

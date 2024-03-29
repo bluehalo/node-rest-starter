@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import _ from 'lodash';
 
 import userAuthorizationService from './auth/user-authorization.service';
+import { UserDocument } from './user.model';
 import userService from './user.service';
 import { auditService, config } from '../../../dependencies';
 import {
@@ -148,13 +149,13 @@ export const matchUsers = async (req, res) => {
 	res.status(StatusCodes.OK).json(mappedResults);
 };
 
-export const canEditProfile = (authStrategy, user) => {
+export const canEditProfile = (authStrategy: string, user: UserDocument) => {
 	return authStrategy !== 'proxy-pki' || user.bypassAccessCheck === true;
 };
 
 // Are allowed to edit user profile info
 export const hasEdit = (req) => {
-	if (canEditProfile(config.auth.strategy, req.user)) {
+	if (canEditProfile(config.get<string>('auth.strategy'), req.user)) {
 		return Promise.resolve();
 	}
 	return Promise.reject(

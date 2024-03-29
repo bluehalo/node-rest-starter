@@ -77,12 +77,12 @@ FeedbackSchema.plugin(textSearchPlugin);
  */
 
 // created datetime index, expires after configured time (false to disable TTL)
-if (config.feedbackExpires === false) {
+if (config.get('feedbackExpires') === false) {
 	FeedbackSchema.index({ created: -1 });
 } else {
 	FeedbackSchema.index(
 		{ created: -1 },
-		{ expireAfterSeconds: config.feedbackExpires ?? 15552000 }
+		{ expireAfterSeconds: config.get<number>('feedbackExpires') }
 	);
 }
 

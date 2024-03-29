@@ -12,7 +12,7 @@ const emitName = 'message';
  * methods to handle specifics of Messages
  */
 export class MessageSocket extends socketIO.SocketProvider {
-	_topicName = config.messages.topic;
+	_topicName = config.get<string>('messages.topic');
 	_subscriptionCount = 0;
 
 	constructor(socket: Socket, _config: SocketConfig) {

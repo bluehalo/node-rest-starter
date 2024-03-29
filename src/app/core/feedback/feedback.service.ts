@@ -122,7 +122,7 @@ class FeedbackService {
 			const mailOptions = await emailService.generateMailOptions(
 				user,
 				req,
-				config.coreEmails.feedbackEmail,
+				config.get('coreEmails.feedbackEmail'),
 				{
 					url: feedback.url,
 					feedback: feedback.body,

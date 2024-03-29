@@ -55,7 +55,7 @@ DismissedMessageSchema.plugin(getterPlugin);
  * Index declarations
  */
 
-const expireAfterSeconds = config?.messages?.expireSeconds ?? 2592000; // default to 30 days
+const expireAfterSeconds = config.get<number>('messages.expireSeconds');
 
 DismissedMessageSchema.index({ created: -1 }, { expireAfterSeconds });
 DismissedMessageSchema.index({ userId: 1 });

@@ -81,7 +81,7 @@ export const requiresLogin = (req, res, next) => {
 	}
 
 	// Only try to auto login if it's explicitly set in the config
-	if (config.auth.autoLogin) {
+	if (config.get<boolean>('auth.autoLogin')) {
 		return userAuthService.authenticateAndLogin(req, res, next);
 	}
 	// Otherwise don't
@@ -129,21 +129,15 @@ export const requiresMachineRole = (req) => {
 };
 
 // Checks to see if all required external roles are accounted for
-export const requiresExternalRoles = (req, requiredRoles) => {
-	requiredRoles = requiredRoles || config.auth.requiredRoles;
+export const requiresExternalRoles = (req) => {
+	const requiredRoles = config.get<string[]>('auth.requiredRoles');
 
 	// If there are required roles, check for them
-	if (
-		req.user.bypassAccessCheck === false &&
-		null != config.auth &&
-		_.isArray(requiredRoles) &&
-		requiredRoles.length > 0
-	) {
+	if (req.user.bypassAccessCheck === false && requiredRoles.length > 0) {
 		// Get the user roles
-		const userRoles =
-			null != req.user && _.isArray(req.user.externalRoles)
-				? req.user.externalRoles
-				: [];
+		const userRoles = _.isArray(req.user.externalRoles)
+			? req.user.externalRoles
+			: [];
 
 		// Reject if the user is missing required roles
 		if (_.difference(requiredRoles, userRoles).length > 0) {
@@ -162,7 +156,7 @@ export const requiresExternalRoles = (req, requiredRoles) => {
  * Checks whether user has defined organization level values if values are required
  */
 export const requiresOrganizationLevels = (req) => {
-	const required = config?.orgLevelConfig?.required ?? false;
+	const required = config.get('orgLevelConfig.required');
 
 	if (!required) {
 		// Organization levels are not required, proceed

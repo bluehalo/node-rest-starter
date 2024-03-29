@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { Socket } from 'socket.io';
 
 import { config, socketIO } from '../../../dependencies';
@@ -13,7 +12,7 @@ const emitName = 'alert';
  * methods to handle specifics of Notifications
  */
 export class NotificationSocket extends socketIO.SocketProvider {
-	_topicName = config.dispatcher ? config.dispatcher.notificationTopic : '';
+	_topicName = config.get<string>('notifications.topic');
 	_subscriptionCount = 0;
 
 	constructor(socket: Socket, _config: SocketConfig) {
@@ -104,10 +103,7 @@ export class NotificationSocket extends socketIO.SocketProvider {
 	}
 }
 
-if (
-	config.dispatcher &&
-	(!_.has(config.dispatcher, 'enabled') || config.dispatcher.enabled)
-) {
+if (config.get<boolean>('notifications.enabled')) {
 	socketIO.registerSocketListener(NotificationSocket);
 }
 

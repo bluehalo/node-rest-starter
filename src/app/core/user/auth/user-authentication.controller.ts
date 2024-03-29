@@ -63,7 +63,7 @@ export const signup = (req, res) => {
  * and then user info in the request body.
  */
 export const proxyPkiSignup = (req, res) => {
-	const dn = req.headers[config.auth.header];
+	const dn = req.headers[config.get<string>('auth.header')];
 	if (null == dn) {
 		res.status('400').json({ message: 'Missing PKI information.' });
 		return;

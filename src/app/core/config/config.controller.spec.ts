@@ -16,7 +16,7 @@ describe('Config Server Controller', () => {
 		it('should include apiDocs', () => {
 			const systemConfig = configController.getSystemConfig();
 			systemConfig.should.have.property('apiDocs');
-			systemConfig.apiDocs.enabled.should.be.a.Boolean();
+			(systemConfig.apiDocs as any).enabled.should.be.a.Boolean();
 		});
 	});
 });

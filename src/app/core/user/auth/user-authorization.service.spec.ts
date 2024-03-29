@@ -5,6 +5,7 @@ import { createSandbox } from 'sinon';
 import userAuthorizationService from './user-authorization.service';
 import { config } from '../../../../dependencies';
 import { IUser, User } from '../user.model';
+import userService from '../user.service';
 
 function userSpec(key) {
 	return {
@@ -47,21 +48,16 @@ describe('User authorization service:', () => {
 	 * Unit tests
 	 */
 	describe('getProvider', () => {
-		it('should return false if no provider is configured', async () => {
-			sandbox.stub(config.auth, 'roleStrategy').value('external');
-			sandbox.stub(config.auth, 'externalRoles').value({});
-			await reloadProvider();
-
-			should(userAuthorizationService.hasRole({} as IUser, '')).be.false();
-		});
-
 		it('should return false if invalid provider is configured', async () => {
-			sandbox.stub(config.auth, 'roleStrategy').value('external');
-			sandbox.stub(config.auth, 'externalRoles').value({
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub.withArgs('auth.roleStrategy').returns('external');
+			configGetStub.withArgs('auth.externalRoles').returns({
 				provider: {
 					file: './does-not-exist.js'
 				}
 			});
+			configGetStub.callThrough();
+
 			await reloadProvider();
 
 			should(userAuthorizationService.hasRole({} as IUser, '')).be.false();
@@ -70,7 +66,10 @@ describe('User authorization service:', () => {
 
 	describe('hasRole', () => {
 		it('should properly determine hasRole for roleStrategy = external', async () => {
-			sandbox.stub(config.auth, 'roleStrategy').value('external');
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub.withArgs('auth.roleStrategy').returns('external');
+			configGetStub.callThrough();
+
 			await reloadProvider();
 
 			const user = new User(userSpec('external'));
@@ -82,7 +81,10 @@ describe('User authorization service:', () => {
 		});
 
 		it('should properly determine hasRole for roleStrategy = hybrid', async () => {
-			sandbox.stub(config.auth, 'roleStrategy').value('hybrid');
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub.withArgs('auth.roleStrategy').returns('hybrid');
+			configGetStub.callThrough();
+
 			await reloadProvider();
 
 			const user = new User(userSpec('hybrid'));
@@ -147,10 +149,13 @@ describe('User authorization service:', () => {
 
 	describe('updateRoles', () => {
 		it('roleStrategy === local; should pass through roles as is', async () => {
-			sandbox.stub(config.auth, 'roleStrategy').value('local');
-			sandbox
-				.stub(config.auth, 'roles')
-				.value(['user', 'elevatedRole1', 'elevatedRole2']);
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub.withArgs('auth.roleStrategy').returns('local');
+			configGetStub
+				.withArgs('auth.roles')
+				.returns(['user', 'elevatedRole1', 'elevatedRole2']);
+			configGetStub.callThrough();
+
 			await reloadProvider();
 
 			const user: {
@@ -177,23 +182,24 @@ describe('User authorization service:', () => {
 		});
 
 		it('roleStrategy === external; should pass through roles as is', async () => {
-			sandbox.stub(config.auth, 'roleStrategy').value('external');
-			sandbox
-				.stub(config.auth, 'roles')
-				.value(['user', 'elevatedRole1', 'elevatedRole2', 'admin']);
-			sandbox.stub(config.auth, 'externalRoles').value({
-				provider: {
-					file: 'src/app/core/user/auth/default-external-role-map.provider',
-					config: {
-						externalRoleMap: {
-							user: 'USER',
-							elevatedRole1: 'ELEVATED_ROLE_1',
-							elevatedRole2: 'ELEVATED_ROLE_2',
-							admin: 'ADMIN'
-						}
-					}
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub.withArgs('auth.roleStrategy').returns('external');
+			configGetStub
+				.withArgs('auth.roles')
+				.returns(['user', 'elevatedRole1', 'elevatedRole2', 'admin']);
+			configGetStub
+				.withArgs('auth.externalRoles.provider.file')
+				.returns('src/app/core/user/auth/default-external-role-map.provider');
+			configGetStub.withArgs('auth.externalRoles.provider.config').returns({
+				externalRoleMap: {
+					user: 'USER',
+					elevatedRole1: 'ELEVATED_ROLE_1',
+					elevatedRole2: 'ELEVATED_ROLE_2',
+					admin: 'ADMIN'
 				}
 			});
+			configGetStub.callThrough();
+
 			await reloadProvider();
 
 			const user: {
@@ -221,23 +227,24 @@ describe('User authorization service:', () => {
 		});
 
 		it('roleStrategy === hybrid; should pass through roles as is', async () => {
-			sandbox.stub(config.auth, 'roleStrategy').value('hybrid');
-			sandbox
-				.stub(config.auth, 'roles')
-				.value(['user', 'elevatedRole1', 'elevatedRole2', 'admin']);
-			sandbox.stub(config.auth, 'externalRoles').value({
-				provider: {
-					file: 'src/app/core/user/auth/default-external-role-map.provider',
-					config: {
-						externalRoleMap: {
-							user: 'USER',
-							elevatedRole1: 'ELEVATED_ROLE_1',
-							elevatedRole2: 'ELEVATED_ROLE_2',
-							admin: 'ADMIN'
-						}
-					}
+			const configGetStub = sandbox.stub(config, 'get');
+			configGetStub.withArgs('auth.roleStrategy').returns('hybrid');
+			configGetStub
+				.withArgs('auth.roles')
+				.returns(['user', 'elevatedRole1', 'elevatedRole2', 'admin']);
+			configGetStub
+				.withArgs('auth.externalRoles.provider.file')
+				.returns('src/app/core/user/auth/default-external-role-map.provider');
+			configGetStub.withArgs('auth.externalRoles.provider.config').returns({
+				externalRoleMap: {
+					user: 'USER',
+					elevatedRole1: 'ELEVATED_ROLE_1',
+					elevatedRole2: 'ELEVATED_ROLE_2',
+					admin: 'ADMIN'
 				}
 			});
+			configGetStub.callThrough();
+
 			await reloadProvider();
 
 			const user: {

@@ -1,19 +1,23 @@
-import { DateTime } from 'luxon';
+import config from 'config';
+import { DateTime, DurationInput } from 'luxon';
 
 import userAuthorizationService from './auth/user-authorization.service';
 import { UserDocument } from './user.model';
 import userService from './user.service';
-import { config, emailService } from '../../../dependencies';
+import { emailService } from '../../../dependencies';
 import { logger } from '../../../lib/logger';
 
 class UserEmailService {
 	// Send email alert to system admins about new account request
 	async emailApprovedUser(user: UserDocument, req) {
+		if (!config.get('coreEmails.approvedUserEmail.enabled')) {
+			return;
+		}
 		try {
 			const mailOptions = await emailService.generateMailOptions(
 				user,
 				req,
-				config.coreEmails.approvedUserEmail,
+				config.get('coreEmails.approvedUserEmail'),
 				{},
 				{},
 				{
@@ -29,14 +33,14 @@ class UserEmailService {
 
 	// Send email alert to system admins about new account request
 	async signupEmail(user: UserDocument, req) {
-		if (!(config.coreEmails?.userSignupAlert?.enabled ?? false)) {
+		if (!config.get('coreEmails.userSignupAlert.enabled')) {
 			return;
 		}
 		try {
 			const mailOptions = await emailService.generateMailOptions(
 				user,
 				req,
-				config.coreEmails.userSignupAlert
+				config.get('coreEmails.userSignupAlert')
 			);
 			await emailService.sendMail(mailOptions);
 		} catch (error) {
@@ -47,16 +51,18 @@ class UserEmailService {
 
 	// Send welcome email to new user
 	async welcomeNoAccessEmail(user: UserDocument, req) {
-		if (!(config.coreEmails?.welcomeNoAccess?.enabled ?? false)) {
+		if (!config.get('coreEmails.welcomeNoAccess.enabled')) {
 			return;
 		}
-		const skipForRole = config.coreEmails.welcomeNoAccess.skipIfUserHasRole;
+		const skipForRole = config.get<string>(
+			'coreEmails.welcomeNoAccess.skipIfUserHasRole'
+		);
 		if (!skipForRole || !userAuthorizationService.hasRole(user, skipForRole)) {
 			try {
 				const mailOptions = await emailService.generateMailOptions(
 					user,
 					req,
-					config.coreEmails.welcomeNoAccess,
+					config.get('coreEmails.welcomeNoAccess'),
 					{},
 					{},
 					{
@@ -73,16 +79,16 @@ class UserEmailService {
 
 	// Send welcome email to new user
 	async welcomeWithAccessEmail(user: UserDocument, req) {
-		if (!(config.coreEmails?.welcomeWithAccess?.enabled ?? false)) {
+		if (!config.get('coreEmails.welcomeWithAccess.enabled')) {
 			return;
 		}
 
 		const recentCutoff = DateTime.now().minus(
-			config.coreEmails.welcomeWithAccess.recentDuration ?? {
-				days: 90
-			}
+			config.get<DurationInput>('coreEmails.welcomeWithAccess.recentDuration')
 		);
-		const accessRole = config.coreEmails.welcomeWithAccess.accessRole;
+		const accessRole = config.get<string>(
+			'coreEmails.welcomeWithAccess.accessRole'
+		);
 
 		if (accessRole && userAuthorizationService.hasRole(user, accessRole)) {
 			if (recentCutoff.toMillis() > user.lastLoginWithAccess?.getTime()) {
@@ -90,7 +96,7 @@ class UserEmailService {
 					const mailOptions = await emailService.generateMailOptions(
 						user,
 						req,
-						config.coreEmails.welcomeWithAccess,
+						config.get('coreEmails.welcomeWithAccess'),
 						{},
 						{},
 						{

@@ -82,7 +82,7 @@ class UserPasswordService {
 			const mailOptions = await emailService.generateMailOptions(
 				user,
 				req,
-				config.coreEmails.resetPassword,
+				config.get('coreEmails.resetPassword'),
 				{
 					token: token
 				},
@@ -108,7 +108,7 @@ class UserPasswordService {
 			const mailOptions = await emailService.generateMailOptions(
 				user,
 				req,
-				config.coreEmails.resetPasswordConfirm,
+				config.get('coreEmails.resetPasswordConfirm'),
 				{},
 				{},
 				{

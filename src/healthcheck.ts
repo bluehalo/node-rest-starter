@@ -13,7 +13,7 @@ const options = {
 };
 
 http
-	.request(options, (res) => {
+	.request(options as http.RequestOptions, (res) => {
 		let body = '';
 
 		res.on('data', (chunk) => {

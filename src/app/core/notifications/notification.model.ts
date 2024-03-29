@@ -42,7 +42,6 @@ const NotificationSchema = new Schema<INotification>(
 		},
 		created: {
 			type: Date,
-			expires: config.notificationExpires,
 			immutable: true
 		}
 	},
@@ -63,12 +62,12 @@ NotificationSchema.plugin(paginatePlugin);
  */
 
 // created datetime index, expires after configured time (false to disable TTL)
-if (config.notificationExpires === false) {
+if (config.get('notificationExpires') === false) {
 	NotificationSchema.index({ created: -1 });
 } else {
 	NotificationSchema.index(
 		{ created: -1 },
-		{ expireAfterSeconds: config.notificationExpires ?? 15552000 }
+		{ expireAfterSeconds: config.get<number>('notificationExpires') }
 	);
 }
 
