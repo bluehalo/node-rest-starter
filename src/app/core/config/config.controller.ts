@@ -16,6 +16,7 @@ export const getSystemConfig = () => {
 
 		feedback: config.get('feedback'),
 		teams: config.get('teams'),
+		help: config.get('help'),
 
 		userPreferences: config.get('userPreferences'),
 

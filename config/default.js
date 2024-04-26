@@ -466,5 +466,9 @@ module.exports = {
 		]
 	},
 
+	help: {
+		welcomeLinks: []
+	},
+
 	userPreferences: {}
 };
