@@ -23,6 +23,11 @@ module.exports = {
 	},
 	mongooseFailOnIndexOptionsConflict: false,
 
+	migrateMongo: {
+		enabled: false,
+		migrationFileExtension: '.ts'
+	},
+
 	/**
 	 * Environment Settings
 	 */

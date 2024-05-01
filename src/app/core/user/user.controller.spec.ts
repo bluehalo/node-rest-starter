@@ -2,7 +2,7 @@ import { assert, createSandbox } from 'sinon';
 
 import userAuthorizationService from './auth/user-authorization.service';
 import * as userController from './user.controller';
-import { User, UserDocument } from './user.model';
+import { User } from './user.model';
 import userService from './user.service';
 import { auditService, config } from '../../../dependencies';
 import { getResponseSpy } from '../../../spec/helpers';

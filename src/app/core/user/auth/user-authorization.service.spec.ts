@@ -5,7 +5,6 @@ import { createSandbox } from 'sinon';
 import userAuthorizationService from './user-authorization.service';
 import { config } from '../../../../dependencies';
 import { IUser, User } from '../user.model';
-import userService from '../user.service';
 
 function userSpec(key) {
 	return {
