@@ -68,6 +68,7 @@ export const connect = async () => {
 
 	logger.info(`Mongoose: Setting debug to ${mongooseDebug}`);
 	mongoose.set('debug', mongooseDebug);
+	mongoose.set('strictQuery', true);
 
 	const dbSpecs: Array<MongooseDbSpec> = [];
 	let defaultDbSpec: MongooseDbSpec;

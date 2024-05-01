@@ -13,6 +13,9 @@
 	"plugins": ["deprecation", "jsdoc", "prettier"],
 
 	"extends": ["eslint:recommended"],
+
+	"ignorePatterns": ["src/migrations/sample-migration.ts"],
+
 	"rules": {
 		"arrow-parens": ["error", "always"],
 		"eqeqeq": ["error", "smart"],
