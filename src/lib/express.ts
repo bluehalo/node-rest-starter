@@ -2,14 +2,9 @@ import path from 'path';
 
 import compress from 'compression';
 import config from 'config';
-import flash from 'connect-flash';
-import connect_mongo from 'connect-mongo';
-import cookieParser from 'cookie-parser';
+import MongoStore from 'connect-mongo';
 import cors from 'cors';
 import express, { Express, Request, Response } from 'express';
-// Patches express to support async/await.  Should be called immediately after express.
-// Must still use require vs. import
-require('express-async-errors');
 import actuator from 'express-actuator';
 import session from 'express-session';
 import { glob, globSync } from 'glob';
@@ -31,7 +26,9 @@ import {
 	mongooseValidationErrorHandler
 } from '../app/common/express/error-handlers';
 
-const MongoStore = connect_mongo(session);
+// Patches express to support async/await.  Should be called immediately after express.
+// Must still use require vs. import
+require('express-async-errors');
 
 const baseApiPath = '/api';
 
@@ -79,10 +76,6 @@ function initMiddleware(app: Express) {
 	);
 	app.use(express.json());
 	app.use(methodOverride());
-
-	// Add the cookie parser and flash middleware
-	app.use(cookieParser(config.get<string>('auth.sessionSecret')));
-	app.use(flash());
 }
 
 /**
@@ -102,12 +95,12 @@ function initSession(app: Express, db: Mongoose) {
 		session({
 			saveUninitialized: true,
 			resave: true,
-			secret: config.get<string>('auth.sessionSecret'),
-			cookie: config.get<string>('auth.sessionCookie'),
-			store: new MongoStore({
-				mongooseConnection: db.connection,
-				collection: config.get<string>('auth.sessionCollection')
-			})
+			secret: config.get('auth.sessionSecret'),
+			cookie: config.get('auth.sessionCookie'),
+			store: MongoStore.create({
+				client: db.connection.getClient(),
+				collectionName: config.get<string>('auth.sessionCollection')
+			} as unknown)
 		})
 	);
 }
@@ -258,8 +251,8 @@ function initSwaggerAPI(app: Express) {
 	 */
 	swaggerSpec.paths = _.pickBy(swaggerSpec.paths, (_path) => {
 		return (
-			_path.strategy === undefined ||
-			_path.strategy === config.get<string>('auth.strategy')
+			_path['strategy'] === undefined ||
+			_path['strategy'] === config.get<string>('auth.strategy')
 		);
 	});
 

@@ -79,7 +79,7 @@ class AccessCheckerService {
 	}
 
 	getCacheExpire() {
-		return config.get('auth.accessChecker.cacheExpire');
+		return config.get<number>('auth.accessChecker.cacheExpire');
 	}
 
 	/**

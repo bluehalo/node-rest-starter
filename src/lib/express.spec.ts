@@ -3,7 +3,7 @@ import path from 'path';
 import { globSync } from 'glob';
 import { OpenAPI } from 'openapi-types';
 import swaggerJsDoc from 'swagger-jsdoc';
-import swaggerParser from 'swagger-parser';
+import SwaggerParser from 'swagger-parser';
 
 import { config } from '../dependencies';
 
@@ -51,6 +51,7 @@ describe('Init Swagger API:', () => {
 		}
 
 		const swaggerSpec = swaggerJsDoc(swaggerOptions) as OpenAPI.Document;
-		await swaggerParser.validate(swaggerSpec);
+		// @ts-expect-error tsc:watch reports type error, but code runs properly.  SwaggerParser is defined as both a class and namespace.
+		await SwaggerParser.validate(swaggerSpec);
 	});
 });
