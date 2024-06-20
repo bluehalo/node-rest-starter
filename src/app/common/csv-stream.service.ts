@@ -70,7 +70,7 @@ class CsvStreamService {
 
 		out.on('error', (err) => logger.error(err, 'Failed to create CSV'));
 
-		return out;
+		return out as Transform;
 	}
 }
 

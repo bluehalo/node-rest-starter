@@ -2,8 +2,7 @@ import http from 'http';
 import path from 'path';
 
 import config from 'config';
-import connect_mongo from 'connect-mongo';
-import cookieParser from 'cookie-parser';
+import MongoStore from 'connect-mongo';
 import expressSession from 'express-session';
 import { glob } from 'glob';
 import { Mongoose } from 'mongoose';
@@ -15,8 +14,6 @@ import {
 	BaseSocket,
 	BaseSocketSubclass
 } from '../app/common/sockets/base-socket.provider';
-
-const MongoStore = connect_mongo(expressSession);
 
 /**
  * Adapt express middleware to work with Socket.IO
@@ -82,7 +79,7 @@ class SocketIo {
 			allowEIO3: true // @FIXME: Set to true for client compatibility. Fix when UI is updated.
 		});
 
-		io.use(expressToIO(cookieParser(config.get('auth.sessionSecret'))));
+		// io.use(expressToIO(cookieParser(config.get('auth.sessionSecret'))));
 		io.use(
 			expressToIO(
 				expressSession({
@@ -90,10 +87,10 @@ class SocketIo {
 					resave: true,
 					secret: config.get('auth.sessionSecret'),
 					cookie: config.get('auth.sessionCookie'),
-					store: new MongoStore({
-						mongooseConnection: db.connection,
-						collection: config.get('auth.sessionCollection')
-					})
+					store: MongoStore.create({
+						client: db.connection.getClient(),
+						collectionName: config.get('auth.sessionCollection')
+					} as unknown)
 				})
 			)
 		);
