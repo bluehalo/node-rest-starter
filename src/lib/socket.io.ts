@@ -15,14 +15,6 @@ import {
 	BaseSocketSubclass
 } from '../app/common/sockets/base-socket.provider';
 
-/**
- * Adapt express middleware to work with Socket.IO
- */
-function expressToIO(expressMiddleware) {
-	return (socket, next) =>
-		expressMiddleware(socket.request, socket.request.res, next);
-}
-
 class SocketIo {
 	/**
 	 * Controllers created outside this class will register
@@ -80,22 +72,20 @@ class SocketIo {
 		});
 
 		// io.use(expressToIO(cookieParser(config.get('auth.sessionSecret'))));
-		io.use(
-			expressToIO(
-				expressSession({
-					saveUninitialized: true,
-					resave: true,
-					secret: config.get('auth.sessionSecret'),
-					cookie: config.get('auth.sessionCookie'),
-					store: MongoStore.create({
-						client: db.connection.getClient(),
-						collectionName: config.get('auth.sessionCollection')
-					} as unknown)
-				})
-			)
+		io.engine.use(
+			expressSession({
+				saveUninitialized: true,
+				resave: true,
+				secret: config.get('auth.sessionSecret'),
+				cookie: config.get('auth.sessionCookie'),
+				store: MongoStore.create({
+					client: db.connection.getClient(),
+					collectionName: config.get('auth.sessionCollection')
+				} as unknown)
+			})
 		);
-		io.use(expressToIO(passport.initialize()));
-		io.use(expressToIO(passport.session()));
+		io.engine.use(passport.initialize());
+		io.engine.use(passport.session());
 
 		// Verify if user was found in session
 		io.use((socket, next) => {
