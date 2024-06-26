@@ -4,7 +4,9 @@ export interface TextSearchable {
 	textSearch(search: string, sortByTextScore?: boolean): this;
 }
 
-export function textSearchPlugin(schema: Schema) {
+export function textSearchPlugin<EnforcedDocType, TModelType, TInstanceMethods>(
+	schema: Schema<EnforcedDocType, TModelType, TInstanceMethods>
+) {
 	schema.query['textSearch'] = function (
 		this: Query<unknown, unknown>,
 		search: string,

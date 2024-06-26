@@ -6,7 +6,9 @@ import { Schema } from 'mongoose';
  * configures schema to include getters in `toObject` and `toJSON`
  *
  */
-export = function getterPlugin(schema: Schema) {
+export = function getterPlugin<EnforcedDocType, TModelType, TInstanceMethods>(
+	schema: Schema<EnforcedDocType, TModelType, TInstanceMethods>
+) {
 	schema.set('toObject', { getters: true });
 	schema.set('toJSON', { getters: true });
 };

@@ -35,13 +35,20 @@ export interface IMessageMethods {
 
 export type MessageDocument = HydratedDocument<IMessage, IMessageMethods>;
 
+type IMessageQueryHelpers = TextSearchable & Paginateable<MessageDocument>;
+
 export type MessageModel = Model<
 	IMessage,
-	TextSearchable & Paginateable<MessageDocument>,
+	IMessageQueryHelpers,
 	IMessageMethods
 >;
 
-const MessageSchema = new Schema<IMessage, MessageModel, IMessageMethods>(
+const MessageSchema = new Schema<
+	IMessage,
+	MessageModel,
+	IMessageMethods,
+	IMessageQueryHelpers
+>(
 	{
 		title: {
 			type: String,

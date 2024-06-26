@@ -37,17 +37,18 @@ class UserAuthenticationService {
 				userEmailService.welcomeWithAccessEmail(user, req);
 
 				// update the user's last login time
-				this.userModel.findByIdAndUpdate(
-					user._id,
-					{ lastLogin: Date.now() },
-					{ new: true, upsert: false },
-					(_err, _user: UserDocument) => {
-						if (_err) {
-							return reject(new InternalServerError(_err.message));
-						}
+				this.userModel
+					.findByIdAndUpdate(
+						user._id,
+						{ lastLogin: Date.now() },
+						{ new: true, upsert: false }
+					)
+					.then((_user: UserDocument) => {
 						return resolve(_user.fullCopy());
-					}
-				);
+					})
+					.catch((err) => {
+						return reject(new InternalServerError(err.message));
+					});
 
 				// Audit the login
 				auditService.audit(

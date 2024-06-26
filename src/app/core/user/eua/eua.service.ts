@@ -43,8 +43,11 @@ class EuaService {
 		return document.save();
 	}
 
-	delete(document: UserAgreementDocument): Promise<UserAgreementDocument> {
-		return document.remove();
+	async delete(
+		document: UserAgreementDocument
+	): Promise<UserAgreementDocument> {
+		await document.deleteOne();
+		return document;
 	}
 
 	search(

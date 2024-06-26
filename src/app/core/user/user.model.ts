@@ -70,6 +70,8 @@ type UserRoles = {
 	machine?: boolean;
 };
 
+type UserTeam = { _id: Types.ObjectId; role: TeamRoles };
+
 export interface IUser {
 	_id: Types.ObjectId;
 	name: string;
@@ -101,7 +103,7 @@ export interface IUser {
 	newFeatureDismissed: Date;
 	preferences: Record<string, unknown>;
 	salt: BinaryLike;
-	teams: { _id: Types.ObjectId; role: TeamRoles }[];
+	teams: UserTeam[];
 }
 
 interface IUserMethods {
@@ -113,18 +115,27 @@ interface IUserMethods {
 	hashPassword(password: string): string;
 }
 
-export type UserDocument = HydratedDocument<IUser, IUserMethods>;
+export type UserDocument = HydratedDocument<
+	IUser,
+	IUserMethods,
+	IUserQueryHelpers
+>;
+
+type IUserQueryHelpers = ContainsSearchable &
+	TextSearchable &
+	Paginateable<UserDocument>;
 
 export interface UserModel
-	extends Model<
-		IUser,
-		ContainsSearchable & TextSearchable & Paginateable<UserDocument>,
-		IUserMethods
-	> {
+	extends Model<IUser, IUserQueryHelpers, IUserMethods> {
 	createCopy(user: Partial<IUser>): Partial<IUser>;
 }
 
-const UserSchema = new Schema(
+const UserSchema = new Schema<
+	IUser,
+	UserModel,
+	IUserMethods,
+	IUserQueryHelpers
+>(
 	{
 		name: {
 			type: String,
@@ -201,9 +212,7 @@ const UserSchema = new Schema(
 		},
 		messagesAcknowledged: {
 			type: Date,
-			// TODO: either change the default to null or leave dateParse?
-			default: 0,
-			get: util.dateParse
+			default: null
 		},
 		alertsViewed: {
 			type: Date,
@@ -310,6 +319,8 @@ UserSchema.methods.authenticate = function (password: string): boolean {
 UserSchema.methods.auditCopy = function (userIP?: string) {
 	const toReturn: Record<string, unknown> = {};
 
+	const asObject = this.toObject();
+
 	toReturn._id = this._id;
 	toReturn.name = this.name;
 	toReturn.username = this.username;
@@ -322,8 +333,8 @@ UserSchema.methods.auditCopy = function (userIP?: string) {
 	toReturn.newFeatureDismissed = this.newFeatureDismissed;
 	toReturn.canProxy = this.canProxy;
 	toReturn.canMasquerade = this.canMasquerade;
-	toReturn.teams = _.cloneDeep(this.teams?.toObject());
-	toReturn.roles = _.cloneDeep(this.roles?.toObject());
+	toReturn.teams = asObject.teams;
+	toReturn.roles = asObject.roles;
 	toReturn.bypassAccessCheck = this.bypassAccessCheck;
 
 	if (userIP) {

@@ -52,11 +52,11 @@ describe('Utils:', () => {
 			output.hello.when.length.should.equal(3);
 			output.hello.when[0].should.be.a.Object();
 			output.hello.when[1].something.should.equal(0);
-			output.hello.when[2]._bsontype.should.equal('ObjectID');
+			output.hello.when[2]._bsontype.should.equal('ObjectId');
 			output.hello.when[2]
 				.toHexString()
 				.should.equal('000000000000000000000000');
-			output.obj._bsontype.should.equal('ObjectID');
+			output.obj._bsontype.should.equal('ObjectId');
 			output.obj.toHexString().should.equal('000000000000000000000001');
 		});
 	});

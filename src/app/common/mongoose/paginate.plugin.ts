@@ -20,7 +20,9 @@ export interface Paginateable<DocType> {
 	): Promise<PagingResults<DocType>>;
 }
 
-export function paginatePlugin(schema: Schema) {
+export function paginatePlugin<EnforcedDocType, TModelType, TInstanceMethods>(
+	schema: Schema<EnforcedDocType, TModelType, TInstanceMethods>
+) {
 	schema.query['paginate'] = async function <DocType>(
 		this: Query<HydratedDocument<DocType>[], DocType>,
 		pageSize: number,

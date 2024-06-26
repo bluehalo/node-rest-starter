@@ -28,8 +28,9 @@ class UserService {
 		return document.save();
 	}
 
-	remove(document: UserDocument): Promise<UserDocument> {
-		return document.remove();
+	async remove(document: UserDocument): Promise<UserDocument> {
+		await document.deleteOne();
+		return document;
 	}
 
 	searchUsers(

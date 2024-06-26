@@ -91,7 +91,7 @@ FOOTER
 		});
 
 		it('should return null if a nonexistent feedback ID is supplied', async () => {
-			const feedback = await feedbackService.read('123412341234');
+			const feedback = await feedbackService.read('123412341234123412341234');
 			should.not.exist(feedback);
 		});
 	});

@@ -26,16 +26,25 @@ export interface IUserAgreementMethods {
 
 export type UserAgreementDocument = HydratedDocument<
 	IUserAgreement,
-	IUserAgreementMethods
+	IUserAgreementMethods,
+	IUserAgreementQueryHelpers
 >;
+
+type IUserAgreementQueryHelpers = TextSearchable &
+	Paginateable<UserAgreementDocument>;
 
 export type UserAgreementModel = Model<
 	IUserAgreement,
-	TextSearchable & Paginateable<UserAgreementDocument>,
+	IUserAgreementQueryHelpers,
 	IUserAgreementMethods
 >;
 
-const UserAgreementSchema = new Schema(
+const UserAgreementSchema = new Schema<
+	IUserAgreement,
+	UserAgreementModel,
+	IUserAgreementMethods,
+	IUserAgreementQueryHelpers
+>(
 	{
 		title: {
 			type: String,

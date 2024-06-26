@@ -313,7 +313,7 @@ describe('Team Service:', () => {
 		});
 
 		it('read returns null when no team found', async () => {
-			const t = await teamsService.read('012345678912');
+			const t = await teamsService.read('123412341234123412341234');
 			should.not.exist(t);
 		});
 	});
@@ -327,7 +327,7 @@ describe('Team Service:', () => {
 
 		it('read returns null when no team found', async () => {
 			const t = await userService.read(
-				new mongoose.Types.ObjectId('012345678912')
+				new mongoose.Types.ObjectId('123412341234123412341234')
 			);
 			should.not.exist(t);
 		});
@@ -406,7 +406,7 @@ describe('Team Service:', () => {
 
 	describe('delete', () => {
 		it('should delete team, if team has no resources', async () => {
-			const beforeTeamCount = await Team.count({});
+			const beforeTeamCount = await Team.countDocuments({});
 
 			await teamsService
 				.delete(team.teamWithNoExternalTeam)
@@ -417,11 +417,11 @@ describe('Team Service:', () => {
 			should.not.exist(tResult);
 
 			// Verify only one team was deleted
-			const afterTeamCount = await Team.count({});
+			const afterTeamCount = await Team.countDocuments({});
 			afterTeamCount.should.equal(beforeTeamCount - 1);
 
 			// Verify team entry is removed from user
-			const count = await User.count({
+			const count = await User.countDocuments({
 				'teams._id': team.teamWithNoExternalTeam._id
 			});
 			count.should.equal(0);
@@ -1018,7 +1018,7 @@ FOOTER
 					new InternalServerError('Error retrieving team admins')
 				);
 
-			const requesterCount = await User.count({
+			const requesterCount = await User.countDocuments({
 				teams: {
 					$elemMatch: {
 						_id: new mongoose.Types.ObjectId(team.teamWithNoExternalTeam2._id),
@@ -1034,7 +1034,7 @@ FOOTER
 				.requestAccessToTeam(user.admin, team.teamWithNoExternalTeam, {})
 				.should.be.fulfilled();
 
-			const requesterCount = await User.count({
+			const requesterCount = await User.countDocuments({
 				teams: {
 					$elemMatch: {
 						_id: new mongoose.Types.ObjectId(team.teamWithNoExternalTeam._id),

@@ -29,15 +29,19 @@ interface IAudit {
 
 export type AuditDocument = HydratedDocument<IAudit>;
 
-export type AuditModel = Model<
-	AuditDocument,
-	ContainsSearchable & Paginateable<AuditDocument>
->;
+type IAuditQueryHelpers = ContainsSearchable & Paginateable<AuditDocument>;
+
+export type AuditModel = Model<AuditDocument, IAuditQueryHelpers>;
 
 /**
  * Schema Declaration
  */
-const AuditSchema = new Schema<AuditDocument, AuditModel>(
+const AuditSchema = new Schema<
+	IAudit,
+	AuditModel,
+	NonNullable<unknown>,
+	IAuditQueryHelpers
+>(
 	{
 		message: { type: String },
 		audit: {
