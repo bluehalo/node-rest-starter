@@ -69,8 +69,8 @@ describe('User Model:', () => {
 					'bypassAccessCheck defaults to false'
 				);
 				should(userModel.messagesAcknowledged).eql(
-					0,
-					'messagesAcknowledged defaults to 0'
+					null,
+					'messagesAcknowledged defaults to null'
 				);
 				should(userModel.acceptedEua).be.null();
 				should(userModel.lastLogin).be.null();

@@ -124,7 +124,7 @@ class TeamsService {
 
 		// Delete the team and update all members in the team
 		await Promise.all([
-			document.delete(),
+			document.deleteOne(),
 			this.userModel
 				.updateMany(
 					{ 'teams._id': document._id },
@@ -764,7 +764,7 @@ class TeamsService {
 			});
 		}
 
-		return this.model.distinct('_id', query).exec();
+		return this.model.distinct<'_id', Types.ObjectId>('_id', query).exec();
 	}
 
 	getNestedTeamIds(teamIds: Types.ObjectId[] = []): Promise<Types.ObjectId[]> {
@@ -774,7 +774,7 @@ class TeamsService {
 		}
 
 		return this.model
-			.distinct('_id', {
+			.distinct<'_id', Types.ObjectId>('_id', {
 				_id: { $nin: teamIds },
 				ancestors: { $in: teamIds }
 			})

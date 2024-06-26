@@ -32,7 +32,7 @@ export const TeamRoleImplicit = TeamRoles.Member;
 
 export interface ITeamRole {
 	_id: Types.ObjectId;
-	role: string;
+	role: TeamRoles;
 }
 
 /**
@@ -59,6 +59,7 @@ export const TeamRoleSchema = new Schema<ITeamRole>({
 		enum: TeamRoles
 	}
 });
+
 TeamRoleSchema.plugin(getterPlugin);
 
 TeamRoleSchema.virtual('team', {
@@ -68,4 +69,4 @@ TeamRoleSchema.virtual('team', {
 	justOne: true
 });
 
-export const TeamRole = model<ITeamRole>('TeamRole', TeamRoleSchema);
+export const TeamRole = model('TeamRole', TeamRoleSchema);

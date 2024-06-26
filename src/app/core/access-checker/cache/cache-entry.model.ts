@@ -27,9 +27,12 @@ export type CacheEntryDocument = HydratedDocument<
 	ICacheEntryMethods
 >;
 
+type ICacheEntryQueryHelpers = ContainsSearchable &
+	Paginateable<CacheEntryDocument>;
+
 export type CacheEntryModel = Model<
 	ICacheEntry,
-	ContainsSearchable & Paginateable<CacheEntryDocument>,
+	ICacheEntryQueryHelpers,
 	ICacheEntryMethods
 >;
 
@@ -39,7 +42,8 @@ export type CacheEntryModel = Model<
 const CacheEntrySchema = new Schema<
 	ICacheEntry,
 	CacheEntryModel,
-	ICacheEntryMethods
+	ICacheEntryMethods,
+	ICacheEntryQueryHelpers
 >({
 	// The external id of this entry
 	key: {

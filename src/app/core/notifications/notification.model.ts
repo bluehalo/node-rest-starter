@@ -27,13 +27,20 @@ export type NotificationDocument = HydratedDocument<
 	INotificationMethods
 >;
 
+type INotificationQueryHelpers = Paginateable<NotificationDocument>;
+
 export type NotificationModel = Model<
 	INotification,
-	Paginateable<NotificationDocument>,
+	INotificationQueryHelpers,
 	INotificationMethods
 >;
 
-const NotificationSchema = new Schema<INotification>(
+const NotificationSchema = new Schema<
+	INotification,
+	NotificationModel,
+	INotificationMethods,
+	INotificationQueryHelpers
+>(
 	{
 		user: {
 			type: Schema.Types.ObjectId,

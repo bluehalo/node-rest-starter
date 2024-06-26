@@ -39,13 +39,16 @@ export interface ITeamMethods {
 
 export type TeamDocument = HydratedDocument<ITeam, ITeamMethods>;
 
-export type TeamModel = Model<
-	ITeam,
-	ContainsSearchable & Paginateable<TeamDocument>,
-	ITeamMethods
->;
+type ITeamQueryHelpers = ContainsSearchable & Paginateable<TeamDocument>;
 
-const TeamSchema = new Schema<ITeam, TeamModel, ITeamMethods>(
+export type TeamModel = Model<ITeam, ITeamQueryHelpers, ITeamMethods>;
+
+const TeamSchema = new Schema<
+	ITeam,
+	TeamModel,
+	ITeamMethods,
+	ITeamQueryHelpers
+>(
 	{
 		name: {
 			type: String,

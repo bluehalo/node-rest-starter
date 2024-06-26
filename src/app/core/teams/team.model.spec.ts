@@ -84,31 +84,23 @@ describe('Team Model:', () => {
 	describe('User team role', () => {
 		const user1 = new User(spec.user1);
 
-		it('should begin with no users', () => {
-			return User.find({})
-				.exec()
-				.then((users) => {
-					users.should.have.length(0);
-				});
+		it('should begin with no users', async () => {
+			const users = await User.find({}).exec();
+			users.should.have.length(0);
 		});
 
 		it('should create teams without problems', async () => {
-			await team1.save((err) => {
-				should.not.exist(err);
-				should.exist(team1._id);
-			});
-			await team2.save((err) => {
-				should.not.exist(err);
-				should.exist(team2._id);
-			});
-			await team3.save((err) => {
-				should.not.exist(err);
-				should.exist(team3._id);
-			});
-			await team4.save((err) => {
-				should.not.exist(err);
-				should.exist(team4._id);
-			});
+			await team1.save().should.not.be.rejected();
+			should.exist(team1._id);
+
+			await team2.save().should.not.be.rejected();
+			should.exist(team2._id);
+
+			await team3.save().should.not.be.rejected();
+			should.exist(team3._id);
+
+			await team4.save().should.not.be.rejected();
+			should.exist(team4._id);
 
 			// Set some teams on the users
 			user1.teams = [];

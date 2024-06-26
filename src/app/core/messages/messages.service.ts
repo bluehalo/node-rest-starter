@@ -53,8 +53,9 @@ class MessagesService {
 		return document.save();
 	}
 
-	delete(document: MessageDocument): Promise<MessageDocument> {
-		return document.remove();
+	async delete(document: MessageDocument): Promise<MessageDocument> {
+		await document.deleteOne();
+		return document;
 	}
 
 	search(

@@ -35,12 +35,16 @@ export interface IFeedback {
 
 export type FeedbackDocument = HydratedDocument<IFeedback>;
 
-export type FeedbackModel = Model<
-	IFeedback,
-	TextSearchable & Paginateable<FeedbackDocument>
->;
+type IFeedbackQueryHelpers = TextSearchable & Paginateable<FeedbackDocument>;
 
-const FeedbackSchema = new Schema<IFeedback, FeedbackModel>(
+export type FeedbackModel = Model<IFeedback, IFeedbackQueryHelpers>;
+
+const FeedbackSchema = new Schema<
+	IFeedback,
+	FeedbackModel,
+	NonNullable<unknown>,
+	IFeedbackQueryHelpers
+>(
 	{
 		creator: {
 			type: Schema.Types.ObjectId,

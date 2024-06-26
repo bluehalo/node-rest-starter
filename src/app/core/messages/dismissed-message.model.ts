@@ -21,15 +21,20 @@ export type DismissedMessageDocument = HydratedDocument<
 	IDismissedMessageMethods
 >;
 
+type IDismissedMessageQueryHelpers = TextSearchable &
+	Paginateable<DismissedMessageDocument>;
+
 export type DismissedMessageModel = Model<
 	IDismissedMessage,
-	TextSearchable & Paginateable<DismissedMessageDocument>,
+	IDismissedMessageQueryHelpers,
 	IDismissedMessageMethods
 >;
 
 const DismissedMessageSchema = new Schema<
 	IDismissedMessage,
-	DismissedMessageModel
+	DismissedMessageModel,
+	IDismissedMessageMethods,
+	IDismissedMessageQueryHelpers
 >(
 	{
 		messageId: {

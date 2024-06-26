@@ -17,10 +17,10 @@ export const init = async () => {
 			{
 				_id: id
 			},
-			'-salt -password',
-			null,
-			done
-		);
+			'-salt -password'
+		)
+			.then((user) => done(null, user))
+			.catch(done);
 	});
 
 	// Initialize strategies

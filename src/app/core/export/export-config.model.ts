@@ -31,7 +31,7 @@ export type ExportConfigDocument = HydratedDocument<
 
 export type ExportConfigModel = Model<
 	IExportConfig,
-	Record<string, never>,
+	NonNullable<unknown>,
 	IExportConfigMethods
 >;
 

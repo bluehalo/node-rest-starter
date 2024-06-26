@@ -46,8 +46,10 @@ class CacheEntryService {
 	 * Delete the entry in the cache
 	 * @param key The unique identifier for the entry
 	 */
-	delete(key: string): Promise<CacheEntryDocument | null> {
-		return this.model.findOneAndRemove({ key }).exec();
+	async delete(key: string): Promise<CacheEntryDocument | null> {
+		const doc = await this.model.findOne({ key }).exec();
+		await doc.deleteOne();
+		return doc;
 	}
 
 	search(
