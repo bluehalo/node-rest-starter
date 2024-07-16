@@ -8,7 +8,7 @@ export interface PagingResults<DocType> {
 	pageSize: number;
 	totalPages: number;
 	totalSize: number;
-	elements: HydratedDocument<DocType>[];
+	elements: DocType[];
 }
 
 export interface Paginateable<DocType> {

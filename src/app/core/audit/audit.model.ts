@@ -27,7 +27,11 @@ interface IAudit {
 	};
 }
 
-export type AuditDocument = HydratedDocument<IAudit>;
+export type AuditDocument = HydratedDocument<
+	IAudit,
+	NonNullable<unknown>,
+	IAuditQueryHelpers
+>;
 
 type IAuditQueryHelpers = ContainsSearchable & Paginateable<AuditDocument>;
 

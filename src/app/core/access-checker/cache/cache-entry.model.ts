@@ -24,7 +24,8 @@ export interface ICacheEntryMethods {
 
 export type CacheEntryDocument = HydratedDocument<
 	ICacheEntry,
-	ICacheEntryMethods
+	ICacheEntryMethods,
+	ICacheEntryQueryHelpers
 >;
 
 type ICacheEntryQueryHelpers = ContainsSearchable &
