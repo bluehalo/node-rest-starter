@@ -33,7 +33,11 @@ export interface IFeedback {
 	updated: Date;
 }
 
-export type FeedbackDocument = HydratedDocument<IFeedback>;
+export type FeedbackDocument = HydratedDocument<
+	IFeedback,
+	NonNullable<unknown>,
+	IFeedbackQueryHelpers
+>;
 
 type IFeedbackQueryHelpers = TextSearchable & Paginateable<FeedbackDocument>;
 

@@ -33,7 +33,11 @@ export interface IMessageMethods {
 	fullCopy(): Record<string, unknown>;
 }
 
-export type MessageDocument = HydratedDocument<IMessage, IMessageMethods>;
+export type MessageDocument = HydratedDocument<
+	IMessage,
+	IMessageMethods,
+	IMessageQueryHelpers
+>;
 
 type IMessageQueryHelpers = TextSearchable & Paginateable<MessageDocument>;
 

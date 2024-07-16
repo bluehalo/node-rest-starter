@@ -18,7 +18,8 @@ export interface IDismissedMessageMethods {
 
 export type DismissedMessageDocument = HydratedDocument<
 	IDismissedMessage,
-	IDismissedMessageMethods
+	IDismissedMessageMethods,
+	IDismissedMessageQueryHelpers
 >;
 
 type IDismissedMessageQueryHelpers = TextSearchable &

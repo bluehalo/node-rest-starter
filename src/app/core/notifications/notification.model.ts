@@ -24,7 +24,8 @@ export interface INotificationMethods {
 
 export type NotificationDocument = HydratedDocument<
 	INotification,
-	INotificationMethods
+	INotificationMethods,
+	INotificationQueryHelpers
 >;
 
 type INotificationQueryHelpers = Paginateable<NotificationDocument>;

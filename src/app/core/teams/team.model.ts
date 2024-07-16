@@ -37,7 +37,11 @@ export interface ITeamMethods {
 	auditCopyTeamMember(user: UserDocument): Record<string, unknown>;
 }
 
-export type TeamDocument = HydratedDocument<ITeam, ITeamMethods>;
+export type TeamDocument = HydratedDocument<
+	ITeam,
+	ITeamMethods,
+	ITeamQueryHelpers
+>;
 
 type ITeamQueryHelpers = ContainsSearchable & Paginateable<TeamDocument>;
 
