@@ -1,14 +1,11 @@
-import fs from 'fs';
 import path from 'path';
 
-import handlebars from 'handlebars';
 import _ from 'lodash';
 
 import { EmailProvider, MailOptions } from './providers/email.provider';
 import { config } from '../../../dependencies';
 import { logger } from '../../../lib/logger';
-
-handlebars.registerHelper('toLowerCase', (str) => str.toLowerCase());
+import templateService from '../../common/template.service';
 
 class EmailService {
 	provider: EmailProvider;
@@ -64,44 +61,6 @@ class EmailService {
 		logger.debug(`Sent email to: ${mailOptions.to}`);
 	}
 
-	async buildEmailContent(templatePath, user, overrides = {}) {
-		const templateString = await new Promise((resolve, reject) => {
-			fs.readFile(templatePath, 'utf-8', (err, source) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve(source);
-				}
-			});
-		});
-
-		// Set email header/footer
-		const data = _.merge(
-			{},
-			config.get('coreEmails.default'),
-			{
-				app: config.get('app'),
-				user: user
-			},
-			overrides
-		);
-
-		return handlebars.compile(templateString)(data);
-	}
-
-	buildEmailSubject(template, user, overrides = {}): string {
-		const data = _.merge(
-			{},
-			config.get('coreEmails.default'),
-			{
-				app: config.get('app'),
-				user: user
-			},
-			overrides
-		);
-		return handlebars.compile(template)(data);
-	}
-
 	async generateMailOptions(
 		user,
 		req,
@@ -141,6 +100,36 @@ class EmailService {
 				html: emailContent
 			}
 		);
+	}
+
+	buildEmailContent(
+		templatePath: string,
+		user,
+		overrides = {}
+	): Promise<string> {
+		// Set email header/footer
+		const data = _.merge(
+			{},
+			config.get('coreEmails.default'),
+			{
+				user: user
+			},
+			overrides
+		);
+
+		return templateService.renderTemplate(templatePath, data);
+	}
+
+	buildEmailSubject(template: string, user, overrides = {}): string {
+		const data = _.merge(
+			{},
+			config.get('coreEmails.default'),
+			{
+				user: user
+			},
+			overrides
+		);
+		return templateService.renderTemplateStr(template, data);
 	}
 
 	/**
