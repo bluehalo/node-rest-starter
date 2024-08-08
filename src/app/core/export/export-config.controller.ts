@@ -49,24 +49,7 @@ export const exportCSV = (
 	data: Array<unknown> | Readable
 ) => {
 	if (null !== data) {
-		exportStream(
-			req,
-			res,
-			filename,
-			'text/csv',
-			buildExportStream(
-				data,
-				(stream) => () => {
-					if (Array.isArray(data)) {
-						data.forEach((row) => {
-							stream.push(row);
-						});
-					}
-					stream.push(null);
-				},
-				[csvStream.streamToCsv(columns)]
-			)
-		);
+		exportStream(req, res, filename, 'text/csv', buildCSVStream(data, columns));
 	}
 };
 
@@ -92,6 +75,24 @@ export const exportPlaintext = (req, res, filename: string, text: string) => {
 			})
 		);
 	}
+};
+
+export const buildCSVStream = (
+	data: Readable | unknown,
+	columns: ExportColumnDef[]
+) => {
+	return buildExportStream(
+		data,
+		(stream) => () => {
+			if (Array.isArray(data)) {
+				data.forEach((row) => {
+					stream.push(row);
+				});
+			}
+			stream.push(null);
+		},
+		[csvStream.streamToCsv(columns)]
+	);
 };
 
 /**
@@ -167,7 +168,7 @@ const buildExportStream = (
  * @param contentType
  * @param stream
  */
-const exportStream = (
+export const exportStream = (
 	req,
 	res,
 	fileName: string,
