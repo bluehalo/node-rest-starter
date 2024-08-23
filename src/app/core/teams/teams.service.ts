@@ -194,24 +194,29 @@ class TeamsService {
 	}
 
 	/**
-	 * Gets the role of this user in this team.
+	 * Gets the role of this user in this team.  If the team is nested, it will check the user's
+	 * role on all ancestor teams and grant the highest assigned role.
 	 *
 	 * @returns Returns the role of the user in the team or null if user doesn't belong to team.
 	 */
-	getTeamRole(user: UserDocument, team: TeamDocument) {
-		const ndx = _.findIndex(user.teams, (t) => t._id.equals(team._id));
+	getTeamRole(
+		user: UserDocument,
+		team: Pick<TeamDocument, '_id'> & Partial<Pick<TeamDocument, 'ancestors'>>
+	): string | null {
+		if (team.ancestors && config.get<boolean>('teams.nestedTeams')) {
+			const roles = [...team.ancestors, team._id]
+				.map((_id) => this.getTeamRole(user, { _id }))
+				.filter((role) => role);
 
-		if (-1 !== ndx) {
-			return user.teams[ndx].role;
-		}
-
-		if (config.get<boolean>('teams.nestedTeams')) {
-			for (const ancestor of team.ancestors || []) {
-				const role = this.getTeamRole(user, new this.model({ _id: ancestor }));
-				if (role) {
-					return role;
-				}
+			if (roles.length > 0) {
+				return roles.reduce((prevHighestRole, role) => {
+					return TeamRolePriorities[role] > TeamRolePriorities[prevHighestRole]
+						? role
+						: prevHighestRole;
+				}, TeamRoles.Blocked);
 			}
+		} else {
+			return user.teams.find((t) => t._id.equals(team._id))?.role;
 		}
 		return null;
 	}
