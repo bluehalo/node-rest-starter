@@ -55,7 +55,7 @@
     "connect-mongo": "^5.1.0",
     "cors": "^2.8.5",
     "csv-stringify": "4.0",
-    "express": "4.19",
+    "express": "4.21",
     "express-actuator": "^1.8.4",
     "express-async-errors": "^3.1.1",
     "express-json-validator-middleware": "^3.0.1",
