@@ -8,9 +8,8 @@
     "url": "https://github.com:Asymmetrik/node-rest-starter.git"
   },
   "engines": {
-    "node": ">=18.19.1",
-    "npm": ">=10.2.4",
-    "yarn": ">=1.5.1"
+    "node": ">=20.17.0",
+    "npm": ">=10.8.2"
   },
   "scripts": {
     "init": "npm ci && npm run init:env:dev",
