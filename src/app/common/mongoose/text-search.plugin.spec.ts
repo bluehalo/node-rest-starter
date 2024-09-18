@@ -1,5 +1,6 @@
+import assert from 'node:assert/strict';
+
 import { model, Model, Schema } from 'mongoose';
-import should from 'should';
 
 import { TextSearchable, textSearchPlugin } from './text-search.plugin';
 
@@ -24,38 +25,24 @@ describe('Text Search Plugin:', () => {
 	describe('textSearch:', () => {
 		it('should add textSearch function to query', () => {
 			const query = TextExample.find();
-			should.exist(query.textSearch);
-
-			query.textSearch.should.be.Function();
+			assert(query.textSearch);
+			assert.equal(typeof query.textSearch, 'function');
 		});
 
 		it('should not add to filter/options if search term is null/undefined/empty string', () => {
 			[null, undefined, ''].forEach((search) => {
-				const query = TextExample.find().textSearch(search, true);
+				[true, false].forEach((sortByTextScore) => {
+					const query = TextExample.find().textSearch(search, sortByTextScore);
 
-				const filter = query.getFilter();
-				should.exist(filter);
-				should.not.exist(filter.$text);
-				should.not.exist(query.projection());
+					const filter = query.getFilter();
+					assert.deepStrictEqual(filter, {});
 
-				const options = query.getOptions();
-				should.exist(options);
-				should.not.exist(options.sort);
-			});
-		});
+					assert.equal(query.projection(), undefined);
 
-		it('should not add to filter/options if search term is null/undefined/empty string and sortByTextScore is false', () => {
-			[null, undefined, ''].forEach((search) => {
-				const query = TextExample.find().textSearch(search);
-
-				const filter = query.getFilter();
-				should.exist(filter);
-				should.not.exist(filter.$text);
-				should.not.exist(query.projection());
-
-				const options = query.getOptions();
-				should.exist(options);
-				should.not.exist(options.sort);
+					const options = query.getOptions();
+					assert(options);
+					assert.deepStrictEqual(options.sort, undefined);
+				});
 			});
 		});
 
@@ -63,33 +50,34 @@ describe('Text Search Plugin:', () => {
 			const query = TextExample.find().textSearch('test', true);
 
 			const filter = query.getFilter();
-			should.exist(filter);
-			should.exist(filter.$text);
-			filter.should.containEql({ $text: { $search: 'test' } });
 
-			should.exist(query.projection());
-			query.projection().should.containEql({ score: { $meta: 'textScore' } });
+			assert.deepStrictEqual(filter, { $text: { $search: 'test' } });
+
+			assert.deepStrictEqual(query.projection(), {
+				score: { $meta: 'textScore' }
+			});
 
 			const options = query.getOptions();
-			should.exist(options);
-			should.exist(options.sort);
-			options.sort.should.containEql({ score: { $meta: 'textScore' } });
+			assert(options);
+			assert.deepStrictEqual(options.sort, { score: { $meta: 'textScore' } });
 		});
 
 		it('should not update sort options if sortByTextScore is false', () => {
 			const query = TextExample.find().textSearch('test');
 
 			const filter = query.getFilter();
-			should.exist(filter);
-			should.exist(filter.$text);
-			filter.should.containEql({ $text: { $search: 'test' } });
 
-			should.exist(query.projection());
-			query.projection().should.containEql({ score: { $meta: 'textScore' } });
+			assert.deepStrictEqual(filter, {
+				$text: { $search: 'test' }
+			});
+
+			assert.deepStrictEqual(query.projection(), {
+				score: { $meta: 'textScore' }
+			});
 
 			const options = query.getOptions();
-			should.exist(options);
-			should.not.exist(options.sort);
+			assert(options);
+			assert.equal(options.sort, undefined);
 		});
 	});
 });

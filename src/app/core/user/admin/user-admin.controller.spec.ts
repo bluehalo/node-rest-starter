@@ -1,4 +1,6 @@
-import { assert, createSandbox } from 'sinon';
+import assert from 'node:assert/strict';
+
+import { assert as sinonAssert, createSandbox } from 'sinon';
 
 import * as userAdminController from './user-admin.controller';
 import { auditService, config } from '../../../../dependencies';
@@ -47,8 +49,8 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminGetUser(req, res);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -64,9 +66,9 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminGetAll(req, res);
 
-			assert.calledOnce(User.find);
-			assert.calledWith(res.status, 200);
-			assert.calledWithMatch(res.json, []);
+			sinonAssert.calledOnce(User.find);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.calledWithMatch(res.json, []);
 		});
 
 		it('returns successfully w/ results', async () => {
@@ -80,9 +82,9 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminGetAll(req, res);
 
-			assert.calledOnce(User.find);
-			assert.calledWith(res.status, 200);
-			assert.calledWithMatch(res.json, ['user1 Name', 'user2 Name']);
+			sinonAssert.calledOnce(User.find);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.calledWithMatch(res.json, ['user1 Name', 'user2 Name']);
 		});
 
 		it('query field undefined; returns error', async () => {
@@ -94,13 +96,12 @@ describe('User Admin Controller:', () => {
 				exec: () => Promise.resolve([])
 			});
 
-			await userAdminController
-				.adminGetAll(req, res)
-				.should.be.rejectedWith(
-					new BadRequestError('Query field must be provided')
-				);
+			await assert.rejects(
+				userAdminController.adminGetAll(req, res),
+				new BadRequestError('Query field must be provided')
+			);
 
-			assert.notCalled(User.find);
+			sinonAssert.notCalled(User.find);
 		});
 
 		it('query field is empty string; returns error', async () => {
@@ -112,13 +113,12 @@ describe('User Admin Controller:', () => {
 				exec: () => Promise.resolve([])
 			});
 
-			await userAdminController
-				.adminGetAll(req, res)
-				.should.be.rejectedWith(
-					new BadRequestError('Query field must be provided')
-				);
+			await assert.rejects(
+				userAdminController.adminGetAll(req, res),
+				new BadRequestError('Query field must be provided')
+			);
 
-			assert.notCalled(User.find);
+			sinonAssert.notCalled(User.find);
 		});
 	});
 
@@ -143,10 +143,10 @@ describe('User Admin Controller:', () => {
 				.value({ approvedUserEmail: { enabled: true } });
 			await userAdminController.adminUpdateUser(req, res);
 
-			assert.calledWithMatch(auditService.audit, 'admin user updated');
-			assert.notCalled(userEmailService.emailApprovedUser);
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWithMatch(auditService.audit, 'admin user updated');
+			sinonAssert.notCalled(userEmailService.emailApprovedUser);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 
 		it('user is found; password is updated', async () => {
@@ -156,10 +156,10 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminUpdateUser(req, res);
 
-			assert.calledWithMatch(auditService.audit, 'admin user updated');
-			assert.notCalled(userEmailService.emailApprovedUser);
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWithMatch(auditService.audit, 'admin user updated');
+			sinonAssert.notCalled(userEmailService.emailApprovedUser);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 
 		it('user is found; approved user email sent', async () => {
@@ -169,10 +169,10 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminUpdateUser(req, res);
 
-			assert.calledWithMatch(auditService.audit, 'admin user updated');
-			assert.calledOnce(userEmailService.emailApprovedUser);
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWithMatch(auditService.audit, 'admin user updated');
+			sinonAssert.calledOnce(userEmailService.emailApprovedUser);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -193,9 +193,9 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminDeleteUser(req, res);
 
-			assert.calledWithMatch(auditService.audit, 'admin user deleted');
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWithMatch(auditService.audit, 'admin user deleted');
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -212,9 +212,9 @@ describe('User Admin Controller:', () => {
 
 			await userAdminController.adminSearchUsers(req, res);
 
-			assert.calledOnce(userService.searchUsers);
-			assert.calledWith(res.status, 200);
-			assert.calledOnce(res.json);
+			sinonAssert.calledOnce(userService.searchUsers);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.calledOnce(res.json);
 		});
 
 		describe('search returns successfully; filters updated', () => {
@@ -237,9 +237,9 @@ describe('User Admin Controller:', () => {
 			afterEach(async () => {
 				await userAdminController.adminSearchUsers(req, res);
 
-				assert.calledOnce(userService.searchUsers);
-				assert.calledWith(res.status, 200);
-				assert.calledOnce(res.json);
+				sinonAssert.calledOnce(userService.searchUsers);
+				sinonAssert.calledWith(res.status, 200);
+				sinonAssert.calledOnce(res.json);
 			});
 		});
 	});

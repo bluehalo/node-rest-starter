@@ -1,4 +1,4 @@
-import should from 'should';
+import assert from 'node:assert/strict';
 
 import { User } from './user.model';
 import userService from './user.service';
@@ -37,13 +37,13 @@ describe('User Profile Service:', () => {
 			await user.save();
 
 			user = await userService.read(user._id);
-			should.exist(user);
-			user.name.should.equal('user1 Name');
+			assert(user);
+			assert.equal(user.name, 'user1 Name');
 		});
 
 		it('read returns null for invalid id', async () => {
 			const user = await userService.read('5cc9db5f738d4a7198466bc0');
-			should.not.exist(user);
+			assert.equal(user, null);
 		});
 	});
 
@@ -56,14 +56,14 @@ describe('User Profile Service:', () => {
 			// Update user
 			Object.assign(user, { name: 'New Name', email: 'new@email.email' });
 			user = await userService.update(user);
-			user.name.should.equal('New Name');
-			user.email.should.equal('new@email.email');
+			assert.equal(user.name, 'New Name');
+			assert.equal(user.email, 'new@email.email');
 
 			// re-query and verify update
 			user = await User.findById(user._id);
-			should.exist(user);
-			user.name.should.equal('New Name');
-			user.email.should.equal('new@email.email');
+			assert(user);
+			assert.equal(user.name, 'New Name');
+			assert.equal(user.email, 'new@email.email');
 		});
 	});
 
@@ -76,14 +76,14 @@ describe('User Profile Service:', () => {
 
 			// Verify user is in db
 			user = await User.findById(user._id);
-			should.exist(user);
+			assert(user);
 
 			// Remove user
 			await userService.remove(user);
 
 			// Verify user is no longer in db
 			user = await User.findById(user._id);
-			should.not.exist(user);
+			assert.equal(user, null);
 		});
 	});
 
@@ -101,15 +101,20 @@ describe('User Profile Service:', () => {
 			const query = null;
 			const search = '';
 
-			const result = await userService.searchUsers(queryParams, query, search);
+			const { elements, ...result } = await userService.searchUsers(
+				queryParams,
+				query,
+				search
+			);
 
-			should.exist(result);
-			result.totalSize.should.equal(100);
-			result.pageSize.should.equal(queryParams.size);
-			result.pageNumber.should.equal(0);
-			result.totalPages.should.equal(100 / queryParams.size);
-			result.elements.should.be.an.Array();
-			result.elements.length.should.be.equal(queryParams.size);
+			assert.deepStrictEqual(result, {
+				totalSize: 100,
+				pageSize: queryParams.size,
+				pageNumber: 0,
+				totalPages: 100 / queryParams.size
+			});
+			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.equal(elements.length, queryParams.size);
 		});
 
 		it('search (w/ searchFields) results page returned', async () => {
@@ -117,17 +122,21 @@ describe('User Profile Service:', () => {
 			const query = null;
 			const search = '';
 
-			const result = await userService.searchUsers(queryParams, query, search, [
-				'field1'
-			]);
+			const { elements, ...result } = await userService.searchUsers(
+				queryParams,
+				query,
+				search,
+				['field1']
+			);
 
-			should.exist(result);
-			result.totalSize.should.equal(100);
-			result.pageSize.should.equal(queryParams.size);
-			result.pageNumber.should.equal(0);
-			result.totalPages.should.equal(100 / queryParams.size);
-			result.elements.should.be.an.Array();
-			result.elements.length.should.be.equal(queryParams.size);
+			assert.deepStrictEqual(result, {
+				totalSize: 100,
+				pageSize: queryParams.size,
+				pageNumber: 0,
+				totalPages: 100 / queryParams.size
+			});
+			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.equal(elements.length, queryParams.size);
 		});
 	});
 
@@ -136,7 +145,7 @@ describe('User Profile Service:', () => {
 			// Create test user
 			let user = userSpec('user1');
 			await user.save();
-			should.not.exist(user.preferences);
+			assert.equal(user.preferences, undefined);
 
 			await userService.updatePreferences(user, {
 				userPref1: 'value',
@@ -145,9 +154,9 @@ describe('User Profile Service:', () => {
 
 			user = await User.findById(user._id);
 
-			should.exist(user.preferences);
-			user.preferences.userPref1.should.equal('value');
-			user.preferences.userPref2.should.equal('otherValue');
+			assert(user.preferences);
+			assert.equal(user.preferences.userPref1, 'value');
+			assert.equal(user.preferences.userPref2, 'otherValue');
 		});
 
 		it('should merge user preferences', async () => {
@@ -162,9 +171,9 @@ describe('User Profile Service:', () => {
 				preferences: { userPref1: 'oldValue', userPref3: 'oldValue' }
 			});
 			await user.save();
-			should.exist(user.preferences);
-			user.preferences.userPref1.should.equal('oldValue');
-			user.preferences.userPref3.should.equal('oldValue');
+			assert(user.preferences);
+			assert.equal(user.preferences.userPref1, 'oldValue');
+			assert.equal(user.preferences.userPref3, 'oldValue');
 
 			await userService.updatePreferences(user, {
 				userPref1: 'value',
@@ -173,10 +182,10 @@ describe('User Profile Service:', () => {
 
 			user = await User.findById(user._id);
 
-			should.exist(user.preferences);
-			user.preferences.userPref1.should.equal('value');
-			user.preferences.userPref2.should.equal('otherValue');
-			user.preferences.userPref3.should.equal('oldValue');
+			assert(user.preferences);
+			assert.equal(user.preferences.userPref1, 'value');
+			assert.equal(user.preferences.userPref2, 'otherValue');
+			assert.equal(user.preferences.userPref3, 'oldValue');
 		});
 	});
 
@@ -192,15 +201,14 @@ describe('User Profile Service:', () => {
 				password: 'password'
 			});
 			await user.save();
-			should.not.exist(user.organizationLevels);
+			assert.equal(user.organizationLevels, undefined);
 
 			await userService.updateRequiredOrgs(user, { org1: 'value' });
 
 			user = await User.findById(user._id);
 
-			should.exist(user.organizationLevels);
-			user.organizationLevels.should.be.Object();
-			user.organizationLevels.org1.should.equal('value');
+			assert.equal(typeof user.organizationLevels, 'object');
+			assert.equal(user.organizationLevels.org1, 'value');
 		});
 	});
 });

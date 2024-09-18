@@ -1,7 +1,8 @@
+import assert from 'node:assert/strict';
+
 import _ from 'lodash';
 import mongoose from 'mongoose';
-import should from 'should';
-import { assert, createSandbox } from 'sinon';
+import { assert as sinonAssert, createSandbox } from 'sinon';
 
 import { TeamRoles } from './team-role.model';
 import { ITeam, Team, TeamDocument } from './team.model';
@@ -194,8 +195,8 @@ describe('Team Service:', () => {
 				team.teamWithNoExternalTeam
 			);
 
-			should.exist(role);
-			role.should.equal(TeamRoles.Member);
+			assert(role);
+			assert.equal(role, TeamRoles.Member);
 		});
 
 		it('return existing explicit team role for user (plain object)', () => {
@@ -204,8 +205,8 @@ describe('Team Service:', () => {
 				team.teamWithNoExternalTeam
 			);
 
-			should.exist(role);
-			role.should.equal(TeamRoles.Member);
+			assert(role);
+			assert.equal(role, TeamRoles.Member);
 		});
 
 		it('return null role for user not in team', () => {
@@ -214,7 +215,7 @@ describe('Team Service:', () => {
 				team.teamWithExternalTeam
 			);
 
-			should.not.exist(role);
+			assert.equal(role, null);
 		});
 
 		describe('implicitMembers.strategy = "teams"', () => {
@@ -233,8 +234,8 @@ describe('Team Service:', () => {
 					team.teamWithExternalTeam
 				);
 
-				should.exist(role);
-				role.should.equal(TeamRoles.Member);
+				assert(role);
+				assert.equal(role, TeamRoles.Member);
 			});
 		});
 
@@ -254,7 +255,7 @@ describe('Team Service:', () => {
 					team.teamWithExternalTeam
 				);
 
-				should.not.exist(role);
+				assert.equal(role, null);
 			});
 
 			it('return implicit team role for user', () => {
@@ -263,8 +264,8 @@ describe('Team Service:', () => {
 					team.teamWithExternalRoles
 				);
 
-				should.exist(role);
-				role.should.equal(TeamRoles.Member);
+				assert(role);
+				assert.equal(role, TeamRoles.Member);
 			});
 
 			it('return blocked role for user blocked from team that they would otherwise be an implicit member', () => {
@@ -273,63 +274,62 @@ describe('Team Service:', () => {
 					team.teamWithExternalRoles2
 				);
 
-				should.exist(role);
-				role.should.equal('blocked');
+				assert(role);
+				assert.equal(role, 'blocked');
 			});
 		});
 	});
 
 	describe('meetsRoleRequirement', () => {
 		it('should not reject for user with specified role in team', async () => {
-			await teamsService
-				.meetsRoleRequirement(
+			await assert.doesNotReject(
+				teamsService.meetsRoleRequirement(
 					user.explicit,
 					team.teamWithNoExternalTeam,
 					TeamRoles.Member
 				)
-				.should.be.fulfilled();
+			);
 		});
 
 		it('should reject for user without specified role in team', async () => {
-			await teamsService
-				.meetsRoleRequirement(
+			await assert.rejects(
+				teamsService.meetsRoleRequirement(
 					user.explicit,
 					team.teamWithNoExternalTeam,
 					TeamRoles.Admin
+				),
+				new ForbiddenError(
+					'The user does not have the required roles for the team'
 				)
-				.should.be.rejectedWith(
-					new ForbiddenError(
-						'The user does not have the required roles for the team'
-					)
-				);
+			);
 		});
 	});
 
 	describe('read', () => {
 		it('read finds team', async () => {
 			const t = await teamsService.read(team.teamWithNoExternalTeam._id);
-			should.exist(t);
-			t.name.should.equal('no-external');
+			assert(t);
+			assert.equal(t.name, 'no-external');
 		});
 
 		it('read returns null when no team found', async () => {
 			const t = await teamsService.read('123412341234123412341234');
-			should.not.exist(t);
+			assert.equal(t, null);
 		});
 	});
 
 	describe('readTeamMember', () => {
 		it('read finds team', async () => {
 			const t = await userService.read(user.admin._id);
-			should.exist(t);
-			t.name.should.equal('admin Name');
+			assert(t);
+			assert.equal(t.name, 'admin Name');
 		});
 
 		it('read returns null when no team found', async () => {
 			const t = await userService.read(
 				new mongoose.Types.ObjectId('123412341234123412341234')
 			);
-			should.not.exist(t);
+			assert.equal(t, null);
 		});
 	});
 
@@ -341,30 +341,31 @@ describe('Team Service:', () => {
 
 			await teamsService.create(teamSpec('test-create-2'), creator, admin._id);
 			const _team = await Team.findOne({ name: 'test-create-2' }).exec();
-			const members = await userService.searchUsers(
+			const { elements } = await userService.searchUsers(
 				queryParams,
 				{ 'teams._id': _team._id },
 				null
 			);
-			members.elements.should.have.length(1);
-			members.elements[0].name.should.equal(admin.name);
+			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.equal(elements.length, 1);
+			assert.equal(elements[0].name, admin.name);
 		});
 
 		it('null admin should default admin to creator', async () => {
 			const queryParams = { dir: 'ASC', page: '0', size: '5', sort: 'name' };
-			// const creator = await User.findOne({name: 'user1 Name'}).exec();
 			const creator = user.user1;
 
 			// null admin should default to creator
 			await teamsService.create(teamSpec('test-create'), creator, null);
 			const _team = await Team.findOne({ name: 'test-create' }).exec();
-			const members = await userService.searchUsers(
+			const { elements } = await userService.searchUsers(
 				queryParams,
 				{ 'teams._id': _team._id },
 				null
 			);
-			members.elements.should.have.length(1);
-			members.elements[0].name.should.equal(creator.name);
+			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.equal(elements.length, 1);
+			assert.equal(elements[0].name, creator.name);
 		});
 
 		it('nested team created', async () => {
@@ -376,12 +377,13 @@ describe('Team Service:', () => {
 			await teamsService.create(_team, creator, null);
 			_team = await Team.findOne({ name: 'nested-team' }).exec();
 
-			should.exist(_team);
-			_team.should.be.Object();
-			_team.parent
-				.toString()
-				.should.equal(team.teamWithNoExternalTeam._id.toString());
-			_team.ancestors.length.should.equal(1);
+			assert(_team);
+			assert.equal(typeof _team, 'object');
+			assert.equal(
+				_team.parent.toString(),
+				team.teamWithNoExternalTeam._id.toString()
+			);
+			assert.equal(_team.ancestors.length, 1);
 		});
 	});
 
@@ -391,16 +393,17 @@ describe('Team Service:', () => {
 				name: `${team.teamWithNoExternalTeam.name}_updated`
 			};
 
-			const updatedTeam = await teamsService
-				.update(team.teamWithNoExternalTeam, updates)
-				.should.be.fulfilled();
+			const updatedTeam = await teamsService.update(
+				team.teamWithNoExternalTeam,
+				updates
+			);
 
 			// Verify updates were applied on returned object
-			updatedTeam.name.should.equal(updates.name);
+			assert.equal(updatedTeam.name, updates.name);
 
 			// Verify updates were applied by requerying
 			const t = await Team.findById(team.teamWithNoExternalTeam._id);
-			t.name.should.equal(updates.name);
+			assert.equal(t.name, updates.name);
 		});
 	});
 
@@ -408,44 +411,43 @@ describe('Team Service:', () => {
 		it('should delete team, if team has no resources', async () => {
 			const beforeTeamCount = await Team.countDocuments({});
 
-			await teamsService
-				.delete(team.teamWithNoExternalTeam)
-				.should.be.fulfilled();
+			await assert.doesNotReject(
+				teamsService.delete(team.teamWithNoExternalTeam)
+			);
 
 			// Verify Team no longer exists
 			const tResult = await Team.findById(team.teamWithNoExternalTeam._id);
-			should.not.exist(tResult);
+			assert.equal(tResult, null);
 
 			// Verify only one team was deleted
 			const afterTeamCount = await Team.countDocuments({});
-			afterTeamCount.should.equal(beforeTeamCount - 1);
+			assert.equal(afterTeamCount, beforeTeamCount - 1);
 
 			// Verify team entry is removed from user
 			const count = await User.countDocuments({
 				'teams._id': team.teamWithNoExternalTeam._id
 			});
-			count.should.equal(0);
+			assert.equal(count, 0);
 		});
 
 		it('should reject if team has resources', async () => {
 			sandbox.stub(teamsService, 'getResourceCount').resolves(1);
 
-			await teamsService
-				.delete(team.teamWithNoExternalTeam)
-				.should.be.rejectedWith(
-					new BadRequestError('There are still resources in this team.')
-				);
+			await assert.rejects(
+				teamsService.delete(team.teamWithNoExternalTeam),
+				new BadRequestError('There are still resources in this team.')
+			);
 
 			// Verify team still exists
 			const result = await Team.findById(team.teamWithNoExternalTeam._id);
-			should.exist(result);
+			assert(result);
 
 			// Verify team entry is not removed from user
 			const uResult = await User.findById(user.explicit._id);
 			const userTeam = uResult.teams.find((t) =>
 				t._id.equals(team.teamWithNoExternalTeam._id)
 			);
-			should.exist(userTeam);
+			assert(userTeam);
 		});
 	});
 
@@ -465,83 +467,87 @@ describe('Team Service:', () => {
 			const queryParams = { size: 10 };
 			const query = {};
 			const search = '';
-			const result = await teamsService.search(
+			const { elements, ...result } = await teamsService.search(
 				queryParams,
 				query,
 				search,
 				user.user2
 			);
 
-			should.exist(result);
-			result.totalSize.should.equal(0);
-			result.pageSize.should.equal(queryParams.size);
-			result.pageNumber.should.equal(0);
-			result.totalPages.should.equal(0);
-			result.elements.should.be.an.Array();
-			result.elements.length.should.be.equal(0);
+			assert.deepStrictEqual(result, {
+				totalSize: 0,
+				pageSize: queryParams.size,
+				pageNumber: 0,
+				totalPages: 0
+			});
+			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.equal(elements.length, 0);
 		});
 
 		it('search results page returned', async () => {
 			const queryParams = { size: 10 };
 			const query = {};
 			const search = '';
-			const result = await teamsService.search(
+			const { elements, ...result } = await teamsService.search(
 				queryParams,
 				query,
 				search,
 				user.admin
 			);
 
-			should.exist(result);
-			result.totalSize.should.equal(100);
-			result.pageSize.should.equal(queryParams.size);
-			result.pageNumber.should.equal(0);
-			result.totalPages.should.equal(100 / queryParams.size);
-			result.elements.should.be.an.Array();
-			result.elements.length.should.be.equal(queryParams.size);
+			assert.deepStrictEqual(result, {
+				totalSize: 100,
+				pageSize: queryParams.size,
+				pageNumber: 0,
+				totalPages: 10
+			});
+			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.equal(elements.length, queryParams.size);
 		});
 
 		it('filtered search results page returned', async () => {
 			const queryParams = { size: 10 };
 			const query = { _id: { $in: [team.teamWithNoExternalTeam._id] } };
 			const search = '';
-			const result = await teamsService.search(
+			const { elements, ...result } = await teamsService.search(
 				queryParams,
 				query,
 				search,
 				user.user1
 			);
 
-			should.exist(result);
-			result.totalSize.should.equal(1);
-			result.pageSize.should.equal(queryParams.size);
-			result.pageNumber.should.equal(0);
-			result.totalPages.should.equal(1);
-			result.elements.should.be.an.Array();
-			result.elements.length.should.be.equal(1);
+			assert.deepStrictEqual(result, {
+				totalSize: 1,
+				pageSize: queryParams.size,
+				pageNumber: 0,
+				totalPages: 1
+			});
+			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.equal(elements.length, 1);
 		});
 
 		it('check isMember field', async () => {
 			const queryParams = { size: 100 };
 			const query = {};
 			const search = '';
-			const result = await teamsService.search(
+			const { elements, ...result } = await teamsService.search(
 				queryParams,
 				query,
 				search,
 				user.user1
 			);
 
-			should.exist(result);
-			result.totalSize.should.equal(2);
-			result.pageSize.should.equal(queryParams.size);
-			result.pageNumber.should.equal(0);
-			result.totalPages.should.equal(1);
-			result.elements.should.be.an.Array();
-			result.elements.length.should.be.equal(2);
+			assert.deepStrictEqual(result, {
+				totalSize: 2,
+				pageSize: queryParams.size,
+				pageNumber: 0,
+				totalPages: 1
+			});
+			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.equal(elements.length, 2);
 
 			const isMemberResults = (
-				result.elements as unknown as Array<
+				elements as unknown as Array<
 					TeamDocument & {
 						isMember: boolean;
 					}
@@ -551,9 +557,9 @@ describe('Team Service:', () => {
 				.map((team) => team.name);
 
 			// user 1 is only members of these two teams (defined by user setup above)
-			isMemberResults.length.should.equal(2);
-			isMemberResults[0].should.equal(team.teamWithNoExternalTeam2.name);
-			isMemberResults[1].should.equal(team.teamWithNoExternalTeam.name);
+			assert.equal(isMemberResults.length, 2);
+			assert.equal(isMemberResults[0], team.teamWithNoExternalTeam2.name);
+			assert.equal(isMemberResults[1], team.teamWithNoExternalTeam.name);
 
 			const result2 = await teamsService.search(
 				queryParams,
@@ -562,13 +568,14 @@ describe('Team Service:', () => {
 				user.user3
 			);
 
-			should.exist(result2);
-			result2.totalSize.should.equal(1);
-			result2.pageSize.should.equal(queryParams.size);
-			result2.pageNumber.should.equal(0);
-			result2.totalPages.should.equal(1);
-			result2.elements.should.be.an.Array();
-			result2.elements.length.should.be.equal(1);
+			assert.deepStrictEqual(result, {
+				totalSize: 2,
+				pageSize: queryParams.size,
+				pageNumber: 0,
+				totalPages: 1
+			});
+			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.equal(elements.length, 2);
 
 			const isMemberResults2 = (
 				result2.elements as unknown as Array<
@@ -581,8 +588,8 @@ describe('Team Service:', () => {
 				.map((team) => team.name);
 
 			// user 3 is only members of one of these teams (defined by user setup above)
-			isMemberResults2.length.should.equal(1);
-			isMemberResults2[0].should.equal(team.teamWithNoExternalTeam.name);
+			assert.equal(isMemberResults2.length, 1);
+			assert.equal(isMemberResults2[0], team.teamWithNoExternalTeam.name);
 		});
 	});
 
@@ -598,8 +605,8 @@ describe('Team Service:', () => {
 			const userTeam = uResult.teams.find((t) =>
 				t._id.equals(team.teamWithNoExternalTeam._id)
 			);
-			should.exist(userTeam);
-			userTeam.role.should.equal(TeamRoles.Member);
+			assert(userTeam);
+			assert.equal(userTeam.role, TeamRoles.Member);
 		});
 	});
 
@@ -615,8 +622,8 @@ describe('Team Service:', () => {
 			const userTeam = uResult.teams.find((t) =>
 				t._id.equals(team.teamWithNoExternalTeam._id)
 			);
-			should.exist(userTeam);
-			userTeam.role.should.equal(TeamRoles.Admin);
+			assert(userTeam);
+			assert.equal(userTeam.role, TeamRoles.Admin);
 		});
 
 		it('downgrade admin role; succeed if team has other admins', async () => {
@@ -626,25 +633,24 @@ describe('Team Service:', () => {
 				TeamRoles.Admin
 			);
 
-			await teamsService
-				.updateMemberRole(
+			await assert.doesNotReject(
+				teamsService.updateMemberRole(
 					user.user3,
 					team.teamWithNoExternalTeam,
 					TeamRoles.Member
 				)
-				.should.be.fulfilled();
+			);
 		});
 
 		it('downgrade admin role; reject if team has no other admins', async () => {
-			await teamsService
-				.updateMemberRole(
+			await assert.rejects(
+				teamsService.updateMemberRole(
 					user.user3,
 					team.teamWithNoExternalTeam,
 					TeamRoles.Member
-				)
-				.should.be.rejectedWith(
-					new BadRequestError('Team must have at least one admin')
-				);
+				),
+				new BadRequestError('Team must have at least one admin')
+			);
 		});
 	});
 
@@ -656,17 +662,22 @@ describe('Team Service:', () => {
 				TeamRoles.Admin
 			);
 
-			await teamsService
-				.removeMemberFromTeam(user.user3, team.teamWithNoExternalTeam)
-				.should.be.fulfilled();
+			await assert.doesNotReject(
+				teamsService.removeMemberFromTeam(
+					user.user3,
+					team.teamWithNoExternalTeam
+				)
+			);
 		});
 
 		it('remove admin user; reject if team has no other admins', async () => {
-			await teamsService
-				.removeMemberFromTeam(user.user3, team.teamWithNoExternalTeam)
-				.should.be.rejectedWith(
-					new BadRequestError('Team must have at least one admin')
-				);
+			await assert.rejects(
+				teamsService.removeMemberFromTeam(
+					user.user3,
+					team.teamWithNoExternalTeam
+				),
+				new BadRequestError('Team must have at least one admin')
+			);
 		});
 	});
 
@@ -677,42 +688,42 @@ describe('Team Service:', () => {
 
 			let match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
-			match.should.equal(true);
+			assert.equal(match, true);
 
 			_user = new User({ bypassAccessCheck: false });
 			_team = new Team({});
 
 			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
-			match.should.equal(false);
+			assert.equal(match, false);
 
 			_user = new User({ bypassAccessCheck: false });
 			_team = new Team({ requiresExternalTeams: ['one'] });
 
 			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
-			match.should.equal(false);
+			assert.equal(match, false);
 
 			_user = new User({ bypassAccessCheck: false, externalGroups: ['two'] });
 			_team = new Team({ requiresExternalTeams: ['one'] });
 
 			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
-			match.should.equal(false);
+			assert.equal(match, false);
 
 			_user = new User({ bypassAccessCheck: false, externalGroups: ['one'] });
 			_team = new Team({ requiresExternalTeams: ['one'] });
 
 			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
-			match.should.equal(true);
+			assert.equal(match, true);
 
 			_user = new User({ bypassAccessCheck: false, externalGroups: ['two'] });
 			_team = new Team({ requiresExternalTeams: ['one', 'two'] });
 
 			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
-			match.should.equal(true);
+			assert.equal(match, true);
 
 			_user = new User({
 				bypassAccessCheck: false,
@@ -722,7 +733,7 @@ describe('Team Service:', () => {
 
 			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
-			match.should.equal(true);
+			assert.equal(match, true);
 
 			_user = new User({
 				bypassAccessCheck: false,
@@ -732,14 +743,14 @@ describe('Team Service:', () => {
 
 			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
-			match.should.equal(true);
+			assert.equal(match, true);
 
 			_user = new User({ bypassAccessCheck: false, externalGroups: ['two'] });
 			_team = new Team({ requiresExternalTeams: [] });
 
 			match = teamsService.meetsRequiredExternalTeams(_user, _team);
 
-			match.should.equal(false);
+			assert.equal(match, false);
 		});
 	});
 
@@ -750,56 +761,56 @@ describe('Team Service:', () => {
 
 			let match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
-			match.should.equal(false);
+			assert.equal(match, false);
 
 			_user = new User({});
 			_team = new Team({ requiresExternalRoles: ['one'] });
 
 			match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
-			match.should.equal(false);
+			assert.equal(match, false);
 
 			_user = new User({ externalRoles: ['two'] });
 			_team = new Team({ requiresExternalRoles: ['one'] });
 
 			match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
-			match.should.equal(false);
+			assert.equal(match, false);
 
 			_user = new User({ externalRoles: ['one'] });
 			_team = new Team({ requiresExternalRoles: ['one'] });
 
 			match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
-			match.should.equal(true);
+			assert.equal(match, true);
 
 			_user = new User({ externalRoles: ['two'] });
 			_team = new Team({ requiresExternalRoles: ['one', 'two'] });
 
 			match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
-			match.should.equal(false);
+			assert.equal(match, false);
 
 			_user = new User({ externalRoles: ['one', 'two', 'three'] });
 			_team = new Team({ requiresExternalRoles: ['one', 'two'] });
 
 			match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
-			match.should.equal(true);
+			assert.equal(match, true);
 
 			_user = new User({ externalRoles: ['two', 'four'] });
 			_team = new Team({ requiresExternalRoles: ['four', 'one', 'two'] });
 
 			match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
-			match.should.equal(false);
+			assert.equal(match, false);
 
 			_user = new User({ externalRoles: ['two'] });
 			_team = new Team({ requiresExternalRoles: [] });
 
 			match = teamsService.meetsRequiredExternalRoles(_user, _team);
 
-			match.should.equal(false);
+			assert.equal(match, false);
 		});
 	});
 
@@ -818,33 +829,33 @@ describe('Team Service:', () => {
 				const _user = new User({});
 				const _team = new Team({});
 				const match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(false);
+				assert.equal(match, false);
 			});
 
 			it('should not match when team does not have requiresExternalRoles', () => {
 				const _user = new User({ externalRoles: ['one', 'two', 'three'] });
 				let _team = new Team({});
 				let match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(false);
+				assert.equal(match, false);
 
 				_team = new Team({ requiresExternalRoles: [] });
 				match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(false);
+				assert.equal(match, false);
 			});
 
 			it('should match when user has required external roles', () => {
 				const _user = new User({ externalRoles: ['one', 'two', 'three'] });
 				let _team = new Team({ requiresExternalRoles: ['one'] });
 				let match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(true);
+				assert.equal(match, true);
 
 				_team = new Team({ requiresExternalRoles: ['one', 'two'] });
 				match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(true);
+				assert.equal(match, true);
 
 				_team = new Team({ requiresExternalRoles: ['one', 'three'] });
 				match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(true);
+				assert.equal(match, true);
 			});
 		});
 
@@ -862,18 +873,18 @@ describe('Team Service:', () => {
 				const _user = new User({});
 				const _team = new Team({});
 				const match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(false);
+				assert.equal(match, false);
 			});
 
 			it('should not match when team does not have requiresExternalTeams', () => {
 				const _user = new User({ externalGroups: ['one', 'two', 'three'] });
 				let _team = new Team({});
 				let match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(false);
+				assert.equal(match, false);
 
 				_team = new Team({ requiresExternalTeams: [] });
 				match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(false);
+				assert.equal(match, false);
 			});
 
 			it('should match when user has required external teams', () => {
@@ -882,15 +893,15 @@ describe('Team Service:', () => {
 					requiresExternalTeams: ['one', 'two', 'three']
 				});
 				let match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(true);
+				assert.equal(match, true);
 
 				_user = new User({ externalGroups: ['two'] });
 				match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(true);
+				assert.equal(match, true);
 
 				_user = new User({ externalGroups: ['three'] });
 				match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(true);
+				assert.equal(match, true);
 			});
 		});
 
@@ -905,33 +916,33 @@ describe('Team Service:', () => {
 				let _user = new User({});
 				let _team = new Team({});
 				let match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(false);
+				assert.equal(match, false);
 
 				_user = new User({
 					externalRoles: ['one', 'two', 'three'],
 					externalGroups: ['one', 'two', 'three']
 				});
 				match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(false);
+				assert.equal(match, false);
 
 				_team = new Team({
 					requiresExternalRoles: [],
 					requiresExternalGroups: []
 				});
 				match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(false);
+				assert.equal(match, false);
 
 				_team = new Team({ requiresExternalRoles: ['one'] });
 				match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(false);
+				assert.equal(match, false);
 
 				_team = new Team({ requiresExternalRoles: ['one', 'two'] });
 				match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(false);
+				assert.equal(match, false);
 
 				_team = new Team({ requiresExternalRoles: ['one', 'three'] });
 				match = teamsService.isImplicitMember(_user, _team);
-				match.should.equal(false);
+				assert.equal(match, false);
 			});
 		});
 	});
@@ -966,29 +977,28 @@ FOOTER
 
 			await teamsService.sendRequestEmail(toEmails, _user, _team, {});
 
-			assert.called(sendMailStub);
+			sinonAssert.called(sendMailStub);
 			const [mailOptions] = sendMailStub.getCall(0).args;
 
-			should.exist(mailOptions, 'expected mailOptions to exist');
+			assert(mailOptions, 'expected mailOptions to exist');
 
 			for (const key of ['bcc', 'from', 'replyTo', 'subject', 'html']) {
-				should.exist(mailOptions[key], `expected mailOptions.${key} to exist`);
+				assert(mailOptions[key], `expected mailOptions.${key} to exist`);
 			}
 
-			mailOptions.bcc.should.be.Array();
-			mailOptions.bcc.length.should.equal(2);
-			mailOptions.bcc[0].should.equal(toEmails[0]);
-			mailOptions.bcc[1].should.equal(toEmails[1]);
-			mailOptions.from.should.equal(config.get('coreEmails.default.from'));
-			mailOptions.replyTo.should.equal(
+			assert.deepStrictEqual(mailOptions.bcc, toEmails);
+			assert.equal(mailOptions.from, config.get('coreEmails.default.from'));
+			assert.equal(
+				mailOptions.replyTo,
 				config.get('coreEmails.default.replyTo')
 			);
-			mailOptions.subject.should.equal(
+			assert.equal(
+				mailOptions.subject,
 				`${config.get('app.title')}: A user has requested access to Team ${
 					_team.name
 				}`
 			);
-			mailOptions.html.should.equal(expectedEmailContent);
+			assert.equal(mailOptions.html, expectedEmailContent);
 		});
 
 		it('should fail silently and log error', async () => {
@@ -1002,21 +1012,24 @@ FOOTER
 				{}
 			);
 
-			assert.calledOnce(logStub);
+			sinonAssert.calledOnce(logStub);
 
 			const [message] = logStub.getCall(0).args;
 
-			should(message).equal('Failure sending email.');
+			assert.equal(message, 'Failure sending email.');
 		});
 	});
 
 	describe('requestAccessToTeam', () => {
 		it('should reject if no team admins are found', async () => {
-			await teamsService
-				.requestAccessToTeam(user.admin, team.teamWithNoExternalTeam2, {})
-				.should.be.rejectedWith(
-					new InternalServerError('Error retrieving team admins')
-				);
+			await assert.rejects(
+				teamsService.requestAccessToTeam(
+					user.admin,
+					team.teamWithNoExternalTeam2,
+					{}
+				),
+				new InternalServerError('Error retrieving team admins')
+			);
 
 			const requesterCount = await User.countDocuments({
 				teams: {
@@ -1026,14 +1039,17 @@ FOOTER
 					}
 				}
 			}).exec();
-			requesterCount.should.equal(0);
+			assert.equal(requesterCount, 0);
 		});
 
 		it('should work', async () => {
-			await teamsService
-				.requestAccessToTeam(user.admin, team.teamWithNoExternalTeam, {})
-				.should.be.fulfilled();
-
+			await assert.doesNotReject(
+				teamsService.requestAccessToTeam(
+					user.admin,
+					team.teamWithNoExternalTeam,
+					{}
+				)
+			);
 			const requesterCount = await User.countDocuments({
 				teams: {
 					$elemMatch: {
@@ -1042,7 +1058,7 @@ FOOTER
 					}
 				}
 			}).exec();
-			requesterCount.should.equal(1);
+			assert.equal(requesterCount, 1);
 		});
 	});
 
@@ -1054,25 +1070,25 @@ FOOTER
 		});
 
 		it('should properly reject invalid parameters', async () => {
-			await teamsService
-				.requestNewTeam(null, null, null, null, null)
-				.should.be.rejectedWith(
-					new BadRequestError('Organization cannot be empty')
-				);
+			await assert.rejects(
+				teamsService.requestNewTeam(null, null, null, null, null),
+				new BadRequestError('Organization cannot be empty')
+			);
 
-			await teamsService
-				.requestNewTeam('org', null, null, null, null)
-				.should.be.rejectedWith(new BadRequestError('AOI cannot be empty'));
+			await assert.rejects(
+				teamsService.requestNewTeam('org', null, null, null, null),
+				new BadRequestError('AOI cannot be empty')
+			);
 
-			await teamsService
-				.requestNewTeam('org', 'aoi', null, null, null)
-				.should.be.rejectedWith(
-					new BadRequestError('Description cannot be empty')
-				);
+			await assert.rejects(
+				teamsService.requestNewTeam('org', 'aoi', null, null, null),
+				new BadRequestError('Description cannot be empty')
+			);
 
-			await teamsService
-				.requestNewTeam('org', 'aoi', 'description', null, null)
-				.should.be.rejectedWith(new BadRequestError('Invalid requester'));
+			await assert.rejects(
+				teamsService.requestNewTeam('org', 'aoi', 'description', null, null),
+				new BadRequestError('Invalid requester')
+			);
 		});
 
 		it('should create mailOptions properly', async () => {
@@ -1098,22 +1114,26 @@ FOOTER
 				headers: {}
 			});
 
-			assert.called(sendMailStub);
+			sinonAssert.called(sendMailStub);
 			const [mailOptions] = sendMailStub.getCall(0).args;
 
-			should.exist(mailOptions, 'expected mailOptions to exist');
+			assert(mailOptions, 'expected mailOptions to exist');
 
 			for (const key of ['bcc', 'from', 'replyTo', 'subject', 'html']) {
-				should.exist(mailOptions[key], `expected mailOptions.${key} to exist`);
+				assert(mailOptions[key], `expected mailOptions.${key} to exist`);
 			}
 
-			mailOptions.bcc.should.equal(config.get('coreEmails.newTeamRequest.bcc'));
-			mailOptions.from.should.equal(config.get('coreEmails.default.from'));
-			mailOptions.replyTo.should.equal(
+			assert.equal(
+				mailOptions.bcc,
+				config.get('coreEmails.newTeamRequest.bcc')
+			);
+			assert.equal(mailOptions.from, config.get('coreEmails.default.from'));
+			assert.equal(
+				mailOptions.replyTo,
 				config.get('coreEmails.default.replyTo')
 			);
-			mailOptions.subject.should.equal('New Team Requested');
-			mailOptions.html.should.equal(expectedEmailContent);
+			assert.equal(mailOptions.subject, 'New Team Requested');
+			assert.equal(mailOptions.html, expectedEmailContent);
 		});
 
 		it('should fail silently and log error', async () => {
@@ -1128,10 +1148,10 @@ FOOTER
 				{ headers: {} }
 			);
 
-			assert.calledOnce(logStub);
+			sinonAssert.calledOnce(logStub);
 
 			const [message] = logStub.getCall(0).args;
-			should(message).equal('Failure sending email.');
+			assert.equal(message, 'Failure sending email.');
 		});
 	});
 
@@ -1147,51 +1167,46 @@ FOOTER
 			});
 
 			it('reject for non-existent user', async () => {
-				await teamsService
-					.getImplicitTeamIds(null)
-					.should.be.rejectedWith(
-						new InternalServerError('User does not exist')
-					);
+				await assert.rejects(
+					teamsService.getImplicitTeamIds(null),
+					new InternalServerError('User does not exist')
+				);
 			});
 
 			it('should find implicit teams for user with matching external roles (model object)', async () => {
 				const teamIds = await teamsService.getImplicitTeamIds(user.implicit2);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.length.should.equal(2);
+				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.equal(teamIds.length, 2);
 			});
 
 			it('should find implicit teams for user with matching external roles (plain object)', async () => {
 				const teamIds = await teamsService.getImplicitTeamIds(user.implicit2);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.length.should.equal(2);
+				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.equal(teamIds.length, 2);
 			});
 
 			it('should not find implicit teams for user without matching external roles', async () => {
 				const _user = await User.findOne({
 					username: 'implicit1_username'
 				}).exec();
-				should.exist(_user, 'expected implicit1 to exist');
-				_user.username.should.equal('implicit1_username');
+				assert(_user, 'expected implicit1 to exist');
+				assert.equal(_user.username, 'implicit1_username');
 
 				const teamIds = await teamsService.getImplicitTeamIds(_user);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.should.be.empty();
+				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.equal(teamIds.length, 0);
 			});
 
 			it('should not find implicit teams for user with matching external roles, but is explicitly blocked', async () => {
 				const _user = await User.findOne({
 					username: 'blocked_username'
 				}).exec();
-				should.exist(_user, 'expected blocked to exist');
-				_user.username.should.equal('blocked_username');
+				assert(_user, 'expected blocked to exist');
+				assert.equal(_user.username, 'blocked_username');
 
 				const teamIds = await teamsService.getImplicitTeamIds(_user);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.should.be.empty();
+				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.equal(teamIds.length, 0);
 			});
 		});
 
@@ -1209,26 +1224,24 @@ FOOTER
 				const _user = await User.findOne({
 					username: 'implicit1_username'
 				}).exec();
-				should.exist(_user, 'expected implicit1 to exist');
-				_user.username.should.equal('implicit1_username');
+				assert(_user, 'expected implicit1 to exist');
+				assert.equal(_user.username, 'implicit1_username');
 
 				const teamIds = await teamsService.getImplicitTeamIds(_user);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.length.should.equal(1);
+				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.equal(teamIds.length, 1);
 			});
 
 			it('should not find implicit teams for user without matching external teams', async () => {
 				const _user = await User.findOne({
 					username: 'implicit2_username'
 				}).exec();
-				should.exist(_user, 'expected user2 to exist');
-				_user.username.should.equal('implicit2_username');
+				assert(_user, 'expected user2 to exist');
+				assert.equal(_user.username, 'implicit2_username');
 
 				const teamIds = await teamsService.getImplicitTeamIds(_user);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.should.be.empty();
+				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.equal(teamIds.length, 0);
 			});
 		});
 
@@ -1241,22 +1254,20 @@ FOOTER
 
 			it('should not find implicit teams for users with matching external roles/teams if disabled', async () => {
 				const user1 = await User.findOne({ username: 'user1_username' }).exec();
-				should.exist(user1, 'expected user1 to exist');
-				user1.username.should.equal('user1_username');
+				assert(user1, 'expected user1 to exist');
+				assert.equal(user1.username, 'user1_username');
 
 				const user2 = await User.findOne({ username: 'user2_username' }).exec();
-				should.exist(user2, 'expected user2 to exist');
-				user2.username.should.equal('user2_username');
+				assert(user2, 'expected user2 to exist');
+				assert.equal(user2.username, 'user2_username');
 
 				let teamIds = await teamsService.getImplicitTeamIds(user1);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.should.be.empty();
+				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.equal(teamIds.length, 0);
 
 				teamIds = await teamsService.getImplicitTeamIds(user2);
-				should.exist(teamIds);
-				teamIds.should.be.Array();
-				teamIds.should.be.empty();
+				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.equal(teamIds.length, 0);
 			});
 		});
 	});
@@ -1320,8 +1331,7 @@ FOOTER
 					user.user1,
 					team.teamWithNoExternalTeam
 				);
-				should.exist(role);
-				role.should.equal(TeamRoles.Member);
+				assert.equal(role, TeamRoles.Member);
 			});
 
 			it('Should get team role for nested team when nested teams are enabled', () => {
@@ -1333,8 +1343,7 @@ FOOTER
 					user.user1,
 					team.nestedTeam2_1
 				);
-				should.exist(role);
-				role.should.equal(TeamRoles.Member);
+				assert.equal(role, TeamRoles.Member);
 			});
 
 			it('Should not get team role for nested team when nested teams are disabled', () => {
@@ -1346,7 +1355,7 @@ FOOTER
 					user.user1,
 					team.nestedTeam2_1
 				);
-				should.not.exist(role);
+				assert.equal(role, null);
 			});
 
 			it('Should not get team role for nested team', () => {
@@ -1354,7 +1363,7 @@ FOOTER
 					user.user2,
 					team.nestedTeam1
 				);
-				should.not.exist(role);
+				assert.equal(role, null);
 			});
 		});
 
@@ -1368,9 +1377,11 @@ FOOTER
 					team.teamWithNoExternalTeam._id
 				]);
 
-				should.exist(nestedTeamIds);
-				nestedTeamIds.should.be.Array();
-				nestedTeamIds.length.should.equal(0);
+				assert(
+					Array.isArray(nestedTeamIds),
+					'expect nestedTeamIds to be an Array'
+				);
+				assert.equal(nestedTeamIds.length, 0);
 			});
 
 			it('undefined parent teams', async () => {
@@ -1380,9 +1391,11 @@ FOOTER
 
 				const nestedTeamIds = await teamsService.getNestedTeamIds();
 
-				should.exist(nestedTeamIds);
-				nestedTeamIds.should.be.Array();
-				nestedTeamIds.length.should.equal(0);
+				assert(
+					Array.isArray(nestedTeamIds),
+					'expect nestedTeamIds to be an Array'
+				);
+				assert.equal(nestedTeamIds.length, 0);
 			});
 
 			it('empty parent teams array', async () => {
@@ -1392,9 +1405,11 @@ FOOTER
 
 				const nestedTeamIds = await teamsService.getNestedTeamIds([]);
 
-				should.exist(nestedTeamIds);
-				nestedTeamIds.should.be.Array();
-				nestedTeamIds.length.should.equal(0);
+				assert(
+					Array.isArray(nestedTeamIds),
+					'expect nestedTeamIds to be an Array'
+				);
+				assert.equal(nestedTeamIds.length, 0);
 			});
 
 			it('default/all roles', async () => {
@@ -1406,9 +1421,11 @@ FOOTER
 					team.teamWithNoExternalTeam._id
 				]);
 
-				should.exist(nestedTeamIds);
-				nestedTeamIds.should.be.Array();
-				nestedTeamIds.length.should.equal(6);
+				assert(
+					Array.isArray(nestedTeamIds),
+					'expect nestedTeamIds to be an Array'
+				);
+				assert.equal(nestedTeamIds.length, 6);
 			});
 
 			it('explicitly pass "member" role', async () => {
@@ -1420,9 +1437,11 @@ FOOTER
 					team.nestedTeam1._id
 				]);
 
-				should.exist(nestedTeamIds);
-				nestedTeamIds.should.be.Array();
-				nestedTeamIds.length.should.equal(2);
+				assert(
+					Array.isArray(nestedTeamIds),
+					'expect nestedTeamIds to be an Array'
+				);
+				assert.equal(nestedTeamIds.length, 2);
 			});
 		});
 
@@ -1431,7 +1450,7 @@ FOOTER
 				const ancestors = await teamsService.getAncestorTeamIds([
 					team.nestedTeam2_1._id
 				]);
-				ancestors.should.deepEqual([
+				assert.deepStrictEqual(ancestors, [
 					team.teamWithNoExternalTeam._id,
 					team.nestedTeam2._id
 				]);
@@ -1441,12 +1460,12 @@ FOOTER
 				const ancestors = await teamsService.getAncestorTeamIds([
 					team.teamWithNoExternalTeam._id
 				]);
-				ancestors.should.deepEqual([]);
+				assert.deepStrictEqual(ancestors, []);
 			});
 
 			it('should return empty array when no teams are passed in', async () => {
 				const ancestors = await teamsService.getAncestorTeamIds();
-				ancestors.should.deepEqual([]);
+				assert.deepStrictEqual(ancestors, []);
 			});
 		});
 
@@ -1467,7 +1486,7 @@ FOOTER
 				});
 				await teamsService.updateTeams(user);
 
-				user.teams.length.should.equal(3);
+				assert.equal(user.teams.length, 3);
 			});
 
 			it('implicit members enabled; nested teams disabled', async () => {
@@ -1489,7 +1508,7 @@ FOOTER
 				});
 				await teamsService.updateTeams(user);
 
-				user.teams.length.should.equal(4);
+				assert.equal(user.teams.length, 4);
 			});
 
 			it('implicit members disabled; nested teams enabled', async () => {
@@ -1508,7 +1527,7 @@ FOOTER
 				});
 				await teamsService.updateTeams(user);
 
-				user.teams.length.should.equal(7);
+				assert.equal(user.teams.length, 7);
 			});
 
 			it('implicit members enabled; nested teams enabled', async () => {
@@ -1530,7 +1549,7 @@ FOOTER
 				});
 				await teamsService.updateTeams(user);
 
-				user.teams.length.should.equal(8);
+				assert.equal(user.teams.length, 8);
 			});
 		});
 	});
@@ -1562,9 +1581,10 @@ FOOTER
 		});
 
 		it('should reject for non-existent user', async () => {
-			await teamsService
-				.getExplicitTeamIds(null)
-				.should.be.rejectedWith(new InternalServerError('User does not exist'));
+			await assert.rejects(
+				teamsService.getExplicitTeamIds(null),
+				new InternalServerError('User does not exist')
+			);
 		});
 
 		it('should return no teams for user with empty teams array', async () => {
@@ -1572,26 +1592,25 @@ FOOTER
 				new User({ teams: [] })
 			);
 
-			should.exist(teamIds, 'expected teamIds to exist');
-			teamIds.length.should.equal(0);
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.equal(teamIds.length, 0);
 		});
 
 		it('should return no teams for user with no teams array', async () => {
 			const teamIds = await teamsService.getExplicitTeamIds(new User());
 
-			should.exist(teamIds, 'expected teamIds to exist');
-			teamIds.length.should.equal(0);
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.equal(teamIds.length, 0);
 		});
 
 		it('should return all team ids when roles is not specified', async () => {
 			const teamIds = await teamsService.getExplicitTeamIds(_user);
 
-			should.exist(teamIds, 'expected teamIds to exist');
-			teamIds.length.should.equal(5);
-
-			for (let i = 0; i < teamIds.length; i++) {
-				teamIds[i].toString().should.equal(_user.teams[i]._id.toString());
-			}
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.deepStrictEqual(
+				teamIds.map((t) => t.toString()),
+				_user.teams.map((t) => t._id.toString())
+			);
 		});
 
 		it('should return only team ids where user is a member', async () => {
@@ -1600,11 +1619,11 @@ FOOTER
 				TeamRoles.Member
 			);
 
-			should.exist(teamIds, 'expected teamIds to exist');
-			teamIds.length.should.equal(2);
-
-			teamIds[0].toString().should.equal('000000000000000000000001');
-			teamIds[1].toString().should.equal('000000000000000000000002');
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.deepStrictEqual(
+				teamIds.map((t) => t.toString()),
+				['000000000000000000000001', '000000000000000000000002']
+			);
 		});
 
 		it('should return only team ids where user is an editor', async () => {
@@ -1613,11 +1632,11 @@ FOOTER
 				TeamRoles.Editor
 			);
 
-			should.exist(teamIds, 'expected teamIds to exist');
-			teamIds.length.should.equal(2);
-
-			teamIds[0].toString().should.equal('000000000000000000000003');
-			teamIds[1].toString().should.equal('000000000000000000000005');
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.deepStrictEqual(
+				teamIds.map((t) => t.toString()),
+				['000000000000000000000003', '000000000000000000000005']
+			);
 		});
 
 		it('should return only team ids where user is an admin', async () => {
@@ -1626,10 +1645,11 @@ FOOTER
 				TeamRoles.Admin
 			);
 
-			should.exist(teamIds, 'expected teamIds to exist');
-			teamIds.length.should.equal(1);
-
-			teamIds[0].toString().should.equal('000000000000000000000004');
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.deepStrictEqual(
+				teamIds.map((t) => t.toString()),
+				['000000000000000000000004']
+			);
 		});
 	});
 
@@ -1664,8 +1684,17 @@ FOOTER
 				_user,
 				...teamsService.getRoles(TeamRoles.Member)
 			);
-			should.exist(teamIds);
-			teamIds.should.have.length(5);
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.deepStrictEqual(
+				teamIds.map((t) => t.toString()),
+				[
+					'000000000000000000000001',
+					'000000000000000000000002',
+					'000000000000000000000003',
+					'000000000000000000000004',
+					'000000000000000000000005'
+				]
+			);
 		});
 
 		it('should find all team editors', async () => {
@@ -1673,8 +1702,15 @@ FOOTER
 				_user,
 				...teamsService.getRoles(TeamRoles.Editor)
 			);
-			should.exist(teamIds);
-			teamIds.should.have.length(3);
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.deepStrictEqual(
+				teamIds.map((t) => t.toString()),
+				[
+					'000000000000000000000003',
+					'000000000000000000000004',
+					'000000000000000000000005'
+				]
+			);
 		});
 
 		it('should find all team admins', async () => {
@@ -1682,8 +1718,11 @@ FOOTER
 				_user,
 				...teamsService.getRoles(TeamRoles.Admin)
 			);
-			should.exist(teamIds);
-			teamIds.should.have.length(1);
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.deepStrictEqual(
+				teamIds.map((t) => t.toString()),
+				['000000000000000000000004']
+			);
 		});
 
 		it('should not', async () => {
@@ -1691,8 +1730,8 @@ FOOTER
 				user.blocked,
 				...teamsService.getRoles(TeamRoles.Member)
 			);
-			should.exist(teamIds);
-			teamIds.should.have.length(0);
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.equal(teamIds.length, 0);
 		});
 	});
 
@@ -1726,9 +1765,11 @@ FOOTER
 			const teamIds = await teamsService.filterTeamIds(_user, [
 				new mongoose.Types.ObjectId('000000000000000000000001')
 			]);
-			should.exist(teamIds);
-			teamIds.should.have.length(1);
-			should(teamIds[0].toString()).equal('000000000000000000000001');
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.deepStrictEqual(
+				teamIds.map((t) => t.toString()),
+				['000000000000000000000001']
+			);
 		});
 
 		it('should filter teamIds for membership (advanced)', async () => {
@@ -1736,29 +1777,34 @@ FOOTER
 				new mongoose.Types.ObjectId('000000000000000000000001'),
 				new mongoose.Types.ObjectId('000000000000000000000002')
 			]);
-			should.exist(teamIds);
-			teamIds.should.have.length(2);
-			should(teamIds[0].toString()).equal('000000000000000000000001');
-			should(teamIds[1].toString()).equal('000000000000000000000002');
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.deepStrictEqual(
+				teamIds.map((t) => t.toString()),
+				['000000000000000000000001', '000000000000000000000002']
+			);
 		});
 
 		it('should filter teamIds for membership when no access', async () => {
 			const teamIds = await teamsService.filterTeamIds(_user, [
 				new mongoose.Types.ObjectId('000000000000000000000006')
 			]);
-			should.exist(teamIds);
-			teamIds.should.have.length(0);
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.equal(teamIds.length, 0);
 		});
 
 		it('should filter teamIds for membership when no filter', async () => {
 			const teamIds = await teamsService.filterTeamIds(_user);
-			should.exist(teamIds);
-			teamIds.should.have.length(5);
-			should(teamIds[0].toString()).equal('000000000000000000000001');
-			should(teamIds[1].toString()).equal('000000000000000000000002');
-			should(teamIds[2].toString()).equal('000000000000000000000003');
-			should(teamIds[3].toString()).equal('000000000000000000000004');
-			should(teamIds[4].toString()).equal('000000000000000000000005');
+			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.deepStrictEqual(
+				teamIds.map((t) => t.toString()),
+				[
+					'000000000000000000000001',
+					'000000000000000000000002',
+					'000000000000000000000003',
+					'000000000000000000000004',
+					'000000000000000000000005'
+				]
+			);
 		});
 	});
 });

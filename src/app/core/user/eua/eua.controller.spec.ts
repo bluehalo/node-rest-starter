@@ -1,6 +1,7 @@
+import assert from 'node:assert/strict';
+
 import { Request } from 'express';
-import should from 'should';
-import { assert, createSandbox, match, stub } from 'sinon';
+import { assert as sinonAssert, createSandbox, match, stub } from 'sinon';
 
 import * as euaController from './eua.controller';
 import { UserAgreement, UserAgreementDocument } from './eua.model';
@@ -36,10 +37,10 @@ describe('EUA Controller:', () => {
 
 			await euaController.searchEuas(req, res);
 
-			assert.calledOnce(euaService.search);
+			sinonAssert.calledOnce(euaService.search);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -53,10 +54,10 @@ describe('EUA Controller:', () => {
 
 			await euaController.acceptEua(req, res);
 
-			assert.calledOnce(euaService.acceptEua);
+			sinonAssert.calledOnce(euaService.acceptEua);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -72,10 +73,10 @@ describe('EUA Controller:', () => {
 
 			await euaController.publishEua(req, res);
 
-			assert.calledOnce(euaService.publishEua);
+			sinonAssert.calledOnce(euaService.publishEua);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -90,11 +91,11 @@ describe('EUA Controller:', () => {
 
 			await euaController.createEua(req, res);
 
-			assert.calledOnce(euaService.create);
-			assert.calledOnce(auditService.audit);
+			sinonAssert.calledOnce(euaService.create);
+			sinonAssert.calledOnce(auditService.audit);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -107,10 +108,10 @@ describe('EUA Controller:', () => {
 
 			await euaController.getCurrentEua(req, res);
 
-			assert.calledOnce(euaService.getCurrentEua);
+			sinonAssert.calledOnce(euaService.getCurrentEua);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 
 		it('current eua found', async () => {
@@ -123,10 +124,10 @@ describe('EUA Controller:', () => {
 
 			await euaController.getCurrentEua(req, res);
 
-			assert.calledOnce(euaService.getCurrentEua);
+			sinonAssert.calledOnce(euaService.getCurrentEua);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -139,8 +140,8 @@ describe('EUA Controller:', () => {
 
 			await euaController.read(req, res);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -156,11 +157,11 @@ describe('EUA Controller:', () => {
 
 			await euaController.updateEua(req, res);
 
-			assert.calledOnce(auditService.audit);
-			assert.calledOnce(euaService.update);
+			sinonAssert.calledOnce(auditService.audit);
+			sinonAssert.calledOnce(euaService.update);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -176,11 +177,11 @@ describe('EUA Controller:', () => {
 
 			await euaController.deleteEua(req, res);
 
-			assert.calledOnce(auditService.audit);
-			assert.calledOnce(euaService.delete);
+			sinonAssert.calledOnce(auditService.audit);
+			sinonAssert.calledOnce(euaService.delete);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -195,8 +196,8 @@ describe('EUA Controller:', () => {
 
 			await euaController.euaById(req, {}, nextFn, 'id');
 
-			should.exist(req.euaParam);
-			assert.calledWith(nextFn);
+			assert(req.euaParam);
+			sinonAssert.calledWith(nextFn);
 		});
 
 		it('eua not found', async () => {
@@ -209,8 +210,8 @@ describe('EUA Controller:', () => {
 
 			await euaController.euaById(req, {}, nextFn, 'id');
 
-			should.not.exist(req.euaParam);
-			assert.calledWith(
+			assert.equal(req.euaParam, undefined);
+			sinonAssert.calledWith(
 				nextFn,
 				match
 					.instanceOf(Error)
@@ -256,9 +257,7 @@ describe('EUA Controller:', () => {
 
 				const result = await euaController.requiresEua(test.input);
 
-				(result === test.expected).should.be.true(
-					`expected ${result} to be ${test.expected}`
-				);
+				assert.equal(result, test.expected);
 			});
 		});
 
@@ -285,11 +284,10 @@ describe('EUA Controller:', () => {
 					.stub(euaService, 'getCurrentEua')
 					.resolves(test.currentEuaReturnValue);
 
-				await euaController
-					.requiresEua(test.input)
-					.should.be.rejectedWith(
-						new ForbiddenError('User must accept end-user agreement.')
-					);
+				await assert.rejects(
+					euaController.requiresEua(test.input),
+					new ForbiddenError('User must accept end-user agreement.')
+				);
 			});
 		});
 	});

@@ -2,7 +2,6 @@
 import config from 'config';
 import { globSync } from 'glob';
 import Mocha, { MochaOptions } from 'mocha';
-import 'should';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
 

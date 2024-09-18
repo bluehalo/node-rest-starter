@@ -1,5 +1,6 @@
-import should from 'should';
-import { assert, createSandbox } from 'sinon';
+import assert from 'node:assert/strict';
+
+import { assert as sinonAssert, createSandbox } from 'sinon';
 
 import { Feedback } from './feedback.model';
 import feedbackService from './feedback.service';
@@ -52,24 +53,27 @@ FOOTER
 
 			await feedbackService.sendFeedbackEmail(user, feedback, {});
 
-			assert.called(sendMailStub);
+			sinonAssert.called(sendMailStub);
 			const [mailOptions] = sendMailStub.getCall(0).args;
 
-			should.exist(mailOptions, 'expected mailOptions to exist');
+			assert(mailOptions, 'expected mailOptions to exist');
 
 			for (const key of ['bcc', 'from', 'replyTo', 'subject', 'html']) {
-				should.exist(mailOptions[key], `expected mailOptions.${key} to exist`);
+				assert(mailOptions[key], `expected mailOptions.${key} to exist`);
 			}
 
-			mailOptions.bcc.should.equal(config.get('coreEmails.feedbackEmail.bcc'));
-			mailOptions.from.should.equal(config.get('coreEmails.default.from'));
-			mailOptions.replyTo.should.equal(
+			assert.equal(mailOptions.bcc, config.get('coreEmails.feedbackEmail.bcc'));
+			assert.equal(mailOptions.bcc, config.get('coreEmails.feedbackEmail.bcc'));
+			assert.equal(mailOptions.from, config.get('coreEmails.default.from'));
+			assert.equal(
+				mailOptions.replyTo,
 				config.get('coreEmails.default.replyTo')
 			);
-			mailOptions.subject.should.equal(
+			assert.equal(
+				mailOptions.subject,
 				`${config.get('app.title')}: Feedback Submitted`
 			);
-			mailOptions.html.should.equal(expectedEmailContent);
+			assert.equal(mailOptions.html, expectedEmailContent);
 		});
 	});
 
@@ -81,18 +85,19 @@ FOOTER
 				type: 'Question'
 			}).save();
 			const feedback = await feedbackService.read(savedFeedback._id);
-			should.exist(feedback);
+			assert(feedback);
 		});
 
 		it('should throw a 404 errorResult if an invalid feedback ID is supplied', async () => {
-			await feedbackService
-				.read('1234')
-				.should.be.rejectedWith(new NotFoundError('Invalid feedback ID'));
+			await assert.rejects(
+				() => feedbackService.read('1234'),
+				new NotFoundError('Invalid feedback ID')
+			);
 		});
 
 		it('should return null if a nonexistent feedback ID is supplied', async () => {
 			const feedback = await feedbackService.read('123412341234123412341234');
-			should.not.exist(feedback);
+			assert.equal(feedback, null);
 		});
 	});
 });

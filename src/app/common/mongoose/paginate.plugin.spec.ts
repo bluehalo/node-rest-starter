@@ -1,5 +1,6 @@
+import assert from 'node:assert/strict';
+
 import { HydratedDocument, model, Model, Schema } from 'mongoose';
-import should from 'should';
 
 import { Paginateable, paginatePlugin } from './paginate.plugin';
 
@@ -40,59 +41,65 @@ describe('Paging Search Plugin:', () => {
 
 	it('should add paginate function to query', () => {
 		const query = PaginateExample.find();
-		should.exist(query.paginate);
-
-		query.paginate.should.be.Function();
+		assert(query.paginate);
+		assert.equal(typeof query.paginate, 'function');
 	});
 
 	it('should return promise', () => {
 		const promise = PaginateExample.find().paginate(10, 1);
 
-		promise.then.should.be.an.instanceof(Function);
+		assert(promise instanceof Promise);
 	});
 
 	it('should return specified page of data', async () => {
-		const result = await PaginateExample.find().paginate(10, 5);
-		should.exist(result);
-		result.should.be.containEql({
+		const { elements, ...result } = await PaginateExample.find().paginate(
+			10,
+			5
+		);
+		assert.deepStrictEqual(result, {
 			pageSize: 10,
 			pageNumber: 5,
 			totalSize: 100,
 			totalPages: 10
 		});
-		should.exist(result.elements);
-		result.elements.should.be.an.Array();
-		result.elements.length.should.equal(10);
+		assert(elements);
+		assert(Array.isArray(elements), 'elements should be an Array');
+		assert.equal(elements.length, 10);
 	});
 
 	it('should return empty/first page if no data found', async () => {
-		const result = await PaginateExample.find({ field: 'invalid' }).paginate(
-			10,
-			5
-		);
-		should.exist(result);
-		result.should.be.containEql({
+		const { elements, ...result } = await PaginateExample.find({
+			field: 'invalid'
+		}).paginate(10, 5);
+
+		assert.deepStrictEqual(result, {
 			pageSize: 10,
 			pageNumber: 0,
 			totalSize: 0,
 			totalPages: 0
 		});
-		should.exist(result.elements);
-		result.elements.should.be.an.Array();
-		result.elements.length.should.equal(0);
+
+		assert(elements);
+		assert(Array.isArray(elements), 'elements should be an Array');
+		assert.equal(elements.length, 0);
 	});
 
 	it('should return page with expected metadata when runCount = false', async () => {
-		const result = await PaginateExample.find().paginate(10, 5, false);
-		should.exist(result);
-		result.should.be.containEql({
+		const { elements, ...result } = await PaginateExample.find().paginate(
+			10,
+			5,
+			false
+		);
+
+		assert.deepStrictEqual(result, {
 			pageSize: 10,
 			pageNumber: 5,
 			totalSize: Number.MAX_SAFE_INTEGER,
 			totalPages: Math.ceil(Number.MAX_SAFE_INTEGER / 10)
 		});
-		should.exist(result.elements);
-		result.elements.should.be.an.Array();
-		result.elements.length.should.equal(10);
+
+		assert(elements);
+		assert(Array.isArray(elements), 'elements should be an Array');
+		assert.equal(elements.length, 10);
 	});
 });

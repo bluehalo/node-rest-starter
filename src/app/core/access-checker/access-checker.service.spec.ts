@@ -1,7 +1,8 @@
+import assert from 'node:assert/strict';
+
 import config from 'config';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
-import should from 'should';
 import { createSandbox } from 'sinon';
 
 import accessChecker from './access-checker.service';
@@ -38,22 +39,6 @@ function providerSpec(key) {
 		roles: ['role1', 'role2'],
 		groups: ['group1', 'group2']
 	};
-}
-
-function validateCacheEntry(actual, expected) {
-	should.exist(actual);
-	should(actual.name).equal(expected.name);
-	should(actual.organization).equal(expected.organization);
-	should(actual.email).equal(expected.email);
-	should(actual.username).equal(expected.username);
-
-	should(actual.roles).be.an.Array();
-	should(actual.roles).have.length(expected.roles.length);
-	should(actual.roles).containDeep(expected.roles);
-
-	should(actual.groups).be.an.Array();
-	should(actual.groups).have.length(expected.groups.length);
-	should(actual.groups).containDeep(expected.groups);
 }
 
 /**
@@ -137,34 +122,32 @@ describe('Access Checker Service:', () => {
 
 		// Provider fails on get
 		it('should not update the cache when the access checker provider fails', async () => {
-			await accessChecker.get('provideronly').should.be.rejected();
+			await assert.rejects(accessChecker.get('provideronly'));
 
 			const result = await CacheEntry.findOne({ key: 'provideronly' }).exec();
-			should.not.exist(result);
+			assert.equal(result, null);
 		});
 
 		// Provider fails on refresh attempt
 		it('should not update the cache on refresh when the access checker provider fails', async () => {
-			await accessChecker
-				.refreshEntry(spec.cache.outdated.key)
-				.should.be.rejected();
+			await assert.rejects(accessChecker.refreshEntry(spec.cache.outdated.key));
 
 			// Query for the cache object and verify it hasn't been updated
 			const result = await CacheEntry.findOne({
 				_id: cache.outdated._id
 			}).exec();
-			validateCacheEntry(result.value, spec.cache.outdated.value);
+			assert.deepStrictEqual(result.value, spec.cache.outdated.value);
 		});
 
 		// Provider fails on refresh attempt
 		it('should fail when no key is specified', async () => {
-			await accessChecker.refreshEntry(null).should.be.rejected();
+			await assert.rejects(accessChecker.refreshEntry(null));
 
 			// Query for the cache object and verify it hasn't been updated
 			const result = await CacheEntry.findOne({
 				_id: cache.outdated._id
 			}).exec();
-			validateCacheEntry(result.value, spec.cache.outdated.value);
+			assert.deepStrictEqual(result.value, spec.cache.outdated.value);
 		});
 	});
 
@@ -188,51 +171,51 @@ describe('Access Checker Service:', () => {
 
 		// Pull from cache
 		it('should fail when no key is specified', async () => {
-			await accessChecker.get(null).should.be.rejected();
+			await assert.rejects(accessChecker.get(null));
 		});
 
 		// Pull from cache
 		it('should pull from cache when the entry is current and present', async () => {
 			const info = await accessChecker.get(spec.cache.good.key);
-			validateCacheEntry(info, spec.cache.good.value);
+			assert.deepStrictEqual(info, spec.cache.good.value);
 		});
 
 		// Pull from provider
 		it('should pull from provider and update cache when entry is expired', async () => {
 			const info = await accessChecker.get(spec.cache.expired.key);
-			validateCacheEntry(info, provider.expired);
+			assert.deepStrictEqual(info, provider.expired);
 
 			const result = await CacheEntry.findOne({
 				key: cache.expired.key
 			}).exec();
-			validateCacheEntry(result.value, provider.expired);
+			assert.deepStrictEqual(result.value, provider.expired);
 		});
 
 		// Cache only
 		it('should return the cache entry if the entry is missing from the provider', async () => {
 			const info = await accessChecker.get(spec.cache.cacheonly.key);
-			validateCacheEntry(info, spec.cache.cacheonly.value);
+			assert.deepStrictEqual(info, spec.cache.cacheonly.value);
 
 			const result = await CacheEntry.findOne({
 				key: cache.cacheonly.key
 			}).exec();
-			validateCacheEntry(result.value, spec.cache.cacheonly.value);
+			assert.deepStrictEqual(result.value, spec.cache.cacheonly.value);
 		});
 
 		// Provider only
 		it('should update the cache when pulling from the provider', async () => {
 			const info = await accessChecker.get('provideronly');
-			validateCacheEntry(info, provider.provideronly);
+			assert.deepStrictEqual(info, provider.provideronly);
 
 			const result = await CacheEntry.findOne({ key: 'provideronly' }).exec();
-			validateCacheEntry(result.value, provider.provideronly);
+			assert.deepStrictEqual(result.value, provider.provideronly);
 		});
 
 		// Pull from provider
 		it('should pull from provider and return result even if cache update fails', async () => {
 			sandbox.stub(cacheEntryService, 'upsert').rejects(new Error('error'));
 			const info = await accessChecker.get('provideronly');
-			validateCacheEntry(info, provider.provideronly);
+			assert.deepStrictEqual(info, provider.provideronly);
 		});
 
 		// Refresh cache entry
@@ -244,7 +227,7 @@ describe('Access Checker Service:', () => {
 				key: 'provideronly'
 			}).exec();
 
-			validateCacheEntry(result.value, provider.provideronly);
+			assert.deepStrictEqual(result.value, provider.provideronly);
 		});
 	});
 
@@ -259,13 +242,12 @@ describe('Access Checker Service:', () => {
 
 		// Provider fails on get
 		it('should throw error when no provider is configured', async () => {
-			await accessChecker
-				.get('notincache')
-				.should.be.rejectedWith(
-					new Error(
-						'Error retrieving entry from the access checker provider: Configuration property "auth.accessChecker.provider.file" is not defined'
-					)
-				);
+			await assert.rejects(
+				accessChecker.get('notincache'),
+				new Error(
+					'Error retrieving entry from the access checker provider: Configuration property "auth.accessChecker.provider.file" is not defined'
+				)
+			);
 		});
 	});
 
@@ -287,11 +269,10 @@ describe('Access Checker Service:', () => {
 
 		// Provider fails on get
 		it('should throw error when provider is configured with invalid file path', async () => {
-			await accessChecker
-				.get('notincache')
-				.should.be.rejectedWith(
+			await assert.rejects(accessChecker.get('notincache'), {
+				message:
 					'Error retrieving entry from the access checker provider: Failed to load access checker provider.'
-				);
+			});
 		});
 	});
 });

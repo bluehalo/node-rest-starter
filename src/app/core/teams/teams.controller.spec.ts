@@ -1,6 +1,7 @@
+import assert from 'node:assert';
+
 import { Request } from 'express';
-import should from 'should';
-import { assert, createSandbox, match, stub } from 'sinon';
+import { assert as sinonAssert, createSandbox, match, stub } from 'sinon';
 
 import { Team, TeamDocument } from './team.model';
 import * as teamsController from './teams.controller';
@@ -37,11 +38,11 @@ describe('Teams Controller:', () => {
 
 			await teamsController.create(req, res);
 
-			assert.calledOnce(teamsService.create);
-			assert.calledOnce(auditService.audit);
+			sinonAssert.calledOnce(teamsService.create);
+			sinonAssert.calledOnce(auditService.audit);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -54,8 +55,8 @@ describe('Teams Controller:', () => {
 
 			await teamsController.read(req, res);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -71,11 +72,11 @@ describe('Teams Controller:', () => {
 
 			await teamsController.update(req, res);
 
-			assert.calledOnce(auditService.audit);
-			assert.calledOnce(teamsService.update);
+			sinonAssert.calledOnce(auditService.audit);
+			sinonAssert.calledOnce(teamsService.update);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -91,11 +92,11 @@ describe('Teams Controller:', () => {
 
 			await teamsController.deleteTeam(req, res);
 
-			assert.calledOnce(auditService.audit);
-			assert.calledOnce(teamsService.delete);
+			sinonAssert.calledOnce(auditService.audit);
+			sinonAssert.calledOnce(teamsService.delete);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -109,10 +110,10 @@ describe('Teams Controller:', () => {
 
 			await teamsController.search(req, res);
 
-			assert.calledOnce(teamsService.search);
+			sinonAssert.calledOnce(teamsService.search);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -129,12 +130,12 @@ describe('Teams Controller:', () => {
 
 			await teamsController.requestNewTeam(req, res);
 
-			assert.calledOnce(teamsService.requestNewTeam);
-			assert.calledOnce(auditService.audit);
+			sinonAssert.calledOnce(teamsService.requestNewTeam);
+			sinonAssert.calledOnce(auditService.audit);
 
-			assert.calledWith(res.status, 204);
-			assert.called(res.end);
-			assert.notCalled(res.json);
+			sinonAssert.calledWith(res.status, 204);
+			sinonAssert.called(res.end);
+			sinonAssert.notCalled(res.json);
 		});
 	});
 
@@ -150,11 +151,11 @@ describe('Teams Controller:', () => {
 
 			await teamsController.requestAccess(req, res);
 
-			assert.calledOnce(teamsService.requestAccessToTeam);
+			sinonAssert.calledOnce(teamsService.requestAccessToTeam);
 
-			assert.calledWith(res.status, 204);
-			assert.called(res.end);
-			assert.notCalled(res.json);
+			sinonAssert.calledWith(res.status, 204);
+			sinonAssert.called(res.end);
+			sinonAssert.notCalled(res.json);
 		});
 	});
 
@@ -169,10 +170,10 @@ describe('Teams Controller:', () => {
 
 			await teamsController.searchMembers(req, res);
 
-			assert.calledOnce(userService.searchUsers);
+			sinonAssert.calledOnce(userService.searchUsers);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -190,12 +191,12 @@ describe('Teams Controller:', () => {
 
 			await teamsController.addMember(req, res);
 
-			assert.calledOnce(auditService.audit);
-			assert.calledOnce(teamsService.addMemberToTeam);
+			sinonAssert.calledOnce(auditService.audit);
+			sinonAssert.calledOnce(teamsService.addMemberToTeam);
 
-			assert.calledWith(res.status, 204);
-			assert.called(res.end);
-			assert.notCalled(res.json);
+			sinonAssert.calledWith(res.status, 204);
+			sinonAssert.called(res.end);
+			sinonAssert.notCalled(res.json);
 		});
 	});
 
@@ -228,12 +229,12 @@ describe('Teams Controller:', () => {
 
 			await teamsController.addMembers(req, res);
 
-			assert.calledOnce(auditService.audit);
-			assert.calledOnce(teamsService.addMemberToTeam);
+			sinonAssert.calledOnce(auditService.audit);
+			sinonAssert.calledOnce(teamsService.addMemberToTeam);
 
-			assert.calledWith(res.status, 204);
-			assert.called(res.end);
-			assert.notCalled(res.json);
+			sinonAssert.calledWith(res.status, 204);
+			sinonAssert.called(res.end);
+			sinonAssert.notCalled(res.json);
 		});
 	});
 
@@ -251,12 +252,12 @@ describe('Teams Controller:', () => {
 
 			await teamsController.removeMember(req, res);
 
-			assert.calledOnce(auditService.audit);
-			assert.calledOnce(teamsService.removeMemberFromTeam);
+			sinonAssert.calledOnce(auditService.audit);
+			sinonAssert.calledOnce(teamsService.removeMemberFromTeam);
 
-			assert.calledWith(res.status, 204);
-			assert.called(res.end);
-			assert.notCalled(res.json);
+			sinonAssert.calledWith(res.status, 204);
+			sinonAssert.called(res.end);
+			sinonAssert.notCalled(res.json);
 		});
 	});
 
@@ -274,12 +275,12 @@ describe('Teams Controller:', () => {
 
 			await teamsController.updateMemberRole(req, res);
 
-			assert.calledOnce(auditService.audit);
-			assert.calledOnce(teamsService.updateMemberRole);
+			sinonAssert.calledOnce(auditService.audit);
+			sinonAssert.calledOnce(teamsService.updateMemberRole);
 
-			assert.calledWith(res.status, 204);
-			assert.called(res.end);
-			assert.notCalled(res.json);
+			sinonAssert.calledWith(res.status, 204);
+			sinonAssert.called(res.end);
+			sinonAssert.notCalled(res.json);
 		});
 	});
 
@@ -299,8 +300,8 @@ describe('Teams Controller:', () => {
 
 			await teamsController.teamById(req, {}, nextFn, 'id');
 
-			should.exist(req.team);
-			assert.calledWith(nextFn);
+			assert(req.team);
+			sinonAssert.calledWith(nextFn);
 		});
 
 		it('team not found', async () => {
@@ -311,8 +312,8 @@ describe('Teams Controller:', () => {
 
 			await teamsController.teamById(req, {}, nextFn, 'id');
 
-			should.not.exist(req.team);
-			assert.calledWith(
+			assert.equal(req.team, undefined);
+			sinonAssert.calledWith(
 				nextFn,
 				match.instanceOf(Error).and(match.has('message', 'Could not find team'))
 			);
@@ -337,8 +338,8 @@ describe('Teams Controller:', () => {
 
 			await teamsController.teamMemberById(req, {}, nextFn, 'id');
 
-			should.exist(req.userParam);
-			assert.calledWith(nextFn);
+			assert(req.userParam);
+			sinonAssert.calledWith(nextFn);
 		});
 
 		it('team not found', async () => {
@@ -349,8 +350,8 @@ describe('Teams Controller:', () => {
 
 			await teamsController.teamMemberById(req, {}, nextFn, 'id');
 
-			should.not.exist(req.userParam);
-			assert.calledWith(
+			assert.equal(req.userParam, undefined);
+			sinonAssert.calledWith(
 				nextFn,
 				match
 					.instanceOf(Error)
@@ -367,12 +368,12 @@ describe('Teams Controller:', () => {
 
 					const req = {};
 
-					await testFunction(req).should.be.rejectedWith({
+					await assert.rejects(testFunction(req), {
 						status: 400,
 						message: 'No user for request'
 					});
 
-					assert.notCalled(teamsService.meetsRoleRequirement);
+					sinonAssert.notCalled(teamsService.meetsRoleRequirement);
 				});
 
 				it('team not found', async () => {
@@ -380,12 +381,12 @@ describe('Teams Controller:', () => {
 
 					const req = { user: {} };
 
-					await testFunction(req).should.be.rejectedWith({
+					await assert.rejects(testFunction(req), {
 						status: 400,
 						message: 'No team for request'
 					});
 
-					assert.notCalled(teamsService.meetsRoleRequirement);
+					sinonAssert.notCalled(teamsService.meetsRoleRequirement);
 				});
 
 				it('team not found', async () => {
@@ -393,9 +394,9 @@ describe('Teams Controller:', () => {
 
 					const req = { user: {}, team: {} };
 
-					await testFunction(req).should.be.fulfilled();
+					await assert.doesNotReject(testFunction(req));
 
-					assert.calledOnce(teamsService.meetsRoleRequirement);
+					sinonAssert.calledOnce(teamsService.meetsRoleRequirement);
 				});
 			});
 		};

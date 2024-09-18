@@ -1,3 +1,5 @@
+import assert from 'node:assert';
+
 import config from 'config';
 import { intersection } from 'lodash';
 import { Connection, Mongoose } from 'mongoose';
@@ -38,12 +40,12 @@ describe('Mongoose', () => {
 
 		it('connects to admin database by default', async () => {
 			const dbs = await mongooseLib.connect();
-			dbs.should.have.property('admin');
-			dbs.admin.should.have.property('connection');
+			assert(dbs.admin);
+			assert(dbs.admin['connection']);
 
 			const admin = dbs.admin as Mongoose;
-			admin.connection.name.should.eql(adminDatabaseName);
-			admin.connection.readyState.should.eql(1);
+			assert.equal(admin.connection.name, adminDatabaseName);
+			assert.equal(admin.connection.readyState, 1);
 		});
 	});
 
@@ -57,32 +59,32 @@ describe('Mongoose', () => {
 
 		it('connects to admin database by default', async () => {
 			const dbs = await mongooseLib.connect();
-			dbs.should.have.property('admin');
-			dbs.admin.should.have.property('connection');
+			assert(dbs.admin);
+			assert(dbs.admin['connection']);
 
 			const admin = dbs.admin as Mongoose;
-			admin.connection.name.should.eql(adminDatabaseName);
-			admin.connection.readyState.should.eql(1);
+			assert.equal(admin.connection.name, adminDatabaseName);
+			assert.equal(admin.connection.readyState, 1);
 		});
 
 		it('connects to other databases', async () => {
 			const dbs = await mongooseLib.connect();
-			dbs.should.have.property('other');
+			assert(dbs.other);
 
 			const other = dbs.other as Connection;
-			other.name.should.eql(otherDatabaseName);
-			other.readyState.should.eql(1);
+			assert.equal(other.name, otherDatabaseName);
+			assert.equal(other.readyState, 1);
 		});
 
 		it('models registered to admin db should not be available on other db', async () => {
 			const dbs = await mongooseLib.connect();
-			dbs.should.have.property('admin');
-			dbs.should.have.property('other');
+			assert(dbs.admin);
+			assert(dbs.other);
 
-			intersection(
-				dbs.admin.modelNames(),
-				dbs.other.modelNames()
-			).length.should.eql(0);
+			assert.equal(
+				intersection(dbs.admin.modelNames(), dbs.other.modelNames()).length,
+				0
+			);
 		});
 	});
 });
