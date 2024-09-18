@@ -1,4 +1,6 @@
-import { assert, createSandbox } from 'sinon';
+import assert from 'node:assert/strict';
+
+import { assert as sinonAssert, createSandbox } from 'sinon';
 
 import userAuthorizationService from './auth/user-authorization.service';
 import * as userController from './user.controller';
@@ -39,10 +41,10 @@ describe('User Profile Controller:', () => {
 
 			await userController.getCurrentUser(req, res);
 
-			assert.calledOnce(userAuthorizationService.updateRoles);
+			sinonAssert.calledOnce(userAuthorizationService.updateRoles);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 
 		it('user is not logged in (user not attached to request)', async () => {
@@ -52,11 +54,12 @@ describe('User Profile Controller:', () => {
 
 			sandbox.stub(userAuthorizationService, 'updateRoles').resolves();
 
-			await userController
-				.getCurrentUser(req, res)
-				.should.be.rejectedWith(new UnauthorizedError('User is not logged in'));
+			await assert.rejects(
+				userController.getCurrentUser(req, res),
+				new UnauthorizedError('User is not logged in')
+			);
 
-			assert.notCalled(userAuthorizationService.updateRoles);
+			sinonAssert.notCalled(userAuthorizationService.updateRoles);
 		});
 	});
 
@@ -77,10 +80,10 @@ describe('User Profile Controller:', () => {
 
 			await userController.updateCurrentUser(req, res);
 
-			assert.calledWith(res.status, 200);
-			assert.calledWithMatch(res.json, { id: user.id });
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.calledWithMatch(res.json, { id: user.id });
 
-			assert.calledWithMatch(auditService.audit, 'user updated');
+			sinonAssert.calledWithMatch(auditService.audit, 'user updated');
 		});
 
 		it('user is logged in; success w/ password change', async () => {
@@ -104,10 +107,10 @@ describe('User Profile Controller:', () => {
 
 			await userController.updateCurrentUser(req, res);
 
-			assert.calledWith(res.status, 200);
-			assert.calledWithMatch(res.json, {});
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.calledWithMatch(res.json, {});
 
-			assert.calledWithMatch(auditService.audit, 'user updated');
+			sinonAssert.calledWithMatch(auditService.audit, 'user updated');
 		});
 
 		it('user is logged in; changing password, currentPassword incorrect', async () => {
@@ -125,13 +128,12 @@ describe('User Profile Controller:', () => {
 			sandbox.stub(userService, 'read').resolves(user);
 			sandbox.stub(auditService, 'audit').resolves();
 
-			await userController
-				.updateCurrentUser(req, res)
-				.should.be.rejectedWith(
-					new BadRequestError('Current password invalid')
-				);
+			await assert.rejects(
+				userController.updateCurrentUser(req, res),
+				new BadRequestError('Current password invalid')
+			);
 
-			assert.calledWithMatch(
+			sinonAssert.calledWithMatch(
 				auditService.audit,
 				'user update authentication failed'
 			);
@@ -157,10 +159,10 @@ describe('User Profile Controller:', () => {
 
 			await userController.updateCurrentUser(req, res);
 
-			assert.calledWith(res.status, 400);
-			assert.calledWithMatch(res.json, 'error');
+			sinonAssert.calledWith(res.status, 400);
+			sinonAssert.calledWithMatch(res.json, 'error');
 
-			assert.calledWithMatch(auditService.audit, 'user updated');
+			sinonAssert.calledWithMatch(auditService.audit, 'user updated');
 		});
 
 		it('user is not logged in', async () => {
@@ -168,9 +170,10 @@ describe('User Profile Controller:', () => {
 				body: {}
 			};
 
-			await userController
-				.updateCurrentUser(req, res)
-				.should.be.rejectedWith(new BadRequestError('User is not logged in'));
+			await assert.rejects(
+				userController.updateCurrentUser(req, res),
+				new BadRequestError('User is not logged in')
+			);
 		});
 	});
 
@@ -185,10 +188,10 @@ describe('User Profile Controller:', () => {
 
 			await userController.updatePreferences(req, res);
 
-			assert.calledOnce(userService.updatePreferences);
+			sinonAssert.calledOnce(userService.updatePreferences);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -203,10 +206,10 @@ describe('User Profile Controller:', () => {
 
 			await userController.updateRequiredOrgs(req, res);
 
-			assert.calledOnce(userService.updateRequiredOrgs);
+			sinonAssert.calledOnce(userService.updateRequiredOrgs);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -219,8 +222,8 @@ describe('User Profile Controller:', () => {
 
 			await userController.getUserById(req, res);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.called(res.json);
 		});
 	});
 
@@ -240,9 +243,9 @@ describe('User Profile Controller:', () => {
 
 			await userController.searchUsers(req, res);
 
-			assert.calledOnce(userService.searchUsers);
-			assert.calledWith(res.status, 200);
-			assert.calledOnce(res.json);
+			sinonAssert.calledOnce(userService.searchUsers);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.calledOnce(res.json);
 		});
 	});
 
@@ -262,9 +265,9 @@ describe('User Profile Controller:', () => {
 
 			await userController.matchUsers(req, res);
 
-			assert.calledOnce(userService.searchUsers);
-			assert.calledWith(res.status, 200);
-			assert.calledOnce(res.json);
+			sinonAssert.calledOnce(userService.searchUsers);
+			sinonAssert.calledWith(res.status, 200);
+			sinonAssert.calledOnce(res.json);
 		});
 	});
 
@@ -272,37 +275,37 @@ describe('User Profile Controller:', () => {
 		it('local auth and undef bypass should be able to edit', () => {
 			const _user = new User();
 			const result = userController.canEditProfile('local', _user);
-			result.should.equal(true);
+			assert.equal(result, true);
 		});
 
 		it('local auth and no bypass should be able to edit', () => {
 			const _user = new User({ bypassAccessCheck: false });
 			const result = userController.canEditProfile('local', _user);
-			result.should.equal(true);
+			assert.equal(result, true);
 		});
 
 		it('local auth and bypass should be able to edit', () => {
 			const _user = new User({ bypassAccessCheck: true });
 			const result = userController.canEditProfile('local', _user);
-			result.should.equal(true);
+			assert.equal(result, true);
 		});
 
 		it('proxy-pki auth and undef bypass should not be able to edit', () => {
 			const _user = new User({});
 			const result = userController.canEditProfile('proxy-pki', _user);
-			result.should.equal(false);
+			assert.equal(result, false);
 		});
 
 		it('proxy-pki auth and no bypass should not be able to edit', () => {
 			const _user = new User({ bypassAccessCheck: false });
 			const result = userController.canEditProfile('proxy-pki', _user);
-			result.should.equal(false);
+			assert.equal(result, false);
 		});
 
 		it('proxy-pki auth and bypass should be able to edit', () => {
 			const _user = new User({ bypassAccessCheck: true });
 			const result = userController.canEditProfile('proxy-pki', _user);
-			result.should.equal(true);
+			assert.equal(result, true);
 		});
 	});
 
@@ -315,7 +318,7 @@ describe('User Profile Controller:', () => {
 				user: { bypassAccessCheck: true }
 			};
 
-			await userController.hasEdit(req).should.not.be.rejected();
+			await assert.doesNotReject(userController.hasEdit(req));
 		});
 
 		it('user does not have edit', async () => {
@@ -326,11 +329,10 @@ describe('User Profile Controller:', () => {
 				user: { bypassAccessCheck: false }
 			};
 
-			await userController
-				.hasEdit(req)
-				.should.be.rejectedWith(
-					new ForbiddenError('User not authorized to edit their profile')
-				);
+			await assert.rejects(
+				userController.hasEdit(req),
+				new ForbiddenError('User not authorized to edit their profile')
+			);
 		});
 	});
 });

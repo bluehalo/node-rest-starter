@@ -1,4 +1,4 @@
-import should from 'should';
+import assert from 'node:assert/strict';
 
 import { UserAgreement } from './eua.model';
 import euaService from './eua.service';
@@ -32,23 +32,25 @@ describe('EUA Service:', () => {
 
 			// Create eua and verify properties
 			let eua = await euaService.create(data);
-			should.exist(eua);
-			eua.title.should.equal('Title');
-			eua.text.should.equal('Text');
-			should.exist(eua.created);
-			should.exist(eua.updated);
-			(eua.created === eua.updated).should.be.true(
+			assert(eua);
+			assert.equal(eua.title, 'Title');
+			assert.equal(eua.text, 'Text');
+			assert(eua.created);
+			assert(eua.updated);
+			assert(
+				eua.created === eua.updated,
 				'expected eua.created to be equal to eua.updated on create'
 			);
 
 			// Re-query created eua and verify properties
 			eua = await UserAgreement.findById(eua._id);
-			should.exist(eua);
-			eua.title.should.equal('Title');
-			eua.text.should.equal('Text');
-			should.exist(eua.created);
-			should.exist(eua.updated);
-			(eua.created.toString() === eua.updated.toString()).should.be.true(
+			assert(eua);
+			assert.equal(eua.title, 'Title');
+			assert.equal(eua.text, 'Text');
+			assert(eua.created);
+			assert(eua.updated);
+			assert(
+				eua.created.toString() === eua.updated.toString(),
 				'expected eua.created to be equal to eua.updated on find'
 			);
 		});
@@ -65,15 +67,15 @@ describe('EUA Service:', () => {
 
 			// Read eua
 			eua = await euaService.read(eua._id);
-			should.exist(eua);
-			eua.title.should.equal('Title');
-			eua.text.should.equal('Text');
+			assert(eua);
+			assert.equal(eua.title, 'Title');
+			assert.equal(eua.text, 'Text');
 		});
 
 		it('read returns null for invalid id', async () => {
 			// Read eua
 			const eua = await euaService.read('123412341234123412341234');
-			should.not.exist(eua);
+			assert.equal(eua, null);
 		});
 	});
 
@@ -89,14 +91,15 @@ describe('EUA Service:', () => {
 			// Update eua
 			const update = { title: 'New Title', text: 'New Text' };
 			eua = await euaService.update(eua, update);
-			eua.title.should.equal('New Title');
-			eua.text.should.equal('New Text');
+			assert(eua);
+			assert.equal(eua.title, 'New Title');
+			assert.equal(eua.text, 'New Text');
 
 			// re-query and verify update
 			eua = await UserAgreement.findById(eua._id);
-			should.exist(eua);
-			eua.title.should.equal('New Title');
-			eua.text.should.equal('New Text');
+			assert(eua);
+			assert.equal(eua.title, 'New Title');
+			assert.equal(eua.text, 'New Text');
 		});
 	});
 
@@ -111,14 +114,14 @@ describe('EUA Service:', () => {
 
 			// Verify eua is in db
 			eua = await UserAgreement.findById(eua._id);
-			should.exist(eua);
+			assert(eua);
 
 			// Remove eua
 			await euaService.delete(eua);
 
 			// Verify eua is no longer in db
 			eua = await UserAgreement.findById(eua._id);
-			should.not.exist(eua);
+			assert.equal(eua, null);
 		});
 	});
 
@@ -138,15 +141,21 @@ describe('EUA Service:', () => {
 			const queryParams = { size: 10 };
 			const query = null;
 			const search = '';
-			const result = await euaService.search(queryParams, search, query);
+			const { elements, ...result } = await euaService.search(
+				queryParams,
+				search,
+				query
+			);
 
-			should.exist(result);
-			result.totalSize.should.equal(100);
-			result.pageSize.should.equal(queryParams.size);
-			result.pageNumber.should.equal(0);
-			result.totalPages.should.equal(100 / queryParams.size);
-			result.elements.should.be.an.Array();
-			result.elements.length.should.be.equal(queryParams.size);
+			assert.deepStrictEqual(result, {
+				totalSize: 100,
+				pageSize: queryParams.size,
+				pageNumber: 0,
+				totalPages: Math.ceil(100 / queryParams.size)
+			});
+
+			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.equal(elements.length, queryParams.size);
 		});
 	});
 
@@ -158,12 +167,12 @@ describe('EUA Service:', () => {
 			});
 			await eua.save();
 
-			should.not.exist(eua.published);
+			assert.equal(eua.published, null);
 
 			eua = await euaService.publishEua(eua);
 
-			should.exist(eua);
-			should.exist(eua.published);
+			assert(eua);
+			assert(eua.published);
 		});
 	});
 
@@ -171,7 +180,7 @@ describe('EUA Service:', () => {
 		it('No euas exist', async () => {
 			const eua = await euaService.getCurrentEua();
 
-			should.not.exist(eua);
+			assert.equal(eua, null);
 		});
 
 		it('euas exists, none are published', async () => {
@@ -183,7 +192,7 @@ describe('EUA Service:', () => {
 
 			eua = await euaService.getCurrentEua();
 
-			should.not.exist(eua);
+			assert.equal(eua, null);
 		});
 
 		it('Current eua exists', async () => {
@@ -200,9 +209,8 @@ describe('EUA Service:', () => {
 
 			const eua = await euaService.getCurrentEua();
 
-			should.exist(eua);
-			eua.title.should.equal(eua1.title);
-			eua.text.should.equal(eua1.text);
+			assert(eua);
+			assert.deepStrictEqual(eua.toObject(), eua1.toObject());
 		});
 	});
 
@@ -222,15 +230,18 @@ describe('EUA Service:', () => {
 			await user.save();
 
 			// Verify accepted eua date is not set
-			should.not.exist(user.acceptedEua);
+			assert.equal(user.acceptedEua, null);
 
 			// accept eua
 			await euaService.acceptEua(user);
 
 			// query for user and verify accepted eua is now set
 			user = await User.findById(user._id);
-			should.exist(user.acceptedEua);
-			user.acceptedEua.should.be.greaterThan(now);
+			assert(user.acceptedEua);
+			assert(
+				user.acceptedEua.getTime() >= now,
+				'expected acceptedEua to be >= "now"'
+			);
 		});
 
 		it('Accept Eua; previous eua accepted', async () => {
@@ -249,15 +260,18 @@ describe('EUA Service:', () => {
 			await user.save();
 
 			// Verify accepted eua date is set
-			should.exist(user.acceptedEua);
+			assert(user.acceptedEua);
 
 			// accept eua
 			await euaService.acceptEua(user);
 
 			// query for user and verify accepted eua is now updated
 			user = await User.findById(user._id);
-			should.exist(user.acceptedEua);
-			user.acceptedEua.should.be.greaterThanOrEqual(now);
+			assert(user.acceptedEua);
+			assert(
+				user.acceptedEua.getTime() >= now,
+				'expected acceptedEua to be >= "now"'
+			);
 		});
 	});
 });

@@ -1,4 +1,7 @@
-import should from 'should';
+import assert from 'node:assert/strict';
+
+import { DateTime } from 'luxon';
+import { Types } from 'mongoose';
 
 import { utilService } from '../../dependencies';
 
@@ -18,101 +21,109 @@ describe('Utils:', () => {
 			const input = {
 				hello: {
 					there: 'you are',
-					when: [{}, { something: 0 }, { $date: '2015-01-01T00:00:00.000Z' }]
+					when: [
+						{},
+						{ something: 0 },
+						{ date: { $date: '2015-01-01T00:00:00.000Z' } }
+					]
 				},
 				date: { $date: '2015-07-01T00:00:00.000Z' }
 			};
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const output = utilService.toMongoose(input) as any;
-			output.hello.should.be.a.Object();
-			output.hello.there.should.equal('you are');
-			output.hello.when.should.be.a.Array();
-			output.hello.when.length.should.equal(3);
-			output.hello.when[0].should.be.a.Object();
-			output.hello.when[1].something.should.equal(0);
-			output.hello.when[2].getTime().should.equal(1420070400000);
-			output.date.getTime().should.equal(1435708800000);
+			const output = utilService.toMongoose(input);
+			assert.deepStrictEqual(output, {
+				hello: {
+					there: 'you are',
+					when: [
+						{},
+						{ something: 0 },
+						{ date: DateTime.fromISO('2015-01-01T00:00:00.000Z').toJSDate() }
+					]
+				},
+				date: DateTime.fromISO('2015-07-01T00:00:00.000Z').toJSDate()
+			});
 		});
 
 		it('should convert $obj : {""} to new mongoose.Types.ObjectId("")', () => {
 			const input = {
 				hello: {
 					there: 'you are',
-					when: [{}, { something: 0 }, { $obj: '000000000000000000000000' }]
+					when: [
+						{},
+						{ something: 0 },
+						{ obj: { $obj: '000000000000000000000000' } }
+					]
 				},
 				obj: { $obj: '000000000000000000000001' }
 			};
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const output = utilService.toMongoose(input) as any;
-			output.hello.should.be.a.Object();
-			output.hello.there.should.equal('you are');
-			output.hello.when.should.be.a.Array();
-			output.hello.when.length.should.equal(3);
-			output.hello.when[0].should.be.a.Object();
-			output.hello.when[1].something.should.equal(0);
-			output.hello.when[2]._bsontype.should.equal('ObjectId');
-			output.hello.when[2]
-				.toHexString()
-				.should.equal('000000000000000000000000');
-			output.obj._bsontype.should.equal('ObjectId');
-			output.obj.toHexString().should.equal('000000000000000000000001');
+			const output = utilService.toMongoose(input);
+			assert.deepStrictEqual(output, {
+				hello: {
+					there: 'you are',
+					when: [
+						{},
+						{ something: 0 },
+						{ obj: new Types.ObjectId('000000000000000000000000') }
+					]
+				},
+				obj: new Types.ObjectId('000000000000000000000001')
+			});
 		});
 	});
 
 	describe('Date Parse:', () => {
 		it('returns null if null', () => {
-			should.equal(utilService.dateParse(null), null);
+			assert.equal(utilService.dateParse(null), null);
 		});
 
 		it('returns null if undefined', () => {
-			should.equal(utilService.dateParse(undefined), null);
+			assert.equal(utilService.dateParse(undefined), null);
 		});
 
 		it('returns null if object', () => {
-			should.equal(utilService.dateParse({ test: 'test' }), null);
+			assert.equal(utilService.dateParse({ test: 'test' }), null);
 		});
 
 		it('returns null if array', () => {
-			should.equal(utilService.dateParse([]), null);
+			assert.equal(utilService.dateParse([]), null);
 		});
 
 		it('returns null if function', () => {
-			should.equal(utilService.dateParse(emptyFn), null);
+			assert.equal(utilService.dateParse(emptyFn), null);
 		});
 
 		it('returns number if number', () => {
-			should.equal(utilService.dateParse(0), 0);
-			should.equal(utilService.dateParse(12345), 12345);
-			should.equal(utilService.dateParse(-12345), -12345);
+			assert.equal(utilService.dateParse(0), 0);
+			assert.equal(utilService.dateParse(12345), 12345);
+			assert.equal(utilService.dateParse(-12345), -12345);
 		});
 
 		it('returns number if string is a number', () => {
-			should.equal(utilService.dateParse('0'), 0);
-			should.equal(utilService.dateParse('12345'), 12345);
-			should.equal(utilService.dateParse('-12345'), -12345);
+			assert.equal(utilService.dateParse('0'), 0);
+			assert.equal(utilService.dateParse('12345'), 12345);
+			assert.equal(utilService.dateParse('-12345'), -12345);
 		});
 
 		it('returns null if string is bad', () => {
-			should.equal(utilService.dateParse('2017-0000000000000'), null);
-			should.equal(utilService.dateParse('Hello'), null);
+			assert.equal(utilService.dateParse('2017-0000000000000'), null);
+			assert.equal(utilService.dateParse('Hello'), null);
 		});
 
 		it('returns number if string is a date', () => {
-			should.equal(utilService.dateParse('1970-01-01'), 0);
-			should.equal(utilService.dateParse('1970-01-01T00:00:00.000Z'), 0);
-			should.equal(
+			assert.equal(utilService.dateParse('1970-01-01'), 0);
+			assert.equal(utilService.dateParse('1970-01-01T00:00:00.000Z'), 0);
+			assert.equal(
 				utilService.dateParse('2017-06-19T20:41:45.000Z'),
 				1497904905000
 			);
 		});
 
 		it('returns number if date', () => {
-			should.equal(utilService.dateParse(new Date(0)), 0);
-			should.equal(utilService.dateParse(new Date(12345)), 12345);
+			assert.equal(utilService.dateParse(new Date(0)), 0);
+			assert.equal(utilService.dateParse(new Date(12345)), 12345);
 			const now = new Date();
-			should.equal(utilService.dateParse(now), now.getTime());
+			assert.equal(utilService.dateParse(now), now.getTime());
 		});
 	});
 
@@ -166,7 +177,7 @@ describe('Utils:', () => {
 		].forEach((test) => {
 			it(test.name, () => {
 				const actual = utilService.getPage(test.input);
-				should(actual).equal(test.expected);
+				assert.equal(actual, test.expected);
 			});
 		});
 	});
@@ -223,7 +234,7 @@ describe('Utils:', () => {
 					test.inputQueryParams,
 					test.inputMaxSize
 				);
-				should(actual).equal(test.expected);
+				assert.equal(actual, test.expected);
 			});
 		});
 	});
@@ -243,7 +254,7 @@ describe('Utils:', () => {
 		].forEach((test) => {
 			it(test.name, () => {
 				const actual = utilService.getSort(test.input);
-				should(actual).equal(test.expected);
+				assert.equal(actual, test.expected);
 			});
 		});
 
@@ -284,12 +295,7 @@ describe('Utils:', () => {
 					test.defaultDir,
 					test.defaultSort
 				);
-				should.exist(actual);
-				actual.should.be.Array();
-				test.expected.forEach((item, index) => {
-					item.property.should.equal(actual[index].property);
-					item.direction.should.equal(actual[index].direction);
-				});
+				assert.deepStrictEqual(actual, test.expected);
 			});
 		});
 	});
@@ -309,7 +315,7 @@ describe('Utils:', () => {
 		].forEach((test) => {
 			it(test.name, () => {
 				const actual = utilService.getSortObj(test.input);
-				should(actual).equal(test.expected);
+				assert.equal(actual, test.expected);
 			});
 		});
 
@@ -359,8 +365,7 @@ describe('Utils:', () => {
 					test.defaultDir,
 					test.defaultSort
 				);
-				should.exist(actual);
-				actual.should.containEql(test.expected);
+				assert.deepStrictEqual(actual, test.expected);
 			});
 		});
 	});
@@ -418,7 +423,7 @@ describe('Utils:', () => {
 		].forEach((test) => {
 			it(test.name, () => {
 				const actual = utilService.contains(test.inputArray, test.inputElement);
-				should(actual).equal(test.expected);
+				assert.equal(actual, test.expected);
 			});
 		});
 	});
@@ -452,7 +457,7 @@ describe('Utils:', () => {
 		].forEach((test) => {
 			it(test.name, () => {
 				const actual = utilService.validateNonEmpty(test.input);
-				should(actual).equal(test.expected);
+				assert.equal(actual, test.expected);
 			});
 		});
 	});
@@ -505,13 +510,7 @@ describe('Utils:', () => {
 					test.totalSize,
 					test.elements
 				);
-				Object.keys(actual).forEach((key) => {
-					if (key === 'elements') {
-						should(actual[key]).containDeep(test.expected[key]);
-					} else {
-						should(actual[key]).equal(test.expected[key]);
-					}
-				});
+				assert.deepStrictEqual(actual, test.expected);
 			});
 		});
 	});
@@ -545,8 +544,8 @@ describe('Utils:', () => {
 		].forEach((test) => {
 			it(test.name, () => {
 				const actual = utilService.removeStringsEndingWithWildcard(test.input);
-				should(test.input).containDeep(test.expected.input);
-				should(actual).containDeep(test.expected.output);
+				assert.deepStrictEqual(test.input, test.expected.input);
+				assert.deepStrictEqual(actual, test.expected.output);
 			});
 		});
 	});
@@ -568,7 +567,7 @@ describe('Utils:', () => {
 		tests.forEach((test) => {
 			it(test.description, () => {
 				const result = utilService.escapeRegex(test.input);
-				should(result).equal(test.expected);
+				assert.equal(result, test.expected);
 			});
 		});
 	});

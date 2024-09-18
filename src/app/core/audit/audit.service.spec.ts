@@ -1,4 +1,4 @@
-import should from 'should';
+import assert from 'node:assert/strict';
 
 import { Audit } from './audit.model';
 import auditService from './audit.service';
@@ -15,12 +15,11 @@ function clearDatabase() {
  * Unit tests
  */
 describe('Audit Service:', () => {
-	let startTimestamp;
-	before(() => {
-		return clearDatabase().then(() => {
-			const now = Date.now();
-			startTimestamp = now - (now % 1000); // remove milliseconds
-		});
+	let startTimestamp: number;
+	before(async () => {
+		await clearDatabase();
+		const now = Date.now();
+		startTimestamp = now - (now % 1000); // remove milliseconds
 	});
 
 	after(() => {
@@ -28,13 +27,9 @@ describe('Audit Service:', () => {
 	});
 
 	describe('Create new Audit entry', () => {
-		it('should begin with no audits', () => {
-			return Audit.find({})
-				.exec()
-				.then((results) => {
-					should(results).be.an.Array();
-					should(results).have.length(0);
-				});
+		it('should begin with no audits', async () => {
+			const results = await Audit.find({}).exec();
+			assert.deepStrictEqual(results, []);
 		});
 
 		it('should be able to create a new audit through the service', () => {
@@ -47,38 +42,42 @@ describe('Audit Service:', () => {
 			);
 		});
 
-		it('should have one audit entry', () => {
-			return Audit.find({})
-				.exec()
-				.then((results) => {
-					should(results).be.an.Array();
-					should(results).have.length(1);
+		it('should have one audit entry', async () => {
+			const results = await Audit.find({}).exec();
+			assert(Array.isArray(results), 'results should be an Array');
+			assert.equal(results.length, 1);
 
-					/*
-					 * Audit's created date should be after the unit tests started,
-					 * but may be the same time since ISO Date strips off the milliseconds,
-					 * so we'll remove 1 from the zero'ed milliseconds of the startTimestamp
-					 */
-					should(results[0].created).be.above(startTimestamp - 1);
-					should(results[0].message).equal('some message');
-					should(results[0].audit.auditType).equal('eventType');
-					should(results[0].audit.action).equal('eventAction');
-					should(results[0].audit.actor).eql({
+			const { created, _id, ...result } = results[0].toObject({
+				versionKey: false
+			});
+			/*
+			 * Audit's created date should be after the unit tests started,
+			 * but may be the same time since ISO Date strips off the milliseconds,
+			 * so we'll remove 1 from the zero'ed milliseconds of the startTimestamp
+			 */
+			assert(
+				created.getTime() > startTimestamp - 1,
+				'created date should be after the test started'
+			);
+
+			assert.deepStrictEqual(result, {
+				id: _id.toString(),
+				message: 'some message',
+				audit: {
+					auditType: 'eventType',
+					action: 'eventAction',
+					actor: {
 						name: 'eventActor',
 						username: 'eventActor'
-					});
-					should(results[0].audit.object).equal('eventObject');
-				});
+					},
+					object: 'eventObject'
+				}
+			});
 		});
 
-		it('should have one distinct action', () => {
-			return Audit.distinct('audit.action', {})
-				.exec()
-				.then((results) => {
-					should(results).be.an.Array();
-					should(results.length).equal(1);
-					should(results).containDeep(['eventAction']);
-				});
+		it('should have one distinct action', async () => {
+			const results = await Audit.distinct('audit.action', {}).exec();
+			assert.deepStrictEqual(results, ['eventAction']);
 		});
 	});
 });

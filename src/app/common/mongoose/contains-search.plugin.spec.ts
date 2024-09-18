@@ -1,5 +1,6 @@
+import assert from 'node:assert/strict';
+
 import { model, Model, Schema } from 'mongoose';
-import should from 'should';
 
 import {
 	ContainsSearchable,
@@ -40,9 +41,8 @@ describe('Contains Search Plugin:', () => {
 	describe('containsSearch:', () => {
 		it('should add containsSearch function to query', () => {
 			const query = ContainsExample.find();
-			should.exist(query.containsSearch);
-
-			query.containsSearch.should.be.Function();
+			assert(query.containsSearch);
+			assert.equal(typeof query.containsSearch, 'function');
 		});
 
 		it('should not add to filter if search term is null/undefined/empty string', () => {
@@ -50,8 +50,8 @@ describe('Contains Search Plugin:', () => {
 				const query = ContainsExample.find().containsSearch(search);
 
 				const filter = query.getFilter();
-				should.exist(filter);
-				should.not.exist(filter.$or);
+
+				assert.deepStrictEqual(filter, {});
 			});
 		});
 
@@ -60,8 +60,8 @@ describe('Contains Search Plugin:', () => {
 				const query = ContainsExample.find().containsSearch('test', fields);
 
 				const filter = query.getFilter();
-				should.exist(filter);
-				should.not.exist(filter.$or);
+
+				assert.deepStrictEqual(filter, {});
 			});
 		});
 
@@ -73,29 +73,37 @@ describe('Contains Search Plugin:', () => {
 			]);
 
 			const filter = query.getFilter();
-			should.exist(filter);
-			should.exist(filter.$or);
-			filter.$or.should.be.an.Array();
-			filter.$or.length.should.equal(3);
+
+			assert.deepStrictEqual(filter, {
+				$or: [
+					{ field1: { $regex: /test/gim } },
+					{ field2: { $regex: /test/gim } },
+					{ field3: { $regex: /test/gim } }
+				]
+			});
 		});
 
 		it('should not create $or if only one field in list', () => {
 			const query = ContainsExample.find().containsSearch('test', ['field1']);
 
 			const filter = query.getFilter();
-			should.exist(filter);
-			should.not.exist(filter.$or);
-			should.exist(filter.field1);
+
+			assert.deepStrictEqual(filter, {
+				field1: { $regex: /test/gim }
+			});
 		});
 
 		it('should use default fields list in pluginOptions', () => {
 			const query = ContainsExample2.find().containsSearch('test');
 
 			const filter = query.getFilter();
-			should.exist(filter);
-			should.exist(filter.$or);
-			filter.$or.should.be.Array();
-			filter.$or.length.should.equal(2);
+
+			assert.deepStrictEqual(filter, {
+				$or: [
+					{ field1: { $regex: /test/gim } },
+					{ field2: { $regex: /test/gim } }
+				]
+			});
 		});
 	});
 });

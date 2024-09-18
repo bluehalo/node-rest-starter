@@ -1,4 +1,4 @@
-import should from 'should';
+import assert from 'node:assert/strict';
 
 import { TeamRoles } from './team-role.model';
 import { Team } from './team.model';
@@ -63,7 +63,7 @@ describe('Team Model:', () => {
 	describe('Method Save', () => {
 		it('should begin with no teams', async () => {
 			const teams = await Team.find({}).exec();
-			teams.should.have.length(0);
+			assert.deepStrictEqual(teams, []);
 		});
 
 		it('should be able to save without problems', async () => {
@@ -76,7 +76,7 @@ describe('Team Model:', () => {
 			try {
 				return await team.save();
 			} catch (err) {
-				should.exist(err);
+				assert(err);
 			}
 		});
 	});
@@ -86,21 +86,21 @@ describe('Team Model:', () => {
 
 		it('should begin with no users', async () => {
 			const users = await User.find({}).exec();
-			users.should.have.length(0);
+			assert.deepStrictEqual(users, []);
 		});
 
 		it('should create teams without problems', async () => {
-			await team1.save().should.not.be.rejected();
-			should.exist(team1._id);
+			await assert.doesNotReject(team1.save());
+			assert(team1._id);
 
-			await team2.save().should.not.be.rejected();
-			should.exist(team2._id);
+			await assert.doesNotReject(team2.save());
+			assert(team2._id);
 
-			await team3.save().should.not.be.rejected();
-			should.exist(team3._id);
+			await assert.doesNotReject(team3.save());
+			assert(team3._id);
 
-			await team4.save().should.not.be.rejected();
-			should.exist(team4._id);
+			await assert.doesNotReject(team4.save());
+			assert(team4._id);
 
 			// Set some teams on the users
 			user1.teams = [];

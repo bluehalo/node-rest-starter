@@ -1,4 +1,4 @@
-import should from 'should';
+import assert from 'node:assert/strict';
 
 import { CacheEntry } from './cache-entry.model';
 import cacheEntryService from './cache-entry.service';
@@ -17,10 +17,12 @@ describe('Cache Entry Service:', () => {
 			});
 
 			const copy = entry.fullCopy();
-			should.exist(copy);
-			copy.key.should.equal(entry.key);
-			copy.value.should.equal(entry.value);
-			copy.ts.should.equal(entry.ts);
+			assert.deepStrictEqual(copy, {
+				_id: entry._id,
+				key: entry.key,
+				value: entry.value,
+				ts: entry.ts
+			});
 		});
 	});
 
@@ -37,14 +39,14 @@ describe('Cache Entry Service:', () => {
 
 			// Verify entry is in db
 			entry = await CacheEntry.findById(entry._id);
-			should.exist(entry);
+			assert(entry);
 
 			// Remove entry
 			await cacheEntryService.delete(entry.key);
 
 			// Verify entry is no longer in db
 			entry = await CacheEntry.findById(entry._id);
-			should.not.exist(entry);
+			assert.equal(entry, null);
 		});
 	});
 
@@ -72,29 +74,37 @@ describe('Cache Entry Service:', () => {
 			const queryParams = { size: 10 };
 			const query = null;
 			const search = '';
-			const result = await cacheEntryService.search(queryParams, search, query);
+			const { elements, ...result } = await cacheEntryService.search(
+				queryParams,
+				search,
+				query
+			);
 
-			should.exist(result);
-			result.totalSize.should.equal(100);
-			result.pageSize.should.equal(queryParams.size);
-			result.pageNumber.should.equal(0);
-			result.totalPages.should.equal(100 / queryParams.size);
-			result.elements.should.be.an.Array();
-			result.elements.length.should.be.equal(queryParams.size);
+			assert.deepStrictEqual(result, {
+				pageSize: queryParams.size,
+				pageNumber: 0,
+				totalSize: 100,
+				totalPages: 100 / queryParams.size
+			});
+			assert(elements);
+			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.equal(elements.length, queryParams.size);
 		});
 
 		it('search results page returned w/ default parameters', async () => {
-			const result = await cacheEntryService.search();
+			const { elements, ...result } = await cacheEntryService.search();
 
 			const pageSize = 20;
 
-			should.exist(result);
-			result.totalSize.should.equal(100);
-			result.pageSize.should.equal(pageSize);
-			result.pageNumber.should.equal(0);
-			result.totalPages.should.equal(100 / pageSize);
-			result.elements.should.be.an.Array();
-			result.elements.length.should.be.equal(pageSize);
+			assert.deepStrictEqual(result, {
+				pageSize: pageSize,
+				pageNumber: 0,
+				totalSize: 100,
+				totalPages: 100 / pageSize
+			});
+			assert(elements);
+			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.equal(elements.length, pageSize);
 		});
 	});
 });

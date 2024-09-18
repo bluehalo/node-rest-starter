@@ -1,5 +1,6 @@
+import assert from 'node:assert/strict';
+
 import mongoose from 'mongoose';
-import should from 'should';
 
 import { DismissedMessage } from './dismissed-message.model';
 import { Message } from './message.model';
@@ -53,9 +54,8 @@ describe('Messages Service:', () => {
 
 			const messages = await messagesService.getRecentMessages(null);
 
-			should.exist(messages);
-			messages.should.be.Array();
-			messages.length.should.equal(msgCount);
+			assert(Array.isArray(messages), 'messages should be an Array');
+			assert.equal(messages.length, msgCount);
 		});
 
 		it('should retrieve non dismissed messages', async () => {
@@ -72,9 +72,8 @@ describe('Messages Service:', () => {
 
 			messages = await messagesService.getRecentMessages(user._id);
 
-			should.exist(messages);
-			messages.should.be.Array();
-			messages.length.should.equal(msgCount - dismissCount);
+			assert(Array.isArray(messages), 'messages should be an Array');
+			assert.equal(messages.length, msgCount - dismissCount);
 		});
 	});
 });

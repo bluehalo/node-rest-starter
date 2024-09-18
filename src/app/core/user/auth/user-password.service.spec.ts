@@ -1,7 +1,7 @@
 import crypto from 'crypto';
+import assert from 'node:assert/strict';
 
-import should from 'should';
-import { assert, createSandbox } from 'sinon';
+import { assert as sinonAssert, createSandbox } from 'sinon';
 
 import userPasswordService from './user-password.service';
 import { config, emailService } from '../../../../dependencies';
@@ -46,17 +46,18 @@ describe('User Password Service:', () => {
 	describe('generateToken', () => {
 		it('should generate token', async () => {
 			const token = await userPasswordService.generateToken();
-			should.exist(token);
-			token.should.be.String();
-			token.should.be.length(40);
+			assert(token);
+			assert.equal(typeof token, 'string', 'expected token to be a string');
+			assert.equal(token.length, 40);
 		});
 
 		it('error generating token', async () => {
 			sandbox.stub(crypto, 'randomBytes').callsArgWith(1, new Error('error'));
 
-			await userPasswordService
-				.generateToken()
-				.should.be.rejectedWith(new Error('error'));
+			await assert.rejects(
+				userPasswordService.generateToken(),
+				new Error('error')
+			);
 		});
 	});
 
@@ -67,25 +68,27 @@ describe('User Password Service:', () => {
 				testToken
 			);
 
-			should.exist(user, 'expected user to exist');
-			should.exist(
+			assert(user, 'expected user to exist');
+			assert(
 				user.resetPasswordToken,
 				'expected user.resetPasswordToken to exist'
 			);
-			should.exist(
+			assert(
 				user.resetPasswordExpires,
 				'expected user.resetPasswordExpires to exist'
 			);
-			user.resetPasswordToken.should.equal(testToken);
-			user.resetPasswordExpires.should.be.greaterThan(Date.now());
+			assert.equal(user.resetPasswordToken, testToken);
+			assert(
+				user.resetPasswordExpires.getTime() > Date.now(),
+				'expected resetPasswordExpires to be greater than "now'
+			);
 		});
 
 		it('should throw error for invalid user', async () => {
-			await userPasswordService
-				.setResetTokenForUser('invalid-user', testToken)
-				.should.be.rejectedWith(
-					new BadRequestError('No account with that username has been found.')
-				);
+			await assert.rejects(
+				userPasswordService.setResetTokenForUser('invalid-user', testToken),
+				new BadRequestError('No account with that username has been found.')
+			);
 		});
 	});
 
@@ -96,25 +99,18 @@ describe('User Password Service:', () => {
 				'password'
 			);
 
-			should.exist(user, 'expected user to exist');
-			should.exist(user.password, 'expected user.password to exist');
-			user.password.should.not.equals(testUser.password);
-			should.not.exist(
-				user.resetPasswordToken,
-				'expected user.resetPasswordToken to not exist'
-			);
-			should.not.exist(
-				user.resetPasswordExpires,
-				'expected user.resetPasswordExpires to not exist'
-			);
+			assert(user, 'expected user to exist');
+			assert(user.password, 'expected user.password to exist');
+			assert.notEqual(user.password, testUser.password);
+			assert.equal(user.resetPasswordToken, undefined);
+			assert.equal(user.resetPasswordExpires, undefined);
 		});
 
 		it('should throw error for invalid token', async () => {
-			await userPasswordService
-				.resetPasswordForToken('invalid-token', '')
-				.should.be.rejectedWith(
-					new BadRequestError('Password reset token is invalid or has expired.')
-				);
+			await assert.rejects(
+				userPasswordService.resetPasswordForToken('invalid-token', ''),
+				new BadRequestError('Password reset token is invalid or has expired.')
+			);
 		});
 	});
 
@@ -124,7 +120,7 @@ describe('User Password Service:', () => {
 
 			await userPasswordService.sendResetPasswordEmail(testUser, 'token', {});
 
-			assert.calledOnce(logger.error);
+			sinonAssert.calledOnce(logger.error);
 		});
 
 		it('should create mailOptions properly', async () => {
@@ -147,7 +143,7 @@ FOOTER`;
 
 			await userPasswordService.sendResetPasswordEmail(testUser, testToken, {});
 
-			assert.calledWithMatch(emailService.sendMail, {
+			sinonAssert.calledWithMatch(emailService.sendMail, {
 				to: testUser.email,
 				from: config.get('coreEmails.default.from'),
 				replyTo: config.get('coreEmails.default.replyTo'),
@@ -163,7 +159,7 @@ FOOTER`;
 
 			await userPasswordService.sendPasswordResetConfirmEmail(testUser, {});
 
-			assert.calledOnce(logger.error);
+			sinonAssert.calledOnce(logger.error);
 		});
 
 		it('should create mailOptions properly', async () => {
@@ -180,7 +176,7 @@ FOOTER`;
 
 			await userPasswordService.sendPasswordResetConfirmEmail(testUser, {});
 
-			assert.calledWithMatch(emailService.sendMail, {
+			sinonAssert.calledWithMatch(emailService.sendMail, {
 				to: testUser.email,
 				from: config.get('coreEmails.default.from'),
 				replyTo: config.get('coreEmails.default.replyTo'),

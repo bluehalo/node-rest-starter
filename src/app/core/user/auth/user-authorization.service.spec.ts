@@ -1,5 +1,6 @@
+import assert from 'node:assert/strict';
+
 import mongoose from 'mongoose';
-import should from 'should';
 import { createSandbox } from 'sinon';
 
 import userAuthorizationService from './user-authorization.service';
@@ -59,7 +60,7 @@ describe('User authorization service:', () => {
 
 			await reloadProvider();
 
-			should(userAuthorizationService.hasRole({} as IUser, '')).be.false();
+			assert.equal(userAuthorizationService.hasRole({} as IUser, ''), false);
 		});
 	});
 
@@ -73,10 +74,10 @@ describe('User authorization service:', () => {
 
 			const user = new User(userSpec('external'));
 			user.externalRoles = ['USER', 'ADMIN'];
-			should(userAuthorizationService.hasRole(user, 'user')).be.true();
-			should(userAuthorizationService.hasRole(user, 'editor')).be.false();
-			should(userAuthorizationService.hasRole(user, 'auditor')).be.false();
-			should(userAuthorizationService.hasRole(user, 'admin')).be.true();
+			assert.equal(userAuthorizationService.hasRole(user, 'user'), true);
+			assert.equal(userAuthorizationService.hasRole(user, 'editor'), false);
+			assert.equal(userAuthorizationService.hasRole(user, 'auditor'), false);
+			assert.equal(userAuthorizationService.hasRole(user, 'admin'), true);
 		});
 
 		it('should properly determine hasRole for roleStrategy = hybrid', async () => {
@@ -89,19 +90,19 @@ describe('User authorization service:', () => {
 			const user = new User(userSpec('hybrid'));
 			user.externalRoles = ['USER'];
 			user.roles = { admin: true };
-			should(userAuthorizationService.hasRole(user, 'user')).be.true();
-			should(userAuthorizationService.hasRole(user, 'editor')).be.false();
-			should(userAuthorizationService.hasRole(user, 'auditor')).be.false();
-			should(userAuthorizationService.hasRole(user, 'admin')).be.true();
+			assert.equal(userAuthorizationService.hasRole(user, 'user'), true);
+			assert.equal(userAuthorizationService.hasRole(user, 'editor'), false);
+			assert.equal(userAuthorizationService.hasRole(user, 'auditor'), false);
+			assert.equal(userAuthorizationService.hasRole(user, 'admin'), true);
 		});
 
 		it('should properly determine hasRole for roleStrategy = local', () => {
 			const user = new User(userSpec('local'));
 			user.roles = { user: true, editor: false, auditor: false, admin: true };
-			should(userAuthorizationService.hasRole(user, 'user')).be.true();
-			should(userAuthorizationService.hasRole(user, 'editor')).be.false();
-			should(userAuthorizationService.hasRole(user, 'auditor')).be.false();
-			should(userAuthorizationService.hasRole(user, 'admin')).be.true();
+			assert.equal(userAuthorizationService.hasRole(user, 'user'), true);
+			assert.equal(userAuthorizationService.hasRole(user, 'editor'), false);
+			assert.equal(userAuthorizationService.hasRole(user, 'auditor'), false);
+			assert.equal(userAuthorizationService.hasRole(user, 'admin'), true);
 		});
 	});
 
@@ -109,18 +110,20 @@ describe('User authorization service:', () => {
 		it('should properly determine hasRoles', () => {
 			const user = new User(userSpec('local'));
 			user.roles = { user: true, editor: false, auditor: false, admin: true };
-			should(userAuthorizationService.hasRoles(user)).be.true();
-			should(userAuthorizationService.hasRoles(user, [])).be.true();
-			should(userAuthorizationService.hasRoles(user, ['user'])).be.true();
-			should(userAuthorizationService.hasRoles(user, ['editor'])).be.false();
-			should(userAuthorizationService.hasRoles(user, ['auditor'])).be.false();
-			should(userAuthorizationService.hasRoles(user, ['admin'])).be.true();
-			should(
-				userAuthorizationService.hasRoles(user, ['user', 'admin'])
-			).be.true();
-			should(
-				userAuthorizationService.hasRoles(user, ['user', 'editor'])
-			).be.false();
+			assert.equal(userAuthorizationService.hasRoles(user), true);
+			assert.equal(userAuthorizationService.hasRoles(user, []), true);
+			assert.equal(userAuthorizationService.hasRoles(user, ['user']), true);
+			assert.equal(userAuthorizationService.hasRoles(user, ['editor']), false);
+			assert.equal(userAuthorizationService.hasRoles(user, ['auditor']), false);
+			assert.equal(userAuthorizationService.hasRoles(user, ['admin']), true);
+			assert.equal(
+				userAuthorizationService.hasRoles(user, ['user', 'admin']),
+				true
+			);
+			assert.equal(
+				userAuthorizationService.hasRoles(user, ['user', 'editor']),
+				false
+			);
 		});
 	});
 
@@ -128,21 +131,30 @@ describe('User authorization service:', () => {
 		it('should properly determine hasAnyRole', () => {
 			const user = new User(userSpec('local'));
 			user.roles = { user: true, editor: false, auditor: false, admin: true };
-			should(userAuthorizationService.hasAnyRole(user)).be.true();
-			should(userAuthorizationService.hasAnyRole(user, [])).be.true();
-			should(userAuthorizationService.hasAnyRole(user, ['user'])).be.true();
-			should(userAuthorizationService.hasAnyRole(user, ['editor'])).be.false();
-			should(userAuthorizationService.hasAnyRole(user, ['auditor'])).be.false();
-			should(userAuthorizationService.hasAnyRole(user, ['admin'])).be.true();
-			should(
-				userAuthorizationService.hasAnyRole(user, ['user', 'admin'])
-			).be.true();
-			should(
-				userAuthorizationService.hasAnyRole(user, ['user', 'editor'])
-			).be.true();
-			should(
-				userAuthorizationService.hasAnyRole(user, ['auditor', 'editor'])
-			).be.false();
+			assert.equal(userAuthorizationService.hasAnyRole(user), true);
+			assert.equal(userAuthorizationService.hasAnyRole(user, []), true);
+			assert.equal(userAuthorizationService.hasAnyRole(user, ['user']), true);
+			assert.equal(
+				userAuthorizationService.hasAnyRole(user, ['editor']),
+				false
+			);
+			assert.equal(
+				userAuthorizationService.hasAnyRole(user, ['auditor']),
+				false
+			);
+			assert.equal(userAuthorizationService.hasAnyRole(user, ['admin']), true);
+			assert.equal(
+				userAuthorizationService.hasAnyRole(user, ['user', 'admin']),
+				true
+			);
+			assert.equal(
+				userAuthorizationService.hasAnyRole(user, ['user', 'editor']),
+				true
+			);
+			assert.equal(
+				userAuthorizationService.hasAnyRole(user, ['auditor', 'editor']),
+				false
+			);
 		});
 	});
 
@@ -171,13 +183,13 @@ describe('User authorization service:', () => {
 
 			userAuthorizationService.updateRoles(user);
 
-			user.should.be.an.Object();
-			user.roles.should.be.an.Object();
-			user.roles.user.should.be.true();
-			user.roles.elevatedRole1.should.be.true();
-			user.roles.elevatedRole2.should.be.false();
-
-			should.not.exist(user.localRoles);
+			assert.deepStrictEqual(user, {
+				roles: {
+					user: true,
+					elevatedRole1: true,
+					elevatedRole2: false
+				}
+			});
 		});
 
 		it('roleStrategy === external; should pass through roles as is', async () => {
@@ -216,13 +228,15 @@ describe('User authorization service:', () => {
 
 			userAuthorizationService.updateRoles(user);
 
-			user.should.be.an.Object();
-			user.roles.should.be.an.Object();
-			user.roles.user.should.be.true();
-			user.roles.elevatedRole1.should.be.false();
-			user.roles.elevatedRole2.should.be.true();
-
-			should.not.exist(user.localRoles);
+			assert.deepStrictEqual(user, {
+				roles: {
+					user: true,
+					elevatedRole1: false,
+					elevatedRole2: true,
+					admin: false
+				},
+				externalRoles: ['USER', 'ELEVATED_ROLE_2']
+			});
 		});
 
 		it('roleStrategy === hybrid; should pass through roles as is', async () => {
@@ -261,17 +275,20 @@ describe('User authorization service:', () => {
 
 			userAuthorizationService.updateRoles(user);
 
-			user.should.be.an.Object();
-			user.roles.should.be.an.Object();
-			user.roles.user.should.be.true();
-			user.roles.elevatedRole1.should.be.true();
-			user.roles.elevatedRole2.should.be.true();
-			user.roles.admin.should.be.false();
-
-			user.localRoles.should.be.an.Object();
-			user.localRoles.user.should.be.true();
-			user.localRoles.elevatedRole1.should.be.true();
-			user.localRoles.elevatedRole2.should.be.false();
+			assert.deepStrictEqual(user, {
+				roles: {
+					user: true,
+					elevatedRole1: true,
+					elevatedRole2: true,
+					admin: false
+				},
+				localRoles: {
+					user: true,
+					elevatedRole1: true,
+					elevatedRole2: false
+				},
+				externalRoles: ['USER', 'ELEVATED_ROLE_2']
+			});
 		});
 	});
 
@@ -283,54 +300,72 @@ describe('User authorization service:', () => {
 			const user = { roles: { admin: false }, _id: id1 };
 			const resource = { creator: id1 };
 
-			return userAuthorizationService
-				.validateAccessToPersonalResource(user, resource)
-				.should.be.fulfilled();
+			return assert.doesNotReject(
+				userAuthorizationService.validateAccessToPersonalResource(
+					user,
+					resource
+				)
+			);
 		});
 
 		it('test user (not admin) access another user resource', () => {
 			const user = { roles: { admin: false }, _id: id1 };
 			const resource = { creator: id2 };
 
-			return userAuthorizationService
-				.validateAccessToPersonalResource(user, resource)
-				.should.be.rejected();
+			return assert.rejects(
+				userAuthorizationService.validateAccessToPersonalResource(
+					user,
+					resource
+				)
+			);
 		});
 
 		it('test user with no roles access own resource', () => {
 			const user = { _id: id1 };
 			const resource = { creator: id1 };
 
-			return userAuthorizationService
-				.validateAccessToPersonalResource(user, resource)
-				.should.be.fulfilled();
+			return assert.doesNotReject(
+				userAuthorizationService.validateAccessToPersonalResource(
+					user,
+					resource
+				)
+			);
 		});
 
 		it('test user with no roles access another user resource', () => {
 			const user = { _id: id1 };
 			const resource = { creator: id2 };
 
-			return userAuthorizationService
-				.validateAccessToPersonalResource(user, resource)
-				.should.be.rejected();
+			return assert.rejects(
+				userAuthorizationService.validateAccessToPersonalResource(
+					user,
+					resource
+				)
+			);
 		});
 
 		it('test admin access own resource', () => {
 			const user = { roles: { admin: true }, _id: id1 };
 			const resource = { creator: id1 };
 
-			return userAuthorizationService
-				.validateAccessToPersonalResource(user, resource)
-				.should.be.fulfilled();
+			return assert.doesNotReject(
+				userAuthorizationService.validateAccessToPersonalResource(
+					user,
+					resource
+				)
+			);
 		});
 
 		it('test admin access another user resource', () => {
 			const user = { roles: { admin: true }, _id: id1 };
 			const resource = { creator: id2 };
 
-			return userAuthorizationService
-				.validateAccessToPersonalResource(user, resource)
-				.should.be.fulfilled();
+			return assert.doesNotReject(
+				userAuthorizationService.validateAccessToPersonalResource(
+					user,
+					resource
+				)
+			);
 		});
 	});
 });

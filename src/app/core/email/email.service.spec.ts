@@ -1,4 +1,5 @@
-import should from 'should';
+import assert from 'node:assert/strict';
+
 import { createSandbox } from 'sinon';
 import * as uuid from 'uuid';
 
@@ -30,13 +31,9 @@ describe('Email Service:', () => {
 					html: null
 				}
 			].forEach((options) => {
-				should(() => {
+				assert.throws(() => {
 					emailService.validateMailOptions(options);
-				}).throw(
-					new Error(
-						'The following required values were not specified in mailOptions: ("to" or "cc" or "bcc"), "from", "subject", ("text" or "html")'
-					)
-				);
+				}, new Error('The following required values were not specified in mailOptions: ("to" or "cc" or "bcc"), "from", "subject", ("text" or "html")'));
 			});
 
 			[
@@ -47,43 +44,31 @@ describe('Email Service:', () => {
 					html: null
 				}
 			].forEach((options) => {
-				should(() => {
+				assert.throws(() => {
 					emailService.validateMailOptions(options);
-				}).throw(
-					new Error(
-						'The following required values were not specified in mailOptions: "from", "subject", ("text" or "html")'
-					)
-				);
+				}, new Error('The following required values were not specified in mailOptions: "from", "subject", ("text" or "html")'));
 			});
 
-			should(() => {
+			assert.throws(() => {
 				emailService.validateMailOptions({ from: 'sender' });
-			}).throw(
-				new Error(
-					'The following required values were not specified in mailOptions: ("to" or "cc" or "bcc"), "subject", ("text" or "html")'
-				)
-			);
+			}, new Error('The following required values were not specified in mailOptions: ("to" or "cc" or "bcc"), "subject", ("text" or "html")'));
 
-			should(() => {
+			assert.throws(() => {
 				emailService.validateMailOptions({
 					to: 'recipient',
 					from: 'sender',
 					html: '("text" or "html")'
 				});
-			}).throw(
-				new Error(
-					'The following required values were not specified in mailOptions: "subject"'
-				)
-			);
+			}, new Error('The following required values were not specified in mailOptions: "subject"'));
 
-			should(() => {
+			assert.doesNotThrow(() => {
 				emailService.validateMailOptions({
 					to: 'recipient',
 					from: 'sender',
 					html: '("text" or "html")',
 					subject: 'subject'
 				});
-			}).not.throwError();
+			});
 		});
 	});
 
@@ -94,35 +79,36 @@ describe('Email Service:', () => {
 
 			sandbox.stub(config, 'mailer').value({});
 
-			await emailService
-				.sendMail({})
-				.should.be.rejectedWith(new Error('Email service is not configured'));
+			await assert.rejects(
+				emailService.sendMail({}),
+				new Error('Email service is not configured')
+			);
 		});
 
 		it('should fail for null mailOptions', async () => {
-			await emailService
-				.sendMail()
-				.should.be.rejectedWith(new Error('No email options specified'));
+			await assert.rejects(
+				emailService.sendMail(),
+				new Error('No email options specified')
+			);
 		});
 
 		it('should fail for incomplete mailOptions', async () => {
-			await emailService
-				.sendMail({ to: 'to', from: 'from', html: 'html' })
-				.should.be.rejectedWith(
-					new Error(
-						'The following required values were not specified in mailOptions: "subject"'
-					)
-				);
+			await assert.rejects(
+				emailService.sendMail({ to: 'to', from: 'from', html: 'html' }),
+				new Error(
+					'The following required values were not specified in mailOptions: "subject"'
+				)
+			);
 		});
 		it('should work', async () => {
-			await emailService
-				.sendMail({
+			await assert.doesNotReject(
+				emailService.sendMail({
 					to: 'to',
 					from: 'from',
 					html: 'html',
 					subject: 'test'
 				})
-				.should.not.be.rejected();
+			);
 		});
 	});
 
@@ -163,17 +149,17 @@ ${footer}
 				'src/app/core/user/templates/user-welcome-with-access-email.server.view.html',
 				user
 			);
-			should.exist(subject);
-			subject.should.equal(expectedResult);
+			assert(subject);
+			assert.equal(subject, expectedResult);
 		});
 
 		it('should throw error for invalid template path', async () => {
-			await emailService
-				.buildEmailContent(
+			await assert.rejects(
+				emailService.buildEmailContent(
 					'src/app/core/user/templates/file-that-doesnt-exist.view.html',
 					user
 				)
-				.should.be.rejected();
+			);
 		});
 	});
 
@@ -190,15 +176,15 @@ ${footer}
 				{},
 				{ otherVariable: '2' }
 			);
-			should.exist(subject);
-			subject.should.equal('(pre) subject 2');
+			assert(subject);
+			assert.equal(subject, '(pre) subject 2');
 
 			const subject2 = emailService.buildEmailSubject(
 				'{{ subjectPrefix }} subject {{ otherVariable }}',
 				{}
 			);
-			should.exist(subject2);
-			subject2.should.equal('(pre) subject ');
+			assert(subject2);
+			assert.equal(subject2, '(pre) subject ');
 		});
 	});
 
@@ -232,10 +218,10 @@ ${footer}
 				emailConfig
 			);
 
-			should.exist(options);
-			options.header.should.equal(header);
-			options.footer.should.equal(footer);
-			options.subject.should.equal(emailConfig.subject);
+			assert(options);
+			assert.equal(options.header, header);
+			assert.equal(options.footer, footer);
+			assert.equal(options.subject, emailConfig.subject);
 		});
 
 		it('should log and throw error', async () => {
@@ -245,9 +231,9 @@ ${footer}
 					'src/app/core/user/templates/file-that-doesnt-exist.view.html'
 			};
 
-			await emailService
-				.generateMailOptions(user, {}, emailConfig)
-				.should.be.rejected();
+			await assert.rejects(
+				emailService.generateMailOptions(user, {}, emailConfig)
+			);
 		});
 	});
 });

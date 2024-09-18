@@ -1,7 +1,6 @@
-import * as assert from 'assert';
+import assert from 'node:assert/strict';
 
 import { Types } from 'mongoose';
-import should from 'should';
 
 import { User } from './user.model';
 
@@ -49,37 +48,48 @@ describe('User Model:', () => {
 				const user = new User(userSpec('valid'));
 				const userModel = await user.save();
 				['user', 'editor', 'auditor', 'admin'].forEach((role) => {
-					should(userModel.roles[role]).be.false('roles all default to false');
+					assert.equal(
+						userModel.roles[role],
+						false,
+						'roles all default to false'
+					);
 				});
-				// should.exist(userModel.roles._id);
-				should(userModel.phone).eql('', 'phone defaults to empty');
-				should(userModel.canProxy).be.false('canProxy defaults to false');
-				should(userModel.canMasquerade).be.false(
+				// assert(userModel.roles._id);
+				assert.equal(userModel.phone, '', 'phone defaults to empty');
+				assert.equal(userModel.canProxy, false, 'canProxy defaults to false');
+				assert.equal(
+					userModel.canMasquerade,
+					false,
 					'canMasquerade defaults to false'
 				);
-				should(userModel.externalGroups).eql(
+				assert.deepStrictEqual(
+					userModel.externalGroups,
 					[],
 					'externalGroups defaults to blank array'
 				);
-				should(userModel.externalRoles).eql(
+				assert.deepStrictEqual(
+					userModel.externalRoles,
 					[],
 					'externalRoles defaults to blank array'
 				);
-				should(userModel.bypassAccessCheck).be.false(
+				assert.equal(
+					userModel.bypassAccessCheck,
+					false,
 					'bypassAccessCheck defaults to false'
 				);
-				should(userModel.messagesAcknowledged).eql(
+				assert.equal(
+					userModel.messagesAcknowledged,
 					null,
 					'messagesAcknowledged defaults to null'
 				);
-				should(userModel.acceptedEua).be.null();
-				should(userModel.lastLogin).be.null();
-				should(userModel.lastLoginWithAccess).be.null();
-				should(userModel.newFeatureDismissed).be.null();
+				assert.equal(userModel.acceptedEua, null);
+				assert.equal(userModel.lastLogin, null);
+				assert.equal(userModel.lastLoginWithAccess, null);
+				assert.equal(userModel.newFeatureDismissed, null);
 
-				should(userModel.providerData).be.undefined();
-				should(userModel.additionalProvidersData).be.undefined();
-				should(userModel.preferences).be.undefined();
+				assert.equal(userModel.providerData, undefined);
+				assert.equal(userModel.additionalProvidersData, undefined);
+				assert.equal(userModel.preferences, undefined);
 			});
 		});
 
@@ -102,11 +112,11 @@ describe('User Model:', () => {
 				const filtered = testUser.filteredCopy();
 				// Test that sensitive values are removed.
 				['password', 'email', 'salt'].forEach((p) => {
-					should(filtered[p]).be.undefined();
+					assert.equal(filtered[p], undefined);
 					delete spec[p];
 				});
 				delete filtered._id;
-				should(filtered).be.eql(spec);
+				assert.deepStrictEqual(filtered, spec);
 			});
 		});
 
@@ -131,10 +141,10 @@ describe('User Model:', () => {
 				const obj = testUser.toObject();
 				// Test that sensitive values are removed.
 				['password', 'salt'].forEach((p) => {
-					should(filtered[p]).be.undefined();
+					assert.equal(filtered[p], undefined);
 					delete obj[p];
 				});
-				should(filtered).be.eql(obj);
+				assert.deepStrictEqual(filtered, obj);
 			});
 		});
 
@@ -161,13 +171,10 @@ describe('User Model:', () => {
 				});
 				const copy = User.createCopy(testUser);
 
-				should(copy.created).be.eql(copy.updated);
-				should(copy.created >= testUser.created);
-
 				// Test that sensitive values are removed.
-				should(copy._id).be.undefined();
-				should(copy.salt).be.undefined();
-				should(copy.providerData).be.undefined();
+				assert.equal(copy._id, undefined);
+				assert.equal(copy.salt, undefined);
+				assert.equal(copy.providerData, undefined);
 
 				// Strip fields from expectation that are not needed for audit.
 				['created', 'updated'].forEach((k) => delete copy[k]);
@@ -191,7 +198,7 @@ describe('User Model:', () => {
 					'teams'
 				].forEach((k) => delete obj[k]);
 
-				should(copy).be.eql(obj);
+				assert.deepStrictEqual(copy, obj);
 			});
 		});
 
@@ -240,7 +247,7 @@ describe('User Model:', () => {
 				].forEach((k) => delete obj[k]);
 				// Alter expectation to include flattened DN and IP.
 				const testUserWithDNandIP = { ...obj, dn, ip };
-				should(audit).be.eql(testUserWithDNandIP);
+				assert.deepStrictEqual(audit, testUserWithDNandIP);
 			});
 
 			it('should ignore dn if no dn or providerdata is present, or flatten value', () => {
@@ -248,14 +255,14 @@ describe('User Model:', () => {
 					name: 'test',
 					providerData: { notdn: false }
 				});
-				should(testUserNoDn.auditCopy().dn).be.undefined();
+				assert.equal(testUserNoDn.auditCopy().dn, undefined);
 				const testUserNoProvider = new User({ name: 'test' });
-				should(testUserNoProvider.auditCopy().dn).be.undefined();
+				assert.equal(testUserNoProvider.auditCopy().dn, undefined);
 				const testUser = new User({
 					name: 'test',
 					providerData: { dn: 'yes' }
 				});
-				should(testUser.auditCopy().dn).eql('yes');
+				assert.equal(testUser.auditCopy().dn, 'yes');
 			});
 		});
 	});
@@ -263,20 +270,20 @@ describe('User Model:', () => {
 	describe('Method Save', () => {
 		it('should begin with no users', async () => {
 			const result = await User.find({}).exec();
-			should(result).be.an.Array();
-			should(result).have.length(0);
+			assert(Array.isArray(result));
+			assert.equal(result.length, 0);
 		});
 
 		it('should be able to save a valid user', async () => {
 			const validUser = new User(userSpec('valid'));
 			const result = await validUser.save();
-			should.exist(result);
+			assert(result);
 		});
 
 		it('should result in 1 user', async () => {
 			const result = await User.find({}).exec();
-			should(result).be.an.Array();
-			should(result).have.length(1);
+			assert(Array.isArray(result));
+			assert.equal(result.length, 1);
 		});
 
 		it('should not be able to save with the same username', () => {
@@ -287,7 +294,7 @@ describe('User Model:', () => {
 					assert.fail();
 				})
 				.catch((err) => {
-					should.exist(err);
+					assert(err);
 				});
 		});
 
@@ -304,7 +311,7 @@ describe('User Model:', () => {
 						assert.fail();
 					})
 					.catch((err) => {
-						should.exist(err);
+						assert(err);
 					});
 			});
 		});

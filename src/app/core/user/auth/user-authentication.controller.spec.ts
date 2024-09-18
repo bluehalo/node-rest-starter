@@ -1,8 +1,9 @@
+import assert from 'node:assert/strict';
+
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 import passport from 'passport';
-import should from 'should';
-import { assert, createSandbox } from 'sinon';
+import { assert as sinonAssert, createSandbox } from 'sinon';
 
 import * as userAuthenticationController from './user-authentication.controller';
 import { config } from '../../../../dependencies';
@@ -107,7 +108,7 @@ describe('User Auth Controller:', () => {
 
 			userAuthenticationController.signout(req, res);
 
-			assert.calledWith(res.redirect, '/');
+			sinonAssert.calledWith(res.redirect, '/');
 		});
 	});
 
@@ -144,16 +145,16 @@ describe('User Auth Controller:', () => {
 				};
 
 				await userAuthenticationController.signin(req, res, emptyFn);
-				assert.calledWith(res.status, 200);
-				assert.calledOnce(res.json);
+				sinonAssert.calledWith(res.status, 200);
+				sinonAssert.calledOnce(res.json);
 
 				const [result] = res.json.getCall(0).args;
 				// Should return the user
-				should.exist(result);
-				should(result.username).equal(user.username);
-				should(result.name).equal(user.name);
+				assert(result);
+				assert.equal(result.username, user.username);
+				assert.equal(result.name, user.name);
 				// The user's password should have been removed
-				should.not.exist(result.password);
+				assert.equal(result.password, undefined);
 			});
 
 			it('should fail with incorrect password', async () => {
@@ -164,14 +165,13 @@ describe('User Auth Controller:', () => {
 					return cb && cb();
 				};
 
-				await userAuthenticationController
-					.signin(req, res, emptyFn)
-					.should.be.rejectedWith(
-						new UnauthorizedError('Incorrect username or password')
-					);
+				await assert.rejects(
+					userAuthenticationController.signin(req, res, emptyFn),
+					new UnauthorizedError('Incorrect username or password')
+				);
 
-				assert.notCalled(res.status);
-				assert.notCalled(res.json);
+				sinonAssert.notCalled(res.status);
+				sinonAssert.notCalled(res.json);
 			});
 
 			it('should fail with missing password', async () => {
@@ -182,12 +182,13 @@ describe('User Auth Controller:', () => {
 					return cb && cb();
 				};
 
-				await userAuthenticationController
-					.signin(req, res, emptyFn)
-					.should.be.rejectedWith('Missing credentials');
+				await assert.rejects(
+					userAuthenticationController.signin(req, res, emptyFn),
+					{ message: 'Missing credentials' }
+				);
 
-				assert.notCalled(res.status);
-				assert.notCalled(res.json);
+				sinonAssert.notCalled(res.status);
+				sinonAssert.notCalled(res.json);
 			});
 
 			it('should fail with missing username', async () => {
@@ -198,12 +199,13 @@ describe('User Auth Controller:', () => {
 					return cb && cb();
 				};
 
-				await userAuthenticationController
-					.signin(req, res, emptyFn)
-					.should.be.rejectedWith('Missing credentials');
+				await assert.rejects(
+					userAuthenticationController.signin(req, res, emptyFn),
+					{ message: 'Missing credentials' }
+				);
 
-				assert.notCalled(res.status);
-				assert.notCalled(res.json);
+				sinonAssert.notCalled(res.status);
+				sinonAssert.notCalled(res.json);
 			});
 
 			it('should fail with unknown user', async () => {
@@ -214,14 +216,13 @@ describe('User Auth Controller:', () => {
 					return cb && cb();
 				};
 
-				await userAuthenticationController
-					.signin(req, res, emptyFn)
-					.should.be.rejectedWith(
-						new UnauthorizedError('Incorrect username or password')
-					);
+				await assert.rejects(
+					userAuthenticationController.signin(req, res, emptyFn),
+					new UnauthorizedError('Incorrect username or password')
+				);
 
-				assert.notCalled(res.status);
-				assert.notCalled(res.json);
+				sinonAssert.notCalled(res.status);
+				sinonAssert.notCalled(res.json);
 			});
 		}); // describe - login
 	});
@@ -349,22 +350,23 @@ describe('User Auth Controller:', () => {
 
 				await userAuthenticationController.signin(req, res, emptyFn);
 
-				assert.calledWith(res.status, 200);
-				assert.calledOnce(res.json);
+				sinonAssert.calledWith(res.status, 200);
+				sinonAssert.calledOnce(res.json);
 
 				const [result] = res.json.getCall(0).args;
 
-				should.exist(result);
-				should(result.name).equal(spec.user.synced.name);
-				should(result.organization).equal(spec.user.synced.organization);
-				should(result.email).equal(spec.user.synced.email);
-				should(result.username).equal(spec.user.synced.username);
+				assert(result);
+				assert.equal(result.name, spec.user.synced.name);
+				assert.equal(result.organization, spec.user.synced.organization);
+				assert.equal(result.email, spec.user.synced.email);
+				assert.equal(result.username, spec.user.synced.username);
 
-				should(result.externalRoles).be.an.Array();
-				should(result.externalRoles).have.length(
-					spec.user.synced.externalRoles.length
+				assert(
+					Array.isArray(result.externalRoles),
+					'expect externalRoles should be an Array'
 				);
-				should(result.externalRoles).containDeep(
+				assert.deepStrictEqual(
+					result.externalRoles,
 					spec.user.synced.externalRoles
 				);
 			});
@@ -373,12 +375,13 @@ describe('User Auth Controller:', () => {
 			it('should fail when there is no dn', async () => {
 				req.headers = {};
 
-				await userAuthenticationController
-					.signin(req, res, emptyFn)
-					.should.be.rejectedWith(new BadRequestError('Missing certificate'));
+				await assert.rejects(
+					userAuthenticationController.signin(req, res, emptyFn),
+					new BadRequestError('Missing certificate')
+				);
 
-				assert.notCalled(res.status);
-				assert.notCalled(res.json);
+				sinonAssert.notCalled(res.status);
+				sinonAssert.notCalled(res.json);
 			});
 
 			// Unknown DN header
@@ -391,13 +394,12 @@ describe('User Auth Controller:', () => {
 					[config.get<string>('proxyPkiPrimaryUserHeader')]: 'unknown'
 				};
 
-				await userAuthenticationController
-					.signin(req, {}, emptyFn)
-					.should.be.rejectedWith(
-						new UnauthorizedError(
-							'Could not authenticate request, please verify your credentials.'
-						)
-					);
+				await assert.rejects(
+					userAuthenticationController.signin(req, {}, emptyFn),
+					new UnauthorizedError(
+						'Could not authenticate request, please verify your credentials.'
+					)
+				);
 			});
 		});
 
@@ -419,15 +421,15 @@ describe('User Auth Controller:', () => {
 
 				await userAuthenticationController.signin(req, res, emptyFn);
 
-				assert.calledWith(res.status, 200);
-				assert.calledOnce(res.json);
+				sinonAssert.calledWith(res.status, 200);
+				sinonAssert.calledOnce(res.json);
 				const [result] = res.json.getCall(0).args;
 
-				should.exist(result);
-				should(result.name).equal(spec.cache.oldMd.value.name);
-				should(result.organization).equal(spec.cache.oldMd.value.organization);
-				should(result.email).equal(spec.cache.oldMd.value.email);
-				should(result.username).equal(spec.cache.oldMd.value.username);
+				assert(result);
+				assert.equal(result.name, spec.cache.oldMd.value.name);
+				assert.equal(result.organization, spec.cache.oldMd.value.organization);
+				assert.equal(result.email, spec.cache.oldMd.value.email);
+				assert.equal(result.username, spec.cache.oldMd.value.username);
 			});
 
 			it('should sync roles and groups from access checker on login', async () => {
@@ -438,24 +440,26 @@ describe('User Auth Controller:', () => {
 
 				await userAuthenticationController.signin(req, res, emptyFn);
 
-				assert.calledWith(res.status, 200);
-				assert.calledOnce(res.json);
+				sinonAssert.calledWith(res.status, 200);
+				sinonAssert.calledOnce(res.json);
 
 				const [result] = res.json.getCall(0).args;
-				should.exist(result);
-				should(result.externalRoles).be.an.Array();
-				should(result.externalRoles).have.length(
-					(spec.cache.differentRolesAndGroups.value.roles as unknown[]).length
+				assert(result);
+				assert(
+					Array.isArray(result.externalRoles),
+					'expect externalRoles should be an Array'
 				);
-				should(result.externalRoles).containDeep(
+				assert.deepStrictEqual(
+					result.externalRoles,
 					spec.cache.differentRolesAndGroups.value.roles
 				);
 
-				should(result.externalGroups).be.an.Array();
-				should(result.externalGroups).have.length(
-					(spec.cache.differentRolesAndGroups.value.groups as unknown[]).length
+				assert(
+					Array.isArray(result.externalGroups),
+					'expect externalGroups should be an Array'
 				);
-				should(result.externalGroups).containDeep(
+				assert.deepStrictEqual(
+					result.externalGroups,
 					spec.cache.differentRolesAndGroups.value.groups
 				);
 			});
@@ -475,21 +479,27 @@ describe('User Auth Controller:', () => {
 
 				await userAuthenticationController.signin(req, res, emptyFn);
 
-				assert.calledWith(res.status, 200);
-				assert.calledOnce(res.json);
+				sinonAssert.calledWith(res.status, 200);
+				sinonAssert.calledOnce(res.json);
 
 				const [result] = res.json.getCall(0).args;
-				should.exist(result);
-				should(result.name).equal(spec.user.missingUser.name);
-				should(result.organization).equal(spec.user.missingUser.organization);
-				should(result.email).equal(spec.user.missingUser.email);
-				should(result.username).equal(spec.user.missingUser.username);
+				assert(result);
+				assert.equal(result.name, spec.user.missingUser.name);
+				assert.equal(result.organization, spec.user.missingUser.organization);
+				assert.equal(result.email, spec.user.missingUser.email);
+				assert.equal(result.username, spec.user.missingUser.username);
 
-				should(result.externalRoles).be.an.Array();
-				result.externalRoles.should.have.length(0);
+				assert(
+					Array.isArray(result.externalRoles),
+					'expect externalRoles should be an Array'
+				);
+				assert.equal(result.externalRoles.length, 0);
 
-				should(result.externalGroups).be.an.Array();
-				result.externalGroups.should.have.length(0);
+				assert(
+					Array.isArray(result.externalGroups),
+					'expect externalGroups should be an Array'
+				);
+				assert.equal(result.externalGroups.length, 0);
 			});
 
 			it('should have external roles and groups removed on login when cache expired', async () => {
@@ -500,21 +510,27 @@ describe('User Auth Controller:', () => {
 
 				await userAuthenticationController.signin(req, res, emptyFn);
 
-				assert.calledWith(res.status, 200);
-				assert.calledOnce(res.json);
+				sinonAssert.calledWith(res.status, 200);
+				sinonAssert.calledOnce(res.json);
 
 				const [result] = res.json.getCall(0).args;
-				should.exist(result);
-				should(result.name).equal(spec.user.expiredUser.name);
-				should(result.organization).equal(spec.user.expiredUser.organization);
-				should(result.email).equal(spec.user.expiredUser.email);
-				should(result.username).equal(spec.user.expiredUser.username);
+				assert(result);
+				assert.equal(result.name, spec.user.expiredUser.name);
+				assert.equal(result.organization, spec.user.expiredUser.organization);
+				assert.equal(result.email, spec.user.expiredUser.email);
+				assert.equal(result.username, spec.user.expiredUser.username);
 
-				should(result.externalRoles).be.an.Array();
-				result.externalRoles.should.have.length(0);
+				assert(
+					Array.isArray(result.externalRoles),
+					'expect externalRoles should be an Array'
+				);
+				assert.equal(result.externalRoles.length, 0);
 
-				should(result.externalGroups).be.an.Array();
-				result.externalGroups.should.have.length(0);
+				assert(
+					Array.isArray(result.externalGroups),
+					'expect externalGroups should be an Array'
+				);
+				assert.equal(result.externalGroups.length, 0);
 			});
 		});
 
@@ -532,32 +548,35 @@ describe('User Auth Controller:', () => {
 
 				await userAuthenticationController.signin(req, res, emptyFn);
 
-				assert.calledWith(res.status, 200);
-				assert.calledOnce(res.json);
+				sinonAssert.calledWith(res.status, 200);
+				sinonAssert.calledOnce(res.json);
 
-				const [info] = res.json.getCall(0).args;
+				const [result] = res.json.getCall(0).args;
 
-				should.exist(info);
-				should(info.name).equal(spec.user.missingUserBypassed.name);
-				should(info.organization).equal(
+				assert(result);
+				assert.equal(result.name, spec.user.missingUserBypassed.name);
+				assert.equal(
+					result.organization,
 					spec.user.missingUserBypassed.organization
 				);
-				should(info.email).equal(spec.user.missingUserBypassed.email);
-				should(info.username).equal(spec.user.missingUserBypassed.username);
+				assert.equal(result.email, spec.user.missingUserBypassed.email);
+				assert.equal(result.username, spec.user.missingUserBypassed.username);
 
-				should(info.externalRoles).be.an.Array();
-				should(info.externalRoles).have.length(
-					spec.user.missingUserBypassed.externalRoles.length
+				assert(
+					Array.isArray(result.externalRoles),
+					'expect externalRoles should be an Array'
 				);
-				should(info.externalRoles).containDeep(
+				assert.deepStrictEqual(
+					result.externalRoles,
 					spec.user.missingUserBypassed.externalRoles
 				);
 
-				should(info.externalGroups).be.an.Array();
-				should(info.externalGroups).have.length(
-					spec.user.missingUserBypassed.externalGroups.length
+				assert(
+					Array.isArray(result.externalGroups),
+					'expect externalGroups should be an Array'
 				);
-				should(info.externalGroups).containDeep(
+				assert.deepStrictEqual(
+					result.externalGroups,
 					spec.user.missingUserBypassed.externalGroups
 				);
 			});
@@ -577,21 +596,27 @@ describe('User Auth Controller:', () => {
 
 				await userAuthenticationController.signin(req, res, emptyFn);
 
-				assert.calledWith(res.status, 200);
-				assert.calledOnce(res.json);
+				sinonAssert.calledWith(res.status, 200);
+				sinonAssert.calledOnce(res.json);
 
 				const [result] = res.json.getCall(0).args;
-				should.exist(result);
-				should(result.name).equal(spec.user.userBypassed.name);
-				should(result.organization).equal(spec.user.userBypassed.organization);
-				should(result.email).equal(spec.user.userBypassed.email);
-				should(result.username).equal(spec.user.userBypassed.username);
+				assert(result);
+				assert.equal(result.name, spec.user.userBypassed.name);
+				assert.equal(result.organization, spec.user.userBypassed.organization);
+				assert.equal(result.email, spec.user.userBypassed.email);
+				assert.equal(result.username, spec.user.userBypassed.username);
 
-				should(result.externalRoles).be.an.Array();
-				should(result.externalRoles).have.length(0);
+				assert(
+					Array.isArray(result.externalRoles),
+					'expect externalRoles should be an Array'
+				);
+				assert.equal(result.externalRoles.length, 0);
 
-				should(result.externalGroups).be.an.Array();
-				should(result.externalGroups).have.length(0);
+				assert(
+					Array.isArray(result.externalGroups),
+					'expect externalGroups should be an Array'
+				);
+				assert.equal(result.externalGroups.length, 0);
 			});
 		});
 
@@ -612,34 +637,37 @@ describe('User Auth Controller:', () => {
 				};
 
 				await userAuthenticationController.signin(req, res, () => {
-					assert.error('should not be called');
+					sinonAssert.error('should not be called');
 				});
 
-				assert.calledWith(res.status, 200);
-				assert.calledOnce(res.json);
+				sinonAssert.calledWith(res.status, 200);
+				sinonAssert.calledOnce(res.json);
 
-				const [info] = res.json.getCall(0).args;
-				should.exist(info);
-				should(info.name).equal(spec.cache.cacheOnly.value.name);
-				should(info.organization).equal(
+				const [result] = res.json.getCall(0).args;
+				assert(result);
+				assert.equal(result.name, spec.cache.cacheOnly.value.name);
+				assert.equal(
+					result.organization,
 					spec.cache.cacheOnly.value.organization
 				);
-				should(info.email).equal(spec.cache.cacheOnly.value.email);
-				should(info.username).equal(spec.cache.cacheOnly.value.username);
+				assert.equal(result.email, spec.cache.cacheOnly.value.email);
+				assert.equal(result.username, spec.cache.cacheOnly.value.username);
 
-				should(info.externalRoles).be.an.Array();
-				should(info.externalRoles).have.length(
-					(spec.cache.cacheOnly.value.roles as unknown[]).length
+				assert(
+					Array.isArray(result.externalRoles),
+					'expect externalRoles should be an Array'
 				);
-				should(info.externalRoles).containDeep(
+				assert.deepStrictEqual(
+					result.externalRoles,
 					spec.cache.cacheOnly.value.roles
 				);
 
-				should(info.externalGroups).be.an.Array();
-				should(info.externalGroups).have.length(
-					(spec.cache.cacheOnly.value.groups as unknown[]).length
+				assert(
+					Array.isArray(result.externalGroups),
+					'expect externalGroups should be an Array'
 				);
-				should(info.externalGroups).containDeep(
+				assert.deepStrictEqual(
+					result.externalGroups,
 					spec.cache.cacheOnly.value.groups
 				);
 			});
@@ -666,16 +694,15 @@ describe('User Auth Controller:', () => {
 						spec.user.userBypassed.providerData.dn
 				};
 
-				await userAuthenticationController
-					.signin(req, res, emptyFn)
-					.should.be.rejectedWith(
-						new ForbiddenError(
-							'Not approved to proxy users. Please verify your credentials.'
-						)
-					);
+				await assert.rejects(
+					userAuthenticationController.signin(req, res, emptyFn),
+					new ForbiddenError(
+						'Not approved to proxy users. Please verify your credentials.'
+					)
+				);
 
-				assert.notCalled(res.status);
-				assert.notCalled(res.json);
+				sinonAssert.notCalled(res.status);
+				sinonAssert.notCalled(res.json);
 			});
 
 			it('should succeed when authorized to proxy users', async () => {
@@ -688,22 +715,28 @@ describe('User Auth Controller:', () => {
 
 				await userAuthenticationController.signin(req, res, emptyFn);
 
-				assert.calledWith(res.status, 200);
-				assert.calledOnce(res.json);
+				sinonAssert.calledWith(res.status, 200);
+				sinonAssert.calledOnce(res.json);
 
 				// Verify that the user returned is the proxied user (not the primary user)
 				const [result] = res.json.getCall(0).args;
-				should.exist(result);
-				should(result.name).equal(spec.user.userBypassed.name);
-				should(result.organization).equal(spec.user.userBypassed.organization);
-				should(result.email).equal(spec.user.userBypassed.email);
-				should(result.username).equal(spec.user.userBypassed.username);
+				assert(result);
+				assert.equal(result.name, spec.user.userBypassed.name);
+				assert.equal(result.organization, spec.user.userBypassed.organization);
+				assert.equal(result.email, spec.user.userBypassed.email);
+				assert.equal(result.username, spec.user.userBypassed.username);
 
-				should(result.externalRoles).be.an.Array();
-				should(result.externalRoles).have.length(0);
+				assert(
+					Array.isArray(result.externalRoles),
+					'expect externalRoles should be an Array'
+				);
+				assert.equal(result.externalRoles.length, 0);
 
-				should(result.externalGroups).be.an.Array();
-				should(result.externalGroups).have.length(0);
+				assert(
+					Array.isArray(result.externalGroups),
+					'expect externalGroups should be an Array'
+				);
+				assert.equal(result.externalGroups.length, 0);
 			});
 		});
 	});
