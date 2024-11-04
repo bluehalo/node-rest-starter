@@ -187,7 +187,7 @@ class TeamsService {
 				// append isMember field to elements if user is part of the team
 				return {
 					...res.toJSON(),
-					isMember: teamIdStrings.includes(res.id)
+					isMember: teamIdStrings.includes(res._id.toString())
 				} as unknown as TeamDocument;
 			})
 		};

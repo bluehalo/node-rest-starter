@@ -47,7 +47,7 @@ describe('Audit Service:', () => {
 			assert(Array.isArray(results), 'results should be an Array');
 			assert.equal(results.length, 1);
 
-			const { created, _id, ...result } = results[0].toObject({
+			const { created, ...result } = results[0].toObject({
 				versionKey: false
 			});
 			/*
@@ -61,7 +61,7 @@ describe('Audit Service:', () => {
 			);
 
 			assert.deepStrictEqual(result, {
-				id: _id.toString(),
+				_id: result._id,
 				message: 'some message',
 				audit: {
 					auditType: 'eventType',

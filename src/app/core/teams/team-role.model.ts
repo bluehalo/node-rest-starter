@@ -47,18 +47,21 @@ export interface ITeamRole {
  *         role:
  *           type: string
  */
-export const TeamRoleSchema = new Schema<ITeamRole>({
-	_id: {
-		type: Schema.Types.ObjectId,
-		ref: 'Team'
+export const TeamRoleSchema = new Schema<ITeamRole>(
+	{
+		_id: {
+			type: Schema.Types.ObjectId,
+			ref: 'Team'
+		},
+		role: {
+			type: String,
+			trim: true,
+			default: TeamRoles.Member,
+			enum: TeamRoles
+		}
 	},
-	role: {
-		type: String,
-		trim: true,
-		default: TeamRoles.Member,
-		enum: TeamRoles
-	}
-});
+	{ id: false }
+);
 
 TeamRoleSchema.plugin(getterPlugin);
 
