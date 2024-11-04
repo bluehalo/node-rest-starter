@@ -97,6 +97,7 @@ const TeamSchema = new Schema<
 		}
 	},
 	{
+		id: false,
 		timestamps: {
 			createdAt: 'created',
 			updatedAt: 'updated'

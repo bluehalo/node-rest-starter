@@ -61,6 +61,7 @@ const AuditSchema = new Schema<
 		}
 	},
 	{
+		id: false,
 		timestamps: {
 			createdAt: 'created',
 			updatedAt: false

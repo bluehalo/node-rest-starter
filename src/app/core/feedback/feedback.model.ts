@@ -69,6 +69,7 @@ const FeedbackSchema = new Schema<
 		assignee: { type: String }
 	},
 	{
+		id: false,
 		timestamps: {
 			createdAt: 'created',
 			updatedAt: 'updated'
