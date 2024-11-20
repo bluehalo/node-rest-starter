@@ -3,7 +3,7 @@ import { Socket } from 'socket.io';
 import { config, socketIO } from '../../../dependencies';
 import { logger } from '../../../lib/logger';
 import { SocketConfig } from '../../common/sockets/base-socket.provider';
-import { hasAccess } from '../user/user-auth.middleware';
+import { requireAccess } from '../user/auth/auth.middleware';
 
 const emitName = 'alert';
 
@@ -66,7 +66,7 @@ export class NotificationSocket extends socketIO.SocketProvider {
 		}
 
 		// Check that the user account has access
-		this.applyMiddleware([hasAccess])
+		requireAccess(this.getRequest(), null)
 			.then(() => {
 				// Subscribe to the user's notification topic
 				const topic = this.getTopic();

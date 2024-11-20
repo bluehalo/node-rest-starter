@@ -1,19 +1,36 @@
-import { assert, createSandbox } from 'sinon';
+import assert from 'node:assert/strict';
 
-import * as feedbackController from './feedback.controller';
+import { FastifyInstance } from 'fastify';
+import { assert as sinonAssert, createSandbox } from 'sinon';
+
+import feedbackController from './feedback.controller';
 import { Feedback } from './feedback.model';
 import feedbackService from './feedback.service';
 import { auditService } from '../../../dependencies';
-import { getResponseSpy } from '../../../spec/helpers';
-import { User } from '../user/user.model';
+import { fastifyTest } from '../../../spec/fastify';
 
-describe('Feedback Controller2', () => {
-	let res;
+describe('Feedback Controller', () => {
 	let sandbox;
+
+	let app: FastifyInstance;
+
+	before(() => {
+		app = fastifyTest(feedbackController, {
+			logger: { level: 'debug' },
+			user: {
+				roles: {
+					user: true,
+					admin: true
+				}
+			}
+		});
+	});
+	after(() => {
+		app.close();
+	});
 
 	beforeEach(() => {
 		sandbox = createSandbox();
-		res = getResponseSpy();
 	});
 
 	afterEach(() => {
@@ -22,76 +39,86 @@ describe('Feedback Controller2', () => {
 
 	describe('submitFeedback', () => {
 		it(`should submit feedback successfully`, async () => {
-			const req = {
-				body: {
-					body: 'This is a test',
-					type: 'Bug',
-					url: 'http://localhost:3000/some-page?with=param'
-				},
-				user: new User({})
-			};
-
 			sandbox.stub(auditService, 'audit').resolves({ audit: {} });
 			sandbox.stub(feedbackService, 'create').resolves(new Feedback());
 			sandbox.stub(feedbackService, 'sendFeedbackEmail').resolves();
 
-			await feedbackController.submitFeedback(req, res);
+			const reply = await app.inject({
+				method: 'POST',
+				url: '/feedback',
+				payload: {
+					body: 'This is a test',
+					type: 'Bug',
+					url: 'http://localhost:3000/some-page?with=param'
+				}
+			});
 
-			assert.calledOnce(feedbackService.create);
-			assert.calledOnce(auditService.audit);
+			sinonAssert.calledOnce(feedbackService.create);
+			sinonAssert.calledOnce(auditService.audit);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+			assert.equal(reply.statusCode, 200);
+			assert(reply.body);
 		});
-	});
 
-	describe('searchFeedback', () => {
-		it('search returns feedback', async () => {
-			const req = { body: {} };
+		describe('searchFeedback', () => {
+			it('search returns feedback', async () => {
+				sandbox.stub(feedbackService, 'search').resolves({});
 
-			sandbox.stub(feedbackService, 'search').resolves();
-			await feedbackController.search(req, res);
+				const reply = await app.inject({
+					method: 'POST',
+					url: '/admin/feedback',
+					payload: {}
+				});
 
-			assert.calledOnce(feedbackService.search);
+				sinonAssert.calledOnce(feedbackService.search);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+				assert.equal(reply.statusCode, 200);
+				assert(reply.body);
+			});
 		});
-	});
 
-	describe('updateFeedbackAssignee', () => {
-		it('assignee is updated', async () => {
-			const req = { body: { assignee: 'user' } };
+		describe('updateFeedbackAssignee', () => {
+			it('assignee is updated', async () => {
+				sandbox.stub(feedbackService, 'read').resolves({});
+				sandbox.stub(feedbackService, 'updateFeedbackAssignee').resolves({});
 
-			sandbox.stub(feedbackService, 'updateFeedbackAssignee').resolves();
-			await feedbackController.updateFeedbackAssignee(req, res);
+				const reply = await app.inject({
+					method: 'PATCH',
+					url: '/admin/feedback/1/assignee',
+					payload: { assignee: 'user' }
+				});
 
-			assert.calledOnceWithExactly(
-				feedbackService.updateFeedbackAssignee,
-				undefined,
-				req.body.assignee
-			);
+				sinonAssert.calledOnceWithExactly(
+					feedbackService.updateFeedbackAssignee,
+					{},
+					'user'
+				);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+				assert.equal(reply.statusCode, 200);
+				assert(reply.body);
+			});
 		});
-	});
 
-	describe('updateFeedbackStatus', () => {
-		it('status is updated', async () => {
-			const req = { body: { status: 'closed' } };
+		describe('updateFeedbackStatus', () => {
+			it('status is updated', async () => {
+				sandbox.stub(feedbackService, 'read').resolves({});
+				sandbox.stub(feedbackService, 'updateFeedbackStatus').resolves({});
 
-			sandbox.stub(feedbackService, 'updateFeedbackStatus').resolves();
-			await feedbackController.updateFeedbackStatus(req, res);
+				const reply = await app.inject({
+					method: 'PATCH',
+					url: '/admin/feedback/1/status',
+					payload: { status: 'Closed' }
+				});
 
-			assert.calledOnceWithExactly(
-				feedbackService.updateFeedbackStatus,
-				undefined,
-				req.body.status
-			);
+				sinonAssert.calledOnceWithExactly(
+					feedbackService.updateFeedbackStatus,
+					{},
+					'Closed'
+				);
 
-			assert.calledWith(res.status, 200);
-			assert.called(res.json);
+				assert.equal(reply.statusCode, 200);
+				assert(reply.body);
+			});
 		});
 	});
 });

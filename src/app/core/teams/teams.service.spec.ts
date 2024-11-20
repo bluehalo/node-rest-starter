@@ -975,7 +975,7 @@ describe('Team Service:', () => {
 FOOTER
 `;
 
-			await teamsService.sendRequestEmail(toEmails, _user, _team, {});
+			await teamsService.sendRequestEmail(toEmails, _user, _team);
 
 			sinonAssert.called(sendMailStub);
 			const [mailOptions] = sendMailStub.getCall(0).args;
@@ -1008,8 +1008,7 @@ FOOTER
 			await teamsService.sendRequestEmail(
 				toEmails,
 				user.user1,
-				team.teamWithNoExternalTeam,
-				{}
+				team.teamWithNoExternalTeam
 			);
 
 			sinonAssert.calledOnce(logStub);
@@ -1025,8 +1024,7 @@ FOOTER
 			await assert.rejects(
 				teamsService.requestAccessToTeam(
 					user.admin,
-					team.teamWithNoExternalTeam2,
-					{}
+					team.teamWithNoExternalTeam2
 				),
 				new InternalServerError('Error retrieving team admins')
 			);
@@ -1046,8 +1044,7 @@ FOOTER
 			await assert.doesNotReject(
 				teamsService.requestAccessToTeam(
 					user.admin,
-					team.teamWithNoExternalTeam,
-					{}
+					team.teamWithNoExternalTeam
 				)
 			);
 			const requesterCount = await User.countDocuments({
@@ -1071,22 +1068,22 @@ FOOTER
 
 		it('should properly reject invalid parameters', async () => {
 			await assert.rejects(
-				teamsService.requestNewTeam(null, null, null, null, null),
+				teamsService.requestNewTeam(null, null, null, null),
 				new BadRequestError('Organization cannot be empty')
 			);
 
 			await assert.rejects(
-				teamsService.requestNewTeam('org', null, null, null, null),
+				teamsService.requestNewTeam('org', null, null, null),
 				new BadRequestError('AOI cannot be empty')
 			);
 
 			await assert.rejects(
-				teamsService.requestNewTeam('org', 'aoi', null, null, null),
+				teamsService.requestNewTeam('org', 'aoi', null, null),
 				new BadRequestError('Description cannot be empty')
 			);
 
 			await assert.rejects(
-				teamsService.requestNewTeam('org', 'aoi', 'description', null, null),
+				teamsService.requestNewTeam('org', 'aoi', 'description', null),
 				new BadRequestError('Invalid requester')
 			);
 		});
@@ -1110,9 +1107,7 @@ FOOTER
 FOOTER
 `;
 
-			await teamsService.requestNewTeam('org', 'aoi', 'description', _user, {
-				headers: {}
-			});
+			await teamsService.requestNewTeam('org', 'aoi', 'description', _user);
 
 			sinonAssert.called(sendMailStub);
 			const [mailOptions] = sendMailStub.getCall(0).args;
@@ -1144,8 +1139,7 @@ FOOTER
 				'org',
 				'aoi',
 				'description',
-				user.user1,
-				{ headers: {} }
+				user.user1
 			);
 
 			sinonAssert.calledOnce(logStub);
@@ -1442,30 +1436,6 @@ FOOTER
 					'expect nestedTeamIds to be an Array'
 				);
 				assert.equal(nestedTeamIds.length, 2);
-			});
-		});
-
-		describe('getAncestorTeamIds', () => {
-			it('should return team ancestors', async () => {
-				const ancestors = await teamsService.getAncestorTeamIds([
-					team.nestedTeam2_1._id
-				]);
-				assert.deepStrictEqual(ancestors, [
-					team.teamWithNoExternalTeam._id,
-					team.nestedTeam2._id
-				]);
-			});
-
-			it('should return empty array for team without ancestors', async () => {
-				const ancestors = await teamsService.getAncestorTeamIds([
-					team.teamWithNoExternalTeam._id
-				]);
-				assert.deepStrictEqual(ancestors, []);
-			});
-
-			it('should return empty array when no teams are passed in', async () => {
-				const ancestors = await teamsService.getAncestorTeamIds();
-				assert.deepStrictEqual(ancestors, []);
 			});
 		});
 

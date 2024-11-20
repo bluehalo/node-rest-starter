@@ -6,7 +6,7 @@ import startupFn from './startup';
 startupFn()
 	.then((server) => {
 		// Start the app
-		server.listen(config.get('port'));
+		server.listen({ port: config.get('port') });
 		logger.info(
 			`${config.get('app.instanceName')} started on port ${config.get('port')}`
 		);

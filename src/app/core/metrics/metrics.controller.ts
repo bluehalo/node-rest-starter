@@ -1,9 +1,19 @@
-import { StatusCodes } from 'http-status-codes';
+import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
+import { FastifyInstance } from 'fastify';
 
 import { metricsLogger } from '../../../lib/logger';
 
-// handle a generic client metrics event
-export const handleEvent = (req, res) => {
-	metricsLogger.log('', { metricsEvent: req.body });
-	res.status(StatusCodes.OK).send();
-};
+export default function (_fastify: FastifyInstance) {
+	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();
+	fastify.route({
+		method: 'GET',
+		url: '/client-metrics',
+		schema: {
+			hide: true
+		},
+		handler: function (req, reply) {
+			metricsLogger.log('', { metricsEvent: req.body });
+			return reply.send();
+		}
+	});
+}

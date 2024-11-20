@@ -20,7 +20,6 @@ export default class InactiveUsersJobService implements JobService {
 		try {
 			const mailOptions = await emailService.generateMailOptions(
 				user,
-				null,
 				emailConfig,
 				{
 					daysAgo: numOfDays

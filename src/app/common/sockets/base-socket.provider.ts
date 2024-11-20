@@ -1,6 +1,5 @@
-import * as async from 'async';
 import config from 'config';
-import { Request, RequestHandler, Response } from 'express';
+import { FastifyRequest } from 'fastify';
 import { Socket } from 'socket.io';
 
 import { logger } from '../../../lib/logger';
@@ -35,13 +34,13 @@ export abstract class BaseSocket<MessageType = Record<string, unknown>> {
 		);
 	}
 
-	abstract onDisconnect();
+	abstract onDisconnect(): void;
 
-	abstract onError(err);
+	abstract onError(err: Error): void;
 
-	abstract onSubscribe(message: MessageType);
+	abstract onSubscribe(message: MessageType): void;
 
-	abstract onUnsubscribe(message: MessageType);
+	abstract onUnsubscribe(message: MessageType): void;
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	subscribe(topic: string) {
@@ -216,82 +215,7 @@ export abstract class BaseSocket<MessageType = Record<string, unknown>> {
 			user: req.user,
 			isAuthenticated: () => req.isAuthenticated(),
 			isUnauthenticated: () => req.isUnauthenticated()
-		} as Request;
-	}
-
-	/**
-	 * Gets a placeholder response object that can be used for middleware.  It stubs out the status() and send()
-	 * methods, and if there is an error, forwards it to the next handler.
-	 *
-	 * @param next A callback for the async handler.  It will be called with an error if the middleware
-	 *   callback function passes any message to the UI.
-	 */
-	getResponse(next: (err?: unknown) => void) {
-		function send(data) {
-			const err = new Error(data?.message ?? 'Unauthorized');
-			return next(err);
-		}
-
-		function status() {
-			return {
-				send: send,
-				json: send
-			};
-		}
-
-		return {
-			status,
-			send,
-			json: send
-		} as unknown as Response;
-	}
-
-	/**
-	 * Applies a set of callbacks in series.  Each function should accept a request and response object and
-	 * a callback function, in the same format as the Express.js middleware.
-	 *
-	 * @param callbacks - An array of middleware callbacks to execute.
-	 * @param [done] - Optionally, a function that will be called when all middleware has processed, either
-	 *   with an error or without.
-	 *
-	 * @returns A promise that will be resolved when all the middleware has run.  You can either
-	 *   listen for this or pass in a callback.
-	 */
-	applyMiddleware(
-		callbacks: Array<RequestHandler>,
-		done?: (err, result) => void
-	): Promise<void> {
-		return new Promise((resolve, reject) => {
-			// Use the same request for all callbacks
-			const req = this.getRequest();
-
-			const tasks = callbacks.map((callback) => {
-				return (next) => {
-					// Create a new response for each next() callback
-					const res = this.getResponse(next);
-
-					// Invoke the callback
-					callback(req, res, next);
-				};
-			});
-			async.series(tasks, (err, results) => {
-				// Get the result from the last task
-				const result = results[tasks.length - 1];
-
-				// Invoke the callback if there is one
-				if (null != done) {
-					done(err, result);
-				}
-
-				// In addition to the optional callback,
-				// resolve or reject the promise
-				if (err) {
-					reject(err);
-				} else {
-					resolve(result);
-				}
-			});
-		});
+		} as FastifyRequest;
 	}
 }
 

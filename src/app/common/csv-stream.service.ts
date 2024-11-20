@@ -68,7 +68,7 @@ class CsvStreamService {
 		// Create an output stream piping the parsing stream to the CSV stream
 		const out = pipe(stream, csv);
 
-		out.on('error', (err) => logger.error(err, 'Failed to create CSV'));
+		out.on('error', (err) => logger.error('Failed to create CSV', err));
 
 		return out as Transform;
 	}

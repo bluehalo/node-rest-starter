@@ -1,227 +1,435 @@
-import { StatusCodes } from 'http-status-codes';
+import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 
+import {
+	requireTeamAdminRole,
+	requireTeamMemberRole
+} from './team-auth.middleware';
 import { TeamRoles } from './team-role.model';
 import teamsService from './teams.service';
 import { utilService, auditService } from '../../../dependencies';
-import { BadRequestError, NotFoundError } from '../../common/errors';
+import { NotFoundError } from '../../common/errors';
+import { PagingQueryStringSchema, SearchBodySchema } from '../core.schemas';
+import {
+	requireAccess,
+	requireAdminRole,
+	requireAny,
+	requireEditorAccess
+} from '../user/auth/auth.middleware';
 import userService from '../user/user.service';
 
-/**
- * Create a new team. The team creator is automatically added as an admin
- */
-export const create = async (req, res) => {
-	const result = await teamsService.create(
-		req.body.team,
-		req.user,
-		req.body.firstAdmin
-	);
+export default function (_fastify: FastifyInstance) {
+	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();
+	fastify.route({
+		method: 'POST',
+		url: '/team',
+		schema: {
+			description: 'Creates a new Team',
+			tags: ['Team'],
+			body: {
+				type: 'object',
+				properties: {
+					team: { type: 'object' },
+					firstAdmin: { type: 'string' }
+				},
+				required: ['team']
+			}
+		},
+		preValidation: requireEditorAccess,
+		handler: async function (req, reply) {
+			const result = await teamsService.create(
+				req.body.team,
+				req.user,
+				req.body.firstAdmin
+			);
 
-	// Audit the creation action
-	await auditService.audit(
-		'team created',
-		'team',
-		'create',
-		req,
-		result.auditCopy()
-	);
+			// Audit the creation action
+			await auditService.audit(
+				'team created',
+				'team',
+				'create',
+				req,
+				result.auditCopy()
+			);
 
-	res.status(StatusCodes.OK).json(result);
-};
-
-/**
- * Read the team
- */
-export const read = (req, res) => {
-	res.status(StatusCodes.OK).json(req.team);
-};
-
-/**
- * Update the team metadata
- */
-export const update = async (req, res) => {
-	// Make a copy of the original team for auditing purposes
-	const originalTeam = req.team.auditCopy();
-
-	const result = await teamsService.update(req.team, req.body);
-
-	await auditService.audit('team updated', 'team', 'update', req, {
-		before: originalTeam,
-		after: result.auditCopy()
+			return reply.send(result);
+		}
 	});
 
-	res.status(StatusCodes.OK).json(result);
-};
+	fastify.route({
+		method: 'POST',
+		url: '/teams',
+		schema: {
+			description: 'Returns teams that match the search criteria',
+			tags: ['Team'],
+			body: SearchBodySchema,
+			querystring: PagingQueryStringSchema
+		},
+		preValidation: requireAccess,
+		handler: async function (req, reply) {
+			// Get search and query parameters
+			const search = req.body.s ?? null;
+			const query = utilService.toMongoose(req.body.q ?? {});
 
-/**
- * Delete the team
- */
-export const deleteTeam = async (req, res) => {
-	await teamsService.delete(req.team);
-
-	// Audit the team delete attempt
-	await auditService.audit(
-		'team deleted',
-		'team',
-		'delete',
-		req,
-		req.team.auditCopy()
-	);
-
-	res.status(StatusCodes.OK).json(req.team);
-};
-
-/**
- * Search the teams, includes paging and sorting
- */
-export const search = async (req, res) => {
-	// Get search and query parameters
-	const search = req.body.s ?? null;
-	const query = utilService.toMongoose(req.body.q ?? {});
-
-	const result = await teamsService.search(req.query, query, search, req.user);
-	res.status(StatusCodes.OK).json(result);
-};
-
-export const getAncestorTeamIds = async (req, res) => {
-	const result = await teamsService.getAncestorTeamIds(req.body.teamIds);
-	res.status(StatusCodes.OK).json(result);
-};
-
-export const requestNewTeam = async (req, res) => {
-	const user = req.user;
-	const org = req.body.org ?? null;
-	const aoi = req.body.aoi ?? null;
-	const description = req.body.description ?? null;
-
-	await teamsService.requestNewTeam(org, aoi, description, user, req);
-
-	await auditService.audit('new team requested', 'team', 'request', req, {
-		org,
-		aoi,
-		description
+			const result = await teamsService.search(
+				req.query,
+				query,
+				search,
+				req.user
+			);
+			return reply.send(result);
+		}
 	});
 
-	res.status(StatusCodes.NO_CONTENT).end();
-};
+	fastify.route({
+		method: 'GET',
+		url: '/team/:id',
+		schema: {
+			description: 'Gets the details of a Team',
+			tags: ['Team'],
+			params: {
+				type: 'object',
+				properties: {
+					id: { type: 'string' }
+				},
+				required: ['id']
+			}
+		},
+		preValidation: [
+			requireAccess,
+			requireAny(requireAdminRole, requireTeamMemberRole)
+		],
+		preHandler: loadTeamById,
+		handler: function (req, reply) {
+			return reply.send(req.team);
+		}
+	});
 
-export const requestAccess = async (req, res) => {
-	await teamsService.requestAccessToTeam(req.user, req.team, req);
-	res.status(StatusCodes.NO_CONTENT).end();
-};
+	fastify.route({
+		method: 'POST',
+		url: '/team/:id',
+		schema: {
+			description: 'Updates the details of a Team',
+			tags: ['Team'],
+			params: {
+				type: 'object',
+				properties: {
+					id: { type: 'string' }
+				},
+				required: ['id']
+			}
+		},
+		preValidation: [
+			requireAccess,
+			requireAny(requireAdminRole, requireTeamAdminRole)
+		],
+		preHandler: loadTeamById,
+		handler: async function (req, reply) {
+			// Make a copy of the original team for auditing purposes
+			const originalTeam = req.team.auditCopy();
 
-/**
- * Search the members of the team, includes paging and sorting
- */
-export const searchMembers = async (req, res) => {
-	// Get search and query parameters
-	const search = req.body.s ?? '';
-	const query = teamsService.updateMemberFilter(
-		utilService.toMongoose(req.body.q ?? {}),
-		req.team
-	);
+			const result = await teamsService.update(req.team, req.body);
 
-	const results = await userService.searchUsers(req.query, query, search);
+			await auditService.audit('team updated', 'team', 'update', req, {
+				before: originalTeam,
+				after: result.auditCopy()
+			});
 
-	// Create the return copy of the messages
-	const mappedResults = {
-		pageNumber: results.pageNumber,
-		pageSize: results.pageSize,
-		totalPages: results.totalPages,
-		totalSize: results.totalSize,
-		elements: results.elements.map((element) => {
-			return {
-				...element.filteredCopy(),
-				teams: element.teams.filter((team) => team._id.equals(req.team._id))
-			};
-		})
-	};
+			return reply.send(result);
+		}
+	});
 
-	res.status(StatusCodes.OK).json(mappedResults);
-};
+	fastify.route({
+		method: 'DELETE',
+		url: '/team/:id',
+		schema: {
+			description: 'Deletes a Team',
+			tags: ['Team'],
+			params: {
+				type: 'object',
+				properties: {
+					id: { type: 'string' }
+				},
+				required: ['id']
+			}
+		},
+		preValidation: [
+			requireAccess,
+			requireAny(requireAdminRole, requireTeamAdminRole)
+		],
+		preHandler: loadTeamById,
+		handler: async function (req, reply) {
+			await teamsService.delete(req.team);
 
-/**
- * Add a member to a team, defaulting to read-only access
- */
-export const addMember = async (req, res) => {
-	const role: TeamRoles = req.body.role ?? TeamRoles.Member;
+			// Audit the team delete attempt
+			await auditService.audit(
+				'team deleted',
+				'team',
+				'delete',
+				req,
+				req.team.auditCopy()
+			);
 
-	await teamsService.addMemberToTeam(req.userParam, req.team, role);
+			return reply.send(req.team);
+		}
+	});
 
-	// Audit the member add request
-	await auditService.audit(
-		`team ${role} added`,
-		'team-role',
-		'user add',
-		req,
-		req.team.auditCopyTeamMember(req.userParam, role)
-	);
+	fastify.route({
+		method: 'POST',
+		url: '/team/:id/request',
+		schema: {
+			hide: true,
+			description:
+				'Requests access to a Team. Notifies team admins of the request',
+			tags: ['Team']
+		},
+		preValidation: requireAccess,
+		preHandler: loadTeamById,
+		handler: async function (req, reply) {
+			await teamsService.requestAccessToTeam(req.user, req.team);
+			return reply.send();
+		}
+	});
 
-	res.status(StatusCodes.NO_CONTENT).end();
-};
-
-/**
- * Add specified members with specified roles to a team
- */
-export const addMembers = async (req, res) => {
-	await Promise.all(
-		req.body.newMembers
-			.filter((member) => null != member._id)
-			.map(async (member) => {
-				const user = await userService.read(member._id);
-				if (null != user) {
-					await teamsService.addMemberToTeam(user, req.team, member.role);
-					return auditService.audit(
-						`team ${member.role} added`,
-						'team-role',
-						'user add',
-						req,
-						req.team.auditCopyTeamMember(user, member.role)
-					);
+	fastify.route({
+		method: 'POST',
+		url: '/team-request',
+		schema: {
+			hide: true,
+			description:
+				'Requests a new Team. Notifies the team organization admin of the request.',
+			tags: ['Team'],
+			body: {
+				type: 'object',
+				properties: {
+					org: { type: 'string' },
+					aoi: { type: 'string' },
+					description: { type: 'string' }
 				}
-			})
-	);
-	res.status(StatusCodes.NO_CONTENT).end();
-};
+			}
+		},
+		preValidation: requireAccess,
+		handler: async function (req, reply) {
+			const org = req.body.org ?? null;
+			const aoi = req.body.aoi ?? null;
+			const description = req.body.description ?? null;
 
-/**
- * Remove a member from a team
- */
-export const removeMember = async (req, res) => {
-	await teamsService.removeMemberFromTeam(req.userParam, req.team);
+			await teamsService.requestNewTeam(org, aoi, description, req.user);
 
-	// Audit the user remove
-	await auditService.audit(
-		'team member removed',
-		'team-role',
-		'user remove',
-		req,
-		req.team.auditCopyTeamMember(req.userParam)
-	);
+			await auditService.audit('new team requested', 'team', 'request', req, {
+				org,
+				aoi,
+				description
+			});
 
-	res.status(StatusCodes.NO_CONTENT).end();
-};
+			return reply.send();
+		}
+	});
 
-export const updateMemberRole = async (req, res) => {
-	const role: TeamRoles = req.body.role || TeamRoles.Member;
+	fastify.route({
+		method: 'PUT',
+		url: '/team/:id/members',
+		schema: {
+			description: 'Adds members to a Team',
+			tags: ['Team'],
+			body: {
+				type: 'object',
+				properties: {
+					newMembers: {
+						type: 'array',
+						items: {
+							type: 'object',
+							properties: {
+								_id: { type: 'string' },
+								role: { type: 'string', enum: Object.values(TeamRoles) }
+							},
+							required: ['_id']
+						}
+					}
+				},
+				required: ['newMembers']
+			}
+		},
+		preValidation: [
+			requireAccess,
+			requireAny(requireAdminRole, requireTeamAdminRole)
+		],
+		preHandler: loadTeamById,
+		handler: async function (req, reply) {
+			await Promise.all(
+				req.body.newMembers
+					.filter((member) => null != member._id)
+					.map(async (member) => {
+						const user = await userService.read(member._id);
+						if (null != user) {
+							await teamsService.addMemberToTeam(user, req.team, member.role);
+							return auditService.audit(
+								`team ${member.role} added`,
+								'team-role',
+								'user add',
+								req,
+								req.team.auditCopyTeamMember(user, member.role)
+							);
+						}
+					})
+			);
+			return reply.send();
+		}
+	});
 
-	await teamsService.updateMemberRole(req.userParam, req.team, role);
+	fastify.route({
+		method: 'POST',
+		url: '/team/:id/members',
+		schema: {
+			description: 'Searches for members of a Team',
+			tags: ['Team'],
+			body: SearchBodySchema,
+			querystring: PagingQueryStringSchema
+		},
+		preValidation: [
+			requireAccess,
+			requireAny(requireAdminRole, requireTeamMemberRole)
+		],
+		preHandler: loadTeamById,
+		handler: async function (req, reply) {
+			// Get search and query parameters
+			const search = req.body.s ?? '';
+			const query = teamsService.updateMemberFilter(
+				utilService.toMongoose(req.body.q ?? {}),
+				req.team
+			);
 
-	// Audit the member update request
-	await auditService.audit(
-		`team role changed to ${role}`,
-		'team-role',
-		'user add',
-		req,
-		req.team.auditCopyTeamMember(req.userParam, role)
-	);
+			const results = await userService.searchUsers(req.query, query, search);
 
-	res.status(StatusCodes.NO_CONTENT).end();
-};
+			// Create the return copy of the messages
+			const mappedResults = {
+				pageNumber: results.pageNumber,
+				pageSize: results.pageSize,
+				totalPages: results.totalPages,
+				totalSize: results.totalSize,
+				elements: results.elements.map((element) => {
+					return {
+						...element.filteredCopy(),
+						teams: element.teams.filter((team) => team._id.equals(req.team._id))
+					};
+				})
+			};
 
-/**
- * Team middleware
- */
-export const teamById = async (req, res, next, id: string) => {
+			return reply.send(mappedResults);
+		}
+	});
+
+	fastify.route({
+		method: 'POST',
+		url: '/team/:id/member/:memberId',
+		schema: {
+			description: 'Adds a member to a Team',
+			tags: ['Team'],
+			body: {
+				type: 'object',
+				properties: {
+					role: {
+						type: 'string',
+						enum: Object.values(TeamRoles)
+					}
+				},
+				required: ['role']
+			}
+		},
+		preValidation: [
+			requireAccess,
+			requireAny(requireAdminRole, requireTeamAdminRole)
+		],
+		preHandler: [loadTeamById, loadTeamMemberById],
+		handler: async function (req, reply) {
+			const role: TeamRoles = req.body.role ?? TeamRoles.Member;
+
+			await teamsService.addMemberToTeam(req.userParam, req.team, role);
+
+			// Audit the member add request
+			await auditService.audit(
+				`team ${role} added`,
+				'team-role',
+				'user add',
+				req,
+				req.team.auditCopyTeamMember(req.userParam, role)
+			);
+
+			return reply.send();
+		}
+	});
+
+	fastify.route({
+		method: 'DELETE',
+		url: '/team/:id/member/:memberId',
+		schema: {
+			description: 'Deletes a member from a Team',
+			tags: ['Team']
+		},
+		preValidation: [
+			requireAccess,
+			requireAny(requireAdminRole, requireTeamAdminRole)
+		],
+		preHandler: [loadTeamById, loadTeamMemberById],
+		handler: async function (req, reply) {
+			await teamsService.removeMemberFromTeam(req.userParam, req.team);
+
+			// Audit the user remove
+			await auditService.audit(
+				'team member removed',
+				'team-role',
+				'user remove',
+				req,
+				req.team.auditCopyTeamMember(req.userParam)
+			);
+
+			return reply.send();
+		}
+	});
+
+	fastify.route({
+		method: 'POST',
+		url: '/team/:id/member/:memberId/role',
+		schema: {
+			description: `Updates a member's role in a team`,
+			tags: ['Team'],
+			body: {
+				type: 'object',
+				properties: {
+					role: {
+						type: 'string',
+						enum: Object.values(TeamRoles)
+					}
+				},
+				required: ['role']
+			}
+		},
+		preValidation: [
+			requireAccess,
+			requireAny(requireAdminRole, requireTeamAdminRole)
+		],
+		preHandler: [loadTeamById, loadTeamMemberById],
+		handler: async function (req, reply) {
+			const role: TeamRoles = req.body.role || TeamRoles.Member;
+
+			await teamsService.updateMemberRole(req.userParam, req.team, role);
+
+			// Audit the member update request
+			await auditService.audit(
+				`team role changed to ${role}`,
+				'team-role',
+				'user add',
+				req,
+				req.team.auditCopyTeamMember(req.userParam, role)
+			);
+
+			return reply.send();
+		}
+	});
+}
+
+async function loadTeamById(req: FastifyRequest) {
+	const id = req.params['id'];
 	const populate = [
 		{
 			path: 'parent',
@@ -233,51 +441,17 @@ export const teamById = async (req, res, next, id: string) => {
 		}
 	];
 
-	const team = await teamsService.read(id, populate);
-	if (!team) {
-		return next(new NotFoundError('Could not find team'));
+	req.team = await teamsService.read(id, populate);
+	if (!req.team) {
+		throw new NotFoundError('Could not find team');
 	}
-	req.team = team;
-	return next();
-};
-
-export const teamMemberById = async (req, res, next, id: string) => {
-	const user = await userService.read(id);
-
-	if (null == user) {
-		return next(new Error('Failed to load team member'));
-	}
-	req.userParam = user;
-	return next();
-};
-
-/**
- * Does the user have the referenced role in the team
- */
-function requiresRole(role: TeamRoles): (req) => Promise<void> {
-	return function (req) {
-		// Verify that the user and team are on the request
-		const user = req.user;
-		if (null == user) {
-			return Promise.reject(new BadRequestError('No user for request'));
-		}
-		const team = req.team;
-		if (null == team) {
-			return Promise.reject(new BadRequestError('No team for request'));
-		}
-
-		return teamsService.meetsRoleRequirement(user, team, role);
-	};
 }
 
-export const requiresAdmin = (req) => {
-	return requiresRole(TeamRoles.Admin)(req);
-};
+async function loadTeamMemberById(req: FastifyRequest) {
+	const id = req.params['memberId'];
+	req.userParam = await userService.read(id);
 
-export const requiresEditor = (req) => {
-	return requiresRole(TeamRoles.Editor)(req);
-};
-
-export const requiresMember = (req) => {
-	return requiresRole(TeamRoles.Member)(req);
-};
+	if (!req.userParam) {
+		throw new Error('Failed to load team member');
+	}
+}

@@ -1,9 +1,7 @@
-import http from 'http';
-
 import { Mongoose } from 'mongoose';
 
 import * as agenda from './lib/agenda';
-import * as express from './lib/express';
+import * as fastify from './lib/fastify';
 import { logger } from './lib/logger';
 import * as migrate_mongo from './lib/migrate-mongo';
 import * as mongoose from './lib/mongoose';
@@ -21,15 +19,11 @@ export default async function () {
 	// Init agenda.ts scheduler
 	await agenda.init();
 
-	// Initialize express
-	const app = await express.init(db.admin as Mongoose);
-
-	// Create a new HTTP server
-	logger.info('Creating HTTP Server');
-	const server = http.createServer(app);
+	logger.info('Creating Fastify Server');
+	const app = await fastify.init(db.admin as Mongoose);
 
 	// Initialize socket.io
-	await socketio.init(server, db.admin as Mongoose);
+	await socketio.init(app.server, db.admin as Mongoose);
 
-	return server;
+	return app;
 }

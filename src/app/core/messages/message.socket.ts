@@ -3,7 +3,7 @@ import { Socket } from 'socket.io';
 import { config, socketIO } from '../../../dependencies';
 import { logger } from '../../../lib/logger';
 import { SocketConfig } from '../../common/sockets/base-socket.provider';
-import { hasAccess } from '../user/user-auth.middleware';
+import { requireAccess } from '../user/auth/auth.middleware';
 
 const emitName = 'message';
 
@@ -38,8 +38,8 @@ export class MessageSocket extends socketIO.SocketProvider {
 	/**
 	 * Handle socket errors
 	 */
-	override onError(err) {
-		logger.error(err, 'MessageSocket: Client connection error');
+	override onError(err: Error) {
+		logger.error('MessageSocket: Client connection error', err);
 
 		this.unsubscribe(this.getTopic());
 	}
@@ -47,17 +47,13 @@ export class MessageSocket extends socketIO.SocketProvider {
 	/**
 	 *
 	 */
-	onSubscribe(payload) {
+	onSubscribe(payload: unknown) {
 		if (logger.isDebugEnabled()) {
-			logger.debug(
-				`MessageSocket: ${emitName}: subscribe event with payload: ${JSON.stringify(
-					payload
-				)}`
-			);
+			logger.debug(`MessageSocket: ${emitName}: subscribe event`, { payload });
 		}
 
 		// Check that the user account has access
-		this.applyMiddleware([hasAccess])
+		requireAccess(this.getRequest(), null)
 			.then(() => {
 				// Subscribe to the user's message topic
 				const topic = this.getTopic();
@@ -65,22 +61,21 @@ export class MessageSocket extends socketIO.SocketProvider {
 				this._subscriptionCount++;
 			})
 			.catch((err) => {
-				logger.warn(
-					`Unauthorized access to messages by inactive user ${this.getUserId()}: ${err}`
-				);
+				logger.warn('Unauthorized access to messages by inactive user', {
+					user: this.getUserId(),
+					err
+				});
 			});
 	}
 
 	/**
 	 *
 	 */
-	onUnsubscribe(payload) {
+	onUnsubscribe(payload: unknown) {
 		if (logger.isDebugEnabled()) {
-			logger.debug(
-				`MessageSocket: ${emitName}: unsubscribe event with payload: ${JSON.stringify(
-					payload
-				)}`
-			);
+			logger.debug(`MessageSocket: ${emitName}: unsubscribe event`, {
+				payload
+			});
 		}
 
 		const topic = this.getTopic();

@@ -66,10 +66,8 @@ module.exports = {
 
 	assets: {
 		models: ['src/**/*.model!(.spec).{js,ts}'],
-		routes: ['src/**/*.routes!(.spec).{js,ts}'],
+		controllers: ['src/**/*.controller!(.spec).{js,ts}'],
 		sockets: ['src/**/*.socket!(.spec).{js,ts}'],
-		config: ['src/**/*.config!(.spec).js'],
-		docs: ['src/**/*/*.components.yml'],
 		// Test specific source files
 		tests: ['src/**/*.spec.{js,ts}'],
 		e2e: ['e2e/**/*.spec.{js, ts}']
@@ -399,12 +397,14 @@ module.exports = {
 
 	// Express route logging
 	expressLogging: false,
+	fastifyLogging: false,
 
 	/**
 	 * Logging Settings
 	 */
 	logger: {
 		application: {
+			prettyPrint: false,
 			silent: false,
 			console: {
 				enabled: true,
@@ -422,6 +422,7 @@ module.exports = {
 			}
 		},
 		audit: {
+			prettyPrint: false,
 			silent: false,
 			console: {
 				enabled: false,
@@ -439,6 +440,7 @@ module.exports = {
 			}
 		},
 		metrics: {
+			prettyPrint: false,
 			silent: false,
 			console: {
 				enabled: false,
