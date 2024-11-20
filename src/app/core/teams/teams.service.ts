@@ -568,13 +568,11 @@ class TeamsService {
 	async sendRequestEmail(
 		toEmail: string[],
 		requester: UserDocument,
-		team: TeamDocument,
-		req
+		team: TeamDocument
 	): Promise<void> {
 		try {
 			const mailOptions = await emailService.generateMailOptions(
 				requester,
-				null,
 				config.get('coreEmails.teamAccessRequestEmail'),
 				{
 					team: team.toJSON()
@@ -590,14 +588,13 @@ class TeamsService {
 			logger.debug(`Sent approved user (${requester.username}) alert email`);
 		} catch (error) {
 			// Log the error but this shouldn't block
-			logger.error('Failure sending email.', { err: error, req: req });
+			logger.error('Failure sending email.', { err: error });
 		}
 	}
 
 	async requestAccessToTeam(
 		requester: UserDocument,
-		team: TeamDocument,
-		req
+		team: TeamDocument
 	): Promise<void> {
 		// Lookup the emails of all team admins
 		const admins = await this.userModel
@@ -623,15 +620,14 @@ class TeamsService {
 		await this.addMemberToTeam(requester, team, TeamRoles.Requester);
 
 		// Email template rendering requires simple objects and not Mongo classes
-		return this.sendRequestEmail(adminEmails, requester, team, req);
+		return this.sendRequestEmail(adminEmails, requester, team);
 	}
 
 	async requestNewTeam(
 		org: string,
 		aoi: string,
 		description: string,
-		requester: UserDocument,
-		req
+		requester: UserDocument
 	): Promise<void> {
 		if (null == org) {
 			return Promise.reject(
@@ -651,7 +647,6 @@ class TeamsService {
 		try {
 			const mailOptions = await emailService.generateMailOptions(
 				requester,
-				req,
 				config.get('coreEmails.newTeamRequest'),
 				{
 					org: org,
@@ -663,7 +658,7 @@ class TeamsService {
 			logger.debug('Sent team request email');
 		} catch (error) {
 			// Log the error but this shouldn't block
-			logger.error('Failure sending email.', { err: error, req: req });
+			logger.error('Failure sending email.', { err: error });
 		}
 	}
 
@@ -784,12 +779,6 @@ class TeamsService {
 				ancestors: { $in: teamIds }
 			})
 			.exec();
-	}
-
-	getAncestorTeamIds(
-		teamIds: Types.ObjectId[] = []
-	): Promise<Types.ObjectId[]> {
-		return this.model.distinct('ancestors', { _id: { $in: teamIds } }).exec();
 	}
 
 	async getTeamIds(

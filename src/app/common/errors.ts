@@ -8,7 +8,7 @@ export class BaseError extends Error {
 }
 export class HttpError extends BaseError {
 	constructor(
-		public readonly status: StatusCodes,
+		public readonly statusCode: StatusCodes,
 		name: string,
 		message: string
 	) {
@@ -17,7 +17,7 @@ export class HttpError extends BaseError {
 
 	toJSON(exposeServerErrors = false): Record<string, unknown> {
 		return {
-			status: this.status,
+			status: this.statusCode,
 			message: this.message,
 			type: this.name,
 			stack: exposeServerErrors ? this.stack : undefined

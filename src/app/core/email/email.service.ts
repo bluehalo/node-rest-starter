@@ -63,7 +63,6 @@ class EmailService {
 
 	async generateMailOptions(
 		user,
-		req,
 		emailTemplateConfig,
 		emailContentData = {},
 		emailSubjectData = {},
@@ -86,7 +85,7 @@ class EmailService {
 				emailSubjectData
 			);
 		} catch (error) {
-			logger.error('Failure rendering template.', { err: error, req: req });
+			logger.error('Failure rendering template.', { err: error });
 			return Promise.reject(error);
 		}
 

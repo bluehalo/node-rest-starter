@@ -16,7 +16,6 @@ class UserEmailService {
 		try {
 			const mailOptions = await emailService.generateMailOptions(
 				user,
-				req,
 				config.get('coreEmails.approvedUserEmail'),
 				{},
 				{},
@@ -39,7 +38,6 @@ class UserEmailService {
 		try {
 			const mailOptions = await emailService.generateMailOptions(
 				user,
-				req,
 				config.get('coreEmails.userSignupAlert')
 			);
 			await emailService.sendMail(mailOptions);
@@ -61,7 +59,6 @@ class UserEmailService {
 			try {
 				const mailOptions = await emailService.generateMailOptions(
 					user,
-					req,
 					config.get('coreEmails.welcomeNoAccess'),
 					{},
 					{},
@@ -95,7 +92,6 @@ class UserEmailService {
 				try {
 					const mailOptions = await emailService.generateMailOptions(
 						user,
-						req,
 						config.get('coreEmails.welcomeWithAccess'),
 						{},
 						{},

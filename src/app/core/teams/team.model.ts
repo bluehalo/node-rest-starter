@@ -34,7 +34,10 @@ export interface ITeam {
 
 export interface ITeamMethods {
 	auditCopy(): Record<string, unknown>;
-	auditCopyTeamMember(user: UserDocument): Record<string, unknown>;
+	auditCopyTeamMember(
+		user: UserDocument,
+		role?: string
+	): Record<string, unknown>;
 }
 
 export type TeamDocument = HydratedDocument<
@@ -141,7 +144,7 @@ TeamSchema.methods.auditCopy = function (): Record<string, unknown> {
 // Copy a team role for audit logging
 TeamSchema.methods.auditCopyTeamMember = function (
 	user: UserDocument,
-	role = null
+	role?: string
 ): Record<string, unknown> {
 	const toReturn: Record<string, unknown> = {};
 

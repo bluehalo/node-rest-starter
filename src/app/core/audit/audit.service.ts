@@ -1,5 +1,6 @@
 import config from 'config';
 import { Request } from 'express';
+import { FastifyRequest } from 'fastify';
 
 import { Audit, AuditDocument } from './audit.model';
 import { utilService } from '../../../dependencies';
@@ -26,7 +27,11 @@ class AuditService {
 		message: string,
 		eventType: string,
 		eventAction: string,
-		requestOrEventActor: Request | Promise<Partial<IUser>> | Partial<IUser>,
+		requestOrEventActor:
+			| Request
+			| FastifyRequest
+			| Promise<Partial<IUser>>
+			| Partial<IUser>,
 		eventObject: unknown,
 		eventMetadata = null
 	): Promise<AuditDocument> {

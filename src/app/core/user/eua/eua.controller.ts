@@ -1,136 +1,195 @@
-import { StatusCodes } from 'http-status-codes';
+import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 
 import euaService from './eua.service';
 import { auditService } from '../../../../dependencies';
-import { ForbiddenError } from '../../../common/errors';
+import { PagingQueryStringSchema, SearchBodySchema } from '../../core.schemas';
+import { requireAdminAccess, requireLogin } from '../auth/auth.middleware';
 
-// Search (Retrieve) all user Agreements
-export const searchEuas = async (req, res) => {
-	// Handle the query/search
-	const query = req.body.q ?? {};
-	const search = req.body.s ?? null;
+export default function (_fastify: FastifyInstance) {
+	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();
+	fastify.route({
+		method: 'POST',
+		url: '/euas',
+		schema: {
+			description: 'Returns EUAs matching search criteria',
+			tags: ['EUA'],
+			body: SearchBodySchema,
+			querystring: PagingQueryStringSchema
+		},
+		preValidation: requireAdminAccess,
+		handler: async function (req, reply) {
+			// Handle the query/search
+			const query = req.body.q ?? {};
+			const search = req.body.s ?? null;
 
-	const results = await euaService.search(req.query, search, query);
-	res.status(StatusCodes.OK).json(results);
-};
-
-// Publish the EUA
-export const publishEua = async (req, res) => {
-	// The eua is placed into this parameter by the middleware
-	const eua = req.euaParam;
-
-	const result = await euaService.publishEua(eua);
-
-	// Audit eua create
-	await auditService.audit(
-		'eua published',
-		'eua',
-		'published',
-		req,
-		result.auditCopy()
-	);
-
-	res.status(StatusCodes.OK).json(result);
-};
-
-// Accept the current EUA
-export const acceptEua = async (req, res) => {
-	const user = await euaService.acceptEua(req.user);
-
-	// Audit accepted eua
-	await auditService.audit('eua accepted', 'eua', 'accepted', req, {});
-
-	res.status(StatusCodes.OK).json(user.fullCopy());
-};
-
-// Create a new User Agreement
-export const createEua = async (req, res) => {
-	const result = await euaService.create(req.body);
-
-	// Audit eua create
-	await auditService.audit(
-		'eua create',
-		'eua',
-		'create',
-		req,
-		result.auditCopy()
-	);
-
-	res.status(StatusCodes.OK).json(result);
-};
-
-// Retrieve the Current User Agreement
-export const getCurrentEua = async (req, res) => {
-	const results = await euaService.getCurrentEua();
-	res.status(StatusCodes.OK).json(results);
-};
-
-// Retrieve the arbitrary User Agreement
-export const read = (req, res) => {
-	res.status(StatusCodes.OK).json(req.euaParam);
-};
-
-// Update a User Agreement
-export const updateEua = async (req, res) => {
-	// A copy of the original eua for auditing purposes
-	const originalEua = req.euaParam.auditCopy();
-
-	const results = await euaService.update(req.euaParam, req.body);
-
-	// Audit user update
-	await auditService.audit('end user agreement updated', 'eua', 'update', req, {
-		before: originalEua,
-		after: results.auditCopy()
+			const results = await euaService.search(req.query, search, query);
+			return reply.send(results);
+		}
 	});
 
-	res.status(StatusCodes.OK).json(results);
-};
+	fastify.route({
+		method: 'GET',
+		url: '/eua',
+		schema: {
+			description: 'Retrieve current system EUA',
+			tags: ['EUA']
+		},
+		preValidation: requireLogin,
+		handler: async function (req, reply) {
+			const result = await euaService.getCurrentEua();
+			return reply.send(result);
+		}
+	});
 
-// Delete a User Agreement
-export const deleteEua = async (req, res) => {
-	// The eua is placed into this parameter by the middleware
-	const eua = req.euaParam;
+	fastify.route({
+		method: 'POST',
+		url: '/eua',
+		schema: {
+			description: 'Create EUA',
+			tags: ['EUA']
+		},
+		preValidation: requireAdminAccess,
+		handler: async function (req, reply) {
+			const result = await euaService.create(req.body);
 
-	const results = await euaService.delete(eua);
+			// Audit eua create
+			await auditService.audit(
+				'eua create',
+				'eua',
+				'create',
+				req,
+				result.auditCopy()
+			);
 
-	// Audit eua delete
-	await auditService.audit(
-		'eua deleted',
-		'eua',
-		'delete',
-		req,
-		eua.auditCopy()
-	);
+			return reply.send(result);
+		}
+	});
 
-	res.status(StatusCodes.OK).json(results);
-};
+	fastify.route({
+		method: 'POST',
+		url: '/eua/accept',
+		schema: {
+			description: 'Accept EUA for current user',
+			tags: ['EUA']
+		},
+		preValidation: requireLogin,
+		handler: async function (req, reply) {
+			const user = await euaService.acceptEua(req.user);
 
-// EUA middleware - stores user corresponding to id in 'euaParam'
-export const euaById = async (req, res, next, id) => {
-	const eua = await euaService.read(id);
-	if (null == eua) {
-		return next(new Error(`Failed to load User Agreement ${id}`));
+			// Audit accepted eua
+			auditService.audit('eua accepted', 'eua', 'accepted', req, {}).then();
+
+			return reply.send(user.fullCopy());
+		}
+	});
+
+	fastify.route({
+		method: 'GET',
+		url: '/eua/:id',
+		schema: {
+			description: 'Retrieve EUA details',
+			tags: ['EUA']
+		},
+		preValidation: requireAdminAccess,
+		preHandler: loadEuaById,
+		handler: function (req, reply) {
+			return reply.send(req.euaParam);
+		}
+	});
+
+	fastify.route({
+		method: 'POST',
+		url: '/eua/:id',
+		schema: {
+			description: 'Update EUA details',
+			tags: ['Eua']
+		},
+		preValidation: requireAdminAccess,
+		preHandler: loadEuaById,
+		handler: async function (req, reply) {
+			// A copy of the original eua for auditing purposes
+			const originalEua = req.euaParam.auditCopy();
+
+			const result = await euaService.update(req.euaParam, req.body);
+
+			// Audit user update
+			await auditService.audit(
+				'end user agreement updated',
+				'eua',
+				'update',
+				req,
+				{
+					before: originalEua,
+					after: result.auditCopy()
+				}
+			);
+
+			return reply.send(result);
+		}
+	});
+
+	fastify.route({
+		method: 'DELETE',
+		url: '/eua/:id',
+		schema: {
+			description: '',
+			tags: ['EUA']
+		},
+		preValidation: requireAdminAccess,
+		preHandler: loadEuaById,
+		handler: async function (req, reply) {
+			// The eua is placed into this parameter by the middleware
+			const eua = req.euaParam;
+
+			const result = await euaService.delete(eua);
+
+			// Audit eua delete
+			await auditService.audit(
+				'eua deleted',
+				'eua',
+				'delete',
+				req,
+				eua.auditCopy()
+			);
+
+			return reply.send(result);
+		}
+	});
+
+	fastify.route({
+		method: 'POST',
+		url: '/eua/:id/publish',
+		schema: {
+			description: '',
+			tags: ['EUA']
+		},
+		preValidation: requireAdminAccess,
+		preHandler: loadEuaById,
+		handler: async function (req, reply) {
+			// The eua is placed into this parameter by the middleware
+			const eua = req.euaParam;
+
+			const result = await euaService.publishEua(eua);
+
+			// Audit eua create
+			await auditService.audit(
+				'eua published',
+				'eua',
+				'published',
+				req,
+				result.auditCopy()
+			);
+
+			return reply.send(result);
+		}
+	});
+}
+
+async function loadEuaById(req: FastifyRequest) {
+	const id = req.params['id'];
+	req.euaParam = await euaService.read(id);
+	if (!req.euaParam) {
+		throw new Error(`Failed to load User Agreement ${id}`);
 	}
-	req.euaParam = eua;
-	return next();
-};
-
-/**
- * Check the state of the EUA
- */
-export const requiresEua = async (req) => {
-	const result = await euaService.getCurrentEua();
-
-	// Compare the current eua to the user's acceptance state
-	if (
-		null == result ||
-		null == result.published ||
-		(req.user.acceptedEua && req.user.acceptedEua >= result.published)
-	) {
-		// if the user's acceptance is valid, then proceed
-		return Promise.resolve();
-	}
-	return Promise.reject(
-		new ForbiddenError('User must accept end-user agreement.')
-	);
-};
+}

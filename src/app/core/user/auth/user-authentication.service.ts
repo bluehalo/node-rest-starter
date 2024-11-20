@@ -1,7 +1,7 @@
-import passport from 'passport';
+import { FastifyReply, FastifyRequest } from 'fastify';
 
 import { auditService, config } from '../../../../dependencies';
-import { InternalServerError, UnauthorizedError } from '../../../common/errors';
+import { UnauthorizedError } from '../../../common/errors';
 import accessChecker from '../../access-checker/access-checker.service';
 import userEmailService from '../user-email.service';
 import { IUser, UserDocument, User, UserModel } from '../user.model';
@@ -20,97 +20,54 @@ class UserAuthenticationService {
 		return Promise.resolve(user);
 	}
 
-	/**
-	 * Login the user
-	 * Does the work to log the user into the system
-	 * Updates the last logged in time
-	 * Audits the action
-	 */
-	login(user: UserDocument, req): Promise<IUser> {
-		return new Promise((resolve, reject) => {
-			// Calls the login function (which goes to passport)
-			req.login(user, (err) => {
-				if (err) {
-					return reject(new InternalServerError(err));
-				}
+	async login(req: FastifyRequest): Promise<IUser> {
+		userEmailService.welcomeNoAccessEmail(req.user, req).then();
+		userEmailService.welcomeWithAccessEmail(req.user, req).then();
 
-				userEmailService.welcomeWithAccessEmail(user, req);
+		// Audit the login
+		auditService
+			.audit(
+				'User successfully logged in',
+				'user-authentication',
+				'authentication succeeded',
+				req,
+				{}
+			)
+			.then();
 
-				// update the user's last login time
-				this.userModel
-					.findByIdAndUpdate(
-						user._id,
-						{ lastLogin: Date.now() },
-						{ new: true, upsert: false }
-					)
-					.then((_user: UserDocument) => {
-						return resolve(_user.fullCopy());
-					})
-					.catch((err) => {
-						return reject(new InternalServerError(err.message));
-					});
-
-				// Audit the login
-				auditService.audit(
-					'User successfully logged in',
-					'user-authentication',
-					'authentication succeeded',
-					req,
-					{}
-				);
-			});
-		});
+		// update the user's last login time
+		const user = await this.userModel.findByIdAndUpdate(
+			req.user._id,
+			{ lastLogin: Date.now() },
+			{ new: true, upsert: false }
+		);
+		return user.fullCopy();
 	}
 
-	/**
-	 * Authenticate and then login depending on the outcome
-	 */
-	authenticateAndLogin(req, res, next): Promise<IUser> {
-		return new Promise((resolve, reject) => {
-			// Attempt to authenticate the user using passport
-			passport.authenticate(
-				config.get('auth.strategy'),
-				(err, user, info, status) => {
-					// If there was an error
-					if (err) {
-						// Reject the promise with a 500 error
-						return reject(new InternalServerError(err));
-					}
-					// If the authentication failed
-					if (!user) {
-						// In the case of a auth failure, info should have the reason
-						// Here is a hack for the local strategy...
-						if (null == info.status && null != status) {
-							info.status = status;
-							if (info.message === 'Missing credentials') {
-								info.type = 'missing-credentials';
-							}
-						}
+	async authenticateAndLogin(
+		req: FastifyRequest,
+		reply: FastifyReply
+	): Promise<IUser> {
+		await req.passport
+			.authenticate(config.get<string>('auth.strategy'))
+			.bind(req.server)(req, reply);
+		if (!req.user) {
+			// Try to grab the username from the request
+			const username = req.body?.['username'] ?? 'none provided';
 
-						// Try to grab the username from the request
-						const username =
-							req.body && req.body.username
-								? req.body.username
-								: 'none provided';
-
-						// Audit the failed attempt
-						auditService.audit(
-							info.message,
-							'user-authentication',
-							'authentication failed',
-							req,
-							{ username: username }
-						);
-
-						return reject(info);
-					}
-					// Else the authentication was successful
-					// Set the user ip if available.
-					user.ip = req.headers?.['x-real-ip'] ?? null;
-					this.login(user, req).then(resolve).catch(reject);
-				}
-			)(req, res, next);
-		});
+			// Audit the failed attempt
+			auditService
+				.audit(
+					'Authentication failed',
+					'user-authentication',
+					'authentication failed',
+					req,
+					{ username: username }
+				)
+				.then();
+		} else {
+			return this.login(req);
+		}
 	}
 
 	copyACMetadata(dest, src) {

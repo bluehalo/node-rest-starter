@@ -212,11 +212,7 @@ ${footer}
 					'src/app/core/user/templates/user-welcome-with-access-email.server.view.html'
 			};
 
-			const options = await emailService.generateMailOptions(
-				user,
-				{},
-				emailConfig
-			);
+			const options = await emailService.generateMailOptions(user, emailConfig);
 
 			assert(options);
 			assert.equal(options.header, header);
@@ -231,9 +227,7 @@ ${footer}
 					'src/app/core/user/templates/file-that-doesnt-exist.view.html'
 			};
 
-			await assert.rejects(
-				emailService.generateMailOptions(user, {}, emailConfig)
-			);
+			await assert.rejects(emailService.generateMailOptions(user, emailConfig));
 		});
 	});
 });

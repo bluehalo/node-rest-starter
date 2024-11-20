@@ -121,7 +121,6 @@ class FeedbackService {
 		try {
 			const mailOptions = await emailService.generateMailOptions(
 				user,
-				req,
 				config.get('coreEmails.feedbackEmail'),
 				{
 					url: feedback.url,
@@ -130,7 +129,7 @@ class FeedbackService {
 				}
 			);
 			await emailService.sendMail(mailOptions);
-			logger.debug(`Sent approved user (${user.username}) alert email`);
+			logger.debug(`Sent feedback email`);
 		} catch (error) {
 			// Log the error but this shouldn't block
 			logger.error('Failure sending email.', { err: error, req: req });

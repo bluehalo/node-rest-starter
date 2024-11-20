@@ -71,7 +71,6 @@ class SocketIo {
 			allowEIO3: true // @FIXME: Set to true for client compatibility. Fix when UI is updated.
 		});
 
-		// io.use(expressToIO(cookieParser(config.get('auth.sessionSecret'))));
 		io.engine.use(
 			expressSession({
 				saveUninitialized: true,
@@ -86,6 +85,7 @@ class SocketIo {
 		);
 		io.engine.use(passport.initialize());
 		io.engine.use(passport.session());
+		await import('./passport').then((p) => p.initSocketIO());
 
 		// Verify if user was found in session
 		io.use((socket, next) => {

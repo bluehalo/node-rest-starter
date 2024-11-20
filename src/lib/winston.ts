@@ -5,13 +5,25 @@ import config, { IConfig } from 'config';
 import winston, { LoggerOptions } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
-const { combine, errors, json, splat, timestamp } = winston.format;
+const { combine, errors, json, splat, timestamp, prettyPrint } = winston.format;
 
 function createLogger(loggerName: string) {
 	const loggerConfig = config.get<IConfig>('logger').get<IConfig>(loggerName);
 
+	const prettyPrintEnabled = loggerConfig.get<boolean>('prettyPrint');
+
+	const format = prettyPrintEnabled
+		? combine(
+				timestamp(),
+				errors({ stack: true }),
+				splat(),
+				json(),
+				prettyPrint()
+		  )
+		: combine(timestamp(), errors({ stack: true }), splat(), json());
+
 	const options = {
-		format: combine(timestamp(), errors({ stack: true }), splat(), json()),
+		format,
 		silent: loggerConfig.get('silent'),
 		defaultMeta: {
 			hostname: os.hostname(),
