@@ -5,7 +5,7 @@ import userAuthorizationService from './user-authorization.service';
 import { config } from '../../../../dependencies';
 import { ForbiddenError, UnauthorizedError } from '../../../common/errors';
 import userAuthService from '../auth/user-authentication.service';
-import { requireEua } from '../eua/eua.middleware';
+import { requireEua } from '../eua/eua.hooks';
 
 export type AuthRequirementFunction = (
 	req: FastifyRequest,
