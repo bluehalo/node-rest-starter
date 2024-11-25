@@ -1,9 +1,10 @@
 import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 
 import messageService from './messages.service';
 import { auditService } from '../../../dependencies';
 import { NotFoundError } from '../../common/errors';
+import { audit, auditTrackBefore } from '../audit/audit.hooks';
 import { PagingQueryStringSchema, SearchBodySchema } from '../core.schemas';
 import { requireAccess, requireAdminAccess } from '../user/auth/auth.hooks';
 
@@ -106,20 +107,16 @@ export default function (_fastify: FastifyInstance) {
 		handler: async function (req, reply) {
 			const message = await messageService.create(req.user, req.body);
 
-			// Publish message
+			// Publish the message
 			messageService.publishMessage(message).then();
 
-			// Audit creation of messages
-			await auditService.audit(
-				'message created',
-				'message',
-				'create',
-				req,
-				message.auditCopy()
-			);
-
 			return reply.send(message);
-		}
+		},
+		preSerialization: audit({
+			message: 'message created',
+			type: 'message',
+			action: 'create'
+		})
 	});
 
 	fastify.route({
@@ -137,12 +134,8 @@ export default function (_fastify: FastifyInstance) {
 			}
 		},
 		preValidation: requireAdminAccess,
-		handler: async function (req, reply) {
-			const message = await messageService.read(req.params.id);
-			if (!message) {
-				throw new NotFoundError(`Failed to load message: ${req.params.id}`);
-			}
-			return reply.send(message);
+		handler: function (req, reply) {
+			return reply.send(req.message);
 		}
 	});
 
@@ -161,25 +154,16 @@ export default function (_fastify: FastifyInstance) {
 			}
 		},
 		preValidation: requireAdminAccess,
+		preHandler: [loadMessageById, auditTrackBefore('message')],
 		handler: async function (req, reply) {
-			const message = await messageService.read(req.params.id);
-			if (!message) {
-				throw new NotFoundError(`Failed to load message: ${req.params.id}`);
-			}
-
-			// Make a copy of the original message for auditing purposes
-			const originalMessage = message.auditCopy();
-
-			const updatedMessage = await messageService.update(message, req.body);
-
-			// Audit the save action
-			await auditService.audit('message updated', 'message', 'update', req, {
-				before: originalMessage,
-				after: updatedMessage.auditCopy()
-			});
-
-			return reply.send(updatedMessage);
-		}
+			const result = await messageService.update(req.message, req.body);
+			return reply.send(result);
+		},
+		preSerialization: audit({
+			message: 'message updated',
+			type: 'message',
+			action: 'update'
+		})
 	});
 
 	fastify.route({
@@ -197,24 +181,24 @@ export default function (_fastify: FastifyInstance) {
 			}
 		},
 		preValidation: requireAdminAccess,
+		preHandler: loadMessageById,
 		handler: async function (req, reply) {
-			const message = await messageService.read(req.params.id);
-			if (!message) {
-				throw new NotFoundError(`Failed to load message: ${req.params.id}`);
-			}
-
-			await messageService.delete(message);
-
-			// Audit the message delete attempt
-			await auditService.audit(
-				'message deleted',
-				'message',
-				'delete',
-				req,
-				message.auditCopy()
-			);
-
-			return reply.send(message);
-		}
+			const result = await messageService.delete(req.message);
+			return reply.send(result);
+		},
+		preSerialization: audit({
+			message: 'message deleted',
+			type: 'message',
+			action: 'delete'
+		})
 	});
+}
+
+async function loadMessageById(req: FastifyRequest) {
+	const id = req.params['id'];
+
+	req.message = await messageService.read(id);
+	if (!req.message) {
+		throw new NotFoundError(`Failed to load message: ${id}`);
+	}
 }

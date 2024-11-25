@@ -2,7 +2,7 @@ import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts
 import { FastifyInstance, FastifyRequest } from 'fastify';
 
 import euaService from './eua.service';
-import { auditService } from '../../../../dependencies';
+import { audit, auditTrackBefore } from '../../audit/audit.hooks';
 import { PagingQueryStringSchema, SearchBodySchema } from '../../core.schemas';
 import { requireAdminAccess, requireLogin } from '../auth/auth.hooks';
 
@@ -52,18 +52,13 @@ export default function (_fastify: FastifyInstance) {
 		preValidation: requireAdminAccess,
 		handler: async function (req, reply) {
 			const result = await euaService.create(req.body);
-
-			// Audit eua create
-			await auditService.audit(
-				'eua create',
-				'eua',
-				'create',
-				req,
-				result.auditCopy()
-			);
-
 			return reply.send(result);
-		}
+		},
+		preSerialization: audit({
+			message: 'eua create',
+			type: 'eua',
+			action: 'create'
+		})
 	});
 
 	fastify.route({
@@ -76,12 +71,13 @@ export default function (_fastify: FastifyInstance) {
 		preValidation: requireLogin,
 		handler: async function (req, reply) {
 			const user = await euaService.acceptEua(req.user);
-
-			// Audit accepted eua
-			auditService.audit('eua accepted', 'eua', 'accepted', req, {}).then();
-
 			return reply.send(user.fullCopy());
-		}
+		},
+		preSerialization: audit({
+			message: 'eua accepted',
+			type: 'eua',
+			action: 'update'
+		})
 	});
 
 	fastify.route({
@@ -106,27 +102,16 @@ export default function (_fastify: FastifyInstance) {
 			tags: ['Eua']
 		},
 		preValidation: requireAdminAccess,
-		preHandler: loadEuaById,
+		preHandler: [loadEuaById, auditTrackBefore('euaParam')],
 		handler: async function (req, reply) {
-			// A copy of the original eua for auditing purposes
-			const originalEua = req.euaParam.auditCopy();
-
 			const result = await euaService.update(req.euaParam, req.body);
-
-			// Audit user update
-			await auditService.audit(
-				'end user agreement updated',
-				'eua',
-				'update',
-				req,
-				{
-					before: originalEua,
-					after: result.auditCopy()
-				}
-			);
-
 			return reply.send(result);
-		}
+		},
+		preSerialization: audit({
+			message: 'end user agreement updated',
+			type: 'eua',
+			action: 'update'
+		})
 	});
 
 	fastify.route({
@@ -139,22 +124,14 @@ export default function (_fastify: FastifyInstance) {
 		preValidation: requireAdminAccess,
 		preHandler: loadEuaById,
 		handler: async function (req, reply) {
-			// The eua is placed into this parameter by the middleware
-			const eua = req.euaParam;
-
-			const result = await euaService.delete(eua);
-
-			// Audit eua delete
-			await auditService.audit(
-				'eua deleted',
-				'eua',
-				'delete',
-				req,
-				eua.auditCopy()
-			);
-
+			const result = await euaService.delete(req.euaParam);
 			return reply.send(result);
-		}
+		},
+		preSerialization: audit({
+			message: 'eua deleted',
+			type: 'eua',
+			action: 'delete'
+		})
 	});
 
 	fastify.route({
@@ -172,17 +149,13 @@ export default function (_fastify: FastifyInstance) {
 
 			const result = await euaService.publishEua(eua);
 
-			// Audit eua create
-			await auditService.audit(
-				'eua published',
-				'eua',
-				'published',
-				req,
-				result.auditCopy()
-			);
-
 			return reply.send(result);
-		}
+		},
+		preSerialization: audit({
+			message: 'eua published',
+			type: 'eua',
+			action: 'published'
+		})
 	});
 }
 
