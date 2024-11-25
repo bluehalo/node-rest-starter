@@ -113,6 +113,23 @@ TeamSchema.plugin(containsSearchPlugin, {
 	fields: ['name', 'description']
 });
 
+/*****************
+ * Virtual declarations
+ *****************/
+
+TeamSchema.virtual('parentObj', {
+	ref: 'Team',
+	localField: 'parent',
+	foreignField: '_id',
+	justOne: true
+});
+
+TeamSchema.virtual('ancestorObjs', {
+	ref: 'Team',
+	localField: 'ancestors',
+	foreignField: '_id'
+});
+
 /**
  * Index declarations
  */
