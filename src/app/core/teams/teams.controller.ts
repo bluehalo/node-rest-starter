@@ -428,14 +428,8 @@ export default function (_fastify: FastifyInstance) {
 async function loadTeamById(req: FastifyRequest) {
 	const id = req.params['id'];
 	const populate = [
-		{
-			path: 'parent',
-			select: ['name']
-		},
-		{
-			path: 'ancestors',
-			select: ['name']
-		}
+		{ path: 'parentObj', select: ['name'] },
+		{ path: 'ancestorObjs', select: ['name'] }
 	];
 
 	req.team = await teamsService.read(id, populate);
