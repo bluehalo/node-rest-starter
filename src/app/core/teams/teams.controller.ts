@@ -6,6 +6,7 @@ import { TeamRoles } from './team-role.model';
 import teamsService from './teams.service';
 import { utilService, auditService } from '../../../dependencies';
 import { NotFoundError } from '../../common/errors';
+import { audit, auditTrackBefore } from '../audit/audit.hooks';
 import { PagingQueryStringSchema, SearchBodySchema } from '../core.schemas';
 import {
 	requireAccess,
@@ -39,18 +40,13 @@ export default function (_fastify: FastifyInstance) {
 				req.user,
 				req.body.firstAdmin
 			);
-
-			// Audit the creation action
-			await auditService.audit(
-				'team created',
-				'team',
-				'create',
-				req,
-				result.auditCopy()
-			);
-
 			return reply.send(result);
-		}
+		},
+		preSerialization: audit({
+			message: 'team created',
+			type: 'team',
+			action: 'create'
+		})
 	});
 
 	fastify.route({
@@ -120,20 +116,16 @@ export default function (_fastify: FastifyInstance) {
 			requireAccess,
 			requireAny(requireAdminRole, requireTeamAdminRole)
 		],
-		preHandler: loadTeamById,
+		preHandler: [loadTeamById, auditTrackBefore('team')],
 		handler: async function (req, reply) {
-			// Make a copy of the original team for auditing purposes
-			const originalTeam = req.team.auditCopy();
-
 			const result = await teamsService.update(req.team, req.body);
-
-			await auditService.audit('team updated', 'team', 'update', req, {
-				before: originalTeam,
-				after: result.auditCopy()
-			});
-
 			return reply.send(result);
-		}
+		},
+		preSerialization: audit({
+			message: 'team updated',
+			type: 'team',
+			action: 'update'
+		})
 	});
 
 	fastify.route({
@@ -156,19 +148,14 @@ export default function (_fastify: FastifyInstance) {
 		],
 		preHandler: loadTeamById,
 		handler: async function (req, reply) {
-			await teamsService.delete(req.team);
-
-			// Audit the team delete attempt
-			await auditService.audit(
-				'team deleted',
-				'team',
-				'delete',
-				req,
-				req.team.auditCopy()
-			);
-
-			return reply.send(req.team);
-		}
+			const result = await teamsService.delete(req.team);
+			return reply.send(result);
+		},
+		preSerialization: audit({
+			message: 'team deleted',
+			type: 'team',
+			action: 'delete'
+		})
 	});
 
 	fastify.route({

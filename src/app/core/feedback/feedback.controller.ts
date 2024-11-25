@@ -5,8 +5,9 @@ import { FilterQuery } from 'mongoose';
 
 import { FeedbackDocument, Statuses } from './feedback.model';
 import feedbackService from './feedback.service';
-import { auditService, config } from '../../../dependencies';
+import { config, utilService } from '../../../dependencies';
 import { NotFoundError } from '../../common/errors';
+import { audit } from '../audit/audit.hooks';
 import { PagingQueryStringSchema, SearchBodySchema } from '../core.schemas';
 import { Callbacks } from '../export/callbacks';
 import * as exportConfigController from '../export/export-config.controller';
@@ -55,22 +56,20 @@ export default function (_fastify: FastifyInstance) {
 		},
 		preValidation: requireLogin,
 		handler: async function (req, reply) {
-			const audit = await auditService.audit(
-				'Feedback submitted',
-				'feedback',
-				'create',
-				req,
-				req.body
-			);
+			const userAgentObj = utilService.getUserAgentFromHeader(req.headers);
 			const feedback = await feedbackService.create(
 				req.user,
 				req.body,
-				audit.audit.userSpec
+				userAgentObj
 			);
 			await feedbackService.sendFeedbackEmail(req.user, feedback, req);
-
 			return reply.send(feedback);
-		}
+		},
+		preSerialization: audit({
+			message: 'Feedback submitted',
+			type: 'feedback',
+			action: 'create'
+		})
 	});
 
 	fastify.route({
@@ -132,21 +131,17 @@ export default function (_fastify: FastifyInstance) {
 				throw new NotFoundError('Could not find feedback');
 			}
 
-			// Audit feedback status update
-			await auditService.audit(
-				'Feedback status updated',
-				'feedback',
-				'update',
-				req,
-				req.body
-			);
-
 			const updatedFeedback = await feedbackService.updateFeedbackStatus(
 				feedback,
 				req.body.status as Statuses
 			);
 			return reply.send(updatedFeedback);
-		}
+		},
+		preSerialization: audit({
+			message: 'Feedback status updated',
+			type: 'feedback',
+			action: 'update'
+		})
 	});
 
 	fastify.route({
@@ -184,21 +179,17 @@ export default function (_fastify: FastifyInstance) {
 				throw new NotFoundError('Could not find feedback');
 			}
 
-			// Audit feedback assignee update
-			await auditService.audit(
-				'Feedback assignee updated',
-				'feedback',
-				'update',
-				req,
-				req.body
-			);
-
 			const updatedFeedback = await feedbackService.updateFeedbackAssignee(
 				feedback,
 				req.body.assignee
 			);
 			return reply.send(updatedFeedback);
-		}
+		},
+		preSerialization: audit({
+			message: 'Feedback assignee updated',
+			type: 'feedback',
+			action: 'update'
+		})
 	});
 
 	fastify.route({

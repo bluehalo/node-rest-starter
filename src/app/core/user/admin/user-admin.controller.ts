@@ -119,6 +119,8 @@ export default function (_fastify: FastifyInstance) {
 			// Save the user
 			await userService.update(user);
 
+			const newUserRole = user.roles?.user ?? null;
+
 			// Audit user update
 			auditService
 				.audit('admin user updated', 'user', 'admin update', req, {
@@ -126,8 +128,6 @@ export default function (_fastify: FastifyInstance) {
 					after: user.auditCopy()
 				})
 				.then();
-
-			const newUserRole = user.roles?.user ?? null;
 
 			if (originalUserRole !== newUserRole && newUserRole) {
 				await userEmailService.emailApprovedUser(user, req);

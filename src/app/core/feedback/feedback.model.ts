@@ -33,20 +33,28 @@ export interface IFeedback {
 	updated: Date;
 }
 
+export interface IFeedbackMethods {
+	auditCopy(): Record<string, unknown>;
+}
+
 export type FeedbackDocument = HydratedDocument<
 	IFeedback,
-	NonNullable<unknown>,
+	IFeedbackMethods,
 	IFeedbackQueryHelpers
 >;
 
 type IFeedbackQueryHelpers = TextSearchable & Paginateable<FeedbackDocument>;
 
-export type FeedbackModel = Model<IFeedback, IFeedbackQueryHelpers>;
+export type FeedbackModel = Model<
+	IFeedback,
+	IFeedbackQueryHelpers,
+	IFeedbackMethods
+>;
 
 const FeedbackSchema = new Schema<
 	IFeedback,
 	FeedbackModel,
-	NonNullable<unknown>,
+	IFeedbackMethods,
 	IFeedbackQueryHelpers
 >(
 	{
@@ -113,6 +121,21 @@ FeedbackSchema.index({ body: 'text' });
 /*****************
  * Static Methods
  *****************/
+
+// Copy a team for audit logging
+FeedbackSchema.methods.auditCopy = function (): Record<string, unknown> {
+	const feedback: Record<string, unknown> = {};
+	feedback.creator = this.creator;
+	feedback.type = this.type;
+	feedback.body = this.body;
+	feedback.url = this.url;
+	feedback.os = this.os;
+	feedback.browser = this.browser;
+	feedback.classification = this.classification;
+	feedback.status = this.status;
+	feedback.assignee = this.assignee;
+	return feedback;
+};
 
 /**
  * Register the Schema with Mongoose
