@@ -10,7 +10,7 @@ import { Callbacks } from '../../export/callbacks';
 import * as exportConfigController from '../../export/export-config.controller';
 import { loadExportConfigById } from '../../export/export-config.controller';
 import { IExportConfig } from '../../export/export-config.model';
-import { requireAdminAccess } from '../auth/auth.middleware';
+import { requireAdminAccess } from '../auth/auth.hooks';
 import userAuthorizationService from '../auth/user-authorization.service';
 import userEmailService from '../user-email.service';
 import { loadUserById } from '../user.controller';

@@ -2,7 +2,7 @@ import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import _ from 'lodash';
 
-import { requireAccess, requireLogin } from './auth/auth.middleware';
+import { requireAccess, requireLogin } from './auth/auth.hooks';
 import userAuthorizationService from './auth/user-authorization.service';
 import userService from './user.service';
 import { auditService } from '../../../dependencies';

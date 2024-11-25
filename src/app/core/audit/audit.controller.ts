@@ -9,7 +9,7 @@ import { PagingQueryStringSchema, SearchBodySchema } from '../core.schemas';
 import { Callbacks } from '../export/callbacks';
 import * as exportConfigController from '../export/export-config.controller';
 import { loadExportConfigById } from '../export/export-config.controller';
-import { requireAuditorAccess } from '../user/auth/auth.middleware';
+import { requireAuditorAccess } from '../user/auth/auth.hooks';
 
 export default function (_fastify: FastifyInstance) {
 	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();

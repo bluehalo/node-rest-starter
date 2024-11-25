@@ -3,7 +3,7 @@ import { Socket } from 'socket.io';
 import { config, socketIO } from '../../../dependencies';
 import { logger } from '../../../lib/logger';
 import { SocketConfig } from '../../common/sockets/base-socket.provider';
-import { requireAccess } from '../user/auth/auth.middleware';
+import { requireAccess } from '../user/auth/auth.hooks';
 
 const emitName = 'message';
 

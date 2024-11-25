@@ -3,7 +3,7 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 import { TeamRoles } from './team-role.model';
 import teamsService from './teams.service';
 import { BadRequestError } from '../../common/errors';
-import { AuthRequirementFunction } from '../user/auth/auth.middleware';
+import { AuthRequirementFunction } from '../user/auth/auth.hooks';
 
 export function requireTeamRole(role: TeamRoles): AuthRequirementFunction {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -5,10 +5,7 @@ import messageService from './messages.service';
 import { auditService } from '../../../dependencies';
 import { NotFoundError } from '../../common/errors';
 import { PagingQueryStringSchema, SearchBodySchema } from '../core.schemas';
-import {
-	requireAccess,
-	requireAdminAccess
-} from '../user/auth/auth.middleware';
+import { requireAccess, requireAdminAccess } from '../user/auth/auth.hooks';
 
 export default function (_fastify: FastifyInstance) {
 	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();

@@ -4,7 +4,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify';
 import euaService from './eua.service';
 import { auditService } from '../../../../dependencies';
 import { PagingQueryStringSchema, SearchBodySchema } from '../../core.schemas';
-import { requireAdminAccess, requireLogin } from '../auth/auth.middleware';
+import { requireAdminAccess, requireLogin } from '../auth/auth.hooks';
 
 export default function (_fastify: FastifyInstance) {
 	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();

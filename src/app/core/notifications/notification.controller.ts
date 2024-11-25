@@ -3,7 +3,7 @@ import { FastifyInstance } from 'fastify';
 
 import notificationsService from './notification.service';
 import { PagingQueryStringSchema, SearchBodySchema } from '../core.schemas';
-import { requireAccess } from '../user/auth/auth.middleware';
+import { requireAccess } from '../user/auth/auth.hooks';
 
 export default function (_fastify: FastifyInstance) {
 	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();

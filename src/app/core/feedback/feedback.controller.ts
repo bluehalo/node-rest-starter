@@ -12,7 +12,7 @@ import { Callbacks } from '../export/callbacks';
 import * as exportConfigController from '../export/export-config.controller';
 import { loadExportConfigById } from '../export/export-config.controller';
 import { IExportConfig } from '../export/export-config.model';
-import { requireLogin, requireAdminAccess } from '../user/auth/auth.middleware';
+import { requireLogin, requireAdminAccess } from '../user/auth/auth.hooks';
 
 export default function (_fastify: FastifyInstance) {
 	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();

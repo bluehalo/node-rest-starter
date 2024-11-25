@@ -1,10 +1,7 @@
 import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
 import { FastifyInstance, FastifyRequest } from 'fastify';
 
-import {
-	requireTeamAdminRole,
-	requireTeamMemberRole
-} from './team-auth.middleware';
+import { requireTeamAdminRole, requireTeamMemberRole } from './team-auth.hooks';
 import { TeamRoles } from './team-role.model';
 import teamsService from './teams.service';
 import { utilService, auditService } from '../../../dependencies';
@@ -15,7 +12,7 @@ import {
 	requireAdminRole,
 	requireAny,
 	requireEditorAccess
-} from '../user/auth/auth.middleware';
+} from '../user/auth/auth.hooks';
 import userService from '../user/user.service';
 
 export default function (_fastify: FastifyInstance) {
