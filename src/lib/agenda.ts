@@ -9,13 +9,28 @@ import { JobService } from '../app/common/agenda/job-service';
 type JobConfig = {
 	name: string;
 	file: string;
+	enabled: boolean;
 	interval: string;
 	data: unknown;
 	options: unknown;
 };
 
+const getJobsFromConfig = () => {
+	const jobsRecordOrArray =
+		config.get<Record<string, JobConfig>>('agenda.jobs');
+
+	return Object.entries(jobsRecordOrArray)
+		.map(([jobName, jobConfig]) => {
+			return {
+				...jobConfig,
+				name: jobName
+			};
+		})
+		.filter((jobConfig) => jobConfig.enabled);
+};
+
 const registerJobs = (agenda: Agenda) => {
-	const jobs = config.get<JobConfig[]>('agenda.jobs');
+	const jobs = getJobsFromConfig();
 	logger.info(`Registering ${jobs.length} job(s)...`);
 	return Promise.all(
 		jobs.map((jobConfig: JobConfig) => registerJob(agenda, jobConfig))
@@ -32,7 +47,7 @@ const registerJob = async (agenda: Agenda, jobConfig: JobConfig) => {
 		jobService
 			.run(job)
 			.catch((err) => {
-				logger.error('Error running job', { job: jobConfig.name }, err);
+				logger.error('Error running job', { job: jobConfig.name, err });
 				// Ignore any errors
 				return Promise.resolve();
 			})
@@ -43,9 +58,9 @@ const registerJob = async (agenda: Agenda, jobConfig: JobConfig) => {
 };
 
 const scheduleJobs = (agenda: Agenda) => {
-	const jobsToSchedule: JobConfig[] = config
-		.get<JobConfig[]>('agenda.jobs')
-		.filter((job: JobConfig) => job.interval);
+	const jobsToSchedule: JobConfig[] = getJobsFromConfig().filter(
+		(job: JobConfig) => job.interval
+	);
 
 	logger.info(`Scheduling ${jobsToSchedule.length} job(s)...`);
 

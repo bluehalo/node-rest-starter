@@ -179,34 +179,28 @@ module.exports = {
 
 	agenda: {
 		enabled: true,
-		jobs: [
-			// {
-			// 	file: './src/app/core/access-checker/cache/cache-refresh.job',
-			// 	name: 'cache-refresh',
-			// 	interval: '12 hours',
-			// 	data: {
-			// 		refresh: 12 * 3600000
-			// 	}
-			// },
-			// {
-			// 	file: './src/app/core/user/inactive/inactive-user.job',
-			// 	name: 'inactive-user',
-			// 	interval: '1 days',
-			// 	data: {
-			// 		alertIntervals: [
-			// 			30 * 86400000, // 30 days
-			// 			60 * 86400000 // 60 days
-			// 		],
-			// 		deactivateAfter: 90 * 86400000 // 90 days
-			// 	}
-			// },
-			// {
-			// 	file: 'path/to/job/definition',
-			// 	name: 'job-name',
-			// 	options: {},
-			// 	interval: '0 * * * *'
-			// }
-		]
+		jobs: {
+			'cache-refresh': {
+				enabled: false,
+				file: './src/app/core/access-checker/cache/cache-refresh.job',
+				interval: '12 hours',
+				data: {
+					refresh: 12 * 3600000
+				}
+			},
+			'inactive-user': {
+				enabled: false,
+				file: './src/app/core/user/inactive/inactive-user.job',
+				interval: '1 days',
+				data: {
+					alertIntervals: [
+						30 * 86400000, // 30 days
+						60 * 86400000 // 60 days
+					],
+					deactivateAfter: 90 * 86400000 // 90 days
+				}
+			}
+		}
 	},
 
 	// MongoDB
