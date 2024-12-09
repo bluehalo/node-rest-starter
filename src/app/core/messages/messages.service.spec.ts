@@ -66,7 +66,7 @@ describe('Messages Service:', () => {
 			let messages = await messagesService.getRecentMessages(user._id);
 
 			await messagesService.dismissMessages(
-				messages.splice(0, dismissCount).map((m) => m._id.toString()),
+				messages.splice(0, dismissCount).map((m) => m._id),
 				user
 			);
 

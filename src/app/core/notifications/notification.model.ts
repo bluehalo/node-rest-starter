@@ -1,4 +1,5 @@
-import { HydratedDocument, model, Model, Schema, Types } from 'mongoose';
+import { Static, Type } from '@fastify/type-provider-typebox';
+import { HydratedDocument, model, Model, Schema } from 'mongoose';
 
 import { config } from '../../../dependencies';
 import getterPlugin from '../../common/mongoose/getter.plugin';
@@ -6,17 +7,20 @@ import {
 	paginatePlugin,
 	Paginateable
 } from '../../common/mongoose/paginate.plugin';
+import { DateTimeType, ObjectIdType } from '../core.types';
 
 /**
  * Notification Schema
  */
 
-export interface INotification {
-	_id: Types.ObjectId;
-	user: Types.ObjectId;
-	created: Date;
-	notificationType: string;
-}
+export const NotificationType = Type.Object({
+	_id: ObjectIdType,
+	user: ObjectIdType,
+	created: DateTimeType,
+	notificationType: Type.String()
+});
+
+export type INotification = Static<typeof NotificationType>;
 
 export interface INotificationMethods {
 	auditCopy(): Record<string, unknown>;

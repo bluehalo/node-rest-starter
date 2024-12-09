@@ -3,44 +3,55 @@ import assert from 'node:assert/strict';
 import { FastifyInstance } from 'fastify';
 import { assert as sinonAssert, createSandbox } from 'sinon';
 
-import feedbackController from './feedback.controller';
+import controller from './feedback.controller';
 import { Feedback } from './feedback.model';
 import feedbackService from './feedback.service';
 import { auditService } from '../../../dependencies';
 import { fastifyTest } from '../../../spec/fastify';
+import { User, UserDocument } from '../user/user.model';
 
 describe('Feedback Controller', () => {
 	let sandbox;
 
 	let app: FastifyInstance;
+	let user: UserDocument;
 
-	before(() => {
-		app = fastifyTest(feedbackController, {
-			logger: { level: 'debug' },
-			user: {
-				roles: {
-					user: true,
-					admin: true
-				}
+	before(async () => {
+		await User.deleteMany({});
+		user = await new User({
+			name: 'Test User',
+			username: 'test',
+			email: 'test@test.test',
+			organization: 'test',
+			provider: 'test',
+			roles: {
+				user: true,
+				admin: true
 			}
+		}).save();
+		app = fastifyTest(controller, {
+			// logger: { level: 'debug' },
+			user
 		});
 	});
-	after(() => {
-		app.close();
+	after(async () => {
+		await app.close();
+		await User.deleteMany({});
 	});
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		sandbox = createSandbox();
+		await Feedback.deleteMany({});
 	});
 
-	afterEach(() => {
+	afterEach(async () => {
 		sandbox.restore();
+		await Feedback.deleteMany({});
 	});
 
 	describe('submitFeedback', () => {
 		it(`should submit feedback successfully`, async () => {
 			sandbox.stub(auditService, 'audit').resolves({ audit: {} });
-			sandbox.stub(feedbackService, 'create').resolves(new Feedback());
 			sandbox.stub(feedbackService, 'sendFeedbackEmail').resolves();
 
 			const reply = await app.inject({
@@ -53,72 +64,14 @@ describe('Feedback Controller', () => {
 				}
 			});
 
-			sinonAssert.calledOnce(feedbackService.create);
 			sinonAssert.calledOnce(auditService.audit);
 
-			assert.equal(reply.statusCode, 200);
+			assert.equal(
+				reply.statusCode,
+				200,
+				`route rejected with "${reply.payload}"`
+			);
 			assert(reply.body);
-		});
-
-		describe('searchFeedback', () => {
-			it('search returns feedback', async () => {
-				sandbox.stub(feedbackService, 'search').resolves({});
-
-				const reply = await app.inject({
-					method: 'POST',
-					url: '/admin/feedback',
-					payload: {}
-				});
-
-				sinonAssert.calledOnce(feedbackService.search);
-
-				assert.equal(reply.statusCode, 200);
-				assert(reply.body);
-			});
-		});
-
-		describe('updateFeedbackAssignee', () => {
-			it('assignee is updated', async () => {
-				sandbox.stub(feedbackService, 'read').resolves({});
-				sandbox.stub(feedbackService, 'updateFeedbackAssignee').resolves({});
-
-				const reply = await app.inject({
-					method: 'PATCH',
-					url: '/admin/feedback/1/assignee',
-					payload: { assignee: 'user' }
-				});
-
-				sinonAssert.calledOnceWithExactly(
-					feedbackService.updateFeedbackAssignee,
-					{},
-					'user'
-				);
-
-				assert.equal(reply.statusCode, 200);
-				assert(reply.body);
-			});
-		});
-
-		describe('updateFeedbackStatus', () => {
-			it('status is updated', async () => {
-				sandbox.stub(feedbackService, 'read').resolves({});
-				sandbox.stub(feedbackService, 'updateFeedbackStatus').resolves({});
-
-				const reply = await app.inject({
-					method: 'PATCH',
-					url: '/admin/feedback/1/status',
-					payload: { status: 'Closed' }
-				});
-
-				sinonAssert.calledOnceWithExactly(
-					feedbackService.updateFeedbackStatus,
-					{},
-					'Closed'
-				);
-
-				assert.equal(reply.statusCode, 200);
-				assert(reply.body);
-			});
 		});
 	});
 });

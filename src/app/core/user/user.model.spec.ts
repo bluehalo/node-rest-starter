@@ -11,7 +11,7 @@ function clearDatabase() {
 	return Promise.all([User.deleteMany({}).exec()]);
 }
 
-function userSpec(key) {
+function userSpec(key: string) {
 	return {
 		name: `${key} Name`,
 		organization: `${key} Organization`,
@@ -250,7 +250,7 @@ describe('User Model:', () => {
 				assert.deepStrictEqual(audit, testUserWithDNandIP);
 			});
 
-			it('should ignore dn if no dn or providerdata is present, or flatten value', () => {
+			it('should ignore dn if no dn or provider data is present, or flatten value', () => {
 				const testUserNoDn = new User({
 					name: 'test',
 					providerData: { notdn: false }
@@ -286,33 +286,29 @@ describe('User Model:', () => {
 			assert.equal(result.length, 1);
 		});
 
-		it('should not be able to save with the same username', () => {
+		it('should not be able to save with the same username', async () => {
 			const validUser = new User(userSpec('valid'));
-			return validUser
-				.save()
-				.then(() => {
-					assert.fail();
-				})
-				.catch((err) => {
-					assert(err);
-				});
+			try {
+				await validUser.save();
+				assert.fail();
+			} catch (err) {
+				assert(err);
+			}
 		});
 
 		// Testing missing fields
 		['name', 'organization', 'email', 'username'].forEach((field) => {
 			// Creating a test case for each field
-			it(`should fail to save if missing field: '${field}'`, () => {
+			it(`should fail to save if missing field: '${field}'`, async () => {
 				const u = new User(userSpec(`missing_${field}`));
 				u[field] = undefined;
 
-				return u
-					.save()
-					.then(() => {
-						assert.fail();
-					})
-					.catch((err) => {
-						assert(err);
-					});
+				try {
+					await u.save();
+					assert.fail();
+				} catch (err) {
+					assert(err);
+				}
 			});
 		});
 	});

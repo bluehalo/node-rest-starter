@@ -1,4 +1,5 @@
-import { HydratedDocument, model, Model, Schema, Types } from 'mongoose';
+import { Static, Type } from '@fastify/type-provider-typebox';
+import { HydratedDocument, model, Model, Schema } from 'mongoose';
 
 import { config } from '../../../dependencies';
 import getterPlugin from '../../common/mongoose/getter.plugin';
@@ -10,6 +11,7 @@ import {
 	textSearchPlugin,
 	TextSearchable
 } from '../../common/mongoose/text-search.plugin';
+import { DateTimeType, ObjectIdType } from '../core.types';
 
 export enum Statuses {
 	New = 'New',
@@ -17,21 +19,22 @@ export enum Statuses {
 	Closed = 'Closed'
 }
 
-export interface IFeedback {
-	_id: string;
-	body: string;
-	type: string;
-	url: string;
-	os: string;
-	browser: string;
-	classification: string;
-	status: Statuses;
-	assignee: string;
+export const FeedbackType = Type.Object({
+	_id: ObjectIdType,
+	body: Type.String(),
+	type: Type.String(),
+	url: Type.String(),
+	os: Type.Optional(Type.String()),
+	browser: Type.Optional(Type.String()),
+	classification: Type.Optional(Type.String()),
+	status: Type.Enum(Statuses),
+	assignee: Type.Optional(Type.String()),
+	creator: ObjectIdType,
+	created: DateTimeType,
+	updated: DateTimeType
+});
 
-	creator: Types.ObjectId;
-	created: Date;
-	updated: Date;
-}
+export type IFeedback = Static<typeof FeedbackType>;
 
 export interface IFeedbackMethods {
 	auditCopy(): Record<string, unknown>;

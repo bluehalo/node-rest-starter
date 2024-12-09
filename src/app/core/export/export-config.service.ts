@@ -3,7 +3,8 @@ import { Types } from 'mongoose';
 import {
 	ExportConfig,
 	ExportConfigDocument,
-	ExportConfigModel
+	ExportConfigModel,
+	IExportConfig
 } from './export-config.model';
 
 class ExportConfigService {
@@ -12,7 +13,7 @@ class ExportConfigService {
 	/**
 	 * Generate a new ExportConfig document in the collection.
 	 */
-	create(doc: unknown): Promise<ExportConfigDocument> {
+	create(doc: Partial<IExportConfig>): Promise<ExportConfigDocument> {
 		const exportConfig = new this.model(doc);
 		return exportConfig.save();
 	}

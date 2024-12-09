@@ -1,39 +1,22 @@
-import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
+import { Type, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { FilterQuery } from 'mongoose';
 
-import { Audit, AuditDocument } from './audit.model';
+import { Audit, AuditDocument, AuditType } from './audit.model';
 import { config, utilService as util } from '../../../dependencies';
-import { PagingQueryStringSchema, SearchBodySchema } from '../core.schemas';
+import {
+	PagingQueryStringType,
+	PagingResultsType,
+	SearchBodyType
+} from '../core.types';
 import { Callbacks } from '../export/callbacks';
 import * as exportConfigController from '../export/export-config.controller';
 import { loadExportConfigById } from '../export/export-config.controller';
 import { requireAuditorAccess } from '../user/auth/auth.hooks';
 
 export default function (_fastify: FastifyInstance) {
-	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();
-	fastify.route({
-		method: 'GET',
-		url: '/audit/distinctValues',
-		schema: {
-			description:
-				'Retrieves the distinct values for a field in the Audit collection',
-			tags: ['Audit'],
-			querystring: {
-				type: 'object',
-				properties: {
-					field: { type: 'string' }
-				},
-				required: ['field']
-			}
-		},
-		preValidation: requireAuditorAccess,
-		handler: async function (req, reply) {
-			const results = await Audit.distinct(req.query.field, {});
-			return reply.send(results);
-		}
-	});
+	const fastify = _fastify.withTypeProvider<TypeBoxTypeProvider>();
 
 	fastify.route({
 		method: 'POST',
@@ -41,8 +24,12 @@ export default function (_fastify: FastifyInstance) {
 		schema: {
 			description: 'Returns audit records matching search criteria',
 			tags: ['Audit'],
-			body: SearchBodySchema,
-			querystring: PagingQueryStringSchema
+			hide: true,
+			body: SearchBodyType,
+			querystring: PagingQueryStringType,
+			response: {
+				200: PagingResultsType(AuditType)
+			}
 		},
 		preValidation: requireAuditorAccess,
 		handler: async function (req, reply) {
@@ -81,10 +68,33 @@ export default function (_fastify: FastifyInstance) {
 
 	fastify.route({
 		method: 'GET',
+		url: '/audit/distinctValues',
+		schema: {
+			description:
+				'Retrieves the distinct values for a field in the Audit collection',
+			tags: ['Audit'],
+			hide: true,
+			querystring: Type.Object({
+				field: Type.String()
+			})
+		},
+		preValidation: requireAuditorAccess,
+		handler: async function (req, reply) {
+			const results = await Audit.distinct(req.query.field, {});
+			return reply.send(results);
+		}
+	});
+
+	fastify.route({
+		method: 'GET',
 		url: '/audit/csv/:id',
 		schema: {
 			description: 'Export audit records as CSV file',
-			tags: ['Audit']
+			tags: ['Audit'],
+			hide: true,
+			params: Type.Object({
+				id: Type.String()
+			})
 		},
 		preValidation: requireAuditorAccess,
 		preHandler: loadExportConfigById,
@@ -121,6 +131,8 @@ export default function (_fastify: FastifyInstance) {
 				.cursor();
 
 			exportConfigController.exportCSV(req, reply, fileName, columns, cursor);
+
+			return reply;
 		}
 	});
 }

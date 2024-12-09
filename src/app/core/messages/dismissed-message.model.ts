@@ -1,16 +1,20 @@
-import { HydratedDocument, model, Model, Schema, Types } from 'mongoose';
+import { Static, Type } from '@fastify/type-provider-typebox';
+import { HydratedDocument, model, Model, Schema } from 'mongoose';
 
 import { config } from '../../../dependencies';
 import getterPlugin from '../../common/mongoose/getter.plugin';
 import { Paginateable } from '../../common/mongoose/paginate.plugin';
 import { TextSearchable } from '../../common/mongoose/text-search.plugin';
+import { DateTimeType, ObjectIdType } from '../core.types';
 
-export interface IDismissedMessage {
-	_id: Types.ObjectId;
-	messageId: Types.ObjectId;
-	userId: Types.ObjectId;
-	created: Date;
-}
+export const DismissedMessageType = Type.Object({
+	_id: ObjectIdType,
+	messageId: ObjectIdType,
+	userId: ObjectIdType,
+	created: DateTimeType
+});
+
+export type IDismissedMessage = Static<typeof DismissedMessageType>;
 
 export interface IDismissedMessageMethods {
 	auditCopy(): Record<string, unknown>;

@@ -1,16 +1,17 @@
 import os from 'os';
 import { Readable, Transform } from 'stream';
 
-import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
+import { Type, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
-import { ExportColumnDef } from './export-config.model';
+import { ExportColumnDef, IExportConfig } from './export-config.model';
 import exportConfigService from './export-config.service';
+import { ExportConfigType } from './export-config.types';
 import { auditService, csvStream } from '../../../dependencies';
 import { NotFoundError } from '../../common/errors';
 
 export default function (_fastify: FastifyInstance) {
-	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();
+	const fastify = _fastify.withTypeProvider<TypeBoxTypeProvider>();
 	fastify.route({
 		method: 'POST',
 		url: '/requestExport',
@@ -18,54 +19,26 @@ export default function (_fastify: FastifyInstance) {
 			description:
 				'Request to generate an export configuration in preparation to serve a file download soon.',
 			tags: ['Export'],
-			body: {
-				type: 'object',
-				properties: {
-					type: { type: 'string' },
-					config: {
-						type: 'object',
-						properties: {
-							col: {
-								type: 'object',
-								properties: {
-									key: { type: 'string' },
-									title: { type: 'string' }
-								},
-								required: ['key']
-							},
-							s: { type: 'string' },
-							q: { type: 'object' },
-							sort: { type: 'string' },
-							dir: {
-								anyOf: [
-									{ type: 'string', enum: ['ASC', 'DESC'] },
-									{ type: 'integer', enum: [-1, 1] }
-								]
-							}
-						}
-					}
-				},
-				required: ['type']
-			},
+			body: ExportConfigType,
 			response: {
-				200: {
-					description: 'Successful response',
-					type: 'object',
-					properties: {
-						_id: { type: 'string' }
-					}
-				}
+				200: Type.Object({
+					_id: Type.String()
+				})
 			}
 		},
 		handler: async function (req, reply) {
 			const { q, ...config } = req.body.config;
+
+			const exportConfig: Partial<IExportConfig> = {
+				type: req.body.type,
+				config: { ...config, q: '{}' }
+			};
 			if (q) {
 				// Stringify the query JSON because '$' is reserved in Mongo.
-				config.q = JSON.stringify(req.body.config.q);
+				exportConfig.config.q = JSON.stringify(req.body.config.q);
 			}
-			req.body.config = config;
 
-			const generatedConfig = await exportConfigService.create(req.body);
+			const generatedConfig = await exportConfigService.create(exportConfig);
 
 			auditService
 				.audit(

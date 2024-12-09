@@ -1,4 +1,5 @@
-import { Schema, model, HydratedDocument, Model, Types } from 'mongoose';
+import { Static, Type } from '@fastify/type-provider-typebox';
+import { Schema, model, HydratedDocument, Model } from 'mongoose';
 
 import {
 	ContainsSearchable,
@@ -9,14 +10,17 @@ import {
 	paginatePlugin,
 	Paginateable
 } from '../../../common/mongoose/paginate.plugin';
+import { DateTimeType, ObjectIdType } from '../../core.types';
 
-export interface ICacheEntry {
-	_id: Types.ObjectId;
-	key: string;
-	ts: Date;
-	value: Record<string, unknown>;
-	valueString: string;
-}
+export const CacheEntryType = Type.Object({
+	_id: ObjectIdType,
+	key: Type.String(),
+	ts: DateTimeType,
+	value: Type.Record(Type.String(), Type.Unknown()),
+	valueString: Type.String()
+});
+
+export type ICacheEntry = Static<typeof CacheEntryType>;
 
 export interface ICacheEntryMethods {
 	fullCopy(): Record<string, unknown>;

@@ -1,6 +1,7 @@
-import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
+import { Type, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
 
+import { SigninType, SignupType, TokenParamsType } from './auth.types';
 import userAuthService from './user-authentication.service';
 import userAuthorizationService from './user-authorization.service';
 import userPasswordService from './user-password.service';
@@ -11,21 +12,14 @@ import userEmailService from '../user-email.service';
 import { User } from '../user.model';
 
 export default function (_fastify: FastifyInstance) {
-	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();
+	const fastify = _fastify.withTypeProvider<TypeBoxTypeProvider>();
 	fastify.route({
 		method: 'POST',
 		url: '/auth/signin',
 		schema: {
 			tags: ['Auth'],
 			description: 'authenticates the user',
-			body: {
-				type: 'object',
-				properties: {
-					username: { type: 'string' },
-					password: { type: 'string' }
-				},
-				required: ['username', 'password']
-			}
+			body: SigninType
 		},
 		handler: async function (req, reply) {
 			const user = await userAuthService.authenticateAndLogin(req, reply);
@@ -60,18 +54,8 @@ export default function (_fastify: FastifyInstance) {
 			url: '/auth/signup',
 			schema: {
 				tags: ['Auth'],
-				description: 'Signs out the user.',
-				body: {
-					type: 'object',
-					properties: {
-						name: { type: 'string' },
-						username: { type: 'string' },
-						organization: { type: 'string' },
-						email: { type: 'string' },
-						password: { type: 'string' }
-					},
-					required: ['name', 'username', 'password']
-				}
+				description: 'Signs up the user.',
+				body: SignupType
 			},
 			handler: async function (req, reply) {
 				const newUser = new User(req.body);
@@ -101,13 +85,7 @@ export default function (_fastify: FastifyInstance) {
 			schema: {
 				tags: ['Auth'],
 				description: 'Initiates password reset',
-				body: {
-					type: 'object',
-					properties: {
-						username: { type: 'string' }
-					},
-					required: ['username']
-				}
+				body: Type.Object({ username: Type.String() })
 			},
 			handler: async function (req, reply) {
 				const user = await userPasswordService.initiatePasswordReset(
@@ -126,13 +104,7 @@ export default function (_fastify: FastifyInstance) {
 			schema: {
 				tags: ['Auth'],
 				description: 'Validates password reset token',
-				params: {
-					type: 'object',
-					properties: {
-						token: { type: 'string' }
-					},
-					required: ['token']
-				}
+				params: TokenParamsType
 			},
 			handler: async function (req, reply) {
 				const user = await userPasswordService.findUserForActiveToken(
@@ -151,20 +123,8 @@ export default function (_fastify: FastifyInstance) {
 			schema: {
 				tags: ['Auth'],
 				description: 'Resets password',
-				params: {
-					type: 'object',
-					properties: {
-						token: { type: 'string' }
-					},
-					required: ['token']
-				},
-				body: {
-					type: 'object',
-					properties: {
-						password: { type: 'string' }
-					},
-					required: ['password']
-				}
+				body: Type.Object({ password: Type.String() }),
+				params: TokenParamsType
 			},
 			handler: async function (req, reply) {
 				const user = await userPasswordService.resetPasswordForToken(

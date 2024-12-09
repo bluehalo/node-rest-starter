@@ -105,7 +105,7 @@ class TeamsService {
 	 * @param obj The obj with updated fields
 	 * @returns Returns a promise that resolves if team is successfully updated, and rejects otherwise
 	 */
-	update(document: TeamDocument, obj: unknown): Promise<TeamDocument> {
+	update(document: TeamDocument, obj: Partial<ITeam>): Promise<TeamDocument> {
 		// Copy in the fields that can be changed by the user
 		copyMutableFields(document, obj);
 

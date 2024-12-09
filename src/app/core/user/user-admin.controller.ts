@@ -1,32 +1,37 @@
-import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
+import { Type, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { FilterQuery } from 'mongoose';
 
-import { auditService, config, utilService } from '../../../../dependencies';
-import { logger } from '../../../../lib/logger';
-import { PagingQueryStringSchema, SearchBodySchema } from '../../core.schemas';
-import { Callbacks } from '../../export/callbacks';
-import * as exportConfigController from '../../export/export-config.controller';
-import { loadExportConfigById } from '../../export/export-config.controller';
-import { IExportConfig } from '../../export/export-config.model';
-import { requireAdminAccess } from '../auth/auth.hooks';
-import userAuthorizationService from '../auth/user-authorization.service';
-import userEmailService from '../user-email.service';
-import { loadUserById } from '../user.controller';
-import { Roles, User, UserDocument } from '../user.model';
-import userService from '../user.service';
+import { requireAdminAccess } from './auth/auth.hooks';
+import userAuthorizationService from './auth/user-authorization.service';
+import userEmailService from './user-email.service';
+import { loadUserById } from './user.controller';
+import { Roles, User, UserDocument } from './user.model';
+import userService from './user.service';
+import { CreateUserType, AdminUpdateUserType } from './user.types';
+import { auditService, config, utilService } from '../../../dependencies';
+import { logger } from '../../../lib/logger';
+import {
+	IdParamsType,
+	PagingQueryStringType,
+	SearchBodyType
+} from '../core.types';
+import { Callbacks } from '../export/callbacks';
+import * as exportConfigController from '../export/export-config.controller';
+import { loadExportConfigById } from '../export/export-config.controller';
+import { IExportConfig } from '../export/export-config.model';
 
 export default function (_fastify: FastifyInstance) {
-	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();
+	const fastify = _fastify.withTypeProvider<TypeBoxTypeProvider>();
 	fastify.route({
 		method: 'POST',
 		url: '/admin/users',
 		schema: {
 			description: 'Returns users that match the search criteria',
 			tags: ['User'],
-			body: SearchBodySchema,
-			querystring: PagingQueryStringSchema
+			body: SearchBodyType,
+			querystring: PagingQueryStringType
 		},
 		preValidation: requireAdminAccess,
 		handler: async function (req, reply) {
@@ -64,7 +69,8 @@ export default function (_fastify: FastifyInstance) {
 		url: '/admin/user/:id',
 		schema: {
 			description: '',
-			tags: ['User']
+			tags: ['User'],
+			params: IdParamsType
 		},
 		preValidation: requireAdminAccess,
 		preHandler: loadUserById,
@@ -79,19 +85,8 @@ export default function (_fastify: FastifyInstance) {
 		schema: {
 			description: '',
 			tags: ['User'],
-			body: {
-				type: 'object',
-				properties: {
-					name: { type: 'string' },
-					organization: { type: 'string' },
-					email: { type: 'string' },
-					phone: { type: 'string' },
-					username: { type: 'string' },
-					password: { type: 'string' },
-					roles: { type: 'object' },
-					bypassAccessCheck: { type: 'boolean' }
-				}
-			}
+			body: AdminUpdateUserType,
+			params: IdParamsType
 		},
 		preValidation: requireAdminAccess,
 		preHandler: loadUserById,
@@ -143,7 +138,8 @@ export default function (_fastify: FastifyInstance) {
 			url: '/admin/user/:id',
 			schema: {
 				description: '',
-				tags: ['User']
+				tags: ['User'],
+				params: IdParamsType
 			},
 			preValidation: requireAdminAccess,
 			preHandler: loadUserById,
@@ -170,19 +166,15 @@ export default function (_fastify: FastifyInstance) {
 		schema: {
 			description: '',
 			tags: ['User'],
-			body: {
-				type: 'object',
-				properties: {
-					field: { type: 'string' },
-					query: { type: 'object' }
-				},
-				required: ['field']
-			}
+			body: Type.Object({
+				field: Type.String(),
+				query: Type.Optional(Type.Object({}, { additionalProperties: true }))
+			})
 		},
 		preValidation: requireAdminAccess,
 		handler: async function (req, reply) {
 			const field = req.body.field;
-			const query = req.body.query;
+			const query = req.body.query ?? {};
 
 			logger.debug('Querying Users for %s', field);
 			const proj = { [field]: 1 };
@@ -206,19 +198,7 @@ export default function (_fastify: FastifyInstance) {
 		schema: {
 			description: 'Create a new user',
 			tags: ['User'],
-			body: {
-				type: 'object',
-				properties: {
-					name: { type: 'string' },
-					organization: { type: 'string' },
-					email: { type: 'string' },
-					phone: { type: 'string' },
-					username: { type: 'string' },
-					password: { type: 'string' },
-					roles: { type: 'object' },
-					bypassAccessCheck: { type: 'boolean' }
-				}
-			}
+			body: CreateUserType
 		},
 		preValidation: requireAdminAccess,
 		handler: async function (req, reply) {
@@ -267,7 +247,8 @@ export default function (_fastify: FastifyInstance) {
 		url: '/admin/users/csv/:id',
 		schema: {
 			description: 'Export users as CSV file',
-			tags: ['User']
+			tags: ['User'],
+			params: IdParamsType
 		},
 		preValidation: requireAdminAccess,
 		preHandler: loadExportConfigById,
@@ -328,6 +309,8 @@ export default function (_fastify: FastifyInstance) {
 			);
 
 			exportConfigController.exportCSV(req, reply, fileName, columns, cursor);
+
+			return reply;
 		}
 	});
 }
