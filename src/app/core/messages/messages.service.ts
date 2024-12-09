@@ -27,7 +27,7 @@ class MessagesService {
 		private dismissedModel: DismissedMessageModel
 	) {}
 
-	create(user: UserDocument, doc: unknown): Promise<MessageDocument> {
+	create(user: UserDocument, doc: Partial<IMessage>): Promise<MessageDocument> {
 		const message = new this.model(doc);
 		message.creator = user._id;
 
@@ -48,7 +48,10 @@ class MessagesService {
 			.exec();
 	}
 
-	update(document: MessageDocument, obj: unknown): Promise<MessageDocument> {
+	update(
+		document: MessageDocument,
+		obj: Partial<IMessage>
+	): Promise<MessageDocument> {
 		document.set(obj);
 		return document.save();
 	}
@@ -103,18 +106,16 @@ class MessagesService {
 			this.getDismissedMessages(userId)
 		]);
 
-		const filteredMessages = allMessages.filter((message) => {
+		return allMessages.filter((message) => {
 			const isDismissed = dismissedMessages.some((dismissed) =>
 				dismissed.messageId.equals(message._id)
 			);
 			return !isDismissed;
 		});
-
-		return filteredMessages;
 	}
 
 	dismissMessages(
-		messageIds: string[],
+		messageIds: Types.ObjectId[],
 		user: UserDocument
 	): Promise<Array<DismissedMessageDocument>> {
 		const dismissals = messageIds.map((messageId) =>

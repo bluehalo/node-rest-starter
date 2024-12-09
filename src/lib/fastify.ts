@@ -9,7 +9,6 @@ import { Authenticator } from '@fastify/passport';
 import fastifySession from '@fastify/session';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
-import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
 import config from 'config';
 import MongoStore from 'connect-mongo';
 import { fastify, FastifyInstance } from 'fastify';
@@ -24,7 +23,7 @@ const baseApiPath = '/api';
 export async function init(db: Mongoose) {
 	const app = fastify({
 		logger: config.get('fastifyLogging')
-	}).withTypeProvider<JsonSchemaToTsProvider>();
+	});
 
 	// Configure compression
 	await app.register(fastifyCompress);

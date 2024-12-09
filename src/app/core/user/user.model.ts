@@ -1,13 +1,8 @@
-import crypto, { BinaryLike } from 'crypto';
+import crypto from 'crypto';
 
+import { type Static, Type } from '@fastify/type-provider-typebox';
 import _ from 'lodash';
-import mongoose, {
-	HydratedDocument,
-	model,
-	Model,
-	Schema,
-	Types
-} from 'mongoose';
+import mongoose, { HydratedDocument, model, Model, Schema } from 'mongoose';
 import uniqueValidator from 'mongoose-unique-validator';
 
 import { config, utilService as util } from '../../../dependencies';
@@ -24,7 +19,8 @@ import {
 	TextSearchable,
 	textSearchPlugin
 } from '../../common/mongoose/text-search.plugin';
-import { TeamRoles, TeamRoleSchema } from '../teams/team-role.model';
+import { DateTimeType, ObjectIdType } from '../core.types';
+import { TeamRoleSchema, TeamRoleType } from '../teams/team-role.model';
 
 /**
  * Validation
@@ -62,49 +58,54 @@ const roleObject = Roles.reduce(
 
 const roleSchemaDef = new mongoose.Schema(roleObject);
 
-type UserRoles = {
-	user?: boolean;
-	editor?: boolean;
-	auditor?: boolean;
-	admin?: boolean;
-	machine?: boolean;
-};
+const UserRolesType = Type.Object(
+	{
+		user: Type.Optional(Type.Boolean()),
+		editor: Type.Optional(Type.Boolean()),
+		auditor: Type.Optional(Type.Boolean()),
+		admin: Type.Optional(Type.Boolean()),
+		machine: Type.Optional(Type.Boolean())
+	},
+	{ additionalProperties: true }
+);
 
-type UserTeam = { _id: Types.ObjectId; role: TeamRoles };
+export const UserType = Type.Object({
+	_id: ObjectIdType,
+	name: Type.String(),
+	organization: Type.String(),
+	organizationLevels: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
+	email: Type.String(),
+	phone: Type.Optional(Type.String()),
+	username: Type.String(),
+	password: Type.String(),
+	provider: Type.String(),
+	providerData: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
+	additionalProvidersData: Type.Optional(
+		Type.Record(Type.String(), Type.Unknown())
+	),
+	roles: UserRolesType,
+	localRoles: Type.Optional(UserRolesType),
+	canProxy: Type.Optional(Type.Boolean()),
+	canMasquerade: Type.Optional(Type.Boolean()),
+	externalGroups: Type.Optional(Type.Array(Type.String())),
+	externalRoles: Type.Optional(Type.Array(Type.String())),
+	bypassAccessCheck: Type.Boolean(),
+	updated: DateTimeType,
+	created: DateTimeType,
+	messagesAcknowledged: Type.Optional(Type.Union([DateTimeType, Type.Null()])),
+	alertsViewed: Type.Optional(DateTimeType),
+	resetPasswordToken: Type.Optional(Type.String()),
+	resetPasswordExpires: Type.Optional(DateTimeType),
+	acceptedEua: Type.Optional(Type.Union([DateTimeType, Type.Null()])),
+	lastLogin: Type.Optional(Type.Union([DateTimeType, Type.Null()])),
+	lastLoginWithAccess: Type.Optional(Type.Union([DateTimeType, Type.Null()])),
+	newFeatureDismissed: Type.Optional(Type.Union([DateTimeType, Type.Null()])),
+	preferences: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
+	salt: Type.Optional(Type.String()),
+	teams: Type.Optional(Type.Array(TeamRoleType))
+});
 
-export interface IUser {
-	_id: Types.ObjectId;
-	name: string;
-	organization: string;
-	organizationLevels: Record<string, unknown>;
-	email: string;
-	phone: string;
-	username: string;
-	password: string;
-	provider: string;
-	providerData: Record<string, unknown>;
-	additionalProvidersData: Record<string, unknown>;
-	roles: UserRoles;
-	localRoles?: UserRoles;
-	canProxy: boolean;
-	canMasquerade: boolean;
-	externalGroups: string[];
-	externalRoles: string[];
-	bypassAccessCheck: boolean;
-	updated: Date;
-	created: Date;
-	messagesAcknowledged: Date;
-	alertsViewed: Date;
-	resetPasswordToken: string;
-	resetPasswordExpires: Date;
-	acceptedEua: Date;
-	lastLogin: Date;
-	lastLoginWithAccess: Date;
-	newFeatureDismissed: Date;
-	preferences: Record<string, unknown>;
-	salt: BinaryLike;
-	teams: UserTeam[];
-}
+export type IUser = Static<typeof UserType>;
 
 interface IUserMethods {
 	fullCopy(): IUser;
@@ -278,10 +279,7 @@ UserSchema.index({ name: 'text', email: 'text', username: 'text' });
 const preSave = function (this: UserDocument, next) {
 	// If the password is modified and it is valid, then re- salt/hash it
 	if (this.isModified('password') && validatePassword(this, this.password)) {
-		this.salt = Buffer.from(
-			crypto.randomBytes(16).toString('base64'),
-			'base64'
-		);
+		this.salt = crypto.randomBytes(16).toString('base64');
 		this.password = this.hashPassword(this.password);
 	}
 

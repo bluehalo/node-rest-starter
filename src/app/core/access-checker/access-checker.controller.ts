@@ -1,54 +1,17 @@
-import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
+import { Type, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
 
 import accessCheckerService from './access-checker.service';
 import cacheEntryService from './cache/cache-entry.service';
-import { PagingQueryStringSchema, SearchBodySchema } from '../core.schemas';
+import { PagingQueryStringType, SearchBodyType } from '../core.types';
 import { requireAdminAccess, requireLogin } from '../user/auth/auth.hooks';
 
-export default function (_fastify: FastifyInstance) {
-	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();
-	fastify.route({
-		method: 'POST',
-		url: '/access-checker/entry/:key',
-		schema: {
-			description: 'Trigger cache entry refresh',
-			tags: ['Access Checker'],
-			params: {
-				type: 'object',
-				properties: {
-					key: { type: 'string' }
-				},
-				required: ['key']
-			}
-		},
-		preValidation: requireAdminAccess,
-		handler: async function (req, reply) {
-			await accessCheckerService.refreshEntry(req.params.key);
-			return reply.send();
-		}
-	});
+const KeyParamsType = Type.Object({
+	key: Type.String()
+});
 
-	fastify.route({
-		method: 'DELETE',
-		url: '/access-checker/entry/:key',
-		schema: {
-			description: 'Delete cache entry',
-			tags: ['Access Checker'],
-			params: {
-				type: 'object',
-				properties: {
-					key: { type: 'string' }
-				},
-				required: ['key']
-			}
-		},
-		preValidation: requireAdminAccess,
-		handler: async function (req, reply) {
-			await cacheEntryService.delete(req.params.key);
-			return reply.send();
-		}
-	});
+export default function (_fastify: FastifyInstance) {
+	const fastify = _fastify.withTypeProvider<TypeBoxTypeProvider>();
 
 	fastify.route({
 		method: 'POST',
@@ -56,8 +19,8 @@ export default function (_fastify: FastifyInstance) {
 		schema: {
 			description: 'Search cache entries',
 			tags: ['Access Checker'],
-			body: SearchBodySchema,
-			querystring: PagingQueryStringSchema
+			body: SearchBodyType,
+			querystring: PagingQueryStringType
 		},
 		preValidation: requireAdminAccess,
 		handler: async function (req, reply) {
@@ -77,6 +40,36 @@ export default function (_fastify: FastifyInstance) {
 			};
 
 			return reply.send(mappedResults);
+		}
+	});
+
+	fastify.route({
+		method: 'POST',
+		url: '/access-checker/entry/:key',
+		schema: {
+			description: 'Trigger cache entry refresh',
+			tags: ['Access Checker'],
+			params: KeyParamsType
+		},
+		preValidation: requireAdminAccess,
+		handler: async function (req, reply) {
+			await accessCheckerService.refreshEntry(req.params.key);
+			return reply.send();
+		}
+	});
+
+	fastify.route({
+		method: 'DELETE',
+		url: '/access-checker/entry/:key',
+		schema: {
+			description: 'Delete cache entry',
+			tags: ['Access Checker'],
+			params: KeyParamsType
+		},
+		preValidation: requireAdminAccess,
+		handler: async function (req, reply) {
+			await cacheEntryService.delete(req.params.key);
+			return reply.send();
 		}
 	});
 

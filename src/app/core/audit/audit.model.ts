@@ -1,3 +1,4 @@
+import { Static, Type } from '@fastify/type-provider-typebox';
 import config from 'config';
 import { HydratedDocument, Model, model, Schema } from 'mongoose';
 
@@ -10,22 +11,27 @@ import {
 	Paginateable,
 	paginatePlugin
 } from '../../common/mongoose/paginate.plugin';
+import { DateTimeType } from '../core.types';
 
-interface IAudit {
-	created: Date;
-	message: string;
-	audit: {
-		auditType: string;
-		action: string;
-		actor: Record<string, unknown>;
-		object: string | Record<string, unknown>;
-		userSpec: {
-			browser: string;
-			os: string;
-		};
-		masqueradingUser?: string;
-	};
-}
+export const AuditType = Type.Object({
+	created: DateTimeType,
+	message: Type.String(),
+	audit: Type.Object({
+		auditType: Type.String(),
+		action: Type.String(),
+		actor: Type.Record(Type.String(), Type.Unknown()),
+		object: Type.Optional(
+			Type.Union([Type.String(), Type.Record(Type.String(), Type.Unknown())])
+		),
+		userSpec: Type.Object({
+			browser: Type.String(),
+			os: Type.String()
+		}),
+		masqueradingUser: Type.Optional(Type.String())
+	})
+});
+
+type IAudit = Static<typeof AuditType>;
 
 export type AuditDocument = HydratedDocument<
 	IAudit,

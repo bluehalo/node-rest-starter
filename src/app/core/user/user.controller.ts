@@ -1,23 +1,31 @@
-import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
+import { Type, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import _ from 'lodash';
 
 import { requireAccess, requireLogin } from './auth/auth.hooks';
 import userAuthorizationService from './auth/user-authorization.service';
 import userService from './user.service';
+import { UpdateUserType, UserReturnType } from './user.types';
 import { auditService } from '../../../dependencies';
 import { BadRequestError } from '../../common/errors';
-import { PagingQueryStringSchema, SearchBodySchema } from '../core.schemas';
+import {
+	IdParamsType,
+	PagingQueryStringType,
+	SearchBodyType
+} from '../core.types';
 import teamService from '../teams/teams.service';
 
 export default function (_fastify: FastifyInstance) {
-	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();
+	const fastify = _fastify.withTypeProvider<TypeBoxTypeProvider>();
 	fastify.route({
 		method: 'GET',
 		url: '/user/me',
 		schema: {
 			tags: ['User'],
-			description: 'Returns details about the authenticated user.'
+			description: 'Returns details about the authenticated user.',
+			response: {
+				200: UserReturnType
+			}
 		},
 		preValidation: requireLogin,
 		handler: async function (req, reply) {
@@ -37,18 +45,7 @@ export default function (_fastify: FastifyInstance) {
 		schema: {
 			tags: ['User'],
 			description: 'Updates details about the authenticated user.',
-			body: {
-				type: 'object',
-				properties: {
-					name: { type: 'string' },
-					organization: { type: 'string' },
-					email: { type: 'string' },
-					username: { type: 'string' },
-					password: { type: 'string' },
-					currentPassword: { type: 'string' }
-				},
-				required: ['name', 'organization', 'email', 'username']
-			}
+			body: UpdateUserType
 		},
 		preValidation: requireLogin,
 		handler: async function (req, reply) {
@@ -107,7 +104,8 @@ export default function (_fastify: FastifyInstance) {
 		url: '/user/:id',
 		schema: {
 			tags: ['User'],
-			description: ''
+			description: 'Returns details for the specified user',
+			params: IdParamsType
 		},
 		preValidation: requireAccess,
 		preHandler: loadUserById,
@@ -121,10 +119,8 @@ export default function (_fastify: FastifyInstance) {
 		url: '/user-preference',
 		schema: {
 			tags: ['User'],
-			description: '',
-			body: {
-				type: 'object'
-			}
+			description: 'Updates user preferences for the current user',
+			body: Type.Object({}, { additionalProperties: true })
 		},
 		preValidation: requireLogin,
 		handler: async function (req, reply) {
@@ -139,8 +135,8 @@ export default function (_fastify: FastifyInstance) {
 		schema: {
 			tags: ['User'],
 			description: 'Returns users matching search criteria',
-			body: SearchBodySchema,
-			querystring: PagingQueryStringSchema
+			body: SearchBodyType,
+			querystring: PagingQueryStringType
 		},
 		preValidation: requireAccess,
 		handler: async function (req, reply) {
@@ -166,8 +162,8 @@ export default function (_fastify: FastifyInstance) {
 		schema: {
 			tags: ['User'],
 			description: '',
-			body: SearchBodySchema,
-			querystring: PagingQueryStringSchema
+			body: SearchBodyType,
+			querystring: PagingQueryStringType
 		},
 		preValidation: requireAccess,
 		preHandler: loadUserById,

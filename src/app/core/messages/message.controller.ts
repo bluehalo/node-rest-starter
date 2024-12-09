@@ -1,23 +1,22 @@
-import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
-import { FastifyInstance, FastifyRequest } from 'fastify';
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
+import { FastifyInstance } from 'fastify';
 
+import { DismissMessagesType } from './message.types';
 import messageService from './messages.service';
 import { auditService } from '../../../dependencies';
-import { NotFoundError } from '../../common/errors';
-import { audit, auditTrackBefore } from '../audit/audit.hooks';
-import { PagingQueryStringSchema, SearchBodySchema } from '../core.schemas';
-import { requireAccess, requireAdminAccess } from '../user/auth/auth.hooks';
+import { PagingQueryStringType, SearchBodyType } from '../core.types';
+import { requireAccess } from '../user/auth/auth.hooks';
 
 export default function (_fastify: FastifyInstance) {
-	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();
+	const fastify = _fastify.withTypeProvider<TypeBoxTypeProvider>();
 	fastify.route({
 		method: 'POST',
 		url: '/messages',
 		schema: {
-			description: '',
+			description: 'Return messages matching search criteria',
 			tags: ['Messages'],
-			body: SearchBodySchema,
-			querystring: PagingQueryStringSchema
+			body: SearchBodyType,
+			querystring: PagingQueryStringType
 		},
 		preValidation: requireAccess,
 		handler: async function (req, reply) {
@@ -27,16 +26,7 @@ export default function (_fastify: FastifyInstance) {
 				req.body.q
 			);
 
-			// Create the return copy of the messages
-			const mappedResults = {
-				pageNumber: results.pageNumber,
-				pageSize: results.pageSize,
-				totalPages: results.totalPages,
-				totalSize: results.totalSize,
-				elements: results.elements.map((element) => element.fullCopy())
-			};
-
-			return reply.send(mappedResults);
+			return reply.send(results);
 		}
 	});
 
@@ -60,17 +50,7 @@ export default function (_fastify: FastifyInstance) {
 		schema: {
 			description: 'Dismiss messages',
 			tags: ['Messages'],
-			body: {
-				type: 'object',
-				properties: {
-					messageIds: {
-						type: 'array',
-						items: {
-							type: 'string'
-						}
-					}
-				}
-			}
+			body: DismissMessagesType
 		},
 		preValidation: requireAccess,
 		handler: async function (req, reply) {
@@ -95,110 +75,4 @@ export default function (_fastify: FastifyInstance) {
 			return reply.send(dismissedMessages);
 		}
 	});
-
-	fastify.route({
-		method: 'POST',
-		url: '/admin/message',
-		schema: {
-			description: 'Create a new message',
-			tags: ['Messages']
-		},
-		preValidation: requireAdminAccess,
-		handler: async function (req, reply) {
-			const message = await messageService.create(req.user, req.body);
-
-			// Publish the message
-			messageService.publishMessage(message).then();
-
-			return reply.send(message);
-		},
-		preSerialization: audit({
-			message: 'message created',
-			type: 'message',
-			action: 'create'
-		})
-	});
-
-	fastify.route({
-		method: 'GET',
-		url: '/admin/message/:id',
-		schema: {
-			description: '',
-			tags: ['Messages'],
-			params: {
-				type: 'object',
-				properties: {
-					id: { type: 'string' }
-				},
-				required: ['id']
-			}
-		},
-		preValidation: requireAdminAccess,
-		handler: function (req, reply) {
-			return reply.send(req.message);
-		}
-	});
-
-	fastify.route({
-		method: 'POST',
-		url: '/admin/message/:id',
-		schema: {
-			description: 'Update message details',
-			tags: ['Messages'],
-			params: {
-				type: 'object',
-				properties: {
-					id: { type: 'string' }
-				},
-				required: ['id']
-			}
-		},
-		preValidation: requireAdminAccess,
-		preHandler: [loadMessageById, auditTrackBefore('message')],
-		handler: async function (req, reply) {
-			const result = await messageService.update(req.message, req.body);
-			return reply.send(result);
-		},
-		preSerialization: audit({
-			message: 'message updated',
-			type: 'message',
-			action: 'update'
-		})
-	});
-
-	fastify.route({
-		method: 'DELETE',
-		url: '/admin/message/:id',
-		schema: {
-			description: '',
-			tags: ['Messages'],
-			params: {
-				type: 'object',
-				properties: {
-					id: { type: 'string' }
-				},
-				required: ['id']
-			}
-		},
-		preValidation: requireAdminAccess,
-		preHandler: loadMessageById,
-		handler: async function (req, reply) {
-			const result = await messageService.delete(req.message);
-			return reply.send(result);
-		},
-		preSerialization: audit({
-			message: 'message deleted',
-			type: 'message',
-			action: 'delete'
-		})
-	});
-}
-
-async function loadMessageById(req: FastifyRequest) {
-	const id = req.params['id'];
-
-	req.message = await messageService.read(id);
-	if (!req.message) {
-		throw new NotFoundError(`Failed to load message: ${id}`);
-	}
 }

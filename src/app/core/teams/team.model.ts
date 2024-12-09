@@ -1,10 +1,5 @@
-import mongoose, {
-	model,
-	HydratedDocument,
-	Model,
-	Schema,
-	Types
-} from 'mongoose';
+import { Static, Type } from '@fastify/type-provider-typebox';
+import mongoose, { model, HydratedDocument, Model, Schema } from 'mongoose';
 
 import { utilService } from '../../../dependencies';
 import {
@@ -16,21 +11,25 @@ import {
 	Paginateable,
 	paginatePlugin
 } from '../../common/mongoose/paginate.plugin';
+import { DateTimeType, ObjectIdType } from '../core.types';
 import { UserDocument } from '../user/user.model';
 
-export interface ITeam {
-	name: string;
-	description: string;
-	created: Date;
-	updated: Date;
-	creator: Types.ObjectId;
-	creatorName: string;
-	implicitMembers: boolean;
-	requiresExternalRoles: string[];
-	requiresExternalTeams: string[];
-	parent: Types.ObjectId;
-	ancestors: Types.ObjectId[];
-}
+export const TeamType = Type.Object({
+	_id: ObjectIdType,
+	name: Type.String(),
+	description: Type.Optional(Type.String()),
+	created: DateTimeType,
+	updated: DateTimeType,
+	creator: ObjectIdType,
+	creatorName: Type.String(),
+	implicitMembers: Type.Optional(Type.Boolean()),
+	requiresExternalRoles: Type.Optional(Type.Array(Type.String())),
+	requiresExternalTeams: Type.Optional(Type.Array(Type.String())),
+	parent: Type.Optional(ObjectIdType),
+	ancestors: Type.Optional(Type.Array(ObjectIdType))
+});
+
+export type ITeam = Static<typeof TeamType>;
 
 export interface ITeamMethods {
 	auditCopy(): Record<string, unknown>;

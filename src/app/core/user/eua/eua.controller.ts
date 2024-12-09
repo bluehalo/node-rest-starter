@@ -1,21 +1,25 @@
-import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance, FastifyRequest } from 'fastify';
 
 import euaService from './eua.service';
 import { audit, auditTrackBefore } from '../../audit/audit.hooks';
-import { PagingQueryStringSchema, SearchBodySchema } from '../../core.schemas';
+import {
+	IdParamsType,
+	PagingQueryStringType,
+	SearchBodyType
+} from '../../core.types';
 import { requireAdminAccess, requireLogin } from '../auth/auth.hooks';
 
 export default function (_fastify: FastifyInstance) {
-	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();
+	const fastify = _fastify.withTypeProvider<TypeBoxTypeProvider>();
 	fastify.route({
 		method: 'POST',
 		url: '/euas',
 		schema: {
 			description: 'Returns EUAs matching search criteria',
 			tags: ['EUA'],
-			body: SearchBodySchema,
-			querystring: PagingQueryStringSchema
+			body: SearchBodyType,
+			querystring: PagingQueryStringType
 		},
 		preValidation: requireAdminAccess,
 		handler: async function (req, reply) {
@@ -85,7 +89,8 @@ export default function (_fastify: FastifyInstance) {
 		url: '/eua/:id',
 		schema: {
 			description: 'Retrieve EUA details',
-			tags: ['EUA']
+			tags: ['EUA'],
+			params: IdParamsType
 		},
 		preValidation: requireAdminAccess,
 		preHandler: loadEuaById,
@@ -99,7 +104,8 @@ export default function (_fastify: FastifyInstance) {
 		url: '/eua/:id',
 		schema: {
 			description: 'Update EUA details',
-			tags: ['Eua']
+			tags: ['Eua'],
+			params: IdParamsType
 		},
 		preValidation: requireAdminAccess,
 		preHandler: [loadEuaById, auditTrackBefore('euaParam')],
@@ -119,7 +125,8 @@ export default function (_fastify: FastifyInstance) {
 		url: '/eua/:id',
 		schema: {
 			description: '',
-			tags: ['EUA']
+			tags: ['EUA'],
+			params: IdParamsType
 		},
 		preValidation: requireAdminAccess,
 		preHandler: loadEuaById,
@@ -139,7 +146,8 @@ export default function (_fastify: FastifyInstance) {
 		url: '/eua/:id/publish',
 		schema: {
 			description: '',
-			tags: ['EUA']
+			tags: ['EUA'],
+			params: IdParamsType
 		},
 		preValidation: requireAdminAccess,
 		preHandler: loadEuaById,

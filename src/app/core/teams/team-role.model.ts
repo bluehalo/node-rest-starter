@@ -1,6 +1,8 @@
-import { model, Schema, Types } from 'mongoose';
+import { Static, Type } from '@fastify/type-provider-typebox';
+import { model, Schema } from 'mongoose';
 
 import getterPlugin from '../../common/mongoose/getter.plugin';
+import { ObjectIdType } from '../core.types';
 
 export enum TeamRoles {
 	Admin = 'admin',
@@ -30,23 +32,13 @@ export const TeamRoleMinimumWithAccess = TeamRoles.Member;
  */
 export const TeamRoleImplicit = TeamRoles.Member;
 
-export interface ITeamRole {
-	_id: Types.ObjectId;
-	role: TeamRoles;
-}
+export const TeamRoleType = Type.Object({
+	_id: ObjectIdType,
+	role: Type.Enum(TeamRoles)
+});
 
-/**
- * @swagger
- * components:
- *   schemas:
- *     TeamRole:
- *       type: object
- *       properties:
- *         _id:
- *           type: string
- *         role:
- *           type: string
- */
+export type ITeamRole = Static<typeof TeamRoleType>;
+
 export const TeamRoleSchema = new Schema<ITeamRole>(
 	{
 		_id: {

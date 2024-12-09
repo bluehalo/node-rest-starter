@@ -1,10 +1,8 @@
-import { JsonSchemaToTsProvider } from '@fastify/type-provider-json-schema-to-ts';
 import { FastifyInstance } from 'fastify';
 
 import { metricsLogger } from '../../../lib/logger';
 
-export default function (_fastify: FastifyInstance) {
-	const fastify = _fastify.withTypeProvider<JsonSchemaToTsProvider>();
+export default function (fastify: FastifyInstance) {
 	fastify.route({
 		method: 'GET',
 		url: '/client-metrics',

@@ -1,4 +1,5 @@
-import { Schema, model, Types, HydratedDocument, Model } from 'mongoose';
+import { Static, Type } from '@fastify/type-provider-typebox';
+import { Schema, model, HydratedDocument, Model } from 'mongoose';
 
 import getterPlugin from '../../common/mongoose/getter.plugin';
 import {
@@ -9,6 +10,7 @@ import {
 	textSearchPlugin,
 	TextSearchable
 } from '../../common/mongoose/text-search.plugin';
+import { DateTimeType, ObjectIdType } from '../core.types';
 
 export enum MessageTypes {
 	INFO = 'INFO',
@@ -17,16 +19,18 @@ export enum MessageTypes {
 	MOTD = 'MOTD'
 }
 
-export interface IMessage {
-	_id: Types.ObjectId;
-	type: MessageTypes;
-	title: string;
-	body: string;
-	ackRequired: boolean;
-	creator: Types.ObjectId;
-	created: Date;
-	updated: Date;
-}
+export const MessageType = Type.Object({
+	_id: ObjectIdType,
+	type: Type.Enum(MessageTypes),
+	title: Type.String(),
+	body: Type.String(),
+	ackRequired: Type.Boolean(),
+	creator: ObjectIdType,
+	created: DateTimeType,
+	updated: DateTimeType
+});
+
+export type IMessage = Static<typeof MessageType>;
 
 export interface IMessageMethods {
 	auditCopy(): Record<string, unknown>;
@@ -107,10 +111,6 @@ MessageSchema.index({ title: 'text', body: 'text', type: 'text' });
  */
 
 MessageSchema.methods.auditCopy = function (): Record<string, unknown> {
-	return this.fullCopy();
-};
-
-MessageSchema.methods.fullCopy = function () {
 	const message: Record<string, unknown> = {};
 	message.type = this.type;
 	message.title = this.title;
