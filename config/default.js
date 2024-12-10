@@ -6,6 +6,7 @@ module.exports = {
 	mode: 'production',
 
 	port: 3000,
+	host: 'localhost',
 
 	// Basic title and instance name
 	app: {
