@@ -17,6 +17,7 @@ import { Mongoose } from 'mongoose';
 
 import { logger } from './logger';
 import pkg from '../../package.json';
+import fastifyActuator from '../app/common/fastify/actuator';
 
 const baseApiPath = '/api';
 
@@ -153,50 +154,7 @@ function initActuator(app: FastifyInstance) {
 	app.log.info('Configuring actuator endpoints');
 
 	const basePath = config.get<string>('actuator.options.basePath');
-	app.register(
-		(instance) => {
-			instance.route({
-				method: 'GET',
-				url: '/health',
-				schema: {
-					hide: true
-				},
-				handler: function (req, reply) {
-					return reply.send({ status: 'UP' });
-				}
-			});
-
-			instance.route({
-				method: 'GET',
-				url: '/info',
-				schema: {
-					hide: true
-				},
-				handler: function (req, reply) {
-					return reply.send({
-						name: pkg.name,
-						description: pkg.description,
-						version: pkg.version
-					});
-				}
-			});
-
-			instance.route({
-				method: 'GET',
-				url: '/metrics',
-				schema: {
-					hide: true
-				},
-				handler: function (req, reply) {
-					return reply.send({
-						mem: process.memoryUsage(),
-						uptime: process.uptime()
-					});
-				}
-			});
-		},
-		{
-			prefix: basePath
-		}
-	);
+	app.register(fastifyActuator, {
+		prefix: basePath
+	});
 }
