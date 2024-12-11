@@ -2,7 +2,9 @@ import config from 'config';
 import * as migrateMongo from 'migrate-mongo';
 import { Mongoose } from 'mongoose';
 
-import { logger } from './logger';
+import { logger as baseLogger } from './logger';
+
+const logger = baseLogger.child({ component: 'migrate-mongo' });
 
 export const migrate = async (db: Mongoose) => {
 	if (config.get<boolean>('migrateMongo.enabled')) {

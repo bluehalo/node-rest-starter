@@ -10,7 +10,9 @@ import mongoose, {
 	Model
 } from 'mongoose';
 
-import { logger } from './logger';
+import { logger as baseLogger } from './logger';
+
+const logger = baseLogger.child({ component: 'mongoose' });
 
 type MongooseDbConfig = Record<
 	string,
@@ -28,7 +30,7 @@ export const loadModels = async () => {
 	const modelPaths = await glob(config.get<string[]>('assets.models'));
 	// Globbing model files
 	for (const modelPath of modelPaths) {
-		logger.debug(`Mongoose: Loading ${modelPath}`);
+		logger.debug(`Loading ${modelPath}`);
 		// eslint-disable-next-line no-await-in-loop
 		await import(path.posix.resolve(modelPath));
 	}
@@ -66,7 +68,7 @@ export const connect = async () => {
 	// Set the mongoose debugging option based on the configuration, defaulting to false
 	const mongooseDebug = config.get('mongooseLogging');
 
-	logger.info(`Mongoose: Setting debug to ${mongooseDebug}`);
+	logger.info(`Setting debug to ${mongooseDebug}`);
 	mongoose.set('debug', mongooseDebug);
 	mongoose.set('strictQuery', true);
 
@@ -96,7 +98,7 @@ export const connect = async () => {
 			defaultDbSpec.options
 		);
 
-		logger.info(`Mongoose: Connected to "${defaultDbSpec.name}" default db`);
+		logger.info(`Connected to "${defaultDbSpec.name}" default db`);
 
 		// Connect to the rest of the dbs
 		await Promise.all(
@@ -105,20 +107,20 @@ export const connect = async () => {
 				dbs[spec.name] = await mongoose
 					.createConnection(spec.connectionString, spec.options)
 					.asPromise();
-				logger.info(`Mongoose: Connected to "${spec.name}" db`);
+				logger.info(`Connected to "${spec.name}" db`);
 			})
 		);
 
 		// Since all the db connections worked, we will load the mongoose models
-		logger.debug('Mongoose: Loading mongoose models...');
+		logger.debug('Loading mongoose models...');
 		await loadModels();
-		logger.debug('Mongoose: Loaded all mongoose models!');
+		logger.debug('Loaded all mongoose models!');
 
 		// Ensure that all mongoose models are initialized
 		// before responding with the connections(s)
 		await Promise.all(
 			Object.entries(dbs).flatMap(([key, conn]) => {
-				logger.debug(`Mongoose: Initializing all models for "${key}" db`);
+				logger.debug(`Initializing all models for "${key}" db`);
 				return Object.entries(conn.models).map(([name, aModel]) =>
 					initializeModel(name, aModel)
 				);
@@ -128,7 +130,7 @@ export const connect = async () => {
 		// Return the dbs since everything succeeded
 		return dbs;
 	} catch (err) {
-		logger.error('Mongoose: Could not connect to admin db');
+		logger.error('Could not connect to admin db');
 		throw err;
 	}
 };
@@ -150,12 +152,12 @@ export const disconnect = async () => {
 };
 
 async function initializeModel(name: string, model: Model<unknown>) {
-	logger.debug(`Mongoose: Initializing model ${name}`);
+	logger.debug(`Initializing model ${name}`);
 	try {
 		return await model.init();
 	} catch (err) {
 		logger.error(
-			`Mongoose: Error creating index for ${name}: ${err.codeName} - ${err.message}`
+			`Error creating index for ${name}: ${err.codeName} - ${err.message}`
 		);
 		if (
 			config.get<boolean>('mongooseFailOnIndexOptionsConflict') ||

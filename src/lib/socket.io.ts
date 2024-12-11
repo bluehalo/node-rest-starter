@@ -9,11 +9,13 @@ import { Mongoose } from 'mongoose';
 import passport from 'passport';
 import { Server, Socket } from 'socket.io';
 
-import { logger } from './logger';
+import { logger as baseLogger } from './logger';
 import {
 	BaseSocket,
 	BaseSocketSubclass
 } from '../app/common/sockets/base-socket.provider';
+
+const logger = baseLogger.child({ component: 'socket.io' });
 
 class SocketIo {
 	/**
@@ -26,7 +28,7 @@ class SocketIo {
 	SocketProvider: typeof BaseSocket;
 
 	onConnect(socket: Socket) {
-		logger.debug('SocketIO: New client connection');
+		logger.debug('New client connection');
 
 		/**
 		 * Setup Socket Event Handlers
@@ -91,12 +93,12 @@ class SocketIo {
 		io.use((socket, next) => {
 			if (socket.request['user']) {
 				logger.debug(
-					'SocketIO: New authenticated user: %s',
+					'New authenticated user: %s',
 					socket.request['user'].username
 				);
 				return next(null);
 			}
-			logger.info('SocketIO: Unauthenticated user attempting to connect.');
+			logger.info('Unauthenticated user attempting to connect.');
 			return next(new Error('User is not authenticated'));
 		});
 

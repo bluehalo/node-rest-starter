@@ -19,7 +19,6 @@ export default async function () {
 	// Init agenda.ts scheduler
 	await agenda.init();
 
-	logger.info('Creating Fastify Server');
 	const app = await fastify.init(db.admin as Mongoose);
 
 	// Initialize socket.io

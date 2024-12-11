@@ -3,8 +3,10 @@ import path from 'path';
 import { Agenda, Job } from 'agenda';
 import config from 'config';
 
-import { logger } from './logger';
+import { logger as baseLogger } from './logger';
 import { JobService } from '../app/common/agenda/job-service';
+
+const logger = baseLogger.child({ component: 'agenda' });
 
 type JobConfig = {
 	name: string;
