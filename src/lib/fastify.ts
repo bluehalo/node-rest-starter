@@ -24,6 +24,7 @@ const logger = baseLogger.child({ component: 'fastify' });
 const baseApiPath = '/api';
 
 export async function init(db: Mongoose) {
+	logger.info('Creating Fastify Server');
 	const app = fastify({
 		logger: config.get('fastifyLogging')
 	});
