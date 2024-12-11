@@ -25,8 +25,10 @@ module.exports = {
 	apiDocs: {
 		enabled: true,
 		path: '/api-docs',
-		uiOptions: {
-			filter: true
+		ui: 'swagger-ui',
+		config: {
+			filter: true,
+			hideClientButton: true
 		}
 	},
 
