@@ -128,21 +128,12 @@ function initSwaggerAPI(app: FastifyInstance) {
 					email: config.get<string>('mailer.from')
 				},
 				version: pkg.version
-			},
-			servers: [
-				{
-					url: baseApiPath
-				}
-			],
-			components: {}
+			}
 		}
 	});
 	app.register(fastifySwaggerUi, {
-		routePrefix: '/api-docs',
-		uiConfig: {
-			filter: true,
-			...config.get<Record<string, unknown>>('apiDocs.uiOptions')
-		}
+		routePrefix: config.get<string>('apiDocs.path'),
+		uiConfig: config.get<Record<string, unknown>>('apiDocs.uiOptions')
 	});
 }
 
@@ -151,6 +142,7 @@ function initActuator(app: FastifyInstance) {
 	if (config.get<boolean>('actuator.enabled') !== true) {
 		return;
 	}
+
 	app.log.info('Configuring actuator endpoints');
 
 	const basePath = config.get<string>('actuator.options.basePath');

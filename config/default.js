@@ -25,8 +25,9 @@ module.exports = {
 	apiDocs: {
 		enabled: true,
 		path: '/api-docs',
-		jsonPath: '/api/spec.json',
-		uiOptions: {}
+		uiOptions: {
+			filter: true
+		}
 	},
 
 	actuator: {
