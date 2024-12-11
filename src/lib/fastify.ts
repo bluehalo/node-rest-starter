@@ -15,9 +15,11 @@ import { fastify, FastifyInstance } from 'fastify';
 import { glob } from 'glob';
 import { Mongoose } from 'mongoose';
 
-import { logger } from './logger';
+import { logger as baseLogger } from './logger';
 import pkg from '../../package.json';
 import fastifyActuator from '../app/common/fastify/actuator';
+
+const logger = baseLogger.child({ component: 'fastify' });
 
 const baseApiPath = '/api';
 
@@ -99,15 +101,20 @@ async function initSession(app: FastifyInstance, db: Mongoose) {
 async function initModulesServerRoutes(app: FastifyInstance) {
 	// Init the global route prefix
 
-	const routePaths = await glob(config.get<string[]>('assets.controllers'));
-	const routes = await Promise.all(
-		routePaths.map((routePath: string) => import(path.posix.resolve(routePath)))
+	const controllerPaths = await glob(
+		config.get<string[]>('assets.controllers')
 	);
-	routes
-		.filter((route) => route.default)
-		.forEach((route) => {
-			app.register(route.default, { prefix: baseApiPath });
-		});
+	logger.info(`Registering ${controllerPaths.length} controllers`);
+
+	await Promise.all(
+		controllerPaths.map(async (controllerPath: string) => {
+			const controller = await import(path.posix.resolve(controllerPath));
+			if (controller.default) {
+				logger.debug(`Registering controller: ${controllerPath}`);
+				app.register(controller.default, { prefix: baseApiPath });
+			}
+		})
+	);
 }
 
 function initSwaggerAPI(app: FastifyInstance) {
@@ -116,7 +123,7 @@ function initSwaggerAPI(app: FastifyInstance) {
 		return;
 	}
 
-	app.log.info('Configuring api docs');
+	logger.info('Configuring api docs');
 
 	app.register(fastifySwagger, {
 		openapi: {
@@ -143,7 +150,7 @@ function initActuator(app: FastifyInstance) {
 		return;
 	}
 
-	app.log.info('Configuring actuator endpoints');
+	logger.info('Configuring actuator endpoints');
 
 	const basePath = config.get<string>('actuator.options.basePath');
 	app.register(fastifyActuator, {
