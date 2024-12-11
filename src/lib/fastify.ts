@@ -9,6 +9,7 @@ import { Authenticator } from '@fastify/passport';
 import fastifySession from '@fastify/session';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
+import scalarApiReference from '@scalar/fastify-api-reference';
 import config from 'config';
 import MongoStore from 'connect-mongo';
 import { fastify, FastifyInstance } from 'fastify';
@@ -54,7 +55,7 @@ export async function init(db: Mongoose) {
 		});
 	}
 
-	initSwaggerAPI(app);
+	await initAPIDocs(app);
 
 	initActuator(app);
 
@@ -118,7 +119,7 @@ async function initModulesServerRoutes(app: FastifyInstance) {
 	);
 }
 
-function initSwaggerAPI(app: FastifyInstance) {
+async function initAPIDocs(app: FastifyInstance) {
 	// apiDocs must be enabled explicitly in the config
 	if (config.get<boolean>('apiDocs.enabled') !== true) {
 		return;
@@ -139,10 +140,18 @@ function initSwaggerAPI(app: FastifyInstance) {
 			}
 		}
 	});
-	app.register(fastifySwaggerUi, {
-		routePrefix: config.get<string>('apiDocs.path'),
-		uiConfig: config.get<Record<string, unknown>>('apiDocs.uiOptions')
-	});
+
+	if (config.get<string>('apiDocs.ui') === 'scalar') {
+		await app.register(scalarApiReference, {
+			routePrefix: config.get<`/${string}`>('apiDocs.path'),
+			configuration: config.get<Record<string, unknown>>('apiDocs.config')
+		});
+	} else {
+		app.register(fastifySwaggerUi, {
+			routePrefix: config.get<string>('apiDocs.path'),
+			uiConfig: config.get<Record<string, unknown>>('apiDocs.config')
+		});
+	}
 }
 
 function initActuator(app: FastifyInstance) {

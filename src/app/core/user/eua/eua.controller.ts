@@ -104,7 +104,7 @@ export default function (_fastify: FastifyInstance) {
 		url: '/eua/:id',
 		schema: {
 			description: 'Update EUA details',
-			tags: ['Eua'],
+			tags: ['EUA'],
 			params: IdParamsType
 		},
 		preValidation: requireAdminAccess,
