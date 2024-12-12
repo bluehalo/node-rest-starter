@@ -14,7 +14,7 @@ const clearDatabase = () => {
 	return Promise.all([Message.deleteMany(), DismissedMessage.deleteMany()]);
 };
 
-const messageSpec = (key) => {
+const messageSpec = (key: string | number) => {
 	return {
 		title: `${key} Title`,
 		type: 'INFO',
@@ -22,7 +22,7 @@ const messageSpec = (key) => {
 	};
 };
 
-const createMessages = async (count) => {
+const createMessages = async (count: number) => {
 	const promises = [];
 
 	for (let i = 0; i < count; i++) {

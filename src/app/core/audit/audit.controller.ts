@@ -1,7 +1,6 @@
 import { Type, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
 import _ from 'lodash';
-import { FilterQuery } from 'mongoose';
 
 import { Audit, AuditDocument, AuditType } from './audit.model';
 import { config, utilService as util } from '../../../dependencies';
@@ -34,8 +33,7 @@ export default function (_fastify: FastifyInstance) {
 		preValidation: requireAuditorAccess,
 		handler: async function (req, reply) {
 			const search = req.body.s ?? null;
-			let query: Record<string, unknown> = req.body.q ?? {};
-			query = util.toMongoose(query) as Record<string, unknown>;
+			const query = util.toMongoose<AuditDocument>(req.body.q ?? {});
 
 			const page = util.getPage(req.query);
 			const limit = util.getLimit(req.query);
@@ -100,9 +98,7 @@ export default function (_fastify: FastifyInstance) {
 		preHandler: loadExportConfigById,
 		handler: function (req, reply) {
 			const exportConfig = req.exportConfig;
-			const exportQuery = util.toMongoose(
-				req.exportQuery
-			) as FilterQuery<AuditDocument>;
+			const exportQuery = util.toMongoose<AuditDocument>(req.exportQuery);
 
 			const fileName = `${config.get('app.instanceName')}-${
 				exportConfig.type

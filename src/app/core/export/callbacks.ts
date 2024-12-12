@@ -35,7 +35,7 @@ export const Callbacks = {
 	},
 	joinArray: (separator = ', ', emptyValue = '') => {
 		return (values: unknown) => {
-			if (_.isArray(values) && values.length !== 0) {
+			if (Array.isArray(values) && values.length !== 0) {
 				return values.join(separator);
 			}
 			return emptyValue;
@@ -47,7 +47,7 @@ export const Callbacks = {
 		emptyValue = ''
 	) => {
 		return (values: unknown) => {
-			if (_.isArray(values) && values.length !== 0) {
+			if (Array.isArray(values) && values.length !== 0) {
 				return values.map(mapFn).join(separator);
 			}
 			return emptyValue;

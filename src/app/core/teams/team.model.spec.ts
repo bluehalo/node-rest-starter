@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 import { TeamRoles } from './team-role.model';
-import { Team } from './team.model';
+import { Team, TeamDocument } from './team.model';
 import { Audit } from '../audit/audit.model';
 import { User } from '../user/user.model';
 
@@ -16,7 +16,10 @@ function clearDatabase() {
 	]);
 }
 
-let team1, team2, team3, team4;
+let team1: TeamDocument;
+let team2: TeamDocument;
+let team3: TeamDocument;
+let team4: TeamDocument;
 
 const spec = {
 	user1: {

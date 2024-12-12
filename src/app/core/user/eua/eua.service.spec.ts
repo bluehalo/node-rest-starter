@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 
-import { UserAgreement } from './eua.model';
+import { FilterQuery } from 'mongoose';
+
+import { UserAgreement, UserAgreementDocument } from './eua.model';
 import euaService from './eua.service';
 import { User } from '../user.model';
 
@@ -139,7 +141,7 @@ describe('EUA Service:', () => {
 
 		it('search results page returned', async () => {
 			const queryParams = { size: 10 };
-			const query = null;
+			const query: FilterQuery<UserAgreementDocument> = {};
 			const search = '';
 			const { elements, ...result } = await euaService.search(
 				queryParams,

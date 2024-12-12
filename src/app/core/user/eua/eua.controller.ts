@@ -168,7 +168,8 @@ export default function (_fastify: FastifyInstance) {
 }
 
 async function loadEuaById(req: FastifyRequest) {
-	const id = req.params['id'];
+	const params = req.params as { id: string };
+	const id = params['id'];
 	req.euaParam = await euaService.read(id);
 	if (!req.euaParam) {
 		throw new Error(`Failed to load User Agreement ${id}`);

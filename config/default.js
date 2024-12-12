@@ -54,7 +54,8 @@ module.exports = {
 
 	messages: {
 		topic: 'message.posted',
-		expireSeconds: 2592000 // default to 30 days
+		expireSeconds: 2592000, // default to 30 days,
+		dismissedTimeSeconds: 604800 // default to 7 days
 	},
 
 	pages: {

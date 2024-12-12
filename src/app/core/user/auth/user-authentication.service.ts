@@ -21,8 +21,8 @@ class UserAuthenticationService {
 	}
 
 	async login(req: FastifyRequest): Promise<IUser> {
-		userEmailService.welcomeNoAccessEmail(req.user, req).then();
-		userEmailService.welcomeWithAccessEmail(req.user, req).then();
+		userEmailService.welcomeNoAccessEmail(req.user).then();
+		userEmailService.welcomeWithAccessEmail(req.user).then();
 
 		// Audit the login
 		auditService
@@ -53,7 +53,8 @@ class UserAuthenticationService {
 			.bind(req.server)(req, reply);
 		if (!req.user) {
 			// Try to grab the username from the request
-			const username = req.body?.['username'] ?? 'none provided';
+			const username =
+				(req.body as Record<string, string>)?.['username'] ?? 'none provided';
 
 			// Audit the failed attempt
 			auditService
@@ -70,18 +71,38 @@ class UserAuthenticationService {
 		}
 	}
 
-	copyACMetadata(dest, src) {
-		// Copy each field from the access checker user to the local user
-		['name', 'organization', 'email', 'username'].forEach((e) => {
-			// Only overwrite if there's a value
-			if (src?.[e]?.trim() ?? '' !== '') {
-				dest[e] = src[e];
-			}
-		});
+	/**
+	 * Copy fields from the access checker user to the local user
+	 */
+	copyACMetadata(
+		dest: UserDocument,
+		src: {
+			name?: string;
+			organization?: string;
+			email?: string;
+			username?: string;
+			roles?: string[];
+			groups?: string[];
+		}
+	) {
+		// Only overwrite if there's a value
+		if (src?.name?.trim() ?? '' !== '') {
+			dest.name = src.name;
+		}
+		if (src?.organization?.trim() ?? '' !== '') {
+			dest.organization = src.name;
+		}
+		if (src?.email?.trim() ?? '' !== '') {
+			dest.email = src.name;
+		}
+		if (src?.username?.trim() ?? '' !== '') {
+			dest.username = src.name;
+		}
 
 		// Always overwrite these fields
 		dest.externalRoles = src?.roles ?? [];
 		dest.externalGroups = src?.groups ?? [];
+
 		return dest;
 	}
 
@@ -126,12 +147,12 @@ class UserAuthenticationService {
 		return initializedUser.save();
 	}
 
-	async autoCreateUser(dn: string, acUser: unknown, req) {
+	async autoCreateUser(dn: string, acUser: unknown, req: FastifyRequest) {
 		// Create the user
 		const newUser = await this.createUser(dn, acUser);
 
-		userEmailService.signupEmail(newUser, req);
-		userEmailService.welcomeNoAccessEmail(newUser, req);
+		userEmailService.signupEmail(newUser).then();
+		userEmailService.welcomeNoAccessEmail(newUser).then();
 
 		// Audit user signup
 		await auditService.audit(
@@ -145,7 +166,7 @@ class UserAuthenticationService {
 		return newUser;
 	}
 
-	async verifyUser(dn: string, req, isProxy = false) {
+	async verifyUser(dn: string, req: FastifyRequest, isProxy = false) {
 		const dnLower = dn.toLowerCase();
 
 		const localUser = await this.userModel

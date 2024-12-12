@@ -1,7 +1,12 @@
 import crypto from 'crypto';
 import assert from 'node:assert/strict';
 
-import { assert as sinonAssert, createSandbox } from 'sinon';
+import {
+	assert as sinonAssert,
+	createSandbox,
+	SinonSpy,
+	SinonSandbox
+} from 'sinon';
 
 import userPasswordService from './user-password.service';
 import { config, emailService } from '../../../../dependencies';
@@ -23,11 +28,11 @@ describe('User Password Service:', () => {
 	});
 	const testToken = 'test_token';
 
-	let sandbox;
+	let sandbox: SinonSandbox;
 
 	beforeEach(() => {
 		sandbox = createSandbox();
-		sandbox.stub(logger, 'error').returns();
+		sandbox.spy(logger, 'error');
 	});
 
 	afterEach(() => {
@@ -120,7 +125,7 @@ describe('User Password Service:', () => {
 
 			await userPasswordService.sendResetPasswordEmail(testUser, 'token', {});
 
-			sinonAssert.calledOnce(logger.error);
+			sinonAssert.calledOnce(logger.error as SinonSpy);
 		});
 
 		it('should create mailOptions properly', async () => {
@@ -136,17 +141,17 @@ describe('User Password Service:', () => {
 <br>
 <br>
 <p>Thanks,</p>
-<p>The ${config.get('app.title')} Support Team</p>
+<p>The ${config.get<string>('app.title')} Support Team</p>
 FOOTER`;
 
 			sandbox.stub(emailService, 'sendMail').resolves();
 
 			await userPasswordService.sendResetPasswordEmail(testUser, testToken, {});
 
-			sinonAssert.calledWithMatch(emailService.sendMail, {
+			sinonAssert.calledWithMatch(emailService.sendMail as SinonSpy, {
 				to: testUser.email,
-				from: config.get('coreEmails.default.from'),
-				replyTo: config.get('coreEmails.default.replyTo'),
+				from: config.get<string>('coreEmails.default.from'),
+				replyTo: config.get<string>('coreEmails.default.replyTo'),
 				subject: 'Password Reset',
 				html: expectedEmailContent
 			});
@@ -159,7 +164,7 @@ FOOTER`;
 
 			await userPasswordService.sendPasswordResetConfirmEmail(testUser, {});
 
-			sinonAssert.calledOnce(logger.error);
+			sinonAssert.calledOnce(logger.error as SinonSpy);
 		});
 
 		it('should create mailOptions properly', async () => {
@@ -169,17 +174,17 @@ FOOTER`;
 <p>This is a confirmation that the password for your account has just been changed</p>
 <br>
 <br>
-<p>The ${config.get('app.title')} Support Team</p>
+<p>The ${config.get<string>('app.title')} Support Team</p>
 FOOTER`;
 
 			sandbox.stub(emailService, 'sendMail').resolves();
 
 			await userPasswordService.sendPasswordResetConfirmEmail(testUser, {});
 
-			sinonAssert.calledWithMatch(emailService.sendMail, {
+			sinonAssert.calledWithMatch(emailService.sendMail as SinonSpy, {
 				to: testUser.email,
-				from: config.get('coreEmails.default.from'),
-				replyTo: config.get('coreEmails.default.replyTo'),
+				from: config.get<string>('coreEmails.default.from'),
+				replyTo: config.get<string>('coreEmails.default.replyTo'),
 				subject: 'Your password has been changed',
 				html: expectedEmailContent
 			});

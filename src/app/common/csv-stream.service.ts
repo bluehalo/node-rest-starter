@@ -25,7 +25,7 @@ class CsvStreamService {
 	streamToCsv(columns: ExportColumnDef[]): Transform {
 		// Create a stream to turn Mongo records into CSV rows
 		const stream = through2.obj((chunk, enc, callback) => {
-			const row = [];
+			const row: string[] = [];
 
 			// Turn Mongo models into actual objects so JSONPath can work with them
 			if (null != chunk.toObject) {
@@ -52,7 +52,7 @@ class CsvStreamService {
 		});
 
 		// Parse the columns array into a format the CSV stringify module is expecting
-		const csvColumns = [];
+		const csvColumns: string[] = [];
 		columns.forEach((value) => {
 			if (_.has(value, 'title')) {
 				csvColumns.push(value.title);

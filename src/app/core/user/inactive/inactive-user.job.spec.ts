@@ -1,9 +1,10 @@
 import { DateTime } from 'luxon';
-import { assert, createSandbox } from 'sinon';
+import { assert, createSandbox, SinonSandbox, SinonSpy } from 'sinon';
 
 import InactiveUsersJobService from './inactive-user.job';
 import { config, emailService } from '../../../../dependencies';
 import { logger } from '../../../../lib/logger';
+import { User } from '../user.model';
 
 /**
  * Unit tests
@@ -12,18 +13,18 @@ describe('User Email Service:', () => {
 	const inactiveUsersJobService = new InactiveUsersJobService();
 	const daysAgo = 90;
 
-	const user = {
+	const user = new User({
 		name: 'test',
 		username: 'test',
 		email: 'test@test.test',
-		lastLogin: DateTime.now().toUTC().minus({ days: daysAgo }).toMillis()
-	};
+		lastLogin: DateTime.now().toUTC().minus({ days: daysAgo }).toJSDate()
+	});
 
-	let sandbox;
+	let sandbox: SinonSandbox;
 
 	beforeEach(() => {
 		sandbox = createSandbox();
-		sandbox.stub(logger, 'error').returns();
+		sandbox.spy(logger, 'error');
 	});
 
 	afterEach(() => {
@@ -45,7 +46,7 @@ describe('User Email Service:', () => {
 <br>
 <br>
 <p>Thanks,</p>
-<p>The ${config.get('app.title')} Support Team</p>
+<p>The ${config.get<string>('app.title')} Support Team</p>
 FOOTER`;
 
 			sandbox.stub(emailService, 'sendMail').resolves();
@@ -55,15 +56,15 @@ FOOTER`;
 				config.get('coreEmails.userDeactivate')
 			);
 
-			assert.calledWithMatch(emailService.sendMail, {
+			assert.calledWithMatch(emailService.sendMail as SinonSpy, {
 				to: user.email,
-				from: config.get('coreEmails.default.from'),
-				replyTo: config.get('coreEmails.default.replyTo'),
-				subject: `${config.get('app.title')}: Account Deactivation`,
+				from: config.get<string>('coreEmails.default.from'),
+				replyTo: config.get<string>('coreEmails.default.replyTo'),
+				subject: `${config.get<string>('app.title')}: Account Deactivation`,
 				html: expectedEmailContent
 			});
 
-			assert.notCalled(logger.error);
+			assert.notCalled(logger.error as SinonSpy);
 		});
 
 		it('should create mailOptions properly for inactivity template', async () => {
@@ -80,25 +81,25 @@ FOOTER`;
 <br>
 <br>
 <p>Thanks,</p>
-<p>The ${config.get('app.title')} Support Team</p>
+<p>The ${config.get<string>('app.title')} Support Team</p>
 FOOTER`;
 
-			sandbox.stub(emailService, 'sendMail').resolves();
+			const spy = sandbox.stub(emailService, 'sendMail').resolves();
 
 			await inactiveUsersJobService.sendEmail(
 				user,
 				config.get('coreEmails.userInactivity')
 			);
 
-			assert.calledWithMatch(emailService.sendMail, {
+			assert.calledWithMatch(spy, {
 				to: user.email,
-				from: config.get('coreEmails.default.from'),
-				replyTo: config.get('coreEmails.default.replyTo'),
-				subject: `${config.get('app.title')}: Inactivity Notice`,
+				from: config.get<string>('coreEmails.default.from'),
+				replyTo: config.get<string>('coreEmails.default.replyTo'),
+				subject: `${config.get<string>('app.title')}: Inactivity Notice`,
 				html: expectedEmailContent
 			});
 
-			assert.notCalled(logger.error);
+			assert.notCalled(logger.error as SinonSpy);
 		});
 	});
 });

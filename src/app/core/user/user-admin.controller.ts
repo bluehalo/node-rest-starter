@@ -1,7 +1,7 @@
 import { Type, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
 import _ from 'lodash';
-import { FilterQuery } from 'mongoose';
+import { FilterQuery, PopulateOptions } from 'mongoose';
 
 import { requireAdminAccess } from './auth/auth.hooks';
 import userAuthorizationService from './auth/user-authorization.service';
@@ -11,7 +11,6 @@ import { Roles, User, UserDocument } from './user.model';
 import userService from './user.service';
 import { CreateUserType, AdminUpdateUserType } from './user.types';
 import { auditService, config, utilService } from '../../../dependencies';
-import { logger } from '../../../lib/logger';
 import {
 	IdParamsType,
 	PagingQueryStringType,
@@ -125,7 +124,7 @@ export default function (_fastify: FastifyInstance) {
 				.then();
 
 			if (originalUserRole !== newUserRole && newUserRole) {
-				await userEmailService.emailApprovedUser(user, req);
+				await userEmailService.emailApprovedUser(user);
 			}
 
 			return reply.send(user.fullCopy());
@@ -176,19 +175,12 @@ export default function (_fastify: FastifyInstance) {
 			const field = req.body.field;
 			const query = req.body.query ?? {};
 
-			logger.debug('Querying Users for %s', field);
-			const proj = { [field]: 1 };
-
-			const results = await User.find(
-				utilService.toMongoose(query),
-				proj
+			const results = await User.distinct(
+				field,
+				utilService.toMongoose(query)
 			).exec();
 
-			const mappedResults = results.map((r) => {
-				return r[field];
-			});
-
-			return reply.send(mappedResults);
+			return reply.send(results);
 		}
 	});
 
@@ -274,7 +266,7 @@ export default function (_fastify: FastifyInstance) {
 				}
 			}
 
-			const populate = [];
+			const populate: PopulateOptions[] = [];
 
 			// Based on which columns are requested, handle property-specific behavior (ex. callbacks for the
 			// CSV service to make booleans and dates more human-readable)

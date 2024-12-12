@@ -1,21 +1,28 @@
 import { Job } from 'agenda';
-import _ from 'lodash';
 import { DateTime } from 'luxon';
 import { FilterQuery } from 'mongoose';
 
 import { config, emailService, auditService } from '../../../../dependencies';
 import { logger } from '../../../../lib/logger';
 import { JobService } from '../../../common/agenda/job-service';
+import { EmailTemplateConfig } from '../../email/email.service';
 import { User, UserDocument } from '../user.model';
+
+type InactiveUsersJobAttributesData = {
+	alertIntervals: number[];
+	deactivateAfter: number;
+};
 
 /**
  * alert users whose accounts have been inactive for 30-89 days. Remove accounts that have been inactive for 90+ days
  */
-export default class InactiveUsersJobService implements JobService {
-	async sendEmail(user, emailConfig) {
+export default class InactiveUsersJobService
+	implements JobService<InactiveUsersJobAttributesData>
+{
+	async sendEmail(user: UserDocument, emailConfig: EmailTemplateConfig) {
 		// This current DateTime may be a millisecond or two later than user.lastLogin due to Luxon's precision, so we round down to the number of days.
 		const numOfDays = Math.floor(
-			DateTime.now().diff(DateTime.fromMillis(user.lastLogin)).as('days')
+			DateTime.now().diff(DateTime.fromJSDate(user.lastLogin)).as('days')
 		);
 		try {
 			const mailOptions = await emailService.generateMailOptions(
@@ -39,7 +46,7 @@ export default class InactiveUsersJobService implements JobService {
 
 	async deactivationAlert(dQuery: FilterQuery<UserDocument>) {
 		const deactivatedUsers = await User.find(dQuery).exec();
-		if (_.isArray(deactivatedUsers)) {
+		if (Array.isArray(deactivatedUsers)) {
 			const promises = deactivatedUsers.map(async (user) => {
 				const originalUser = user.auditCopy();
 
@@ -73,7 +80,7 @@ export default class InactiveUsersJobService implements JobService {
 		);
 	}
 
-	async run(job: Job) {
+	async run(job: Job<InactiveUsersJobAttributesData>) {
 		const alertQueries = job.attrs.data.alertIntervals.map((interval) => ({
 			lastLogin: {
 				$lte: DateTime.now().minus({ milliseconds: interval }).toJSDate(),

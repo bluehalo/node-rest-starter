@@ -91,11 +91,11 @@ class SocketIo {
 
 		// Verify if user was found in session
 		io.use((socket, next) => {
-			if (socket.request['user']) {
-				logger.debug(
-					'New authenticated user: %s',
-					socket.request['user'].username
-				);
+			const user = (
+				socket.request as unknown as { user?: { username: string } }
+			).user;
+			if (user) {
+				logger.debug('New authenticated user: %s', user.username);
 				return next(null);
 			}
 			logger.info('Unauthenticated user attempting to connect.');

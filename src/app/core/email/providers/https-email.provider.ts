@@ -16,7 +16,17 @@ type Options = AgentOptions & {
 export default class HttpsEmailProvider implements EmailProvider {
 	options: Options;
 
-	constructor(private config) {
+	constructor(
+		private config: {
+			ca: string | Buffer;
+			cert: string | Buffer;
+			key: string | Buffer;
+			path: string;
+			hostname: string;
+			port: number;
+			passphrase: string;
+		}
+	) {
 		logger.debug('Using HTTPS-based Email service');
 
 		if (_.isString(config.ca)) {
@@ -37,7 +47,7 @@ export default class HttpsEmailProvider implements EmailProvider {
 		return new Promise((resolve, reject) => {
 			const postData = this.transformMailOptions(mailOptions);
 			const options = this.getHttpsOptions();
-			options.path = this.config.paths.within;
+			options.path = this.config.path;
 			options.method = 'POST';
 			options.headers = options.headers || {};
 			options.headers['Content-Type'] = 'application/json';

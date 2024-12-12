@@ -1,10 +1,10 @@
 import _ from 'lodash';
-import { SortOrder, Types } from 'mongoose';
+import { FilterQuery, SortOrder, Types } from 'mongoose';
 import platform from 'platform';
 
 import { IdOrObject } from './typescript-util';
 
-export const validateNonEmpty = function (property) {
+export const validateNonEmpty = function (property?: string) {
 	return null != property && property.length > 0;
 };
 
@@ -24,7 +24,7 @@ export const dateParse = function (
 	date: string | number | Date | Array<unknown> | Function | Object
 ) {
 	// Handle nil values, arrays, and functions by simply returning null
-	if (_.isNil(date) || _.isArray(date) || _.isFunction(date)) {
+	if (_.isNil(date) || Array.isArray(date) || _.isFunction(date)) {
 		return null;
 	}
 
@@ -58,22 +58,19 @@ export const dateParse = function (
  * Get the limit provided by the user, if there is one.
  * Limit has to be at least 1 and no more than 100, with
  * a default value of 20.
- *
- * @param queryParams
- * @param maxSize (optional) default: 100
- * @returns {number}
  */
-export const getLimit = function (queryParams, maxSize = 100) {
+export const getLimit = (
+	queryParams: { size?: number },
+	maxSize = 100
+): number => {
 	const limit = queryParams?.size ?? 20;
 	return isNaN(limit) ? 20 : Math.max(1, Math.min(maxSize, Math.floor(limit)));
 };
 
 /**
  * Page needs to be positive and has no upper bound
- * @param queryParams
- * @returns {number}
  */
-export const getPage = function (queryParams) {
+export const getPage = (queryParams: { page?: number }): number => {
 	const page = queryParams?.page ?? 0;
 	return isNaN(page) ? 0 : Math.max(0, page);
 };
@@ -82,17 +79,12 @@ export const getPage = function (queryParams) {
  * Get the sort provided by the user, if there is one.
  * Limit has to be at least 1 and no more than 100, with
  * a default value of 20.
- *
- * @param queryParams
- * @param defaultDir (optional) default: ASC
- * @param defaultSort (optional)
- * @returns {Array}
  */
-export const getSort = function (
-	queryParams,
+export const getSort = (
+	queryParams: { sort?: string; dir?: string },
 	defaultDir = 'ASC',
-	defaultSort = undefined
-) {
+	defaultSort?: string
+) => {
 	const sort = queryParams?.sort ?? defaultSort;
 	const dir = queryParams?.dir ?? defaultDir;
 	if (!sort) {
@@ -121,14 +113,19 @@ export const getSortObj = function (
 /**
  * Extract given field from request header
  */
-export const getHeaderField = function (header, fieldName) {
+export const getHeaderField = (
+	header: Record<string, string | string[]>,
+	fieldName: string
+) => {
 	return header?.[fieldName] ?? null;
 };
 
 /**
  * Parses user agent information from request header
  */
-export const getUserAgentFromHeader = function (header) {
+export const getUserAgentFromHeader = (
+	header: Record<string, string | string[]>
+) => {
 	const userAgent = getHeaderField(header, 'user-agent');
 
 	let data = {};
@@ -164,7 +161,9 @@ function propToMongoose(
 	return nonMongoFunction(prop);
 }
 
-export const toMongoose = (obj: unknown) => {
+export const toMongoose = <T = unknown>(
+	obj: FilterQuery<T>
+): FilterQuery<T> => {
 	if (obj && typeof obj === 'object') {
 		if (Array.isArray(obj)) {
 			return obj.map((value) => propToMongoose(value, toMongoose));
@@ -172,58 +171,12 @@ export const toMongoose = (obj: unknown) => {
 		return Object.keys(obj).reduce((newObj, key) => {
 			newObj[key] = propToMongoose(obj[key], toMongoose);
 			return newObj;
-		}, {});
+		}, {} as FilterQuery<unknown>);
 	}
 	return obj;
 };
 
-/**
- * Determine if an array contains a given element by doing a deep comparison.
- * @param arr
- * @param element
- * @returns {boolean} True if the array contains the given element, false otherwise.
- */
-export const contains = function (arr, element) {
-	for (let i = 0; i < arr.length; i++) {
-		if (_.isEqual(element, arr[i])) {
-			return true;
-		}
-	}
-	return false;
-};
-
-export const toProvenance = function (user) {
-	const now = new Date();
-	return {
-		username: user.username,
-		org: user.organization,
-		created: now.getTime(),
-		updated: now.getTime()
-	};
-};
-
 export const emailMatcher = /.+@.+\..+/;
-
-/**
- * @deprecated
- */
-export const getPagingResults = (
-	pageSize = 20,
-	pageNumber = 0,
-	totalSize = 0,
-	elements = []
-) => {
-	if (totalSize === 0) {
-		pageNumber = 0;
-	}
-	return {
-		pageSize,
-		pageNumber,
-		totalSize,
-		totalPages: Math.ceil(totalSize / pageSize),
-		elements
-	};
-};
 
 /**
  * Given an array of values, remove the values ending with a wildcard character (*)

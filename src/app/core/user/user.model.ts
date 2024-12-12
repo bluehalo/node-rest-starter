@@ -2,7 +2,14 @@ import crypto from 'crypto';
 
 import { type Static, Type } from '@fastify/type-provider-typebox';
 import _ from 'lodash';
-import mongoose, { HydratedDocument, model, Model, Schema } from 'mongoose';
+import mongoose, {
+	HydratedDocument,
+	model,
+	Model,
+	PreSaveMiddlewareFunction,
+	Schema,
+	SchemaDefinition
+} from 'mongoose';
 import uniqueValidator from 'mongoose-unique-validator';
 
 import { config, utilService as util } from '../../../dependencies';
@@ -44,30 +51,27 @@ const passwordMessage = 'Password must be at least 6 characters long';
  */
 export const Roles = config.get<string[]>('auth.roles');
 
-const roleObject = Roles.reduce(
-	(obj, role) => {
-		obj[role] = {
-			type: Boolean,
-			default:
-				config.get<Record<string, boolean>>('auth.defaultRoles')[role] ?? false
-		};
-		return obj;
-	},
-	{ _id: false }
-);
+const roleObject = Roles.reduce((obj, role) => {
+	obj[role] = {
+		type: Boolean,
+		default:
+			config.get<Record<string, boolean>>('auth.defaultRoles')[role] ?? false
+	};
+	return obj;
+}, {} as SchemaDefinition);
 
-const roleSchemaDef = new mongoose.Schema(roleObject);
+const roleSchemaDef = new mongoose.Schema(roleObject, { _id: false });
 
-const UserRolesType = Type.Object(
-	{
+const UserRolesType = Type.Union([
+	Type.Object({
 		user: Type.Optional(Type.Boolean()),
 		editor: Type.Optional(Type.Boolean()),
 		auditor: Type.Optional(Type.Boolean()),
 		admin: Type.Optional(Type.Boolean()),
 		machine: Type.Optional(Type.Boolean())
-	},
-	{ additionalProperties: true }
-);
+	}),
+	Type.Record(Type.String(), Type.Boolean())
+]);
 
 export const UserType = Type.Object({
 	_id: ObjectIdType,
@@ -89,7 +93,7 @@ export const UserType = Type.Object({
 	canMasquerade: Type.Optional(Type.Boolean()),
 	externalGroups: Type.Optional(Type.Array(Type.String())),
 	externalRoles: Type.Optional(Type.Array(Type.String())),
-	bypassAccessCheck: Type.Boolean(),
+	bypassAccessCheck: Type.Optional(Type.Boolean()),
 	updated: DateTimeType,
 	created: DateTimeType,
 	messagesAcknowledged: Type.Optional(Type.Union([DateTimeType, Type.Null()])),
@@ -259,7 +263,9 @@ const UserSchema = new Schema<
  * Plugin declarations
  */
 UserSchema.plugin(getterPlugin);
-UserSchema.plugin(uniqueValidator);
+UserSchema.plugin(
+	uniqueValidator as unknown as (schema: typeof UserSchema) => void
+);
 UserSchema.plugin(paginatePlugin);
 UserSchema.plugin(containsSearchPlugin, {
 	fields: ['name', 'username']
@@ -276,7 +282,7 @@ UserSchema.index({ name: 'text', email: 'text', username: 'text' });
  * Lifecycle Hooks
  */
 
-const preSave = function (this: UserDocument, next) {
+const preSave: PreSaveMiddlewareFunction<UserDocument> = function (this, next) {
 	// If the password is modified and it is valid, then re- salt/hash it
 	if (this.isModified('password') && validatePassword(this, this.password)) {
 		this.salt = crypto.randomBytes(16).toString('base64');

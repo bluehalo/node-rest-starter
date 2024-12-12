@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import config from 'config';
 import { intersection } from 'lodash';
 import { Connection, Mongoose } from 'mongoose';
-import { createSandbox } from 'sinon';
+import { createSandbox, SinonSandbox } from 'sinon';
 
 import * as mongooseLib from './mongoose';
 
@@ -12,7 +12,7 @@ describe('Mongoose', () => {
 	const adminDatabaseName = 'mean-test-mongoose-admin';
 	const otherDatabaseName = 'mean-test-mongoose-other';
 
-	let sandbox;
+	let sandbox: SinonSandbox;
 
 	before(() => {
 		return mongooseLib.disconnect();
@@ -33,17 +33,20 @@ describe('Mongoose', () => {
 
 	describe('when only given admin database', () => {
 		beforeEach(() => {
-			sandbox.stub(config, 'db').value({
-				admin: `mongodb://${mongoHost}/${adminDatabaseName}`
-			});
+			sandbox
+				.stub(config, 'get')
+				.callThrough()
+				.withArgs('db')
+				.returns({
+					admin: `mongodb://${mongoHost}/${adminDatabaseName}`
+				});
 		});
 
 		it('connects to admin database by default', async () => {
 			const dbs = await mongooseLib.connect();
-			assert(dbs.admin);
-			assert(dbs.admin['connection']);
-
 			const admin = dbs.admin as Mongoose;
+			assert(admin);
+			assert(admin.connection);
 			assert.equal(admin.connection.name, adminDatabaseName);
 			assert.equal(admin.connection.readyState, 1);
 		});
@@ -51,18 +54,21 @@ describe('Mongoose', () => {
 
 	describe('when given multiple databases', () => {
 		beforeEach(() => {
-			sandbox.stub(config, 'db').value({
-				admin: `mongodb://${mongoHost}/${adminDatabaseName}`,
-				other: `mongodb://${mongoHost}/${otherDatabaseName}`
-			});
+			sandbox
+				.stub(config, 'get')
+				.callThrough()
+				.withArgs('db')
+				.returns({
+					admin: `mongodb://${mongoHost}/${adminDatabaseName}`,
+					other: `mongodb://${mongoHost}/${otherDatabaseName}`
+				});
 		});
 
 		it('connects to admin database by default', async () => {
 			const dbs = await mongooseLib.connect();
-			assert(dbs.admin);
-			assert(dbs.admin['connection']);
-
 			const admin = dbs.admin as Mongoose;
+			assert(admin);
+			assert(admin.connection);
 			assert.equal(admin.connection.name, adminDatabaseName);
 			assert.equal(admin.connection.readyState, 1);
 		});

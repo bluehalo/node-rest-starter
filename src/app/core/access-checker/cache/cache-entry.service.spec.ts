@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 
-import { CacheEntry } from './cache-entry.model';
+import { FilterQuery } from 'mongoose';
+
+import { CacheEntry, CacheEntryDocument } from './cache-entry.model';
 import cacheEntryService from './cache-entry.service';
 
 /**
@@ -72,7 +74,7 @@ describe('Cache Entry Service:', () => {
 
 		it('search results page returned', async () => {
 			const queryParams = { size: 10 };
-			const query = null;
+			const query: FilterQuery<CacheEntryDocument> = {};
 			const search = '';
 			const { elements, ...result } = await cacheEntryService.search(
 				queryParams,

@@ -20,16 +20,25 @@ export interface Paginateable<DocType> {
 	): Promise<PagingResults<DocType>>;
 }
 
-export function paginatePlugin<EnforcedDocType, TModelType, TInstanceMethods>(
-	schema: Schema<EnforcedDocType, TModelType, TInstanceMethods>
+export function paginatePlugin<
+	EnforcedDocType,
+	TModelType,
+	TInstanceMethods,
+	TQueryHelpers extends Paginateable<EnforcedDocType>
+>(
+	schema: Schema<EnforcedDocType, TModelType, TInstanceMethods, TQueryHelpers>
 ) {
-	schema.query['paginate'] = async function <DocType>(
-		this: Query<HydratedDocument<DocType>[], DocType>,
+	schema.query.paginate = async function <EnforcedDocType>(
+		this: Query<
+			HydratedDocument<EnforcedDocType>[],
+			EnforcedDocType,
+			TQueryHelpers
+		>,
 		pageSize: number,
 		pageNumber: number,
 		runCount = true,
 		countTimeout = config.get<number>('maxCountTimeMS')
-	): Promise<PagingResults<DocType>> {
+	): Promise<PagingResults<EnforcedDocType>> {
 		const countPromise = runCount
 			? this.model
 					.find(this.getFilter())

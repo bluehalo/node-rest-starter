@@ -19,7 +19,7 @@ export class NotificationSocket extends socketIO.SocketProvider {
 		super(socket, { ..._config, emitName });
 	}
 
-	ignorePayload(json) {
+	ignorePayload(json: { user: { toString: () => string } }) {
 		// Ignore any payloads that do not match the current user.
 		return (
 			!json ||
@@ -47,8 +47,8 @@ export class NotificationSocket extends socketIO.SocketProvider {
 	/**
 	 * Handle socket errors
 	 */
-	onError(err) {
-		logger.error(err, 'NotificationSocket: Client connection error');
+	onError(err: unknown) {
+		logger.error('NotificationSocket: Client connection error', { err });
 
 		this.unsubscribe(this.getTopic());
 	}
@@ -56,7 +56,7 @@ export class NotificationSocket extends socketIO.SocketProvider {
 	/**
 	 *
 	 */
-	onSubscribe(payload) {
+	onSubscribe(payload: unknown) {
 		if (logger.isDebugEnabled()) {
 			logger.debug(
 				`NotificationSocket: ${emitName}:subscribe event with payload: ${JSON.stringify(
@@ -83,7 +83,7 @@ export class NotificationSocket extends socketIO.SocketProvider {
 	/**
 	 *
 	 */
-	onUnsubscribe(payload) {
+	onUnsubscribe(payload: unknown) {
 		if (logger.isDebugEnabled()) {
 			logger.debug(
 				`NotificationSocket: ${emitName}:unsubscribe event with payload: ${JSON.stringify(

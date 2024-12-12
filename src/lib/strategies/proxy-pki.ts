@@ -1,11 +1,11 @@
+import { Request } from 'express';
+import { FastifyRequest } from 'fastify';
 import _ from 'lodash';
 
 import {
-	BadRequestError,
-	ForbiddenError,
-	UnauthorizedError
-} from '../../app/common/errors';
-import { TrustedHeadersStrategy } from '../../app/common/passport/trusted-headers-strategy';
+	TrustedHeadersStrategy,
+	VerifyCallbackFunction
+} from '../../app/common/passport/trusted-headers-strategy';
 import userAuthService from '../../app/core/user/auth/user-authentication.service';
 import userService from '../../app/core/user/user.service';
 import { config } from '../../dependencies';
@@ -20,14 +20,21 @@ class ProxyPkiStrategy extends TrustedHeadersStrategy {
 		this.name = 'proxy-pki';
 	}
 
-	async verify(req, [primaryUserDn, proxiedUserDn, masqueradeUserDn], done) {
+	async verify(
+		req: Request,
+		[primaryUserDn, proxiedUserDn, masqueradeUserDn]: [string, string, string],
+		done: VerifyCallbackFunction
+	) {
 		// If there is no DN, we can't authenticate
 		if (!primaryUserDn) {
-			return done(null, false, new BadRequestError('Missing certificate'));
+			return done(null, false, 'Missing certificate');
 		}
 
 		try {
-			const primaryUser = await userAuthService.verifyUser(primaryUserDn, req);
+			const primaryUser = await userAuthService.verifyUser(
+				primaryUserDn,
+				req as unknown as FastifyRequest
+			);
 
 			if (proxiedUserDn) {
 				// Return error if primary user tries to proxy to another user
@@ -35,15 +42,13 @@ class ProxyPkiStrategy extends TrustedHeadersStrategy {
 					return done(
 						null,
 						false,
-						new ForbiddenError(
-							'Not approved to proxy users. Please verify your credentials.'
-						)
+						'Not approved to proxy users. Please verify your credentials.'
 					);
 				}
 
 				const secondaryUser = await userAuthService.verifyUser(
 					proxiedUserDn,
-					req,
+					req as unknown as FastifyRequest,
 					true
 				);
 
@@ -73,7 +78,7 @@ class ProxyPkiStrategy extends TrustedHeadersStrategy {
 			if (masqueradeUserDn && primaryUser.canMasquerade) {
 				const secondaryUser = await userAuthService.verifyUser(
 					masqueradeUserDn,
-					req,
+					req as unknown as FastifyRequest,
 					true
 				);
 
@@ -99,9 +104,7 @@ class ProxyPkiStrategy extends TrustedHeadersStrategy {
 			return done(
 				null,
 				false,
-				new UnauthorizedError(
-					'Could not authenticate request, please verify your credentials.'
-				)
+				'Could not authenticate request, please verify your credentials.'
 			);
 		}
 	}

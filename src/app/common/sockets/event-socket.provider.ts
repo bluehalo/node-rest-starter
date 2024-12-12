@@ -5,7 +5,7 @@ import { BaseSocket, SocketConfig } from './base-socket.provider';
 import { getEventEmitter } from '../event/event-emitter.service';
 
 export default abstract class EventSocket extends BaseSocket {
-	_emitterFunc;
+	_emitterFunc: (message: Record<string, unknown>) => void;
 
 	protected constructor(_socket: Socket, socketConfig: SocketConfig = {}) {
 		super(_socket, socketConfig);

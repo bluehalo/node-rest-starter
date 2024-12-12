@@ -4,11 +4,17 @@ export interface TextSearchable {
 	textSearch(search: string, sortByTextScore?: boolean): this;
 }
 
-export function textSearchPlugin<EnforcedDocType, TModelType, TInstanceMethods>(
-	schema: Schema<EnforcedDocType, TModelType, TInstanceMethods>
+export function textSearchPlugin<
+	EnforcedDocType,
+	TModelType,
+	TInstanceMethods,
+	TQueryHelpers extends TextSearchable
+>(
+	schema: Schema<EnforcedDocType, TModelType, TInstanceMethods, TQueryHelpers>
 ) {
-	schema.query['textSearch'] = function (
-		this: Query<unknown, unknown>,
+	// @ts-expect-error TS doesn't like the typing on this due to specifying the type of `this`
+	schema.query.textSearch = function (
+		this: Query<unknown, unknown, TQueryHelpers>,
 		search: string,
 		sortByTextScore = false
 	) {

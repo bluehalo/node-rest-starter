@@ -1,16 +1,22 @@
 import assert from 'node:assert/strict';
 
 import { FastifyInstance } from 'fastify';
-import { assert as sinonAssert, createSandbox } from 'sinon';
+import {
+	assert as sinonAssert,
+	createSandbox,
+	SinonSandbox,
+	SinonSpy
+} from 'sinon';
 
 import controller from './feedback-admin.controller';
-import { Feedback } from './feedback.model';
+import { Feedback, FeedbackDocument } from './feedback.model';
 import feedbackService from './feedback.service';
 import { fastifyTest } from '../../../spec/fastify';
+import { PagingResults } from '../../common/mongoose/paginate.plugin';
 import { User, UserDocument } from '../user/user.model';
 
 describe('Feedback Admin Controller', () => {
-	let sandbox;
+	let sandbox: SinonSandbox;
 
 	let app: FastifyInstance;
 	let user: UserDocument;
@@ -50,7 +56,9 @@ describe('Feedback Admin Controller', () => {
 
 	describe('searchFeedback', () => {
 		it('search returns feedback', async () => {
-			sandbox.stub(feedbackService, 'search').resolves({});
+			sandbox
+				.stub(feedbackService, 'search')
+				.resolves({} as PagingResults<FeedbackDocument>);
 
 			const reply = await app.inject({
 				method: 'POST',
@@ -61,7 +69,7 @@ describe('Feedback Admin Controller', () => {
 				}
 			});
 
-			sinonAssert.calledOnce(feedbackService.search);
+			sinonAssert.calledOnce(feedbackService.search as SinonSpy);
 
 			assert.equal(
 				reply.statusCode,

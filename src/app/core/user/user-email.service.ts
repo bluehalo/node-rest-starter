@@ -9,7 +9,7 @@ import { logger } from '../../../lib/logger';
 
 class UserEmailService {
 	// Send email alert to system admins about new account request
-	async emailApprovedUser(user: UserDocument, req) {
+	async emailApprovedUser(user: UserDocument) {
 		if (!config.get('coreEmails.approvedUserEmail.enabled')) {
 			return;
 		}
@@ -26,12 +26,12 @@ class UserEmailService {
 			await emailService.sendMail(mailOptions);
 		} catch (error) {
 			// Log the error but this shouldn't block
-			logger.error('Failure sending email.', { err: error, req: req });
+			logger.error('Failure sending email.', { err: error });
 		}
 	}
 
 	// Send email alert to system admins about new account request
-	async signupEmail(user: UserDocument, req) {
+	async signupEmail(user: UserDocument) {
 		if (!config.get('coreEmails.userSignupAlert.enabled')) {
 			return;
 		}
@@ -43,12 +43,12 @@ class UserEmailService {
 			await emailService.sendMail(mailOptions);
 		} catch (error) {
 			// Log the error but this shouldn't block the user from signing up
-			logger.error('Failure sending email.', { err: error, req: req });
+			logger.error('Failure sending email.', { err: error });
 		}
 	}
 
 	// Send welcome email to new user
-	async welcomeNoAccessEmail(user: UserDocument, req) {
+	async welcomeNoAccessEmail(user: UserDocument) {
 		if (!config.get('coreEmails.welcomeNoAccess.enabled')) {
 			return;
 		}
@@ -69,13 +69,13 @@ class UserEmailService {
 				await emailService.sendMail(mailOptions);
 			} catch (error) {
 				// Log the error but this shouldn't block the user from signing up
-				logger.error('Failure sending email.', { err: error, req: req });
+				logger.error('Failure sending email.', { err: error });
 			}
 		}
 	}
 
 	// Send welcome email to new user
-	async welcomeWithAccessEmail(user: UserDocument, req) {
+	async welcomeWithAccessEmail(user: UserDocument) {
 		if (!config.get('coreEmails.welcomeWithAccess.enabled')) {
 			return;
 		}
@@ -102,7 +102,7 @@ class UserEmailService {
 					await emailService.sendMail(mailOptions);
 				} catch (error) {
 					// Log the error but this shouldn't block the user from signing up
-					logger.error('Failure sending email.', { err: error, req: req });
+					logger.error('Failure sending email.', { err: error });
 				}
 			}
 			userService.updateLastLoginWithAccess(user);

@@ -2,14 +2,15 @@ import path from 'path';
 
 import { Authenticator } from '@fastify/passport';
 import { globSync } from 'glob';
+import { Types } from 'mongoose';
 import passport from 'passport';
 
-import { User } from '../app/core/user/user.model';
+import { User, UserDocument } from '../app/core/user/user.model';
 
 export const initSocketIO = async () => {
 	// Serialize sessions
 	passport.serializeUser((user, done) => {
-		done(null, user['id']);
+		done(null, (user as { _id: Types.ObjectId })._id.toString());
 	});
 
 	// Deserialize sessions
@@ -40,12 +41,12 @@ export const initSocketIO = async () => {
 
 export const initFastify = async (fastifyPassport: Authenticator) => {
 	// Serialize sessions
-	fastifyPassport.registerUserSerializer((user) => {
-		return user['id'];
+	fastifyPassport.registerUserSerializer<UserDocument, string>((user) => {
+		return Promise.resolve(user._id.toString());
 	});
 
 	// Deserialize sessions
-	fastifyPassport.registerUserDeserializer((id) => {
+	fastifyPassport.registerUserDeserializer<string, UserDocument>((id) => {
 		return User.findById(id, '-salt -password');
 	});
 

@@ -109,8 +109,9 @@ export abstract class BaseSocket<MessageType = Record<string, unknown>> {
 	 * Filters a payload to determine whether it should be transmitted. This should be overridden by the
 	 * implementing class. It does not need to filter by date, as this is done automatically for all payloads.
 	 *
-	 * @param {Object} messagePayload The payload, parsed as JSON.
-	 * @return {boolean} False if the payload should be sent to the client, true if it should be ignored.
+	 * @param message
+	 * @param messagePayload The payload, parsed as JSON.
+	 * @return False if the payload should be sent to the client, true if it should be ignored.
 	 */
 	ignorePayload(message: MessageType, messagePayload: Record<string, unknown>) {
 		// Ignore any payloads that are too old.
@@ -173,7 +174,7 @@ export abstract class BaseSocket<MessageType = Record<string, unknown>> {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	getEmitMessageKey(message: MessageType) {
+	getEmitMessageKey(message: MessageType): string | null {
 		return null;
 	}
 
@@ -190,10 +191,12 @@ export abstract class BaseSocket<MessageType = Record<string, unknown>> {
 
 	getUserId() {
 		if (null == this._userId) {
-			const user = this.socket.request?.['user'] ?? null;
-			if (user !== null) {
+			const user = (
+				this.socket.request as unknown as { user?: { _id: string } }
+			).user;
+			if (user) {
 				// Store this for the next request, since it won't change for this socket.
-				this._userId = user.id;
+				this._userId = user._id.toString();
 			}
 		}
 		return this._userId;

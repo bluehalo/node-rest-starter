@@ -30,9 +30,10 @@ export function auditTrackBefore(propertyName: string) {
 		reply: FastifyReply,
 		done: DoneFuncWithErrOrRes
 	) {
-		const auditObject = req[propertyName];
+		const reqAsRecord = req as unknown as Record<string, unknown>;
+		const auditObject = reqAsRecord[propertyName];
 		if (hasAuditCopy(auditObject)) {
-			req['auditBefore'] = auditObject.auditCopy();
+			reqAsRecord['auditBefore'] = auditObject.auditCopy();
 		}
 		done();
 	};
@@ -77,7 +78,8 @@ export function audit({
 			eventObject = payload.auditCopy();
 		}
 
-		const before = req['auditBefore'];
+		const reqAsRecord = req as unknown as Record<string, unknown>;
+		const before = reqAsRecord['auditBefore'];
 		if (before) {
 			eventObject = {
 				before,
