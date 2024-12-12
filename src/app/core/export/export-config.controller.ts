@@ -85,15 +85,20 @@ export const exportCSV = (
 /**
  * Export a plain text file with content derived from a string or a readable stream
  * @param req
- * @param res
+ * @param reply
  * @param filename the name of the exported file
  * @param text the text or readable stream to export
  */
-export const exportPlaintext = (req, res, filename: string, text: string) => {
+export const exportPlaintext = (
+	req: FastifyRequest,
+	reply: FastifyReply,
+	filename: string,
+	text: string
+) => {
 	if (null !== text) {
 		exportStream(
 			req,
-			res,
+			reply,
 			filename,
 			'text/plain',
 			buildExportStream(text, (stream) => () => {
@@ -133,7 +138,7 @@ export const buildCSVStream = (
  */
 const buildExportStream = (
 	data: Readable | unknown,
-	getRead: (unknown) => () => void,
+	getRead: (stream: Readable) => () => void,
 	transforms: Transform[] = []
 ) => {
 	let stream: Readable; // = data;
@@ -241,7 +246,8 @@ export const exportStream = (
 };
 
 export async function loadExportConfigById(req: FastifyRequest) {
-	const id = req.params['id'];
+	const params = req.params as { id: string };
+	const id = params.id;
 	req.exportConfig = await exportConfigService.read(id);
 
 	if (!req.exportConfig) {

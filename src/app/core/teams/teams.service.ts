@@ -24,7 +24,7 @@ import { IUser, User, UserDocument, UserModel } from '../user/user.model';
 /**
  * Copies the mutable fields from src to dest
  */
-const copyMutableFields = (dest, src) => {
+const copyMutableFields = (dest: ITeam, src: Partial<ITeam>) => {
 	dest.name = src.name;
 	dest.description = src.description;
 	dest.implicitMembers = src.implicitMembers;
@@ -32,7 +32,7 @@ const copyMutableFields = (dest, src) => {
 	dest.requiresExternalTeams = src.requiresExternalTeams;
 };
 
-const isObjectIdEqual = (value1, value2) => {
+const isObjectIdEqual = (value1: Types.ObjectId, value2: Types.ObjectId) => {
 	return value1?.equals(value2) ?? false;
 };
 
@@ -57,7 +57,7 @@ class TeamsService {
 		// Create the new team model
 		const newTeam = new this.model();
 
-		copyMutableFields(newTeam, teamInfo);
+		copyMutableFields(newTeam, teamInfo as ITeam);
 
 		// Write the auto-generated metadata
 		newTeam.creator = creator._id;
@@ -163,7 +163,13 @@ class TeamsService {
 
 			// If no remaining teams, return no results
 			if (teamIds.length === 0) {
-				return Promise.resolve(utilService.getPagingResults(limit));
+				return Promise.resolve({
+					pageSize: limit,
+					pageNumber: 0,
+					totalSize: 0,
+					totalPages: 0,
+					elements: []
+				});
 			}
 
 			query._id = {
@@ -202,7 +208,7 @@ class TeamsService {
 	getTeamRole(
 		user: UserDocument,
 		team: Pick<TeamDocument, '_id'> & Partial<Pick<TeamDocument, 'ancestors'>>
-	): string | null {
+	): TeamRoles | null {
 		if (team.ancestors && config.get<boolean>('teams.nestedTeams')) {
 			const roles = [...team.ancestors, team._id]
 				.map((_id) => this.getTeamRole(user, { _id }))
@@ -292,7 +298,7 @@ class TeamsService {
 	 * Checks if user role meets or exceeds the requestedRole according to
 	 * a pre-defined role hierarchy
 	 */
-	meetsOrExceedsRole(userRole: string, requestedRole: TeamRoles): boolean {
+	meetsOrExceedsRole(userRole: TeamRoles, requestedRole: TeamRoles): boolean {
 		if (
 			null != userRole &&
 			_.has(TeamRolePriorities, userRole) &&
@@ -311,7 +317,7 @@ class TeamsService {
 	 *
 	 * @returns Returns a role, or null if the user is not a member of the team
 	 */
-	getActiveTeamRole(user: UserDocument, team: TeamDocument): string | null {
+	getActiveTeamRole(user: UserDocument, team: TeamDocument): TeamRoles | null {
 		// No matter what, we need to get these
 		const teamRole = this.getTeamRole(user, team);
 
@@ -330,7 +336,7 @@ class TeamsService {
 			this.isImplicitMember(user, team)
 		) {
 			// implicit members get the default 'member' role.
-			return 'member';
+			return TeamRoles.Member;
 		}
 
 		// Return null since the user is neither an explicit nor implicit member of the team.
@@ -357,11 +363,10 @@ class TeamsService {
 
 	/**
 	 * Stub implementation. Downstream projects can implement their own custom resource count logic to prevent team deletion.
-	 * @param team
 	 */
 	getResourceCount(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		team: TeamDocument
+		_team: TeamDocument
 	): Promise<number> {
 		return Promise.resolve(0);
 	}
@@ -672,7 +677,7 @@ class TeamsService {
 			return Promise.reject(new InternalServerError('User does not exist'));
 		}
 
-		let userTeams = _.isArray(user.teams) ? user.teams : [];
+		let userTeams = Array.isArray(user.teams) ? user.teams : [];
 		if (roles && roles.length > 0) {
 			userTeams = userTeams.filter(
 				(t) => null != t.role && roles.includes(t.role)
@@ -809,7 +814,7 @@ class TeamsService {
 		);
 
 		// If there were no teamIds to filter by, return all the team ids
-		if (null == teamIds || (_.isArray(teamIds) && teamIds.length === 0)) {
+		if (null == teamIds || (Array.isArray(teamIds) && teamIds.length === 0)) {
 			return memberTeamIds;
 		}
 		// Else, return the intersection of the two
@@ -834,7 +839,7 @@ class TeamsService {
 			})
 		);
 
-		const getHigherPriorityIds = (targetPriority) =>
+		const getHigherPriorityIds = (targetPriority: number) =>
 			teamIdsByRole
 				.filter(({ priority }) => priority > targetPriority)
 				.flatMap(({ teamIds }) => teamIds);

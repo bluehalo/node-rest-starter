@@ -2,10 +2,10 @@ import through2 from 'through2';
 
 export = function (delay = 10) {
 	// Store all the active timeouts
-	let timeouts = [];
+	let timeouts: NodeJS.Timeout[] = [];
 
 	// Flush function: wait until all the timeouts are done before we forward the finish command
-	function onFlush(callback) {
+	function onFlush(callback: () => unknown) {
 		// If there are still pending requests, check again soon
 		if (timeouts.length > 0) {
 			setTimeout(() => {

@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict';
 
-import { User } from './user.model';
+import { FilterQuery } from 'mongoose';
+
+import { User, UserDocument } from './user.model';
 import userService from './user.service';
 
 /**
  * Helpers
  */
 
-function userSpec(key) {
+function userSpec(key: string) {
 	return new User({
 		name: `${key} Name`,
 		email: `${key}@mail.com`,
@@ -98,7 +100,7 @@ describe('User Profile Service:', () => {
 
 		it('search results page returned', async () => {
 			const queryParams = { size: 10 };
-			const query = null;
+			const query: FilterQuery<UserDocument> = {};
 			const search = '';
 
 			const { elements, ...result } = await userService.searchUsers(
@@ -119,7 +121,7 @@ describe('User Profile Service:', () => {
 
 		it('search (w/ searchFields) results page returned', async () => {
 			const queryParams = { size: 10 };
-			const query = null;
+			const query: FilterQuery<UserDocument> = {};
 			const search = '';
 
 			const { elements, ...result } = await userService.searchUsers(

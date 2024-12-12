@@ -3,6 +3,7 @@ export interface MailOptions {
 	from?: string;
 	cc?: string;
 	bcc?: string;
+	replyTo?: string;
 	subject?: string;
 	text?: string;
 	html?: string;

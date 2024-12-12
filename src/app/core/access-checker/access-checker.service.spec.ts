@@ -3,12 +3,11 @@ import assert from 'node:assert/strict';
 import config from 'config';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
-import { createSandbox } from 'sinon';
+import { createSandbox, SinonSandbox } from 'sinon';
 
 import accessChecker from './access-checker.service';
 import { CacheEntry, ICacheEntry } from './cache/cache-entry.model';
 import cacheEntryService from './cache/cache-entry.service';
-
 /**
  * Helpers
  */
@@ -16,7 +15,7 @@ function clearDatabase() {
 	return CacheEntry.deleteMany({}).exec();
 }
 
-function cacheSpec(key): ICacheEntry {
+function cacheSpec(key: string): ICacheEntry {
 	return {
 		key: key.toLowerCase(),
 		value: {
@@ -30,7 +29,7 @@ function cacheSpec(key): ICacheEntry {
 	} as unknown as ICacheEntry;
 }
 
-function providerSpec(key) {
+function providerSpec(key: string) {
 	return {
 		name: `${key} Name`,
 		organization: `${key} Organization`,
@@ -45,7 +44,7 @@ function providerSpec(key) {
  * Unit tests
  */
 describe('Access Checker Service:', () => {
-	let sandbox;
+	let sandbox: SinonSandbox;
 
 	// Specs for tests
 	const spec: { cache: { [key: string]: ICacheEntry } } = {

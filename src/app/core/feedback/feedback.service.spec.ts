@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { assert as sinonAssert, createSandbox } from 'sinon';
+import { assert as sinonAssert, createSandbox, SinonSandbox } from 'sinon';
 
 import { Feedback } from './feedback.model';
 import feedbackService from './feedback.service';
@@ -18,7 +18,7 @@ describe('Feedback Service:', () => {
 		email: 'test@test.test'
 	});
 
-	let sandbox;
+	let sandbox: SinonSandbox;
 
 	beforeEach(() => {
 		sandbox = createSandbox();
@@ -40,7 +40,7 @@ describe('Feedback Service:', () => {
 			});
 
 			const expectedEmailContent = `HEADER
-<p>Hey there ${config.get('app.title')} Admins,</p>
+<p>Hey there ${config.get<string>('app.title')} Admins,</p>
 <p>A user named <strong>${user.name}</strong> with username <strong>${
 				user.username
 			}</strong> and email <strong>${
@@ -58,20 +58,18 @@ FOOTER
 
 			assert(mailOptions, 'expected mailOptions to exist');
 
-			for (const key of ['bcc', 'from', 'replyTo', 'subject', 'html']) {
-				assert(mailOptions[key], `expected mailOptions.${key} to exist`);
-			}
-
 			assert.equal(mailOptions.bcc, config.get('coreEmails.feedbackEmail.bcc'));
-			assert.equal(mailOptions.bcc, config.get('coreEmails.feedbackEmail.bcc'));
-			assert.equal(mailOptions.from, config.get('coreEmails.default.from'));
+			assert.equal(
+				mailOptions.from,
+				config.get<string>('coreEmails.default.from')
+			);
 			assert.equal(
 				mailOptions.replyTo,
-				config.get('coreEmails.default.replyTo')
+				config.get<string>('coreEmails.default.replyTo')
 			);
 			assert.equal(
 				mailOptions.subject,
-				`${config.get('app.title')}: Feedback Submitted`
+				`${config.get<string>('app.title')}: Feedback Submitted`
 			);
 			assert.equal(mailOptions.html, expectedEmailContent);
 		});

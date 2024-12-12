@@ -14,7 +14,7 @@ class AccessCheckerService {
 	 * Get the entry. Tries to get the entry from the cache, if not
 	 * found, gets the entry from the access checker provider
 	 */
-	async get(key): Promise<Record<string, unknown>> {
+	async get(key: string): Promise<Record<string, unknown>> {
 		if (null == key) {
 			return Promise.reject(new Error('key cannot be null or undefined'));
 		}

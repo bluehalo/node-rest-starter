@@ -6,6 +6,12 @@ import { EmailProvider, MailOptions } from './providers/email.provider';
 import { config } from '../../../dependencies';
 import { logger } from '../../../lib/logger';
 import templateService from '../../common/template.service';
+import { IUser, UserDocument } from '../user/user.model';
+
+export type EmailTemplateConfig = {
+	templatePath: string;
+	subject: string;
+};
 
 class EmailService {
 	provider: EmailProvider;
@@ -14,6 +20,7 @@ class EmailService {
 	 * Detects issues with mailOptions
 	 */
 	validateMailOptions(mailOptions: MailOptions) {
+		const options = mailOptions as Record<string, unknown>;
 		const requiredOptions = [
 			['to', 'cc', 'bcc'],
 			'from',
@@ -21,14 +28,14 @@ class EmailService {
 			['text', 'html']
 		];
 
-		const missingOptions = [];
+		const missingOptions: string[] = [];
 
 		requiredOptions.forEach((option) => {
 			if (Array.isArray(option)) {
-				if (!option.some((orField) => mailOptions[orField])) {
+				if (!option.some((orField) => options[orField])) {
 					missingOptions.push(`("${option.join('" or "')}")`);
 				}
-			} else if (!mailOptions[option]) {
+			} else if (!options[option]) {
 				missingOptions.push(`"${option}"`);
 			}
 		});
@@ -62,26 +69,25 @@ class EmailService {
 	}
 
 	async generateMailOptions(
-		user,
-		emailTemplateConfig,
+		user: UserDocument,
+		emailTemplateConfig: EmailTemplateConfig,
 		emailContentData = {},
 		emailSubjectData = {},
 		mailOpts = {}
 	): Promise<MailOptions> {
-		if (user.toObject) {
-			user = user.toObject();
-		}
+		// Need to convert to obj, Mongoose documents don't work with handlebars templates
+		const userObj = user.toObject();
 		let emailContent: string;
 		let emailSubject: string;
 		try {
 			emailContent = await this.buildEmailContent(
 				path.posix.resolve(emailTemplateConfig.templatePath),
-				user,
+				userObj,
 				emailContentData
 			);
 			emailSubject = this.buildEmailSubject(
 				emailTemplateConfig.subject,
-				user,
+				userObj,
 				emailSubjectData
 			);
 		} catch (error) {
@@ -103,7 +109,7 @@ class EmailService {
 
 	buildEmailContent(
 		templatePath: string,
-		user,
+		user: IUser,
 		overrides = {}
 	): Promise<string> {
 		// Set email header/footer
@@ -119,7 +125,7 @@ class EmailService {
 		return templateService.renderTemplate(templatePath, data);
 	}
 
-	buildEmailSubject(template: string, user, overrides = {}): string {
+	buildEmailSubject(template: string, user: IUser, overrides = {}): string {
 		const data = _.merge(
 			{},
 			config.get('coreEmails.default'),
@@ -146,4 +152,4 @@ class EmailService {
 	}
 }
 
-export = new EmailService();
+export default new EmailService();

@@ -37,7 +37,7 @@ export function requireExternalRoles(
 	// If there are required roles, check for them
 	if (req.user.bypassAccessCheck === false && requiredRoles.length > 0) {
 		// Get the user roles
-		const userRoles = _.isArray(req.user.externalRoles)
+		const userRoles = Array.isArray(req.user.externalRoles)
 			? req.user.externalRoles
 			: [];
 

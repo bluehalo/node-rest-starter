@@ -57,7 +57,7 @@ class UserPasswordService {
 
 		// Generate the token and the expire date/time
 		user.resetPasswordToken = token;
-		user.resetPasswordExpires = DateTime.now().plus({ hours: 1 });
+		user.resetPasswordExpires = DateTime.now().plus({ hours: 1 }).toJSDate();
 
 		// Save the user with the token
 		return user.save();

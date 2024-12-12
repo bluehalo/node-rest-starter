@@ -5,7 +5,8 @@ import { NotFoundError } from '../../common/errors';
 import userService from '../user/user.service';
 
 export async function loadTeamById(req: FastifyRequest) {
-	const id = req.params['id'];
+	const params = req.params as { id: string };
+	const id = params.id;
 	const populate = [
 		{ path: 'parentObj', select: ['name'] },
 		{ path: 'ancestorObjs', select: ['name'] }
@@ -18,7 +19,8 @@ export async function loadTeamById(req: FastifyRequest) {
 }
 
 export async function loadTeamMemberById(req: FastifyRequest) {
-	const id = req.params['memberId'];
+	const params = req.params as { memberId: string };
+	const id = params['memberId'];
 	req.userParam = await userService.read(id);
 
 	if (!req.userParam) {

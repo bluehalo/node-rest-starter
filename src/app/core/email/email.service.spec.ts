@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict';
 
-import { createSandbox } from 'sinon';
+import { createSandbox, SinonSandbox } from 'sinon';
 import * as uuid from 'uuid';
 
 import { config, emailService } from '../../../dependencies';
-
+import { User } from '../user/user.model';
 /**
  * Unit tests
  */
 describe('Email Service:', () => {
-	let sandbox;
+	let sandbox: SinonSandbox;
 
 	beforeEach(() => {
 		sandbox = createSandbox();
@@ -77,7 +77,11 @@ describe('Email Service:', () => {
 			// Need to clear cached provider from service to ensure proper test run.
 			emailService.provider = null;
 
-			sandbox.stub(config, 'mailer').value({});
+			sandbox
+				.stub(config, 'has')
+				.callThrough()
+				.withArgs('mailer.provider')
+				.returns(false);
 
 			await assert.rejects(
 				emailService.sendMail({}),
@@ -116,9 +120,9 @@ describe('Email Service:', () => {
 		const header = uuid.v4();
 		const footer = uuid.v4();
 
-		const user = {
+		const user = new User({
 			name: 'test'
-		};
+		});
 
 		beforeEach(() => {
 			const configGetStub = sandbox.stub(config, 'get');
@@ -131,7 +135,7 @@ describe('Email Service:', () => {
 
 		it('should build email content', async () => {
 			const expectedResult = `${header}
-<p>Welcome to ${config.get('app.title')}, ${user.name}!</p>
+<p>Welcome to ${config.get<string>('app.title')}, ${user.name}!</p>
 <p>Have a question? Take a look at our <a href="${config.get(
 				'app.helpUrl'
 			)}">Help documentation</a>.</p>
@@ -141,13 +145,13 @@ describe('Email Service:', () => {
 <br/>
 <br/>
 <p>Thanks,</p>
-<p>The ${config.get('app.title')} Support Team</p><p></p>
+<p>The ${config.get<string>('app.title')} Support Team</p><p></p>
 ${footer}
 `;
 
 			const subject = await emailService.buildEmailContent(
 				'src/app/core/user/templates/user-welcome-with-access-email.server.view.html',
-				user
+				user.toObject()
 			);
 			assert(subject);
 			assert.equal(subject, expectedResult);
@@ -165,15 +169,24 @@ ${footer}
 
 	describe('buildEmailSubject:', () => {
 		it('should build email subject', () => {
-			sandbox.stub(config, 'coreEmails').value({
-				default: {
+			sandbox
+				.stub(config, 'get')
+				.callThrough()
+				.withArgs('coreEmails.default')
+				.returns({
 					subjectPrefix: '(pre)'
-				}
-			});
+				});
+			// sandbox.stub(config, 'coreEmails').value({
+			// 	default: {
+			// 		subjectPrefix: '(pre)'
+			// 	}
+			// });
+
+			const user = new User({});
 
 			const subject = emailService.buildEmailSubject(
 				'{{ subjectPrefix }} subject {{ otherVariable }}',
-				{},
+				user,
 				{ otherVariable: '2' }
 			);
 			assert(subject);
@@ -181,7 +194,7 @@ ${footer}
 
 			const subject2 = emailService.buildEmailSubject(
 				'{{ subjectPrefix }} subject {{ otherVariable }}',
-				{}
+				user
 			);
 			assert(subject2);
 			assert.equal(subject2, '(pre) subject ');
@@ -192,9 +205,9 @@ ${footer}
 		const header = uuid.v4();
 		const footer = uuid.v4();
 
-		const user = {
+		const user = new User({
 			name: 'test'
-		};
+		});
 
 		beforeEach(() => {
 			const configGetStub = sandbox.stub(config, 'get');

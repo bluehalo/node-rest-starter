@@ -1,4 +1,4 @@
-import { assert, createSandbox } from 'sinon';
+import { assert, createSandbox, SinonSandbox, SinonSpy } from 'sinon';
 
 import userEmailService from './user-email.service';
 import { User } from './user.model';
@@ -20,11 +20,11 @@ describe('User Email Service:', () => {
 		lastLoginWithAccess: Date.now()
 	});
 
-	let sandbox;
+	let sandbox: SinonSandbox;
 
 	beforeEach(() => {
 		sandbox = createSandbox();
-		sandbox.stub(logger, 'error').returns();
+		sandbox.spy(logger, 'error');
 	});
 
 	afterEach(() => {
@@ -35,9 +35,9 @@ describe('User Email Service:', () => {
 		it('error sending email', async () => {
 			sandbox.stub(emailService, 'sendMail').rejects(new Error('error'));
 
-			await userEmailService.emailApprovedUser(user, {});
+			await userEmailService.emailApprovedUser(user);
 
-			assert.calledOnce(logger.error);
+			assert.calledOnce(logger.error as SinonSpy);
 		});
 
 		it('should create mailOptions properly', async () => {
@@ -57,21 +57,23 @@ describe('User Email Service:', () => {
 			)}.</p>
 <br><br>
 <p>Thanks,</p>
-<p>The ${config.get('app.title')} Support Team</p>
+<p>The ${config.get<string>('app.title')} Support Team</p>
 FOOTER`;
 
 			sandbox.stub(emailService, 'sendMail').resolves();
 
-			await userEmailService.emailApprovedUser(user, {});
+			await userEmailService.emailApprovedUser(user);
 
-			assert.calledWithMatch(emailService.sendMail, {
+			assert.calledWithMatch(emailService.sendMail as SinonSpy, {
 				to: user.email,
-				from: config.get('coreEmails.default.from'),
-				replyTo: config.get('coreEmails.default.replyTo'),
-				subject: `Your ${config.get('app.title')} account has been approved!`,
+				from: config.get<string>('coreEmails.default.from'),
+				replyTo: config.get<string>('coreEmails.default.replyTo'),
+				subject: `Your ${config.get<string>(
+					'app.title'
+				)} account has been approved!`,
 				html: expectedEmailContent
 			});
-			assert.notCalled(logger.error);
+			assert.notCalled(logger.error as SinonSpy);
 		});
 	});
 
@@ -79,14 +81,14 @@ FOOTER`;
 		it('error sending email', async () => {
 			sandbox.stub(emailService, 'sendMail').rejects(new Error('error'));
 
-			await userEmailService.signupEmail(user, {});
+			await userEmailService.signupEmail(user);
 
-			assert.calledOnce(logger.error);
+			assert.calledOnce(logger.error as SinonSpy);
 		});
 
 		it('should create mailOptions properly', async () => {
 			const expectedEmailContent = `HEADER
-<p>Hey there ${config.get('app.title')} Admins,</p>
+<p>Hey there ${config.get<string>('app.title')} Admins,</p>
 <p>A new user named <strong>${user.name}</strong> with username <strong>${
 				user.username
 			}</strong> has requested an account.</p>
@@ -99,16 +101,16 @@ FOOTER`;
 
 			sandbox.stub(emailService, 'sendMail').resolves();
 
-			await userEmailService.signupEmail(user, {});
+			await userEmailService.signupEmail(user);
 
-			assert.calledWithMatch(emailService.sendMail, {
-				to: config.get('coreEmails.userSignupAlert.to'),
-				from: config.get('coreEmails.default.from'),
-				replyTo: config.get('coreEmails.default.replyTo'),
+			assert.calledWithMatch(emailService.sendMail as SinonSpy, {
+				to: config.get<string>('coreEmails.userSignupAlert.to'),
+				from: config.get<string>('coreEmails.default.from'),
+				replyTo: config.get<string>('coreEmails.default.replyTo'),
 				subject: `New Account Request - ${config.get('app.clientUrl')}`,
 				html: expectedEmailContent
 			});
-			assert.notCalled(logger.error);
+			assert.notCalled(logger.error as SinonSpy);
 		});
 	});
 
@@ -126,16 +128,16 @@ FOOTER`;
 		it('error sending email', async () => {
 			sandbox.stub(emailService, 'sendMail').rejects(new Error('error'));
 
-			await userEmailService.welcomeWithAccessEmail(user, {});
+			await userEmailService.welcomeWithAccessEmail(user);
 
-			assert.calledOnce(logger.error);
+			assert.calledOnce(logger.error as SinonSpy);
 		});
 
 		it('should create mailOptions properly', async () => {
 			sandbox.stub(emailService, 'sendMail').resolves();
 
 			const expectedEmailContent = `HEADER
-<p>Welcome Back to ${config.get('app.title')}, ${user.name}!</p>
+<p>Welcome Back to ${config.get<string>('app.title')}, ${user.name}!</p>
 <p>Have a question? Take a look at our <a href="${config.get(
 				'app.helpUrl'
 			)}">Help documentation</a>.</p>
@@ -145,20 +147,20 @@ FOOTER`;
 <br/>
 <br/>
 <p>Thanks,</p>
-<p>The ${config.get('app.title')} Support Team</p><p></p>
+<p>The ${config.get<string>('app.title')} Support Team</p><p></p>
 FOOTER
 `;
 
-			await userEmailService.welcomeWithAccessEmail(user, {});
+			await userEmailService.welcomeWithAccessEmail(user);
 
-			assert.calledWithMatch(emailService.sendMail, {
+			assert.calledWithMatch(emailService.sendMail as SinonSpy, {
 				to: user.email,
-				from: config.get('coreEmails.default.from'),
-				replyTo: config.get('coreEmails.default.replyTo'),
-				subject: `Welcome to ${config.get('app.title')}!`,
+				from: config.get<string>('coreEmails.default.from'),
+				replyTo: config.get<string>('coreEmails.default.replyTo'),
+				subject: `Welcome to ${config.get<string>('app.title')}!`,
 				html: expectedEmailContent
 			});
-			assert.notCalled(logger.error);
+			assert.notCalled(logger.error as SinonSpy);
 		});
 	});
 });

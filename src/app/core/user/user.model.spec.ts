@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 
+import { Static } from '@fastify/type-provider-typebox';
 import { Types } from 'mongoose';
 
 import { User } from './user.model';
+import { CreateUserType } from './user.types';
 
 /**
  * Globals
@@ -12,14 +14,14 @@ function clearDatabase() {
 }
 
 function userSpec(key: string) {
-	return {
+	return new User({
 		name: `${key} Name`,
 		organization: `${key} Organization`,
 		email: `${key}@mail.com`,
 		username: `${key}_username`,
 		password: 'password',
 		provider: 'local'
-	};
+	});
 }
 
 /**
@@ -45,11 +47,11 @@ describe('User Model:', () => {
 			});
 
 			it('creates with defaults', async () => {
-				const user = new User(userSpec('valid'));
+				const user = userSpec('valid');
 				const userModel = await user.save();
 				['user', 'editor', 'auditor', 'admin'].forEach((role) => {
 					assert.equal(
-						userModel.roles[role],
+						(userModel.roles as Record<string, boolean>)[role],
 						false,
 						'roles all default to false'
 					);
@@ -95,25 +97,26 @@ describe('User Model:', () => {
 
 		describe('filteredCopy', () => {
 			it('should only return specific fields', () => {
-				const spec = {
+				const spec: Static<typeof CreateUserType> = {
 					lastLogin: null,
 					name: 'test',
 					password: 'testpwd',
-					organizationLevels: 5,
+					organization: 'org',
+					organizationLevels: {},
 					email: 'test@example.com',
 					salt: 'NaCl',
 					username: 'test',
 					providerData: {
 						dn: 'CN=test'
 					},
-					preferences: true
+					roles: {}
 				};
 				const testUser = new User(spec);
 				const filtered = testUser.filteredCopy();
 				// Test that sensitive values are removed.
-				['password', 'email', 'salt'].forEach((p) => {
+				['password', 'email', 'salt', 'organization', 'roles'].forEach((p) => {
 					assert.equal(filtered[p], undefined);
-					delete spec[p];
+					delete (spec as Record<string, unknown>)[p];
 				});
 				delete filtered._id;
 				assert.deepStrictEqual(filtered, spec);
@@ -141,8 +144,8 @@ describe('User Model:', () => {
 				const obj = testUser.toObject();
 				// Test that sensitive values are removed.
 				['password', 'salt'].forEach((p) => {
-					assert.equal(filtered[p], undefined);
-					delete obj[p];
+					assert.equal((filtered as Record<string, unknown>)[p], undefined);
+					delete (obj as Record<string, unknown>)[p];
 				});
 				assert.deepStrictEqual(filtered, obj);
 			});
@@ -177,7 +180,9 @@ describe('User Model:', () => {
 				assert.equal(copy.providerData, undefined);
 
 				// Strip fields from expectation that are not needed for audit.
-				['created', 'updated'].forEach((k) => delete copy[k]);
+				['created', 'updated'].forEach(
+					(k) => delete (copy as Record<string, unknown>)[k]
+				);
 
 				const obj = testUser.toObject();
 				// Strip fields from expectation that are not needed for audit.
@@ -196,7 +201,7 @@ describe('User Model:', () => {
 					'canProxy',
 					'roles',
 					'teams'
-				].forEach((k) => delete obj[k]);
+				].forEach((k) => delete (obj as Record<string, unknown>)[k]);
 
 				assert.deepStrictEqual(copy, obj);
 			});
@@ -244,7 +249,7 @@ describe('User Model:', () => {
 					'id',
 					'lastLogin',
 					'lastLoginWithAccess'
-				].forEach((k) => delete obj[k]);
+				].forEach((k) => delete (obj as Record<string, unknown>)[k]);
 				// Alter expectation to include flattened DN and IP.
 				const testUserWithDNandIP = { ...obj, dn, ip };
 				assert.deepStrictEqual(audit, testUserWithDNandIP);
@@ -275,7 +280,7 @@ describe('User Model:', () => {
 		});
 
 		it('should be able to save a valid user', async () => {
-			const validUser = new User(userSpec('valid'));
+			const validUser = userSpec('valid');
 			const result = await validUser.save();
 			assert(result);
 		});
@@ -287,7 +292,7 @@ describe('User Model:', () => {
 		});
 
 		it('should not be able to save with the same username', async () => {
-			const validUser = new User(userSpec('valid'));
+			const validUser = userSpec('valid');
 			try {
 				await validUser.save();
 				assert.fail();
@@ -300,11 +305,11 @@ describe('User Model:', () => {
 		['name', 'organization', 'email', 'username'].forEach((field) => {
 			// Creating a test case for each field
 			it(`should fail to save if missing field: '${field}'`, async () => {
-				const u = new User(userSpec(`missing_${field}`));
-				u[field] = undefined;
+				const user = userSpec(`missing_${field}`);
+				(user as unknown as Record<string, unknown>)[field] = undefined;
 
 				try {
-					await u.save();
+					await user.save();
 					assert.fail();
 				} catch (err) {
 					assert(err);

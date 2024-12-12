@@ -33,7 +33,7 @@ class AuditService {
 			| Promise<Partial<IUser>>
 			| Partial<IUser>,
 		eventObject: unknown,
-		eventMetadata = null
+		eventMetadata?: Record<string, string | string[]>
 	): Promise<AuditDocument> {
 		requestOrEventActor = await requestOrEventActor;
 
@@ -43,7 +43,10 @@ class AuditService {
 		} else if (requestOrEventActor.user && requestOrEventActor.headers) {
 			const user = requestOrEventActor.user as UserDocument;
 			actor = user.auditCopy(
-				utilService.getHeaderField(requestOrEventActor.headers, 'x-real-ip')
+				utilService.getHeaderField(
+					requestOrEventActor.headers,
+					'x-real-ip'
+				) as string
 			);
 			eventMetadata = requestOrEventActor.headers;
 		}
@@ -92,15 +95,21 @@ class AuditService {
 	/**
 	 * Creates an audit entry persisted to Mongo and the bunyan logger
 	 */
-	private getMasqueradingUserDn(eventActor, headers) {
+	private getMasqueradingUserDn(
+		eventActor: unknown,
+		headers: Record<string, string | string[]>
+	) {
+		const dn = (eventActor as { dn: string }).dn;
 		if (
 			config.get<string>('auth.strategy') === 'proxy-pki' &&
 			config.get<boolean>('auth.masquerade')
 		) {
 			const masqueradeUserDn =
 				headers?.[config.get<string>('masqueradeUserHeader')];
-			if (eventActor.dn && eventActor.dn === masqueradeUserDn) {
-				return headers?.[config.get<string>('proxyPkiPrimaryUserHeader')];
+			if (dn && dn === masqueradeUserDn) {
+				return headers?.[
+					config.get<string>('proxyPkiPrimaryUserHeader')
+				] as string;
 			}
 		}
 		return undefined;

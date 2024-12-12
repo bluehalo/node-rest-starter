@@ -1,13 +1,12 @@
 import assert from 'node:assert/strict';
 
-import mongoose from 'mongoose';
-import { createSandbox } from 'sinon';
+import { createSandbox, SinonSandbox } from 'sinon';
 
 import userAuthorizationService from './user-authorization.service';
 import { config } from '../../../../dependencies';
 import { IUser, User } from '../user.model';
 
-function userSpec(key) {
+function userSpec(key: string) {
 	return {
 		name: `${key} Name`,
 		organization: `${key} Organization`,
@@ -19,7 +18,7 @@ function userSpec(key) {
 }
 
 describe('User authorization service:', () => {
-	let sandbox;
+	let sandbox: SinonSandbox;
 
 	const reloadProvider = () => {
 		return userAuthorizationService
@@ -289,83 +288,6 @@ describe('User authorization service:', () => {
 				},
 				externalRoles: ['USER', 'ELEVATED_ROLE_2']
 			});
-		});
-	});
-
-	describe('validateAccessToPersonalResource', () => {
-		const id1 = new mongoose.Types.ObjectId();
-		const id2 = new mongoose.Types.ObjectId();
-
-		it('test user (not admin) access own resource', () => {
-			const user = { roles: { admin: false }, _id: id1 };
-			const resource = { creator: id1 };
-
-			return assert.doesNotReject(
-				userAuthorizationService.validateAccessToPersonalResource(
-					user,
-					resource
-				)
-			);
-		});
-
-		it('test user (not admin) access another user resource', () => {
-			const user = { roles: { admin: false }, _id: id1 };
-			const resource = { creator: id2 };
-
-			return assert.rejects(
-				userAuthorizationService.validateAccessToPersonalResource(
-					user,
-					resource
-				)
-			);
-		});
-
-		it('test user with no roles access own resource', () => {
-			const user = { _id: id1 };
-			const resource = { creator: id1 };
-
-			return assert.doesNotReject(
-				userAuthorizationService.validateAccessToPersonalResource(
-					user,
-					resource
-				)
-			);
-		});
-
-		it('test user with no roles access another user resource', () => {
-			const user = { _id: id1 };
-			const resource = { creator: id2 };
-
-			return assert.rejects(
-				userAuthorizationService.validateAccessToPersonalResource(
-					user,
-					resource
-				)
-			);
-		});
-
-		it('test admin access own resource', () => {
-			const user = { roles: { admin: true }, _id: id1 };
-			const resource = { creator: id1 };
-
-			return assert.doesNotReject(
-				userAuthorizationService.validateAccessToPersonalResource(
-					user,
-					resource
-				)
-			);
-		});
-
-		it('test admin access another user resource', () => {
-			const user = { roles: { admin: true }, _id: id1 };
-			const resource = { creator: id2 };
-
-			return assert.doesNotReject(
-				userAuthorizationService.validateAccessToPersonalResource(
-					user,
-					resource
-				)
-			);
 		});
 	});
 });

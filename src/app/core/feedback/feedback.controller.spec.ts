@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 
 import { FastifyInstance } from 'fastify';
-import { assert as sinonAssert, createSandbox } from 'sinon';
+import {
+	assert as sinonAssert,
+	createSandbox,
+	SinonSpy,
+	SinonSandbox
+} from 'sinon';
 
 import controller from './feedback.controller';
 import { Feedback } from './feedback.model';
@@ -11,7 +16,7 @@ import { fastifyTest } from '../../../spec/fastify';
 import { User, UserDocument } from '../user/user.model';
 
 describe('Feedback Controller', () => {
-	let sandbox;
+	let sandbox: SinonSandbox;
 
 	let app: FastifyInstance;
 	let user: UserDocument;
@@ -51,7 +56,7 @@ describe('Feedback Controller', () => {
 
 	describe('submitFeedback', () => {
 		it(`should submit feedback successfully`, async () => {
-			sandbox.stub(auditService, 'audit').resolves({ audit: {} });
+			sandbox.stub(auditService, 'audit').resolves();
 			sandbox.stub(feedbackService, 'sendFeedbackEmail').resolves();
 
 			const reply = await app.inject({
@@ -64,7 +69,7 @@ describe('Feedback Controller', () => {
 				}
 			});
 
-			sinonAssert.calledOnce(auditService.audit);
+			sinonAssert.calledOnce(auditService.audit as SinonSpy);
 
 			assert.equal(
 				reply.statusCode,

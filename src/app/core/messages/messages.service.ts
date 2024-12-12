@@ -79,7 +79,8 @@ class MessagesService {
 	}
 
 	getAllMessages(): Promise<Array<IMessage>> {
-		const timeLimit = config['dismissedMessagesTimePeriod'] ?? 604800000;
+		const timeLimit =
+			config.get<number>('messages.dismissedTimeSeconds') * 1000;
 
 		return this.model
 			.find()

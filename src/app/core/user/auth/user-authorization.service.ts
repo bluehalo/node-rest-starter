@@ -7,7 +7,6 @@ import { FilterQuery } from 'mongoose';
 
 import { ExternalRoleMapProvider } from './external-role-map.provider';
 import { config } from '../../../../dependencies';
-import { UnauthorizedError } from '../../../common/errors';
 import { IUser, UserDocument } from '../user.model';
 
 class UserAuthorizationService {
@@ -25,9 +24,9 @@ class UserAuthorizationService {
 	hasRole(user: IUser, role: string) {
 		const strategy = this.getRoleStrategy();
 
-		const localRoles = user.roles || {};
+		const localRoles = user.roles as Record<string, boolean>;
 
-		const hasLocalRole = localRoles[role];
+		const hasLocalRole = localRoles?.[role] ?? false;
 		if (strategy === 'local') {
 			return hasLocalRole;
 		}
@@ -56,7 +55,7 @@ class UserAuthorizationService {
 		return roles.some((role) => this.hasRole(user, role));
 	}
 
-	updateRoles(user) {
+	updateRoles(user: Pick<IUser, 'roles' | 'localRoles'>) {
 		if (this.provider) {
 			const strategy = this.getRoleStrategy();
 			const isHybrid = strategy === 'hybrid';
@@ -65,10 +64,12 @@ class UserAuthorizationService {
 				user.localRoles = Object.assign({}, user.roles);
 			}
 			if (strategy === 'external' || isHybrid) {
-				const updatedRoles = {};
+				const updatedRoles: Record<string, boolean> = {};
 				for (const key of this.getRoles()) {
 					updatedRoles[key] =
-						(isHybrid && user.roles && user.roles[key]) ||
+						(isHybrid &&
+							user.roles &&
+							(user.roles as Record<string, boolean>)[key]) ||
 						this.provider.hasRole(user, key);
 				}
 				user.roles = updatedRoles;
@@ -95,18 +96,6 @@ class UserAuthorizationService {
 		}
 
 		return query;
-	}
-
-	validateAccessToPersonalResource(user, resource) {
-		const isAdmin = null != user.roles && user.roles.admin === true;
-		if (isAdmin || resource.creator.equals(user._id)) {
-			return Promise.resolve();
-		}
-		return Promise.reject(
-			new UnauthorizedError(
-				'The user does not have the necessary permissions to access this resource'
-			)
-		);
 	}
 
 	/**

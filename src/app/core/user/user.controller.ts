@@ -191,7 +191,8 @@ export default function (_fastify: FastifyInstance) {
 
 // User middleware - stores user corresponding to id in 'userParam'
 export async function loadUserById(req: FastifyRequest) {
-	const id = req.params['id'];
+	const params = req.params as { id: string };
+	const id = params['id'];
 	req.userParam = await userService.read(id);
 
 	if (!req.userParam) {

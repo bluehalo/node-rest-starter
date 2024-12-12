@@ -67,7 +67,7 @@ export default function (_fastify: FastifyInstance) {
 					.audit('user signup', 'user', 'user signup', req, newUser.auditCopy())
 					.then();
 
-				userEmailService.signupEmail(newUser, req).then();
+				userEmailService.signupEmail(newUser).then();
 
 				const user = await userAuthService.authenticateAndLogin(req, reply);
 				if (user) {

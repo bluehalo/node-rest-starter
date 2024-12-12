@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 import _ from 'lodash';
 import mongoose from 'mongoose';
-import { assert as sinonAssert, createSandbox } from 'sinon';
+import { assert as sinonAssert, createSandbox, SinonSandbox } from 'sinon';
 
 import { TeamRoles } from './team-role.model';
 import { ITeam, Team, TeamDocument } from './team.model';
@@ -24,16 +24,16 @@ function clearDatabase() {
 	return Promise.all([Team.deleteMany({}).exec(), User.deleteMany({}).exec()]);
 }
 
-function userSpec(key): Partial<IUser> {
-	return {
+function userSpec(key: string): Partial<IUser> {
+	return new User({
 		name: `${key} Name`,
 		email: `${key}@email.domain`,
 		username: `${key}_username`,
 		organization: `${key} Organization`
-	};
+	});
 }
 
-function proxyPkiUserSpec(key) {
+function proxyPkiUserSpec(key: string) {
 	const spec = userSpec(key);
 	spec.provider = 'proxy-pki';
 	spec.providerData = {
@@ -43,14 +43,14 @@ function proxyPkiUserSpec(key) {
 	return spec;
 }
 
-function localUserSpec(key) {
+function localUserSpec(key: string) {
 	const spec = userSpec(key);
 	spec.provider = 'local';
 	spec.password = 'password';
 	return spec;
 }
 
-function teamSpec(key): Partial<ITeam> {
+function teamSpec(key: string): Partial<ITeam> {
 	return {
 		name: key,
 		description: `${key} Team Description`
@@ -139,7 +139,7 @@ describe('Team Service:', () => {
 	let user: Record<string, UserDocument> = {};
 	let team: Record<string, TeamDocument> = {};
 
-	let sandbox;
+	let sandbox: SinonSandbox;
 
 	beforeEach(async () => {
 		sandbox = createSandbox();
@@ -982,21 +982,20 @@ FOOTER
 
 			assert(mailOptions, 'expected mailOptions to exist');
 
-			for (const key of ['bcc', 'from', 'replyTo', 'subject', 'html']) {
-				assert(mailOptions[key], `expected mailOptions.${key} to exist`);
-			}
-
 			assert.deepStrictEqual(mailOptions.bcc, toEmails);
-			assert.equal(mailOptions.from, config.get('coreEmails.default.from'));
+			assert.equal(
+				mailOptions.from,
+				config.get<string>('coreEmails.default.from')
+			);
 			assert.equal(
 				mailOptions.replyTo,
-				config.get('coreEmails.default.replyTo')
+				config.get<string>('coreEmails.default.replyTo')
 			);
 			assert.equal(
 				mailOptions.subject,
-				`${config.get('app.title')}: A user has requested access to Team ${
-					_team.name
-				}`
+				`${config.get<string>(
+					'app.title'
+				)}: A user has requested access to Team ${_team.name}`
 			);
 			assert.equal(mailOptions.html, expectedEmailContent);
 		});
@@ -1092,7 +1091,7 @@ FOOTER
 			const sendMailStub = sandbox.stub(emailService, 'sendMail');
 
 			const expectedEmailContent = `HEADER
-<p>Hey there ${config.get('app.title')} Admins,</p>
+<p>Hey there ${config.get<string>('app.title')} Admins,</p>
 <p>A user named <strong>${_user.name}</strong> with username <strong>${
 				_user.username
 			}</strong> has requested a new team:</p>
@@ -1114,18 +1113,17 @@ FOOTER
 
 			assert(mailOptions, 'expected mailOptions to exist');
 
-			for (const key of ['bcc', 'from', 'replyTo', 'subject', 'html']) {
-				assert(mailOptions[key], `expected mailOptions.${key} to exist`);
-			}
-
 			assert.equal(
 				mailOptions.bcc,
 				config.get('coreEmails.newTeamRequest.bcc')
 			);
-			assert.equal(mailOptions.from, config.get('coreEmails.default.from'));
+			assert.equal(
+				mailOptions.from,
+				config.get<string>('coreEmails.default.from')
+			);
 			assert.equal(
 				mailOptions.replyTo,
-				config.get('coreEmails.default.replyTo')
+				config.get<string>('coreEmails.default.replyTo')
 			);
 			assert.equal(mailOptions.subject, 'New Team Requested');
 			assert.equal(mailOptions.html, expectedEmailContent);

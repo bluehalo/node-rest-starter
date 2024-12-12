@@ -9,13 +9,15 @@ export interface ContainsSearchable {
 export function containsSearchPlugin<
 	EnforcedDocType,
 	TModelType,
-	TInstanceMethods
+	TInstanceMethods,
+	TQueryHelpers extends ContainsSearchable
 >(
-	schema: Schema<EnforcedDocType, TModelType, TInstanceMethods>,
+	schema: Schema<EnforcedDocType, TModelType, TInstanceMethods, TQueryHelpers>,
 	pluginOptions: { fields?: string[] } = {}
 ) {
-	schema.query['containsSearch'] = function (
-		this: Query<unknown, unknown>,
+	// @ts-expect-error TS doesn't like the typing on this due to specifying the type of `this`
+	schema.query.containsSearch = function (
+		this: Query<unknown, unknown, TQueryHelpers>,
 		search: string,
 		fields: string[] = pluginOptions.fields ?? []
 	) {

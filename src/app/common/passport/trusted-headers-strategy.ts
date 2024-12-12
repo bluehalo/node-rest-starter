@@ -1,12 +1,22 @@
 import { Request } from 'express';
 import passport from 'passport';
 
+export type VerifyCallbackFunction = (
+	err: unknown,
+	user: unknown,
+	info?: string
+) => void;
+
 export abstract class TrustedHeadersStrategy extends passport.Strategy {
 	protected constructor(private trustedHeaders: string[]) {
 		super();
 	}
 
-	abstract verify(req: Request, headerValues, callback);
+	abstract verify(
+		req: Request,
+		headerValues: string[],
+		callback: VerifyCallbackFunction
+	): void;
 
 	/**
 	 * Authenticate request based on the contents of the dn header value.
@@ -14,8 +24,10 @@ export abstract class TrustedHeadersStrategy extends passport.Strategy {
 	 * @api protected
 	 */
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	authenticate(req: Request, options) {
-		const headers = this.trustedHeaders.map((header) => req.headers[header]);
+	authenticate(req: Request, options: unknown) {
+		const headers = this.trustedHeaders.flatMap(
+			(header) => req.headers[header]
+		);
 
 		try {
 			// Call the configurable verify function
