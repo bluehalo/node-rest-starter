@@ -76,7 +76,7 @@
     "lodash": "4.17.21",
     "luxon": "^1.28.1",
     "migrate-mongo": "^11.0.0",
-    "mongoose": "^8.4.4",
+    "mongoose": "^8.9.5",
     "mongoose-unique-validator": "^5.0.1",
     "multipipe": "^4.0.0",
     "nodemailer": "6.9.9",
