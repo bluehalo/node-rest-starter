@@ -126,7 +126,7 @@
     "eslint-plugin-prettier": "^5.0.0",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2",
-    "mocha": "^10.4.0",
+    "mocha": "^10.8.2",
     "nodemon": "^3.1.4",
     "nyc": "^17.0.0",
     "prettier": "^3.0.0",
