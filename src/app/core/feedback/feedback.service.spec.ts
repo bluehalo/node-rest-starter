@@ -56,7 +56,7 @@ FOOTER
 			sinonAssert.called(sendMailStub);
 			const [mailOptions] = sendMailStub.getCall(0).args;
 
-			assert(mailOptions, 'expected mailOptions to exist');
+			assert.ok(mailOptions, 'expected mailOptions to exist');
 
 			assert.equal(mailOptions.bcc, config.get('coreEmails.feedbackEmail.bcc'));
 			assert.equal(
@@ -83,7 +83,7 @@ FOOTER
 				type: 'Question'
 			}).save();
 			const feedback = await feedbackService.read(savedFeedback._id);
-			assert(feedback);
+			assert.ok(feedback);
 		});
 
 		it('should throw a 404 errorResult if an invalid feedback ID is supplied', async () => {

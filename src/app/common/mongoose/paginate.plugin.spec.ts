@@ -41,14 +41,14 @@ describe('Paging Search Plugin:', () => {
 
 	it('should add paginate function to query', () => {
 		const query = PaginateExample.find();
-		assert(query.paginate);
+		assert.ok(query.paginate);
 		assert.equal(typeof query.paginate, 'function');
 	});
 
 	it('should return promise', () => {
 		const promise = PaginateExample.find().paginate(10, 1);
 
-		assert(promise instanceof Promise);
+		assert.ok(promise instanceof Promise);
 	});
 
 	it('should return specified page of data', async () => {
@@ -62,8 +62,8 @@ describe('Paging Search Plugin:', () => {
 			totalSize: 100,
 			totalPages: 10
 		});
-		assert(elements);
-		assert(Array.isArray(elements), 'elements should be an Array');
+		assert.ok(elements);
+		assert.ok(Array.isArray(elements), 'elements should be an Array');
 		assert.equal(elements.length, 10);
 	});
 
@@ -79,8 +79,8 @@ describe('Paging Search Plugin:', () => {
 			totalPages: 0
 		});
 
-		assert(elements);
-		assert(Array.isArray(elements), 'elements should be an Array');
+		assert.ok(elements);
+		assert.ok(Array.isArray(elements), 'elements should be an Array');
 		assert.equal(elements.length, 0);
 	});
 
@@ -98,8 +98,8 @@ describe('Paging Search Plugin:', () => {
 			totalPages: Math.ceil(Number.MAX_SAFE_INTEGER / 10)
 		});
 
-		assert(elements);
-		assert(Array.isArray(elements), 'elements should be an Array');
+		assert.ok(elements);
+		assert.ok(Array.isArray(elements), 'elements should be an Array');
 		assert.equal(elements.length, 10);
 	});
 });

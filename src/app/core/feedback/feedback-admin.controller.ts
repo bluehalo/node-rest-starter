@@ -148,16 +148,17 @@ export default function (_fastify: FastifyInstance) {
 			const columns = exportConfig.config.cols;
 			// Based on which columns are requested, handle property-specific behavior (ex. callbacks for the
 			// CSV service to make booleans and dates more human-readable)
-			columns.forEach((col) => {
+			for (const col of columns) {
 				col.title = col.title ?? _.capitalize(col.key);
 
 				switch (col.key) {
 					case 'created':
-					case 'updated':
+					case 'updated': {
 						col.callback = Callbacks.isoDateString;
 						break;
+					}
 				}
-			});
+			}
 
 			const cursor = feedbackService.cursorSearch(
 				exportConfig.config,

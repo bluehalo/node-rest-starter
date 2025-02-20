@@ -152,7 +152,7 @@ class TeamsService {
 		);
 
 		// convert team ids to strings
-		const teamIdStrings = teamIds.map((id) => id.toString());
+		const teamIdStrings = new Set(teamIds.map((id) => id.toString()));
 
 		// If user is not an admin, constrain the results to the user's teams
 		if (!userAuthService.hasRoles(user, ['admin'])) {
@@ -193,7 +193,7 @@ class TeamsService {
 				// append isMember field to elements if user is part of the team
 				return {
 					...res.toJSON(),
-					isMember: teamIdStrings.includes(res._id.toString())
+					isMember: teamIdStrings.has(res._id.toString())
 				} as unknown as TeamDocument;
 			})
 		};
@@ -212,14 +212,18 @@ class TeamsService {
 		if (team.ancestors && config.get<boolean>('teams.nestedTeams')) {
 			const roles = [...team.ancestors, team._id]
 				.map((_id) => this.getTeamRole(user, { _id }))
-				.filter((role) => role);
+				.filter(Boolean) as TeamRoles[];
 
 			if (roles.length > 0) {
-				return roles.reduce((prevHighestRole, role) => {
-					return TeamRolePriorities[role] > TeamRolePriorities[prevHighestRole]
-						? role
-						: prevHighestRole;
-				}, TeamRoles.Blocked);
+				let highestRole = TeamRoles.Blocked;
+				for (const role of roles) {
+					if (
+						TeamRolePriorities[role] > (TeamRolePriorities[highestRole] ?? -1)
+					) {
+						highestRole = role;
+					}
+				}
+				return highestRole;
 			}
 		} else {
 			return user.teams.find((t) => t._id.equals(team._id))?.role;
@@ -454,32 +458,29 @@ class TeamsService {
 			}
 			query.$or.push({ 'teams._id': team._id });
 		} else if (types.length > 0 && roles.length > 0) {
-			if (
-				types.indexOf('implicit') !== -1 &&
-				roles.indexOf(TeamRoleImplicit) !== -1
-			) {
+			if (types.includes('implicit') && roles.includes(TeamRoleImplicit)) {
 				const implicitFilter = this.getImplicitMemberFilter(team);
 				if (implicitFilter) {
 					query.$or.push(implicitFilter);
 				}
 			}
-			if (types.indexOf('explicit') !== -1) {
+			if (types.includes('explicit')) {
 				query.$or.push({
 					teams: { $elemMatch: { _id: team._id, role: { $in: roles } } }
 				});
 			}
 		} else if (types.length > 0) {
-			if (types.indexOf('implicit') !== -1) {
+			if (types.includes('implicit')) {
 				const implicitFilter = this.getImplicitMemberFilter(team);
 				if (implicitFilter) {
 					query.$or.push(implicitFilter);
 				}
 			}
-			if (types.indexOf('explicit') !== -1) {
+			if (types.includes('explicit')) {
 				query.$or.push({ 'teams._id': team._id });
 			}
 		} /* roles.length > 0 */ else {
-			if (roles.indexOf(TeamRoleImplicit) !== -1) {
+			if (roles.includes(TeamRoleImplicit)) {
 				const implicitFilter = this.getImplicitMemberFilter(team);
 				if (implicitFilter) {
 					query.$or.push(implicitFilter);

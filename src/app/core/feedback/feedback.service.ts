@@ -1,4 +1,4 @@
-import { Readable } from 'stream';
+import { Readable } from 'node:stream';
 
 import { FilterQuery, PopulateOptions, Types } from 'mongoose';
 
@@ -34,13 +34,13 @@ class FeedbackService {
 
 		try {
 			return feedback.save();
-		} catch (err) {
+		} catch (error) {
 			// Log and continue the error
 			logger.error('Error trying to persist feedback record to storage.', {
-				err: err,
+				err: error,
 				feedback: doc
 			});
-			return Promise.reject(err);
+			return Promise.reject(error);
 		}
 	}
 

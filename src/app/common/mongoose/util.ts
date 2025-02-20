@@ -8,18 +8,19 @@ export type ObtainModelGeneric<
 		| 'TInstanceMethods'
 		| 'TVirtuals'
 		| 'THydratedDocumentType'
-> = M extends Model<
-	infer TRawDocType,
-	infer TQueryHelpers,
-	infer TInstanceMethods,
-	infer TVirtuals,
-	infer THydratedDocumentType
->
-	? {
-			TRawDocType: TRawDocType;
-			TQueryHelpers: TQueryHelpers;
-			TInstanceMethods: TInstanceMethods;
-			TVirtuals: TVirtuals;
-			THydratedDocumentType: THydratedDocumentType;
-	  }[alias]
-	: unknown;
+> =
+	M extends Model<
+		infer TRawDocType,
+		infer TQueryHelpers,
+		infer TInstanceMethods,
+		infer TVirtuals,
+		infer THydratedDocumentType
+	>
+		? {
+				TRawDocType: TRawDocType;
+				TQueryHelpers: TQueryHelpers;
+				TInstanceMethods: TInstanceMethods;
+				TVirtuals: TVirtuals;
+				THydratedDocumentType: THydratedDocumentType;
+			}[alias]
+		: unknown;

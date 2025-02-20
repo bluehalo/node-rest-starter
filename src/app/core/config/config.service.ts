@@ -1,5 +1,5 @@
-import { config } from '../../../dependencies';
 import pkg from '../../../../package.json';
+import { config } from '../../../dependencies';
 
 class ConfigService {
 	getSystemConfig() {

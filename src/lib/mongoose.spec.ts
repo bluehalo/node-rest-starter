@@ -45,8 +45,8 @@ describe('Mongoose', () => {
 		it('connects to admin database by default', async () => {
 			const dbs = await mongooseLib.connect();
 			const admin = dbs.admin as Mongoose;
-			assert(admin);
-			assert(admin.connection);
+			assert.ok(admin);
+			assert.ok(admin.connection);
 			assert.equal(admin.connection.name, adminDatabaseName);
 			assert.equal(admin.connection.readyState, 1);
 		});
@@ -67,15 +67,15 @@ describe('Mongoose', () => {
 		it('connects to admin database by default', async () => {
 			const dbs = await mongooseLib.connect();
 			const admin = dbs.admin as Mongoose;
-			assert(admin);
-			assert(admin.connection);
+			assert.ok(admin);
+			assert.ok(admin.connection);
 			assert.equal(admin.connection.name, adminDatabaseName);
 			assert.equal(admin.connection.readyState, 1);
 		});
 
 		it('connects to other databases', async () => {
 			const dbs = await mongooseLib.connect();
-			assert(dbs.other);
+			assert.ok(dbs.other);
 
 			const other = dbs.other as Connection;
 			assert.equal(other.name, otherDatabaseName);
@@ -84,8 +84,8 @@ describe('Mongoose', () => {
 
 		it('models registered to admin db should not be available on other db', async () => {
 			const dbs = await mongooseLib.connect();
-			assert(dbs.admin);
-			assert(dbs.other);
+			assert.ok(dbs.admin);
+			assert.ok(dbs.other);
 
 			assert.equal(
 				intersection(dbs.admin.modelNames(), dbs.other.modelNames()).length,

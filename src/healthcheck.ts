@@ -27,16 +27,16 @@ http
 					process.exit(0);
 				}
 
-				console.log('Unhealthy response received: ', body);
+				console.log('Unhealthy response received:', body);
 				process.exit(1);
-			} catch (err) {
-				console.log('Error parsing JSON response body: ', err);
+			} catch (error) {
+				console.log('Error parsing JSON response body:', error);
 				process.exit(1);
 			}
 		});
 	})
 	.on('error', (err) => {
-		console.log('Error: ', err);
+		console.log('Error:', err);
 		process.exit(1);
 	})
 	.end();

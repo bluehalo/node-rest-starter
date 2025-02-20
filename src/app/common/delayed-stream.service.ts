@@ -33,9 +33,9 @@ export = function (delay = 10) {
 	// If an upstream processor has an error, stop doing anything we had queued up.
 	// This allows us to quickly short-circuit.
 	stream.on('error', () => {
-		timeouts.forEach((t) => {
+		for (const t of timeouts) {
 			clearTimeout(t);
-		});
+		}
 		timeouts = [];
 	});
 

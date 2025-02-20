@@ -1,18 +1,12 @@
 import { StatusCodes } from 'http-status-codes';
 
-export class BaseError extends Error {
-	constructor(name: string, message: string) {
-		super(message);
-		this.name = name;
-	}
-}
-export class HttpError extends BaseError {
+export class HttpError extends Error {
 	constructor(
-		public readonly statusCode: StatusCodes,
-		name: string,
-		message: string
+		message: string,
+		public readonly statusCode: StatusCodes
 	) {
-		super(name, message);
+		super(message);
+		this.name = 'HttpError';
 	}
 
 	toJSON(exposeServerErrors = false): Record<string, unknown> {
@@ -30,7 +24,8 @@ export class BadRequestError extends HttpError {
 		message: string,
 		public errors?: unknown
 	) {
-		super(StatusCodes.BAD_REQUEST, 'BadRequestError', message);
+		super(message, StatusCodes.BAD_REQUEST);
+		this.name = 'BadRequestError';
 	}
 
 	override toJSON(exposeServerErrors = false) {
@@ -41,25 +36,29 @@ export class BadRequestError extends HttpError {
 }
 export class UnauthorizedError extends HttpError {
 	constructor(message: string) {
-		super(StatusCodes.UNAUTHORIZED, 'UnauthorizedError', message);
+		super(message, StatusCodes.UNAUTHORIZED);
+		this.name = 'UnauthorizedError';
 	}
 }
 
 export class ForbiddenError extends HttpError {
 	constructor(message: string) {
-		super(StatusCodes.FORBIDDEN, 'ForbiddenError', message);
+		super(message, StatusCodes.FORBIDDEN);
+		this.name = 'ForbiddenError';
 	}
 }
 
 export class NotFoundError extends HttpError {
 	constructor(message: string) {
-		super(StatusCodes.NOT_FOUND, 'NotFoundError', message);
+		super(message, StatusCodes.NOT_FOUND);
+		this.name = 'NotFoundError';
 	}
 }
 
 export class InternalServerError extends HttpError {
 	constructor(message: string) {
-		super(StatusCodes.INTERNAL_SERVER_ERROR, 'InternalServerError', message);
+		super(message, StatusCodes.INTERNAL_SERVER_ERROR);
+		this.name = 'InternalServerError';
 	}
 
 	override toJSON(exposeServerErrors = false) {

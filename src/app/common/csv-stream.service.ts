@@ -1,4 +1,4 @@
-import { Transform } from 'stream';
+import { Transform } from 'node:stream';
 
 import stringify from 'csv-stringify';
 import jsonpath from 'jsonpath';
@@ -32,7 +32,7 @@ class CsvStreamService {
 				chunk = chunk.toObject();
 			}
 
-			columns.forEach((column) => {
+			for (const column of columns) {
 				if (_.has(column, 'key')) {
 					// Get the value from the object using jsonpath
 					let value = jsonpath.value(chunk, `$.${column.key}`);
@@ -45,7 +45,7 @@ class CsvStreamService {
 					// Emit a blank column rather than null/undefined
 					row.push(value ?? '');
 				}
-			});
+			}
 
 			// Emit the row to the output stream, piped to the CSV stringifier
 			callback(null, row);
@@ -53,11 +53,11 @@ class CsvStreamService {
 
 		// Parse the columns array into a format the CSV stringify module is expecting
 		const csvColumns: string[] = [];
-		columns.forEach((value) => {
+		for (const value of columns) {
 			if (_.has(value, 'title')) {
 				csvColumns.push(value.title);
 			}
-		});
+		}
 
 		// Assemble the CSV headers and stream the CSV response back to the client
 		const csv = stringify({

@@ -44,7 +44,7 @@ describe('Audit Service:', () => {
 
 		it('should have one audit entry', async () => {
 			const results = await Audit.find({}).exec();
-			assert(Array.isArray(results), 'results should be an Array');
+			assert.ok(Array.isArray(results), 'results should be an Array');
 			assert.equal(results.length, 1);
 
 			const { created, ...result } = results[0].toObject({
@@ -55,7 +55,7 @@ describe('Audit Service:', () => {
 			 * but may be the same time since ISO Date strips off the milliseconds,
 			 * so we'll remove 1 from the zero'ed milliseconds of the startTimestamp
 			 */
-			assert(
+			assert.ok(
 				created.getTime() > startTimestamp - 1,
 				'created date should be after the test started'
 			);

@@ -1,5 +1,5 @@
-import os from 'os';
-import path from 'path';
+import os from 'node:os';
+import path from 'node:path';
 
 import config, { IConfig } from 'config';
 import winston from 'winston';
@@ -19,7 +19,7 @@ function createLogger(loggerName: string) {
 				splat(),
 				json(),
 				prettyPrint()
-		  )
+			)
 		: combine(timestamp(), errors({ stack: true }), splat(), json());
 
 	const transports: winston.transport[] = [];
