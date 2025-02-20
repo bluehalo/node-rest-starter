@@ -45,12 +45,12 @@ export function paginatePlugin<
 					.maxTimeMS(countTimeout)
 					.countDocuments()
 					.exec()
-					.catch((err) => {
+					.catch((error) => {
 						// Hit timeout
-						if (err.code === MONGO_TIMEOUT_ERROR_CODE) {
+						if (error.code === MONGO_TIMEOUT_ERROR_CODE) {
 							return Promise.resolve(Number.MAX_SAFE_INTEGER);
 						}
-						return err;
+						return error;
 					})
 			: Promise.resolve(Number.MAX_SAFE_INTEGER);
 

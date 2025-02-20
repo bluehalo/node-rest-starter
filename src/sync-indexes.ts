@@ -16,9 +16,9 @@ const syncIndex = async () => {
 			// eslint-disable-next-line no-await-in-loop
 			await model.syncIndexes();
 		}
-	} catch (err) {
+	} catch (error) {
 		logger.error('failed.');
-		return Promise.reject(err);
+		return Promise.reject(error);
 	}
 };
 

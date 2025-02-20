@@ -76,7 +76,7 @@ describe('Feedback Controller', () => {
 				200,
 				`route rejected with "${reply.payload}"`
 			);
-			assert(reply.body);
+			assert.ok(reply.body);
 		});
 	});
 });

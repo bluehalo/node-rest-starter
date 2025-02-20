@@ -17,22 +17,22 @@ function userSpec(key: string) {
 	};
 }
 
+const reloadProvider = () => {
+	return userAuthorizationService
+		.loadProvider(true)
+		.then(
+			() => {
+				//empty callback
+			},
+			() => {
+				//ignore error
+			}
+		)
+		.catch();
+};
+
 describe('User authorization service:', () => {
 	let sandbox: SinonSandbox;
-
-	const reloadProvider = () => {
-		return userAuthorizationService
-			.loadProvider(true)
-			.then(
-				() => {
-					//empty callback
-				},
-				() => {
-					//ignore error
-				}
-			)
-			.catch();
-	};
 
 	beforeEach(() => {
 		sandbox = createSandbox();

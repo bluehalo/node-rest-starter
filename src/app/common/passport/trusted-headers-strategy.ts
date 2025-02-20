@@ -1,3 +1,4 @@
+// eslint-disable-next-line n/no-extraneous-import
 import { Request } from 'express';
 import passport from 'passport';
 
@@ -43,8 +44,8 @@ export abstract class TrustedHeadersStrategy extends passport.Strategy {
 				// Otherwise, succeed
 				this.success(user);
 			});
-		} catch (ex) {
-			return this.error(ex);
+		} catch (error) {
+			return this.error(error);
 		}
 	}
 }

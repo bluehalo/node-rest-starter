@@ -25,13 +25,13 @@ describe('Text Search Plugin:', () => {
 	describe('textSearch:', () => {
 		it('should add textSearch function to query', () => {
 			const query = TextExample.find();
-			assert(query.textSearch);
+			assert.ok(query.textSearch);
 			assert.equal(typeof query.textSearch, 'function');
 		});
 
 		it('should not add to filter/options if search term is null/undefined/empty string', () => {
-			[null, undefined, ''].forEach((search) => {
-				[true, false].forEach((sortByTextScore) => {
+			for (const search of [null, undefined, '']) {
+				for (const sortByTextScore of [true, false]) {
 					const query = TextExample.find().textSearch(search, sortByTextScore);
 
 					const filter = query.getFilter();
@@ -40,10 +40,10 @@ describe('Text Search Plugin:', () => {
 					assert.equal(query.projection(), undefined);
 
 					const options = query.getOptions();
-					assert(options);
+					assert.ok(options);
 					assert.deepStrictEqual(options.sort, undefined);
-				});
-			});
+				}
+			}
 		});
 
 		it('should update query filter/options', () => {
@@ -58,7 +58,7 @@ describe('Text Search Plugin:', () => {
 			});
 
 			const options = query.getOptions();
-			assert(options);
+			assert.ok(options);
 			assert.deepStrictEqual(options.sort, { score: { $meta: 'textScore' } });
 		});
 
@@ -76,7 +76,7 @@ describe('Text Search Plugin:', () => {
 			});
 
 			const options = query.getOptions();
-			assert(options);
+			assert.ok(options);
 			assert.equal(options.sort, undefined);
 		});
 	});

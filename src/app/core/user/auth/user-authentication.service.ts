@@ -51,24 +51,23 @@ class UserAuthenticationService {
 		await req.passport
 			.authenticate(config.get<string>('auth.strategy'))
 			.bind(req.server)(req, reply);
-		if (!req.user) {
-			// Try to grab the username from the request
-			const username =
-				(req.body as Record<string, string>)?.['username'] ?? 'none provided';
-
-			// Audit the failed attempt
-			auditService
-				.audit(
-					'Authentication failed',
-					'user-authentication',
-					'authentication failed',
-					req,
-					{ username: username }
-				)
-				.then();
-		} else {
+		if (req.user) {
 			return this.login(req);
 		}
+		// Try to grab the username from the request
+		const username =
+			(req.body as Record<string, string>)?.['username'] ?? 'none provided';
+
+		// Audit the failed attempt
+		auditService
+			.audit(
+				'Authentication failed',
+				'user-authentication',
+				'authentication failed',
+				req,
+				{ username: username }
+			)
+			.then();
 	}
 
 	/**

@@ -41,28 +41,28 @@ describe('Contains Search Plugin:', () => {
 	describe('containsSearch:', () => {
 		it('should add containsSearch function to query', () => {
 			const query = ContainsExample.find();
-			assert(query.containsSearch);
+			assert.ok(query.containsSearch);
 			assert.equal(typeof query.containsSearch, 'function');
 		});
 
 		it('should not add to filter if search term is null/undefined/empty string', () => {
-			[null, undefined, ''].forEach((search) => {
+			for (const search of [null, undefined, '']) {
 				const query = ContainsExample.find().containsSearch(search);
 
 				const filter = query.getFilter();
 
 				assert.deepStrictEqual(filter, {});
-			});
+			}
 		});
 
 		it('should not add to filter if field list is empty', () => {
-			[null, []].forEach((fields) => {
+			for (const fields of [null, [] as string[]]) {
 				const query = ContainsExample.find().containsSearch('test', fields);
 
 				const filter = query.getFilter();
 
 				assert.deepStrictEqual(filter, {});
-			});
+			}
 		});
 
 		it('should use provided fields list', () => {

@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 
 import config from 'config';
 
@@ -39,15 +39,15 @@ class AccessCheckerService {
 
 				// Return the saved value if possible
 				return cacheEntry?.value ?? _result;
-			} catch (err) {
+			} catch {
 				// Failures saving to the cache are not critical,
 				// so ignore them and return the result.
 				return _result;
 			}
-		} catch (ex) {
+		} catch (error) {
 			return Promise.reject(
 				new Error(
-					`Error retrieving entry from the access checker provider: ${ex.message}`
+					`Error retrieving entry from the access checker provider: ${error.message}`
 				)
 			);
 		}
@@ -69,10 +69,10 @@ class AccessCheckerService {
 
 			// Store it in the cache if it was found
 			return cacheEntryService.upsert(key, result);
-		} catch (ex) {
+		} catch (error) {
 			return Promise.reject(
 				new Error(
-					`Error refreshing entry from the access checker provider: ${ex.message}`
+					`Error refreshing entry from the access checker provider: ${error.message}`
 				)
 			);
 		}
@@ -100,9 +100,9 @@ class AccessCheckerService {
 						config.get('auth.accessChecker.provider.config')
 					)
 				);
-			} catch (err) {
+			} catch (error) {
 				logger.error(
-					err,
+					error,
 					'Failed to load access checker provider: %s',
 					providerFile
 				);

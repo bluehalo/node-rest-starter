@@ -1,5 +1,5 @@
-import os from 'os';
-import { Readable, Transform } from 'stream';
+import os from 'node:os';
+import { Readable, Transform } from 'node:stream';
 
 import { Type, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
@@ -102,9 +102,9 @@ export const exportPlaintext = (
 			filename,
 			'text/plain',
 			buildExportStream(text, (stream) => () => {
-				text.split(os.EOL).forEach((row) => {
+				for (const row of text.split(os.EOL)) {
 					stream.push(row);
-				});
+				}
 				stream.push(null);
 			})
 		);
@@ -119,9 +119,9 @@ export const buildCSVStream = (
 		data,
 		(stream) => () => {
 			if (Array.isArray(data)) {
-				data.forEach((row) => {
+				for (const row of data) {
 					stream.push(row);
-				});
+				}
 			}
 			stream.push(null);
 		},
@@ -157,9 +157,10 @@ const buildExportStream = (
 		};
 	}
 
-	if (transforms && transforms.length) {
+	if (transforms && transforms.length > 0) {
 		// reduce the initial stream and transform streams to a single stream
 		// destroying the resulting stream will also destroy all of the transform streams and the initial streams
+		// eslint-disable-next-line unicorn/no-array-reduce
 		stream = transforms.reduce((prevStream, transform) => {
 			// pipe previous stream through current transform stream
 			const newStream = prevStream.pipe(transform);

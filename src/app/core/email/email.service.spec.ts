@@ -5,6 +5,7 @@ import * as uuid from 'uuid';
 
 import { config, emailService } from '../../../dependencies';
 import { User } from '../user/user.model';
+
 /**
  * Unit tests
  */
@@ -21,7 +22,7 @@ describe('Email Service:', () => {
 
 	describe('validateMailOptions:', () => {
 		it('should find required missing fields', () => {
-			[
+			for (const options of [
 				{},
 				{ to: undefined },
 				{ to: '' },
@@ -30,24 +31,24 @@ describe('Email Service:', () => {
 					from: '',
 					html: null
 				}
-			].forEach((options) => {
+			]) {
 				assert.throws(() => {
 					emailService.validateMailOptions(options);
 				}, new Error('The following required values were not specified in mailOptions: ("to" or "cc" or "bcc"), "from", "subject", ("text" or "html")'));
-			});
+			}
 
-			[
+			for (const options of [
 				{ to: 'recipient' },
 				{
 					to: 'recipient',
 					from: '',
 					html: null
 				}
-			].forEach((options) => {
+			] as Record<string, unknown>[]) {
 				assert.throws(() => {
 					emailService.validateMailOptions(options);
 				}, new Error('The following required values were not specified in mailOptions: "from", "subject", ("text" or "html")'));
-			});
+			}
 
 			assert.throws(() => {
 				emailService.validateMailOptions({ from: 'sender' });
@@ -153,7 +154,7 @@ ${footer}
 				'src/app/core/user/templates/user-welcome-with-access-email.server.view.html',
 				user.toObject()
 			);
-			assert(subject);
+			assert.ok(subject);
 			assert.equal(subject, expectedResult);
 		});
 
@@ -189,14 +190,14 @@ ${footer}
 				user,
 				{ otherVariable: '2' }
 			);
-			assert(subject);
+			assert.ok(subject);
 			assert.equal(subject, '(pre) subject 2');
 
 			const subject2 = emailService.buildEmailSubject(
 				'{{ subjectPrefix }} subject {{ otherVariable }}',
 				user
 			);
-			assert(subject2);
+			assert.ok(subject2);
 			assert.equal(subject2, '(pre) subject ');
 		});
 	});
@@ -227,7 +228,7 @@ ${footer}
 
 			const options = await emailService.generateMailOptions(user, emailConfig);
 
-			assert(options);
+			assert.ok(options);
 			assert.equal(options.header, header);
 			assert.equal(options.footer, footer);
 			assert.equal(options.subject, emailConfig.subject);

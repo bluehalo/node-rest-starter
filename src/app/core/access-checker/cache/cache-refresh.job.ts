@@ -7,7 +7,7 @@ import accessChecker from '../access-checker.service';
 
 export default class CacheRefreshJobService implements JobService {
 	async run(job: Job) {
-		const refresh = job.attrs.data.refresh ?? 8 * 3600000; // default to 8 hours;
+		const refresh = job.attrs.data.refresh ?? 8 * 3_600_000; // default to 8 hours;
 
 		// Find all the keys that need to be refreshed
 		const results = await CacheEntry.find({

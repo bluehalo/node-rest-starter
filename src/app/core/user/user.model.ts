@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 import { type Static, Type } from '@fastify/type-provider-typebox';
 import _ from 'lodash';
@@ -51,14 +51,14 @@ const passwordMessage = 'Password must be at least 6 characters long';
  */
 export const Roles = config.get<string[]>('auth.roles');
 
-const roleObject = Roles.reduce((obj, role) => {
-	obj[role] = {
+const roleObject: SchemaDefinition = {};
+for (const role of Roles) {
+	roleObject[role] = {
 		type: Boolean,
 		default:
 			config.get<Record<string, boolean>>('auth.defaultRoles')[role] ?? false
 	};
-	return obj;
-}, {} as SchemaDefinition);
+}
 
 const roleSchemaDef = new mongoose.Schema(roleObject, { _id: false });
 
@@ -304,7 +304,7 @@ UserSchema.pre('save', preSave);
 UserSchema.methods.hashPassword = function (password: string) {
 	if (this.salt && password) {
 		return crypto
-			.pbkdf2Sync(password, this.salt, 10000, 64, 'SHA1')
+			.pbkdf2Sync(password, this.salt, 10_000, 64, 'SHA1')
 			.toString('base64');
 	}
 	return password;

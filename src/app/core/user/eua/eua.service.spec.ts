@@ -34,24 +34,24 @@ describe('EUA Service:', () => {
 
 			// Create eua and verify properties
 			let eua = await euaService.create(data);
-			assert(eua);
+			assert.ok(eua);
 			assert.equal(eua.title, 'Title');
 			assert.equal(eua.text, 'Text');
-			assert(eua.created);
-			assert(eua.updated);
-			assert(
+			assert.ok(eua.created);
+			assert.ok(eua.updated);
+			assert.ok(
 				eua.created === eua.updated,
 				'expected eua.created to be equal to eua.updated on create'
 			);
 
 			// Re-query created eua and verify properties
 			eua = await UserAgreement.findById(eua._id);
-			assert(eua);
+			assert.ok(eua);
 			assert.equal(eua.title, 'Title');
 			assert.equal(eua.text, 'Text');
-			assert(eua.created);
-			assert(eua.updated);
-			assert(
+			assert.ok(eua.created);
+			assert.ok(eua.updated);
+			assert.ok(
 				eua.created.toString() === eua.updated.toString(),
 				'expected eua.created to be equal to eua.updated on find'
 			);
@@ -69,7 +69,7 @@ describe('EUA Service:', () => {
 
 			// Read eua
 			eua = await euaService.read(eua._id);
-			assert(eua);
+			assert.ok(eua);
 			assert.equal(eua.title, 'Title');
 			assert.equal(eua.text, 'Text');
 		});
@@ -93,13 +93,13 @@ describe('EUA Service:', () => {
 			// Update eua
 			const update = { title: 'New Title', text: 'New Text' };
 			eua = await euaService.update(eua, update);
-			assert(eua);
+			assert.ok(eua);
 			assert.equal(eua.title, 'New Title');
 			assert.equal(eua.text, 'New Text');
 
 			// re-query and verify update
 			eua = await UserAgreement.findById(eua._id);
-			assert(eua);
+			assert.ok(eua);
 			assert.equal(eua.title, 'New Title');
 			assert.equal(eua.text, 'New Text');
 		});
@@ -116,7 +116,7 @@ describe('EUA Service:', () => {
 
 			// Verify eua is in db
 			eua = await UserAgreement.findById(eua._id);
-			assert(eua);
+			assert.ok(eua);
 
 			// Remove eua
 			await euaService.delete(eua);
@@ -129,7 +129,7 @@ describe('EUA Service:', () => {
 
 	describe('search', () => {
 		beforeEach(async () => {
-			const euas = [...Array(100).keys()].map((index) => {
+			const euas = [...Array.from({ length: 100 }).keys()].map((index) => {
 				return new UserAgreement({
 					title: `Title-${index}`,
 					text: `Text-${index}`
@@ -156,7 +156,7 @@ describe('EUA Service:', () => {
 				totalPages: Math.ceil(100 / queryParams.size)
 			});
 
-			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.ok(Array.isArray(elements), 'elements should be an Array');
 			assert.equal(elements.length, queryParams.size);
 		});
 	});
@@ -173,8 +173,8 @@ describe('EUA Service:', () => {
 
 			eua = await euaService.publishEua(eua);
 
-			assert(eua);
-			assert(eua.published);
+			assert.ok(eua);
+			assert.ok(eua.published);
 		});
 	});
 
@@ -211,7 +211,7 @@ describe('EUA Service:', () => {
 
 			const eua = await euaService.getCurrentEua();
 
-			assert(eua);
+			assert.ok(eua);
 			assert.deepStrictEqual(eua.toObject(), eua1.toObject());
 		});
 	});
@@ -239,8 +239,8 @@ describe('EUA Service:', () => {
 
 			// query for user and verify accepted eua is now set
 			user = await User.findById(user._id);
-			assert(user.acceptedEua);
-			assert(
+			assert.ok(user.acceptedEua);
+			assert.ok(
 				user.acceptedEua.getTime() >= now,
 				'expected acceptedEua to be >= "now"'
 			);
@@ -262,15 +262,15 @@ describe('EUA Service:', () => {
 			await user.save();
 
 			// Verify accepted eua date is set
-			assert(user.acceptedEua);
+			assert.ok(user.acceptedEua);
 
 			// accept eua
 			await euaService.acceptEua(user);
 
 			// query for user and verify accepted eua is now updated
 			user = await User.findById(user._id);
-			assert(user.acceptedEua);
-			assert(
+			assert.ok(user.acceptedEua);
+			assert.ok(
 				user.acceptedEua.getTime() >= now,
 				'expected acceptedEua to be >= "now"'
 			);

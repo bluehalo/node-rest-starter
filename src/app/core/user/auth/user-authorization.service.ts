@@ -1,6 +1,6 @@
 'use strict';
 
-import path from 'path';
+import path from 'node:path';
 
 import _ from 'lodash';
 import { FilterQuery } from 'mongoose';
@@ -124,7 +124,7 @@ class UserAuthorizationService {
 				this.provider = new Provider(
 					config.get('auth.externalRoles.provider.config')
 				);
-			} catch (err) {
+			} catch {
 				throw new Error(
 					`Failed to load external role map provider: ${config.get(
 						'auth.externalRoles.provider.file'

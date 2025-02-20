@@ -1,3 +1,4 @@
+// eslint-disable-next-line n/no-extraneous-import
 import { Request } from 'express';
 import { FastifyRequest } from 'fastify';
 import _ from 'lodash';
@@ -97,9 +98,9 @@ class ProxyPkiStrategy extends TrustedHeadersStrategy {
 			}
 
 			return done(null, primaryUser);
-		} catch (err) {
-			if (err.status && err.type && err.message) {
-				return done(null, false, err);
+		} catch (error) {
+			if (error.status && error.type && error.message) {
+				return done(null, false, error);
 			}
 			return done(
 				null,

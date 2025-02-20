@@ -1,5 +1,5 @@
-import crypto from 'crypto';
-import { promisify } from 'util';
+import crypto from 'node:crypto';
+import { promisify } from 'node:util';
 
 import { DateTime } from 'luxon';
 
@@ -27,7 +27,7 @@ class UserPasswordService {
 			await this.sendResetPasswordEmail(user, token, req);
 
 			return user;
-		} catch (error) {
+		} catch {
 			throw new BadRequestError('Failure generating reset password token.');
 		}
 	}
@@ -80,7 +80,7 @@ class UserPasswordService {
 			user.resetPasswordToken = undefined;
 			user.resetPasswordExpires = undefined;
 			return user.save();
-		} catch (error) {
+		} catch {
 			throw new BadRequestError('Failure resetting password.');
 		}
 	}

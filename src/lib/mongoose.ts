@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 
 import config from 'config';
 import { glob } from 'glob';
@@ -129,9 +129,9 @@ export const connect = async () => {
 
 		// Return the dbs since everything succeeded
 		return dbs;
-	} catch (err) {
+	} catch (error) {
 		logger.error('Could not connect to admin db');
-		throw err;
+		throw error;
 	}
 };
 
@@ -155,15 +155,15 @@ async function initializeModel(name: string, model: Model<unknown>) {
 	logger.debug(`Initializing model ${name}`);
 	try {
 		return await model.init();
-	} catch (err) {
+	} catch (error) {
 		logger.error(
-			`Error creating index for ${name}: ${err.codeName} - ${err.message}`
+			`Error creating index for ${name}: ${error.codeName} - ${error.message}`
 		);
 		if (
 			config.get<boolean>('mongooseFailOnIndexOptionsConflict') ||
-			err.codeName !== 'IndexOptionsConflict'
+			error.codeName !== 'IndexOptionsConflict'
 		) {
-			throw err;
+			throw error;
 		}
 	}
 }

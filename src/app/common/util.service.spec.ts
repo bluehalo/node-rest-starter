@@ -12,6 +12,8 @@ import { utilService } from '../../dependencies';
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const emptyFn = () => {};
 
+type TestCase = { input: unknown; expected: unknown; name: string };
+
 /**
  * Unit tests
  */
@@ -95,14 +97,14 @@ describe('Utils:', () => {
 
 		it('returns number if number', () => {
 			assert.equal(utilService.dateParse(0), 0);
-			assert.equal(utilService.dateParse(12345), 12345);
-			assert.equal(utilService.dateParse(-12345), -12345);
+			assert.equal(utilService.dateParse(12_345), 12_345);
+			assert.equal(utilService.dateParse(-12_345), -12_345);
 		});
 
 		it('returns number if string is a number', () => {
 			assert.equal(utilService.dateParse('0'), 0);
-			assert.equal(utilService.dateParse('12345'), 12345);
-			assert.equal(utilService.dateParse('-12345'), -12345);
+			assert.equal(utilService.dateParse('12345'), 12_345);
+			assert.equal(utilService.dateParse('-12345'), -12_345);
 		});
 
 		it('returns null if string is bad', () => {
@@ -115,20 +117,20 @@ describe('Utils:', () => {
 			assert.equal(utilService.dateParse('1970-01-01T00:00:00.000Z'), 0);
 			assert.equal(
 				utilService.dateParse('2017-06-19T20:41:45.000Z'),
-				1497904905000
+				1_497_904_905_000
 			);
 		});
 
 		it('returns number if date', () => {
 			assert.equal(utilService.dateParse(new Date(0)), 0);
-			assert.equal(utilService.dateParse(new Date(12345)), 12345);
+			assert.equal(utilService.dateParse(new Date(12_345)), 12_345);
 			const now = new Date();
 			assert.equal(utilService.dateParse(now), now.getTime());
 		});
 	});
 
 	describe('getPage:', () => {
-		[
+		for (const test of [
 			{
 				input: null,
 				expected: 0,
@@ -150,23 +152,23 @@ describe('Utils:', () => {
 				name: 'should return value for positive input'
 			},
 			{
-				input: { page: 10000000 },
-				expected: 10000000,
+				input: { page: 10_000_000 },
+				expected: 10_000_000,
 				name: 'should return large, positive input'
 			}
-		].forEach((test) => {
+		]) {
 			it(test.name, () => {
 				const actual = utilService.getPage(test.input);
 				assert.equal(actual, test.expected);
 			});
-		});
+		}
 	});
 
 	describe('getLimit:', () => {
 		const defaultLimit = 20,
 			defaultMax = 100;
 
-		[
+		for (const test of [
 			{
 				inputQueryParams: null,
 				expected: defaultLimit,
@@ -193,17 +195,17 @@ describe('Utils:', () => {
 				name: 'should return value for positive input'
 			},
 			{
-				inputQueryParams: { size: 10000000 },
+				inputQueryParams: { size: 10_000_000 },
 				expected: defaultMax,
 				name: 'should cap limit to default max'
 			},
 			{
-				inputQueryParams: { size: 10000000 },
+				inputQueryParams: { size: 10_000_000 },
 				inputMaxSize: 50,
 				expected: 50,
 				name: 'should cap limit to input max'
 			}
-		].forEach((test) => {
+		]) {
 			it(test.name, () => {
 				const actual = utilService.getLimit(
 					test.inputQueryParams,
@@ -211,11 +213,11 @@ describe('Utils:', () => {
 				);
 				assert.equal(actual, test.expected);
 			});
-		});
+		}
 	});
 
 	describe('getSort:', () => {
-		[
+		for (const test of [
 			{
 				input: null,
 				expected: null,
@@ -226,14 +228,14 @@ describe('Utils:', () => {
 				expected: null,
 				name: 'should return null for empty params'
 			}
-		].forEach((test) => {
+		] as TestCase[]) {
 			it(test.name, () => {
 				const actual = utilService.getSort(test.input);
 				assert.equal(actual, test.expected);
 			});
-		});
+		}
 
-		[
+		for (const test of [
 			{
 				input: { sort: 'field1', dir: 'DESC' },
 				expected: [{ property: 'field1', direction: 'DESC' }],
@@ -263,7 +265,7 @@ describe('Utils:', () => {
 				expected: [{ property: 'field1', direction: 'DESC' }],
 				name: 'should use override default sort and dir'
 			}
-		].forEach((test) => {
+		]) {
 			it(test.name, () => {
 				const actual = utilService.getSort(
 					test.input,
@@ -272,29 +274,29 @@ describe('Utils:', () => {
 				);
 				assert.deepStrictEqual(actual, test.expected);
 			});
-		});
+		}
 	});
 
 	describe('getSortObj:', () => {
-		[
+		for (const test of [
 			{
 				input: null,
 				expected: null,
-				name: 'should return null for null params '
+				name: 'should return null for null params'
 			},
 			{
 				input: {},
 				expected: null,
 				name: 'should return null for empty params'
 			}
-		].forEach((test) => {
+		] as TestCase[]) {
 			it(test.name, () => {
 				const actual = utilService.getSortObj(test.input);
 				assert.equal(actual, test.expected);
 			});
-		});
+		}
 
-		[
+		for (const test of [
 			{
 				input: { sort: 'field1', dir: 'DESC' },
 				expected: { field1: -1 },
@@ -331,7 +333,7 @@ describe('Utils:', () => {
 				expected: { field1: -1 },
 				name: 'should default to DESC sort for invalid dir value'
 			}
-		].forEach((test) => {
+		]) {
 			it(test.name, () => {
 				const actual = utilService.getSortObj(
 					test.input,
@@ -342,11 +344,11 @@ describe('Utils:', () => {
 				);
 				assert.deepStrictEqual(actual, test.expected);
 			});
-		});
+		}
 	});
 
 	describe('validateNonEmpty:', () => {
-		[
+		for (const test of [
 			{ input: null, expected: false, name: 'should return false for null' },
 			{
 				input: undefined,
@@ -359,16 +361,16 @@ describe('Utils:', () => {
 				name: 'should return false for empty string'
 			},
 			{ input: 'Hello', expected: true, name: 'should return true for string' }
-		].forEach((test) => {
+		]) {
 			it(test.name, () => {
 				const actual = utilService.validateNonEmpty(test.input);
 				assert.equal(actual, test.expected);
 			});
-		});
+		}
 	});
 
 	describe('removeStringsEndingWithWildcard:', () => {
-		[
+		for (const test of [
 			{
 				input: null,
 				name: 'should handle null input with default',
@@ -393,13 +395,13 @@ describe('Utils:', () => {
 					output: ['foo*']
 				}
 			}
-		].forEach((test) => {
+		]) {
 			it(test.name, () => {
 				const actual = utilService.removeStringsEndingWithWildcard(test.input);
 				assert.deepStrictEqual(test.input, test.expected.input);
 				assert.deepStrictEqual(actual, test.expected.output);
 			});
-		});
+		}
 	});
 
 	describe('escapeRegex:', () => {
@@ -410,17 +412,17 @@ describe('Utils:', () => {
 				description: 'Nothing to escape'
 			},
 			{
-				input: '.?*+^$[]\\(){}|-',
-				expected: '\\.\\?\\*\\+\\^\\$\\[\\]\\\\\\(\\)\\{\\}\\|\\-',
+				input: String.raw`.?*+^$[]\(){}|-`,
+				expected: String.raw`\.\?\*\+\^\$\[\]\\\(\)\{\}\|\-`,
 				description: 'All of the characters to escape'
 			}
 		];
 
-		tests.forEach((test) => {
+		for (const test of tests) {
 			it(test.description, () => {
 				const result = utilService.escapeRegex(test.input);
 				assert.equal(result, test.expected);
 			});
-		});
+		}
 	});
 });

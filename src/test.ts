@@ -40,10 +40,10 @@ mongoose
 					reporterOptions: {
 						output: 'mocha-tests.xml'
 					}
-			  }
+				}
 			: {
 					reporter: 'spec'
-			  };
+				};
 
 		if (argv.bail) {
 			console.log("Mocha: Setting option 'bail' to true.");
@@ -53,12 +53,12 @@ mongoose
 
 		// Add all the tests to mocha
 		let testCount = 0;
-		globSync(config.get<string[]>('assets.tests')).forEach((file) => {
-			if (!argv.filter || file.match(new RegExp(argv.filter))) {
+		for (const file of globSync(config.get<string[]>('assets.tests'))) {
+			if (!argv.filter || new RegExp(argv.filter).test(file)) {
 				testCount++;
 				mocha.addFile(file);
 			}
-		});
+		}
 		console.log(`Mocha: Executing ${testCount} test files.`);
 
 		try {
@@ -66,15 +66,15 @@ mongoose
 			mocha.run((failures) => {
 				process.exit(failures ? 1 : 0);
 			});
-		} catch (ex) {
+		} catch (error) {
 			console.error('Tests Crashed');
-			console.error(ex);
+			console.error(error);
 			process.exit(1);
 		}
 	})
-	.catch((err) => {
+	.catch((error) => {
 		console.error('Mongoose initialization failed, tests failed.');
-		console.error(err);
+		console.error(error);
 		// non-zero exit code to let the process know that we've failed
 		process.exit(1);
 	});

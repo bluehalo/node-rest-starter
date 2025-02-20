@@ -1,5 +1,5 @@
-import http from 'http';
-import path from 'path';
+import http from 'node:http';
+import path from 'node:path';
 
 import config from 'config';
 import MongoStore from 'connect-mongo';
@@ -33,9 +33,9 @@ class SocketIo {
 		/**
 		 * Setup Socket Event Handlers
 		 */
-		this.registeredSocketListeners.forEach((SocketListener) => {
+		for (const SocketListener of this.registeredSocketListeners) {
 			new SocketListener(socket, {});
-		});
+		}
 	}
 
 	/**
@@ -52,9 +52,10 @@ class SocketIo {
 	}
 
 	async loadSocketProvider() {
-		this.SocketProvider = (
-			await import(path.posix.resolve(config.get('socketProvider')))
-		).default;
+		const { default: provider } = await import(
+			path.posix.resolve(config.get('socketProvider'))
+		);
+		this.SocketProvider = provider;
 	}
 
 	/**

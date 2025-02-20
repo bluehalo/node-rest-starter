@@ -25,6 +25,6 @@ export = new LocalStrategy(
 				// Return the user
 				return done(null, user);
 			})
-			.catch((err) => done(err));
+			.catch((error) => done(error));
 	}
 );

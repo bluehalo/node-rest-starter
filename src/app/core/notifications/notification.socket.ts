@@ -73,9 +73,9 @@ export class NotificationSocket extends socketIO.SocketProvider {
 				this.subscribe(topic);
 				this._subscriptionCount++;
 			})
-			.catch((err) => {
+			.catch((error) => {
 				logger.warn(
-					`Unauthorized access to notifications by inactive user ${this.getUserId()}: ${err}`
+					`Unauthorized access to notifications by inactive user ${this.getUserId()}: ${error}`
 				);
 			});
 	}

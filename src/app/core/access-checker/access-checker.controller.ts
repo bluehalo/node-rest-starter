@@ -2,8 +2,8 @@ import { Type, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
 
 import accessCheckerService from './access-checker.service';
-import cacheEntryService from './cache/cache-entry.service';
 import { PagingQueryStringType, SearchBodyType } from '../core.types';
+import cacheEntryService from './cache/cache-entry.service';
 import { requireAdminAccess, requireLogin } from '../user/auth/auth.hooks';
 
 const KeyParamsType = Type.Object({

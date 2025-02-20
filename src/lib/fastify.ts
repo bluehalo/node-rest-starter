@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 
 import fastifyCompress from '@fastify/compress';
 import { fastifyCookie } from '@fastify/cookie';
@@ -79,7 +79,7 @@ async function initSession(app: FastifyInstance, db: Mongoose) {
 
 	app.register(fastifyCookie);
 	app.register(fastifySession, {
-		secret: config.get('auth.sessionSecret'),
+		secret: config.get<string>('auth.sessionSecret'),
 		cookie: {
 			secure: false
 			// maxAge: config.get<number>('auth.sessionCookie')

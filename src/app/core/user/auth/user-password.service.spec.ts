@@ -1,5 +1,5 @@
-import crypto from 'crypto';
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
 
 import {
 	assert as sinonAssert,
@@ -51,7 +51,7 @@ describe('User Password Service:', () => {
 	describe('generateToken', () => {
 		it('should generate token', async () => {
 			const token = await userPasswordService.generateToken();
-			assert(token);
+			assert.ok(token);
 			assert.equal(typeof token, 'string', 'expected token to be a string');
 			assert.equal(token.length, 40);
 		});
@@ -73,17 +73,17 @@ describe('User Password Service:', () => {
 				testToken
 			);
 
-			assert(user, 'expected user to exist');
-			assert(
+			assert.ok(user, 'expected user to exist');
+			assert.ok(
 				user.resetPasswordToken,
 				'expected user.resetPasswordToken to exist'
 			);
-			assert(
+			assert.ok(
 				user.resetPasswordExpires,
 				'expected user.resetPasswordExpires to exist'
 			);
 			assert.equal(user.resetPasswordToken, testToken);
-			assert(
+			assert.ok(
 				user.resetPasswordExpires.getTime() > Date.now(),
 				'expected resetPasswordExpires to be greater than "now'
 			);
@@ -104,8 +104,8 @@ describe('User Password Service:', () => {
 				'password'
 			);
 
-			assert(user, 'expected user to exist');
-			assert(user.password, 'expected user.password to exist');
+			assert.ok(user, 'expected user to exist');
+			assert.ok(user.password, 'expected user.password to exist');
 			assert.notEqual(user.password, testUser.password);
 			assert.equal(user.resetPasswordToken, undefined);
 			assert.equal(user.resetPasswordExpires, undefined);

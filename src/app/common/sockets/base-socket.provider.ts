@@ -155,9 +155,9 @@ export abstract class BaseSocket<MessageType = Record<string, unknown>> {
 					this.emitMessage(this.getEmitType(), msg);
 				}
 			}
-		} catch (e) {
+		} catch (error) {
 			logger.error(`${this.constructor.name}: Error parsing payload body.`, {
-				err: e,
+				err: error,
 				msg: message
 			});
 		}

@@ -31,9 +31,9 @@ const rollbackMigrations = async () => {
 			];
 			if (migrationDates.length > 0) {
 				console.log('Past migration dates:');
-				migrationDates.forEach((appliedAt) => {
+				for (const appliedAt of migrationDates) {
 					console.log(appliedAt);
-				});
+				}
 			} else {
 				console.log('No migrations found.');
 			}
@@ -53,9 +53,9 @@ const rollbackMigrations = async () => {
 
 			migration = migrations.pop();
 		}
-	} catch (err) {
+	} catch (error) {
 		logger.error('Execution failed.');
-		return Promise.reject(err);
+		return Promise.reject(error);
 	}
 };
 
