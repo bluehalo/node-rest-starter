@@ -78,8 +78,8 @@ describe('Team Model:', () => {
 			team.name = '';
 			try {
 				return await team.save();
-			} catch (err) {
-				assert(err);
+			} catch (error) {
+				assert.ok(error);
 			}
 		});
 	});
@@ -94,22 +94,24 @@ describe('Team Model:', () => {
 
 		it('should create teams without problems', async () => {
 			await assert.doesNotReject(team1.save());
-			assert(team1._id);
+			assert.ok(team1._id);
 
 			await assert.doesNotReject(team2.save());
-			assert(team2._id);
+			assert.ok(team2._id);
 
 			await assert.doesNotReject(team3.save());
-			assert(team3._id);
+			assert.ok(team3._id);
 
 			await assert.doesNotReject(team4.save());
-			assert(team4._id);
+			assert.ok(team4._id);
 
 			// Set some teams on the users
 			user1.teams = [];
-			user1.teams.push({ _id: team1.id, role: TeamRoles.Member });
-			user1.teams.push({ _id: team2.id, role: TeamRoles.Editor });
-			user1.teams.push({ _id: team3.id, role: TeamRoles.Admin });
+			user1.teams.push(
+				{ _id: team1.id, role: TeamRoles.Member },
+				{ _id: team2.id, role: TeamRoles.Editor },
+				{ _id: team3.id, role: TeamRoles.Admin }
+			);
 		});
 	});
 });

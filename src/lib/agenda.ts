@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 
 import { Agenda, Job } from 'agenda';
 import config from 'config';
@@ -48,8 +48,8 @@ const registerJob = async (agenda: Agenda, jobConfig: JobConfig) => {
 		logger.debug('Running job', { job: jobConfig.name });
 		jobService
 			.run(job)
-			.catch((err) => {
-				logger.error('Error running job', { job: jobConfig.name, err });
+			.catch((error) => {
+				logger.error('Error running job', { job: jobConfig.name, err: error });
 				// Ignore any errors
 				return Promise.resolve();
 			})

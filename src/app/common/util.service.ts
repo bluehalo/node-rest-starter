@@ -9,7 +9,7 @@ export const validateNonEmpty = function (property?: string) {
 };
 
 export const toLowerCase = function (v: string | null) {
-	return null != v ? v.toLowerCase() : undefined;
+	return null == v ? undefined : v.toLowerCase();
 };
 
 /**
@@ -20,8 +20,8 @@ export const toLowerCase = function (v: string | null) {
  * @returns The timestamp in milliseconds since the Unix epoch
  */
 export const dateParse = function (
-	// eslint-disable-next-line @typescript-eslint/ban-types
-	date: string | number | Date | Array<unknown> | Function | Object
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+	date: string | number | Date | Array<unknown> | Function | object
 ) {
 	// Handle nil values, arrays, and functions by simply returning null
 	if (_.isNil(date) || Array.isArray(date) || _.isFunction(date)) {
@@ -168,10 +168,11 @@ export const toMongoose = <T = unknown>(
 		if (Array.isArray(obj)) {
 			return obj.map((value) => propToMongoose(value, toMongoose));
 		}
-		return Object.keys(obj).reduce((newObj, key) => {
+		const newObj: Record<string, unknown> = {};
+		for (const key of Object.keys(obj)) {
 			newObj[key] = propToMongoose(obj[key], toMongoose);
-			return newObj;
-		}, {} as FilterQuery<unknown>);
+		}
+		return newObj;
 	}
 	return obj;
 };
@@ -193,7 +194,7 @@ export const removeStringsEndingWithWildcard = (stringArray: string[]) => {
  * Escapes regex-specific characters in a given string
  */
 export const escapeRegex = (str: string) => {
-	return `${str}`.replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&');
+	return `${str}`.replaceAll(/[.?*+^$[\]\\(){}|-]/g, String.raw`\$&`);
 };
 
 export const getId = <T>(obj: IdOrObject<T>) => {

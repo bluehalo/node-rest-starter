@@ -76,7 +76,7 @@ describe('Feedback Admin Controller', () => {
 				200,
 				`route rejected with "${reply.payload}"`
 			);
-			assert(reply.body);
+			assert.ok(reply.body);
 		});
 	});
 
@@ -102,7 +102,7 @@ describe('Feedback Admin Controller', () => {
 				`route rejected with "${reply.payload}"`
 			);
 			assert.equal(reply.json().assignee, 'user');
-			assert(reply.body);
+			assert.ok(reply.body);
 		});
 	});
 
@@ -128,7 +128,7 @@ describe('Feedback Admin Controller', () => {
 				`route rejected with "${reply.payload}"`
 			);
 			assert.equal(reply.json().status, 'Closed');
-			assert(reply.body);
+			assert.ok(reply.body);
 		});
 	});
 });

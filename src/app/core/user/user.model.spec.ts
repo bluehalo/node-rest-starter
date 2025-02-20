@@ -10,7 +10,7 @@ import { CreateUserType } from './user.types';
  * Globals
  */
 function clearDatabase() {
-	return Promise.all([User.deleteMany({}).exec()]);
+	return User.deleteMany({}).exec();
 }
 
 function userSpec(key: string) {
@@ -49,13 +49,13 @@ describe('User Model:', () => {
 			it('creates with defaults', async () => {
 				const user = userSpec('valid');
 				const userModel = await user.save();
-				['user', 'editor', 'auditor', 'admin'].forEach((role) => {
+				for (const role of ['user', 'editor', 'auditor', 'admin']) {
 					assert.equal(
 						(userModel.roles as Record<string, boolean>)[role],
 						false,
 						'roles all default to false'
 					);
-				});
+				}
 				// assert(userModel.roles._id);
 				assert.equal(userModel.phone, '', 'phone defaults to empty');
 				assert.equal(userModel.canProxy, false, 'canProxy defaults to false');
@@ -114,10 +114,16 @@ describe('User Model:', () => {
 				const testUser = new User(spec);
 				const filtered = testUser.filteredCopy();
 				// Test that sensitive values are removed.
-				['password', 'email', 'salt', 'organization', 'roles'].forEach((p) => {
+				for (const p of [
+					'password',
+					'email',
+					'salt',
+					'organization',
+					'roles'
+				]) {
 					assert.equal(filtered[p], undefined);
 					delete (spec as Record<string, unknown>)[p];
-				});
+				}
 				delete filtered._id;
 				assert.deepStrictEqual(filtered, spec);
 			});
@@ -143,10 +149,10 @@ describe('User Model:', () => {
 				const filtered = testUser.fullCopy();
 				const obj = testUser.toObject();
 				// Test that sensitive values are removed.
-				['password', 'salt'].forEach((p) => {
+				for (const p of ['password', 'salt']) {
 					assert.equal((filtered as Record<string, unknown>)[p], undefined);
 					delete (obj as Record<string, unknown>)[p];
-				});
+				}
 				assert.deepStrictEqual(filtered, obj);
 			});
 		});
@@ -180,13 +186,12 @@ describe('User Model:', () => {
 				assert.equal(copy.providerData, undefined);
 
 				// Strip fields from expectation that are not needed for audit.
-				['created', 'updated'].forEach(
-					(k) => delete (copy as Record<string, unknown>)[k]
-				);
+				for (const k of ['created', 'updated'])
+					delete (copy as Record<string, unknown>)[k];
 
 				const obj = testUser.toObject();
 				// Strip fields from expectation that are not needed for audit.
-				[
+				for (const k of [
 					'providerData',
 					'salt',
 					'acceptedEua',
@@ -201,7 +206,8 @@ describe('User Model:', () => {
 					'canProxy',
 					'roles',
 					'teams'
-				].forEach((k) => delete (obj as Record<string, unknown>)[k]);
+				])
+					delete (obj as Record<string, unknown>)[k];
 
 				assert.deepStrictEqual(copy, obj);
 			});
@@ -237,7 +243,7 @@ describe('User Model:', () => {
 				const audit = testUser.auditCopy(ip);
 				const obj = testUser.toObject();
 				// Strip fields from expectation that are not needed for audit.
-				[
+				for (const k of [
 					'created',
 					'password',
 					'providerData',
@@ -249,7 +255,8 @@ describe('User Model:', () => {
 					'id',
 					'lastLogin',
 					'lastLoginWithAccess'
-				].forEach((k) => delete (obj as Record<string, unknown>)[k]);
+				])
+					delete (obj as Record<string, unknown>)[k];
 				// Alter expectation to include flattened DN and IP.
 				const testUserWithDNandIP = { ...obj, dn, ip };
 				assert.deepStrictEqual(audit, testUserWithDNandIP);
@@ -275,19 +282,19 @@ describe('User Model:', () => {
 	describe('Method Save', () => {
 		it('should begin with no users', async () => {
 			const result = await User.find({}).exec();
-			assert(Array.isArray(result));
+			assert.ok(Array.isArray(result));
 			assert.equal(result.length, 0);
 		});
 
 		it('should be able to save a valid user', async () => {
 			const validUser = userSpec('valid');
 			const result = await validUser.save();
-			assert(result);
+			assert.ok(result);
 		});
 
 		it('should result in 1 user', async () => {
 			const result = await User.find({}).exec();
-			assert(Array.isArray(result));
+			assert.ok(Array.isArray(result));
 			assert.equal(result.length, 1);
 		});
 
@@ -296,13 +303,13 @@ describe('User Model:', () => {
 			try {
 				await validUser.save();
 				assert.fail();
-			} catch (err) {
-				assert(err);
+			} catch (error) {
+				assert.ok(error);
 			}
 		});
 
 		// Testing missing fields
-		['name', 'organization', 'email', 'username'].forEach((field) => {
+		for (const field of ['name', 'organization', 'email', 'username']) {
 			// Creating a test case for each field
 			it(`should fail to save if missing field: '${field}'`, async () => {
 				const user = userSpec(`missing_${field}`);
@@ -311,10 +318,10 @@ describe('User Model:', () => {
 				try {
 					await user.save();
 					assert.fail();
-				} catch (err) {
-					assert(err);
+				} catch (error) {
+					assert.ok(error);
 				}
 			});
-		});
+		}
 	});
 });

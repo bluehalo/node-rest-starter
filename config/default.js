@@ -54,8 +54,8 @@ module.exports = {
 
 	messages: {
 		topic: 'message.posted',
-		expireSeconds: 2592000, // default to 30 days,
-		dismissedTimeSeconds: 604800 // default to 7 days
+		expireSeconds: 2_592_000, // default to 30 days,
+		dismissedTimeSeconds: 604_800 // default to 7 days
 	},
 
 	pages: {
@@ -190,7 +190,7 @@ module.exports = {
 				file: './src/app/core/access-checker/cache/cache-refresh.job',
 				interval: '12 hours',
 				data: {
-					refresh: 12 * 3600000
+					refresh: 12 * 3_600_000
 				}
 			},
 			'inactive-user': {
@@ -199,10 +199,10 @@ module.exports = {
 				interval: '1 days',
 				data: {
 					alertIntervals: [
-						30 * 86400000, // 30 days
-						60 * 86400000 // 60 days
+						30 * 86_400_000, // 30 days
+						60 * 86_400_000 // 60 days
 					],
-					deactivateAfter: 90 * 86400000 // 90 days
+					deactivateAfter: 90 * 86_400_000 // 90 days
 				}
 			}
 		}
@@ -237,7 +237,7 @@ module.exports = {
 	/*
 	 * The maximum time in milliseconds allowed for processing operation on the cursor by a mongo query
 	 */
-	maxTimeMS: 30000,
+	maxTimeMS: 30_000,
 
 	/*
 	 * The maximum time in milliseconds allowed for a count operation on the cursor by a mongo search/pagination query
@@ -245,9 +245,9 @@ module.exports = {
 	maxCountTimeMS: 5000,
 
 	// configures mongo TTL index.  Overriding these may require dropping existing index
-	notificationExpires: 15552000, // 180 days
-	auditExpires: 15552000, //180 days
-	feedbackExpires: 15552000, // 180 days
+	notificationExpires: 15_552_000, // 180 days
+	auditExpires: 15_552_000, //180 days
+	feedbackExpires: 15_552_000, // 180 days
 
 	/**
 	 * Environment Settings

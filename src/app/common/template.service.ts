@@ -1,4 +1,4 @@
-import fs from 'fs/promises';
+import fs from 'node:fs/promises';
 
 import config from 'config';
 import handlebars from 'handlebars';
@@ -11,13 +11,11 @@ handlebars.registerHelper(
 );
 handlebars.registerHelper('lower', (str: string) => str?.toLowerCase());
 handlebars.registerHelper('upper', (str: string) => str?.toUpperCase());
-handlebars.registerHelper(
-	'head',
-	(str: string, count: number) => str?.substring(0, count)
+handlebars.registerHelper('head', (str: string, count: number) =>
+	str?.slice(0, Math.max(0, count))
 );
-handlebars.registerHelper(
-	'tail',
-	(str: string, count: number) => str?.substring(str.length - count)
+handlebars.registerHelper('tail', (str: string, count: number) =>
+	str?.slice(Math.max(0, str.length - count))
 );
 
 class TemplateService {
@@ -26,7 +24,7 @@ class TemplateService {
 		data: Record<string, unknown>,
 		options: RuntimeOptions = {}
 	) {
-		const template = await fs.readFile(templatePath, 'utf-8');
+		const template = await fs.readFile(templatePath, 'utf8');
 		const templateData = _.merge(
 			{},
 			{

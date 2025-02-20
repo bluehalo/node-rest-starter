@@ -51,7 +51,7 @@ export default function (_fastify: FastifyInstance) {
 					try {
 						doc.audit.object = JSON.parse(doc.audit.object);
 						return doc;
-					} catch (e) {
+					} catch {
 						// ignore
 						return doc;
 					}
@@ -106,18 +106,20 @@ export default function (_fastify: FastifyInstance) {
 
 			const columns = exportConfig.config.cols;
 
-			columns.forEach((col) => {
+			for (const col of columns) {
 				col.title = col.title ?? _.capitalize(col.key);
 
 				switch (col.key) {
-					case 'created':
+					case 'created': {
 						col.callback = Callbacks.formatDate(`yyyy-LL-dd HH:mm:ss`);
 						break;
-					case 'audit.actor':
+					}
+					case 'audit.actor': {
 						col.callback = Callbacks.getValueProperty('name');
 						break;
+					}
 				}
-			});
+			}
 
 			const sort = util.getSortObj(exportConfig.config, 'DESC', '_id');
 

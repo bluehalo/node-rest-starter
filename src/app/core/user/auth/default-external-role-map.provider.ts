@@ -10,7 +10,7 @@ export default class DefaultExternalRoleMapProvider
 
 	hasRole(user: Partial<IUser>, role: string): boolean {
 		const externalRoles = user.externalRoles || [];
-		return externalRoles.indexOf(this.config.externalRoleMap[role]) !== -1;
+		return externalRoles.includes(this.config.externalRoleMap[role]);
 	}
 
 	generateFilterForRole(role: string): FilterQuery<UserDocument> {

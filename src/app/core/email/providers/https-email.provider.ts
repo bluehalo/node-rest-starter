@@ -1,5 +1,5 @@
-import fs from 'fs';
-import https, { AgentOptions } from 'https';
+import fs from 'node:fs';
+import https, { AgentOptions } from 'node:https';
 
 import _ from 'lodash';
 
@@ -61,12 +61,12 @@ export default class HttpsEmailProvider implements EmailProvider {
 				res.on('end', () => {
 					if (res.statusCode === 404) {
 						reject(new InternalServerError('Email service not found'));
-					} else if (res.statusCode !== 200) {
-						reject(data); // send back the error
-					} else {
+					} else if (res.statusCode === 200) {
 						// 200 response
 						const result = JSON.parse(data);
 						resolve(result);
+					} else {
+						reject(data); // send back the error
 					}
 				});
 			});

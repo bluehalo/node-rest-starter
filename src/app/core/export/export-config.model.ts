@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { HydratedDocument, Model, Schema, Types, model } from 'mongoose';
 
 export type ExportColumnDef = {
@@ -69,7 +68,7 @@ ExportConfigSchema.methods.auditCopy = function () {
 	const toReturn: Record<string, unknown> = {};
 	toReturn._id = this._id;
 	toReturn.type = this.type;
-	toReturn.config = _.cloneDeep(this.config);
+	toReturn.config = structuredClone(this.config);
 
 	return toReturn;
 };

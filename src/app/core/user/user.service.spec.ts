@@ -39,7 +39,7 @@ describe('User Profile Service:', () => {
 			await user.save();
 
 			user = await userService.read(user._id);
-			assert(user);
+			assert.ok(user);
 			assert.equal(user.name, 'user1 Name');
 		});
 
@@ -63,7 +63,7 @@ describe('User Profile Service:', () => {
 
 			// re-query and verify update
 			user = await User.findById(user._id);
-			assert(user);
+			assert.ok(user);
 			assert.equal(user.name, 'New Name');
 			assert.equal(user.email, 'new@email.email');
 		});
@@ -78,7 +78,7 @@ describe('User Profile Service:', () => {
 
 			// Verify user is in db
 			user = await User.findById(user._id);
-			assert(user);
+			assert.ok(user);
 
 			// Remove user
 			await userService.remove(user);
@@ -91,7 +91,7 @@ describe('User Profile Service:', () => {
 
 	describe('searchUsers', () => {
 		beforeEach(async () => {
-			const users = [...Array(100).keys()].map((index) =>
+			const users = [...Array.from({ length: 100 }).keys()].map((index) =>
 				userSpec(`user${index}`)
 			);
 
@@ -115,7 +115,7 @@ describe('User Profile Service:', () => {
 				pageNumber: 0,
 				totalPages: 100 / queryParams.size
 			});
-			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.ok(Array.isArray(elements), 'elements should be an Array');
 			assert.equal(elements.length, queryParams.size);
 		});
 
@@ -137,7 +137,7 @@ describe('User Profile Service:', () => {
 				pageNumber: 0,
 				totalPages: 100 / queryParams.size
 			});
-			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.ok(Array.isArray(elements), 'elements should be an Array');
 			assert.equal(elements.length, queryParams.size);
 		});
 	});
@@ -156,7 +156,7 @@ describe('User Profile Service:', () => {
 
 			user = await User.findById(user._id);
 
-			assert(user.preferences);
+			assert.ok(user.preferences);
 			assert.equal(user.preferences.userPref1, 'value');
 			assert.equal(user.preferences.userPref2, 'otherValue');
 		});
@@ -173,7 +173,7 @@ describe('User Profile Service:', () => {
 				preferences: { userPref1: 'oldValue', userPref3: 'oldValue' }
 			});
 			await user.save();
-			assert(user.preferences);
+			assert.ok(user.preferences);
 			assert.equal(user.preferences.userPref1, 'oldValue');
 			assert.equal(user.preferences.userPref3, 'oldValue');
 
@@ -184,7 +184,7 @@ describe('User Profile Service:', () => {
 
 			user = await User.findById(user._id);
 
-			assert(user.preferences);
+			assert.ok(user.preferences);
 			assert.equal(user.preferences.userPref1, 'value');
 			assert.equal(user.preferences.userPref2, 'otherValue');
 			assert.equal(user.preferences.userPref3, 'oldValue');

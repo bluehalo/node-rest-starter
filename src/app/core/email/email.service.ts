@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 
 import _ from 'lodash';
 
@@ -30,7 +30,7 @@ class EmailService {
 
 		const missingOptions: string[] = [];
 
-		requiredOptions.forEach((option) => {
+		for (const option of requiredOptions) {
 			if (Array.isArray(option)) {
 				if (!option.some((orField) => options[orField])) {
 					missingOptions.push(`("${option.join('" or "')}")`);
@@ -38,7 +38,7 @@ class EmailService {
 			} else if (!options[option]) {
 				missingOptions.push(`"${option}"`);
 			}
-		});
+		}
 
 		if (missingOptions.length > 0) {
 			throw new Error(

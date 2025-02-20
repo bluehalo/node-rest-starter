@@ -54,7 +54,7 @@ describe('Messages Service:', () => {
 
 			const messages = await messagesService.getRecentMessages(null);
 
-			assert(Array.isArray(messages), 'messages should be an Array');
+			assert.ok(Array.isArray(messages), 'messages should be an Array');
 			assert.equal(messages.length, msgCount);
 		});
 
@@ -72,7 +72,7 @@ describe('Messages Service:', () => {
 
 			messages = await messagesService.getRecentMessages(user._id);
 
-			assert(Array.isArray(messages), 'messages should be an Array');
+			assert.ok(Array.isArray(messages), 'messages should be an Array');
 			assert.equal(messages.length, msgCount - dismissCount);
 		});
 	});

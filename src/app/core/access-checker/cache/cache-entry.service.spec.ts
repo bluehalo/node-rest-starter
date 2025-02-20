@@ -41,7 +41,7 @@ describe('Cache Entry Service:', () => {
 
 			// Verify entry is in db
 			entry = await CacheEntry.findById(entry._id);
-			assert(entry);
+			assert.ok(entry);
 
 			// Remove entry
 			await cacheEntryService.delete(entry.key);
@@ -56,7 +56,7 @@ describe('Cache Entry Service:', () => {
 		beforeEach(async () => {
 			await CacheEntry.deleteMany().exec();
 
-			const entries = [...Array(100).keys()].map((index) => {
+			const entries = [...Array.from({ length: 100 }).keys()].map((index) => {
 				return new CacheEntry({
 					key: `key${index}`,
 					value: {},
@@ -88,8 +88,8 @@ describe('Cache Entry Service:', () => {
 				totalSize: 100,
 				totalPages: 100 / queryParams.size
 			});
-			assert(elements);
-			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.ok(elements);
+			assert.ok(Array.isArray(elements), 'elements should be an Array');
 			assert.equal(elements.length, queryParams.size);
 		});
 
@@ -104,8 +104,8 @@ describe('Cache Entry Service:', () => {
 				totalSize: 100,
 				totalPages: 100 / pageSize
 			});
-			assert(elements);
-			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.ok(elements);
+			assert.ok(Array.isArray(elements), 'elements should be an Array');
 			assert.equal(elements.length, pageSize);
 		});
 	});

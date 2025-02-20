@@ -7,7 +7,7 @@ import { UserDocument } from './app/core/user/user.model';
 
 declare module 'fastify' {
 	// @ts-expect-error sets PassportUser type to the IUser
-	// eslint-disable-next-line @typescript-eslint/no-empty-interface
+	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 	interface PassportUser extends UserDocument {}
 
 	interface FastifyRequest {

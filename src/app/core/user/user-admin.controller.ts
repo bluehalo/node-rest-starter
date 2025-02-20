@@ -254,7 +254,7 @@ export default function (_fastify: FastifyInstance) {
 
 			// Replace `roles` column with individual columns for each role
 			const columns = exportConfig.config.cols.filter(
-				(col) => ['roles'].indexOf(col.key) === -1
+				(col) => !['roles'].includes(col.key)
 			);
 			if (columns.length !== exportConfig.config.cols.length) {
 				for (const role of Roles) {
@@ -270,27 +270,30 @@ export default function (_fastify: FastifyInstance) {
 
 			// Based on which columns are requested, handle property-specific behavior (ex. callbacks for the
 			// CSV service to make booleans and dates more human-readable)
-			columns.forEach((col) => {
+			for (const col of columns) {
 				col.title = col.title ?? _.capitalize(col.key);
 
 				switch (col.key) {
-					case 'bypassAccessCheck':
+					case 'bypassAccessCheck': {
 						col.callback = Callbacks.trueFalse;
 						break;
+					}
 					case 'lastLogin':
 					case 'created':
 					case 'updated':
-					case 'acceptedEua':
+					case 'acceptedEua': {
 						col.callback = Callbacks.isoDateString;
 						break;
-					case 'teams':
+					}
+					case 'teams': {
 						populate.push({ path: 'teams.team', select: 'name' });
 						col.callback = Callbacks.mapAndJoinArray(
 							(team: { team: { name: string } }) => team.team.name
 						);
 						break;
+					}
 				}
-			});
+			}
 
 			const cursor = userService.cursorSearch(
 				exportConfig.config,

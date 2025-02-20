@@ -195,7 +195,7 @@ describe('Team Service:', () => {
 				team.teamWithNoExternalTeam
 			);
 
-			assert(role);
+			assert.ok(role);
 			assert.equal(role, TeamRoles.Member);
 		});
 
@@ -205,7 +205,7 @@ describe('Team Service:', () => {
 				team.teamWithNoExternalTeam
 			);
 
-			assert(role);
+			assert.ok(role);
 			assert.equal(role, TeamRoles.Member);
 		});
 
@@ -234,7 +234,7 @@ describe('Team Service:', () => {
 					team.teamWithExternalTeam
 				);
 
-				assert(role);
+				assert.ok(role);
 				assert.equal(role, TeamRoles.Member);
 			});
 		});
@@ -264,7 +264,7 @@ describe('Team Service:', () => {
 					team.teamWithExternalRoles
 				);
 
-				assert(role);
+				assert.ok(role);
 				assert.equal(role, TeamRoles.Member);
 			});
 
@@ -274,7 +274,7 @@ describe('Team Service:', () => {
 					team.teamWithExternalRoles2
 				);
 
-				assert(role);
+				assert.ok(role);
 				assert.equal(role, 'blocked');
 			});
 		});
@@ -308,7 +308,7 @@ describe('Team Service:', () => {
 	describe('read', () => {
 		it('read finds team', async () => {
 			const t = await teamsService.read(team.teamWithNoExternalTeam._id);
-			assert(t);
+			assert.ok(t);
 			assert.equal(t.name, 'no-external');
 		});
 
@@ -321,7 +321,7 @@ describe('Team Service:', () => {
 	describe('readTeamMember', () => {
 		it('read finds team', async () => {
 			const t = await userService.read(user.admin._id);
-			assert(t);
+			assert.ok(t);
 			assert.equal(t.name, 'admin Name');
 		});
 
@@ -346,7 +346,7 @@ describe('Team Service:', () => {
 				{ 'teams._id': _team._id },
 				null
 			);
-			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.ok(Array.isArray(elements), 'elements should be an Array');
 			assert.equal(elements.length, 1);
 			assert.equal(elements[0].name, admin.name);
 		});
@@ -363,7 +363,7 @@ describe('Team Service:', () => {
 				{ 'teams._id': _team._id },
 				null
 			);
-			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.ok(Array.isArray(elements), 'elements should be an Array');
 			assert.equal(elements.length, 1);
 			assert.equal(elements[0].name, creator.name);
 		});
@@ -377,7 +377,7 @@ describe('Team Service:', () => {
 			await teamsService.create(_team, creator, null);
 			_team = await Team.findOne({ name: 'nested-team' }).exec();
 
-			assert(_team);
+			assert.ok(_team);
 			assert.equal(typeof _team, 'object');
 			assert.equal(
 				_team.parent.toString(),
@@ -440,20 +440,20 @@ describe('Team Service:', () => {
 
 			// Verify team still exists
 			const result = await Team.findById(team.teamWithNoExternalTeam._id);
-			assert(result);
+			assert.ok(result);
 
 			// Verify team entry is not removed from user
 			const uResult = await User.findById(user.explicit._id);
 			const userTeam = uResult.teams.find((t) =>
 				t._id.equals(team.teamWithNoExternalTeam._id)
 			);
-			assert(userTeam);
+			assert.ok(userTeam);
 		});
 	});
 
 	describe('search', () => {
 		beforeEach(async () => {
-			const teams = [...Array(94).keys()].map((index) => {
+			const teams = [...Array.from({ length: 94 }).keys()].map((index) => {
 				return new Team({
 					name: `Name-${index}`,
 					description: `Description-${index}`
@@ -480,7 +480,7 @@ describe('Team Service:', () => {
 				pageNumber: 0,
 				totalPages: 0
 			});
-			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.ok(Array.isArray(elements), 'elements should be an Array');
 			assert.equal(elements.length, 0);
 		});
 
@@ -501,7 +501,7 @@ describe('Team Service:', () => {
 				pageNumber: 0,
 				totalPages: 10
 			});
-			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.ok(Array.isArray(elements), 'elements should be an Array');
 			assert.equal(elements.length, queryParams.size);
 		});
 
@@ -522,7 +522,7 @@ describe('Team Service:', () => {
 				pageNumber: 0,
 				totalPages: 1
 			});
-			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.ok(Array.isArray(elements), 'elements should be an Array');
 			assert.equal(elements.length, 1);
 		});
 
@@ -543,7 +543,7 @@ describe('Team Service:', () => {
 				pageNumber: 0,
 				totalPages: 1
 			});
-			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.ok(Array.isArray(elements), 'elements should be an Array');
 			assert.equal(elements.length, 2);
 
 			const isMemberResults = (
@@ -574,7 +574,7 @@ describe('Team Service:', () => {
 				pageNumber: 0,
 				totalPages: 1
 			});
-			assert(Array.isArray(elements), 'elements should be an Array');
+			assert.ok(Array.isArray(elements), 'elements should be an Array');
 			assert.equal(elements.length, 2);
 
 			const isMemberResults2 = (
@@ -605,7 +605,7 @@ describe('Team Service:', () => {
 			const userTeam = uResult.teams.find((t) =>
 				t._id.equals(team.teamWithNoExternalTeam._id)
 			);
-			assert(userTeam);
+			assert.ok(userTeam);
 			assert.equal(userTeam.role, TeamRoles.Member);
 		});
 	});
@@ -622,7 +622,7 @@ describe('Team Service:', () => {
 			const userTeam = uResult.teams.find((t) =>
 				t._id.equals(team.teamWithNoExternalTeam._id)
 			);
-			assert(userTeam);
+			assert.ok(userTeam);
 			assert.equal(userTeam.role, TeamRoles.Admin);
 		});
 
@@ -980,7 +980,7 @@ FOOTER
 			sinonAssert.called(sendMailStub);
 			const [mailOptions] = sendMailStub.getCall(0).args;
 
-			assert(mailOptions, 'expected mailOptions to exist');
+			assert.ok(mailOptions, 'expected mailOptions to exist');
 
 			assert.deepStrictEqual(mailOptions.bcc, toEmails);
 			assert.equal(
@@ -1111,7 +1111,7 @@ FOOTER
 			sinonAssert.called(sendMailStub);
 			const [mailOptions] = sendMailStub.getCall(0).args;
 
-			assert(mailOptions, 'expected mailOptions to exist');
+			assert.ok(mailOptions, 'expected mailOptions to exist');
 
 			assert.equal(
 				mailOptions.bcc,
@@ -1167,13 +1167,13 @@ FOOTER
 
 			it('should find implicit teams for user with matching external roles (model object)', async () => {
 				const teamIds = await teamsService.getImplicitTeamIds(user.implicit2);
-				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 				assert.equal(teamIds.length, 2);
 			});
 
 			it('should find implicit teams for user with matching external roles (plain object)', async () => {
 				const teamIds = await teamsService.getImplicitTeamIds(user.implicit2);
-				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 				assert.equal(teamIds.length, 2);
 			});
 
@@ -1181,11 +1181,11 @@ FOOTER
 				const _user = await User.findOne({
 					username: 'implicit1_username'
 				}).exec();
-				assert(_user, 'expected implicit1 to exist');
+				assert.ok(_user, 'expected implicit1 to exist');
 				assert.equal(_user.username, 'implicit1_username');
 
 				const teamIds = await teamsService.getImplicitTeamIds(_user);
-				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 				assert.equal(teamIds.length, 0);
 			});
 
@@ -1193,11 +1193,11 @@ FOOTER
 				const _user = await User.findOne({
 					username: 'blocked_username'
 				}).exec();
-				assert(_user, 'expected blocked to exist');
+				assert.ok(_user, 'expected blocked to exist');
 				assert.equal(_user.username, 'blocked_username');
 
 				const teamIds = await teamsService.getImplicitTeamIds(_user);
-				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 				assert.equal(teamIds.length, 0);
 			});
 		});
@@ -1216,11 +1216,11 @@ FOOTER
 				const _user = await User.findOne({
 					username: 'implicit1_username'
 				}).exec();
-				assert(_user, 'expected implicit1 to exist');
+				assert.ok(_user, 'expected implicit1 to exist');
 				assert.equal(_user.username, 'implicit1_username');
 
 				const teamIds = await teamsService.getImplicitTeamIds(_user);
-				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 				assert.equal(teamIds.length, 1);
 			});
 
@@ -1228,11 +1228,11 @@ FOOTER
 				const _user = await User.findOne({
 					username: 'implicit2_username'
 				}).exec();
-				assert(_user, 'expected user2 to exist');
+				assert.ok(_user, 'expected user2 to exist');
 				assert.equal(_user.username, 'implicit2_username');
 
 				const teamIds = await teamsService.getImplicitTeamIds(_user);
-				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 				assert.equal(teamIds.length, 0);
 			});
 		});
@@ -1246,19 +1246,19 @@ FOOTER
 
 			it('should not find implicit teams for users with matching external roles/teams if disabled', async () => {
 				const user1 = await User.findOne({ username: 'user1_username' }).exec();
-				assert(user1, 'expected user1 to exist');
+				assert.ok(user1, 'expected user1 to exist');
 				assert.equal(user1.username, 'user1_username');
 
 				const user2 = await User.findOne({ username: 'user2_username' }).exec();
-				assert(user2, 'expected user2 to exist');
+				assert.ok(user2, 'expected user2 to exist');
 				assert.equal(user2.username, 'user2_username');
 
 				let teamIds = await teamsService.getImplicitTeamIds(user1);
-				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 				assert.equal(teamIds.length, 0);
 
 				teamIds = await teamsService.getImplicitTeamIds(user2);
-				assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+				assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 				assert.equal(teamIds.length, 0);
 			});
 		});
@@ -1369,7 +1369,7 @@ FOOTER
 					team.teamWithNoExternalTeam._id
 				]);
 
-				assert(
+				assert.ok(
 					Array.isArray(nestedTeamIds),
 					'expect nestedTeamIds to be an Array'
 				);
@@ -1383,7 +1383,7 @@ FOOTER
 
 				const nestedTeamIds = await teamsService.getNestedTeamIds();
 
-				assert(
+				assert.ok(
 					Array.isArray(nestedTeamIds),
 					'expect nestedTeamIds to be an Array'
 				);
@@ -1397,7 +1397,7 @@ FOOTER
 
 				const nestedTeamIds = await teamsService.getNestedTeamIds([]);
 
-				assert(
+				assert.ok(
 					Array.isArray(nestedTeamIds),
 					'expect nestedTeamIds to be an Array'
 				);
@@ -1413,7 +1413,7 @@ FOOTER
 					team.teamWithNoExternalTeam._id
 				]);
 
-				assert(
+				assert.ok(
 					Array.isArray(nestedTeamIds),
 					'expect nestedTeamIds to be an Array'
 				);
@@ -1429,7 +1429,7 @@ FOOTER
 					team.nestedTeam1._id
 				]);
 
-				assert(
+				assert.ok(
 					Array.isArray(nestedTeamIds),
 					'expect nestedTeamIds to be an Array'
 				);
@@ -1560,21 +1560,21 @@ FOOTER
 				new User({ teams: [] })
 			);
 
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.equal(teamIds.length, 0);
 		});
 
 		it('should return no teams for user with no teams array', async () => {
 			const teamIds = await teamsService.getExplicitTeamIds(new User());
 
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.equal(teamIds.length, 0);
 		});
 
 		it('should return all team ids when roles is not specified', async () => {
 			const teamIds = await teamsService.getExplicitTeamIds(_user);
 
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.deepStrictEqual(
 				teamIds.map((t) => t.toString()),
 				_user.teams.map((t) => t._id.toString())
@@ -1587,7 +1587,7 @@ FOOTER
 				TeamRoles.Member
 			);
 
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.deepStrictEqual(
 				teamIds.map((t) => t.toString()),
 				['000000000000000000000001', '000000000000000000000002']
@@ -1600,7 +1600,7 @@ FOOTER
 				TeamRoles.Editor
 			);
 
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.deepStrictEqual(
 				teamIds.map((t) => t.toString()),
 				['000000000000000000000003', '000000000000000000000005']
@@ -1613,7 +1613,7 @@ FOOTER
 				TeamRoles.Admin
 			);
 
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.deepStrictEqual(
 				teamIds.map((t) => t.toString()),
 				['000000000000000000000004']
@@ -1652,7 +1652,7 @@ FOOTER
 				_user,
 				...teamsService.getRoles(TeamRoles.Member)
 			);
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.deepStrictEqual(
 				teamIds.map((t) => t.toString()),
 				[
@@ -1670,7 +1670,7 @@ FOOTER
 				_user,
 				...teamsService.getRoles(TeamRoles.Editor)
 			);
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.deepStrictEqual(
 				teamIds.map((t) => t.toString()),
 				[
@@ -1686,7 +1686,7 @@ FOOTER
 				_user,
 				...teamsService.getRoles(TeamRoles.Admin)
 			);
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.deepStrictEqual(
 				teamIds.map((t) => t.toString()),
 				['000000000000000000000004']
@@ -1698,7 +1698,7 @@ FOOTER
 				user.blocked,
 				...teamsService.getRoles(TeamRoles.Member)
 			);
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.equal(teamIds.length, 0);
 		});
 	});
@@ -1733,7 +1733,7 @@ FOOTER
 			const teamIds = await teamsService.filterTeamIds(_user, [
 				new mongoose.Types.ObjectId('000000000000000000000001')
 			]);
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.deepStrictEqual(
 				teamIds.map((t) => t.toString()),
 				['000000000000000000000001']
@@ -1745,7 +1745,7 @@ FOOTER
 				new mongoose.Types.ObjectId('000000000000000000000001'),
 				new mongoose.Types.ObjectId('000000000000000000000002')
 			]);
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.deepStrictEqual(
 				teamIds.map((t) => t.toString()),
 				['000000000000000000000001', '000000000000000000000002']
@@ -1756,13 +1756,13 @@ FOOTER
 			const teamIds = await teamsService.filterTeamIds(_user, [
 				new mongoose.Types.ObjectId('000000000000000000000006')
 			]);
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.equal(teamIds.length, 0);
 		});
 
 		it('should filter teamIds for membership when no filter', async () => {
 			const teamIds = await teamsService.filterTeamIds(_user);
-			assert(Array.isArray(teamIds), 'expect teamIds to be an Array');
+			assert.ok(Array.isArray(teamIds), 'expect teamIds to be an Array');
 			assert.deepStrictEqual(
 				teamIds.map((t) => t.toString()),
 				[

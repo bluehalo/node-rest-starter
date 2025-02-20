@@ -1,4 +1,5 @@
 import config from 'config';
+// eslint-disable-next-line n/no-extraneous-import
 import { Request } from 'express';
 import { FastifyRequest } from 'fastify';
 
@@ -82,13 +83,13 @@ class AuditService {
 			}
 		});
 
-		return newAudit.save().catch((err) => {
+		return newAudit.save().catch((error) => {
 			// Log and continue the error
 			logger.error('Error trying to persist audit record to storage.', {
-				err: err,
+				err: error,
 				audit: newAudit
 			});
-			return Promise.reject(err);
+			return Promise.reject(error);
 		});
 	}
 

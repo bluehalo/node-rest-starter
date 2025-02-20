@@ -60,10 +60,10 @@ export class MessageSocket extends socketIO.SocketProvider {
 				this.subscribe(topic);
 				this._subscriptionCount++;
 			})
-			.catch((err) => {
+			.catch((error) => {
 				logger.warn('Unauthorized access to messages by inactive user', {
 					user: this.getUserId(),
-					err
+					err: error
 				});
 			});
 	}
