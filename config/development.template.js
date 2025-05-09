@@ -14,6 +14,10 @@ module.exports = {
 		helpUrl: 'http://localhost:4200/#/help'
 	},
 
+	auth: {
+		// sessionSecret: 'should_be_overridden_in_env_specific_config',
+	},
+
 	/**
 	 * Core System Settings
 	 */

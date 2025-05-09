@@ -15,7 +15,7 @@ module.exports = {
 		description: 'Node REST app',
 		clientUrl: 'http://localhost/#',
 		helpUrl: 'http://localhost/#/help',
-		contactEmail: 'noreply@bluehalo.com'
+		contactEmail
 	},
 
 	/**
@@ -176,7 +176,7 @@ module.exports = {
 		},
 
 		// Session secret is used to validate sessions
-		sessionSecret: 'AJwo4MDj932jk9J5jldm34jZjnDjbnASqPksh4',
+		// sessionSecret: 'should_be_overridden_in_env_specific_config',
 
 		// Session mongo collection
 		sessionCollection: 'sessions'
@@ -256,6 +256,10 @@ module.exports = {
 	// Configuration for outgoing mail server / service
 	mailer: {
 		from: 'USERNAME@GMAIL.COM',
+		provider: './src/app/core/email/providers/log-email.server.provider',
+		options: {}
+		// Example of SMTP Email provider config
+		/*
 		provider: './src/app/core/email/providers/smtp-email.provider',
 		options: {
 			host: 'gmail',
@@ -266,10 +270,9 @@ module.exports = {
 				pass: 'PASSWORD'
 			}
 		}
-		/*
-		provider: './src/app/core/email/providers/log-email.server.provider',
-		options: {}
 		*/
+
+		// Example of HTTPS Email provider config
 		/*
 		provider: './src/app/core/email/providers/https-email.server.provider',
 		options: {
